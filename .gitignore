@@ -1,5 +1,6 @@
-# Fichiers Python
+# Cache Python
 __pycache__/
+*.pyc
 *.py[cod]
 *$py.class
 *.so
@@ -11,12 +12,16 @@ venv/
 ENV/
 env/
 
-# Base de données locale
+# Base de données locale (à ne jamais envoyer)
 instance/
 *.db
 *.sqlite
 
-# Fichiers de configuration locale
+# Uploads utilisateurs
+static/uploads/
+
+# Configs locales
+*.env
 .env
 .env.local
 
