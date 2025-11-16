@@ -1,0 +1,8 @@
+
+{% extends "base.html" %}
+{% block title %}Publier votre spectacle{% endblock %}
+{% block content %}
+<h2>Publier votre spectacle</h2>
+<p>Remplissez directement le formulaire pour envoyer votre annonce. Elle sera publiée après validation par l’administrateur.</p>
+<p><a class="lost-pass" href="{{ url_for('submit_show') }}">Aller au formulaire</a></p>
+{% endblock %}

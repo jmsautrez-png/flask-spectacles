@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+{% block title %}Modifier le spectacle{% endblock %}
+{% block content %}
+<h2>Modifier le spectacle</h2>
+
+<form method="post" enctype="multipart/form-data" class="form">
+  <label>Nom de la compagnie
+    <input type="text" name="company_name" value="{{ show.company_name or '' }}">
+  </label>
+
+  <label>Titre
+    <input type="text" name="title" value="{{ show.title or '' }}" required>
+  </label>
+
+  <label>Description (max 70 mots)
+    <textarea id="description" name="description" rows="4">{{ show.description or "" }}</textarea>
+    <div id="desc-counter" style="font-size:.9rem;opacity:.8;margin-top:4px;">0/70 mots</div>
+  </label>
+
+  <div class="grid-2">
+    <label>Ville
+      <input type="text" name="location" value="{{ show.location or '' }}">
+    </label>
+    <label>Catégorie
+      <input type="text" name="category" value="{{ show.category or '' }}">
+    </label>
+  </div>
+
+  <label>Âge
+    <input type="text" name="age_range" value="{{ show.age_range or '' }}" placeholder="Tranche d'âge">
+  </label>
+
+  {% if show.file_name %}
+    {% if show.is_pdf() %}
+      <p>Fichier actuel : <a href="{{ url_for('uploaded_file', filename=show.file_name) }}" target="_blank">Voir le PDF</a></p>
+    {% else %}
+      <p>Visuel actuel :</p>
+      <img src="{{ url_for('uploaded_file', filename=show.file_name) }}" alt="{{ show.title }}" class="show-image" style="max-width:100%;height:auto;">
+    {% endif %}
+  {% else %}
+    <p><em>Aucun fichier associé.</em></p>
+  {% endif %}
+
+  <label>Remplacer l'image ou le PDF
+    <input type="file" name="file" accept=".png,.jpg,.jpeg,.gif,.webp,.pdf">
+  </label>
+
+  {% if show.company_photo %}
+    <p>Logo actuel :
+      <img src="{{ url_for('uploaded_file', filename=show.company_photo) }}" alt="{{ show.company_name }}" style="width:60px;height:60px;object-fit:cover;border-radius:6px;">
+    </p>
+  {% endif %}
+
+  <label>Logo/Photo de la compagnie
+    <input type="file" name="company_photo" accept=".png,.jpg,.jpeg,.gif,.webp">
+  </label>
+
+  <div class="actions">
+    <button type="submit">Mettre à jour</button>
+    <a class="btn-secondary" href="{{ url_for('company_dashboard') }}">Annuler</a>
+  </div>
+</form>
+
+<script>
+(function () {
+  const ta = document.getElementById('description');
+  const counter = document.getElementById('desc-counter');
+  const MAX = 70;
+  if (!ta || !counter) return;
+  function update() {
+    const words = ta.value.trim().split(/\s+/).filter(Boolean);
+    if (words.length > MAX) ta.value = words.slice(0, MAX).join(' ');
+    counter.textContent = (ta.value.trim() ? ta.value.trim().split(/\s+/).length : 0) + '/' + MAX + ' mots';
+  }
+  ta.addEventListener('input', update);
+  update();
+})();
+</script>
+
+{% endblock %}

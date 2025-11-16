@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block title %}Publier votre spectacle{% endblock %}
+
+{% block content %}
+<h2>Publier votre spectacle</h2>
+<p>Remplissez le formulaire ci-dessous. Votre annonce sera examinée avant publication.</p>
+
+<form action="{{ url_for('submit_show') }}" method="post" enctype="multipart/form-data" class="form">
+
+  <label>Nom Compagnie</label>
+  <input type="text" name="company_name">
+  
+  <label>Titre du spectacle</label>
+  <input type="text" name="title" required>
+
+  <label>Description</label>
+  <textarea name="description"></textarea>
+
+  <label>Lieu</label>
+  <input type="text" name="location">
+
+  <label>Catégorie</label>
+  <input type="text" name="category">
+
+  <label>Tranche d’âge</label>
+  <input type="text" name="age_range" placeholder="Ex : 3-6 ans"> 
+
+  <label>Email de contact</label>
+  <input type="email" name="contact_email">
+
+  <label>Affiche / PDF</label>
+  <input type="file" name="file" accept="image/*,application/pdf">
+
+  <button type="submit">Envoyer</button>
+</form>
+
+{% endblock %}
+
+

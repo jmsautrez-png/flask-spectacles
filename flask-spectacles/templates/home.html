@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% block title %}Accueil — Spectacles{% endblock %}
+{% block content %}
+
+<form action="" method="get"
+      style="display:flex; align-items:center; gap:12px; background:#f2f3f7; padding:10px 14px; border-radius:24px; margin:0 0 16px;">
+  
+  <span aria-hidden="true">🔍</span>
+  <input name="q" value="{{ q or '' }}" 
+         placeholder="Rechercher un spectacle, une ville, un âge..."
+         style="flex:1; border:none; background:transparent; outline:none; font-size:16px;">
+
+  <button type="submit"
+          style="border:none; background:transparent; font-weight:600; cursor:pointer;">OK</button>
+</form>
+
+<h2>Liste des spectacles</h2>
+
+<div class="cards">
+  {% for show in shows or [] %}
+  <article class="card">
+    <div class="media">
+      <a href="{{ url_for('demande_animation', show_id=show.id) }}">
+        {% if show.file_name and not show.is_pdf() %}
+          <img src="{{ url_for('uploaded_file', filename=show.file_name) }}" alt="{{ show.title }}">
+        {% else %}
+          <div class="pdf-thumb">📄 Voir l'annonce</div>
+        {% endif %}
+      </a>
+    </div>
+
+    <div class="content">
+      <h3>{{ show.title }}</h3>
+      
+      {# 🆕 NOM DE LA COMPAGNIE #}
+      {% if show.company_name %}
+        <p class="company-name">{{ show.company_name }}</p>
+      {% endif %}
+
+      <p class="meta">
+        {{ show.category }}
+        {% if show.location %} • {{ show.location }}{% endif %}
+        {% if show.age_range %} • {{ show.age_range }}{% endif %}
+      </p>
+      
+      {% if show.description %}<p class="desc">{{ show.description }}</p>{% endif %}
+      {% if show.contact_email %}<p class="meta">Contact : {{ show.contact_email }}</p>{% endif %}
+      {% if not show.approved %}<p class="meta" style="color:#ffb347;">(En attente de validation)</p>{% endif %}
+    </div>
+  </article>
+  {% endfor %}
+</div>
+
+{% endblock %}

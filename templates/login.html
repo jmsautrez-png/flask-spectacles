@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block title %}Connexion — Admin{% endblock %}
+{% block content %}
+<h2>Connexion</h2>
+<form method="post" class="form">
+  <label>Nom d’utilisateur
+    <input name="username" type="text" required autofocus>
+  </label>
+  <label>Mot de passe
+    <input name="password" type="password" required>
+  </label>
+  <button type="submit">Se connecter</button>
+</form>
+<p><a class="lost-pass" href="{{ url_for('forgot_password') }}">Mot de passe oublié ?</a></p>
+{% endblock %}

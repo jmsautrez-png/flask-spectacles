@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+{% block content %}
+
+<h1>Spectacles pour enfants</h1>
+
+<!-- Filtres + tri -->
+<form method="get" class="filters">
+  <input type="text" name="q" value="{{ q }}" placeholder="🔎 Rechercher (titre, lieu, compagnie…)" />
+
+  <select name="ville">
+    <option value="">Toutes les villes</option>
+    {% for v in villes %}
+      <option value="{{ v }}" {% if v == ville_sel %}selected{% endif %}>{{ v }}</option>
+    {% endfor %}
+  </select>
+
+  <select name="age">
+    <option value="">Tous âges</option>
+    {% for a in ages %}
+      <option value="{{ a }}" {% if a == age_sel %}selected{% endif %}>{{ a }}</option>
+    {% endfor %}
+  </select>
+
+  <input type="date" name="date_from" value="{{ date_from }}" />
+  <span class="filters-sep">→</span>
+  <input type="date" name="date_to" value="{{ date_to }}" />
+
+  <select name="sort" title="Tri">
+    <option value="date_asc"  {% if sort == 'date_asc'  %}selected{% endif %}>Date ↑</option>
+    <option value="date_desc" {% if sort == 'date_desc' %}selected{% endif %}>Date ↓</option>
+  </select>
+
+  <button class="btn" type="submit">Appliquer</button>
+  <a class="btn btn-clear" href="{{ url_for('home') }}">Réinitialiser</a>
+</form>
+
+<p class="muted" style="margin:.4rem 0 1rem">
+  Producteurs : utilisez le bouton “+ Annoncer un spectacle”.
+</p>
+
+{% if spectacles %}
+  <div class="liste-spectacles">
+    {% for s in spectacles %}
+      <div class="carte">
+        <div class="media {% if not s.image %}skeleton{% endif %}">
+          {% if s.image %}
+            <img src="{{ s.image }}" alt="affiche de {{ s.titre }}" loading="lazy" referrerpolicy="no-referrer">
+          {% else %}
+            <img src="{{ url_for('static', filename='default.jpg') }}" alt="affiche par défaut" loading="lazy">
+          {% endif %}
+          {% if s.date %}<div class="badge-date">{{ s.date }}</div>{% endif %}
+        </div>
+
+        <div class="body">
+          <h2>{{ s.titre }}</h2>
+
+          <div class="meta-row">
+            {% if s.compagnie %}<span class="meta-chip">👥 {{ s.compagnie }}</span>{% endif %}
+            {% if s.lieu %}<span class="meta-chip">📍 {{ s.lieu }}</span>{% endif %}
+            {% if s.age %}<span class="meta-chip">🎯 {{ s.age }}</span>{% endif %}
+            {% if s.prix %}<span class="meta-chip">💶 {{ s.prix }}</span>{% endif %}
+          </div>
+
+          {% if s.description %}<p class="desc">{{ s.description }}</p>{% endif %}
+        </div>
+
+        <div class="actions">
+          {% if s.site %}
+            <a class="btn-link" href="{{ s.site }}" target="_blank" rel="noopener">Billetterie / site</a>
+          {% else %}
+            <span class="meta" style="color:var(--muted)">Pas de lien</span>
+          {% endif %}
+
+          <div style="display:flex; gap:.5rem">
+            <a class="btn" href="{{ url_for('modifier', index=loop.index0) }}">Modifier</a>
+            <form method="post" action="{{ url_for('supprimer', index=loop.index0) }}" onsubmit="return confirm('Supprimer cette annonce ?');">
+              <button class="btn-danger" type="submit">Supprimer</button>
+            </form>
+          </div>
+        </div>
+      </div>
+    {% endfor %}
+  </div>
+{% else %}
+  <p>Aucun spectacle ne correspond à ces filtres. <a href="{{ url_for('home') }}">Réinitialiser</a></p>
+{% endif %}
+
+{% endblock %}

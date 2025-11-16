@@ -1,0 +1,78 @@
+
+{% extends "base.html" %}
+{% block title %}Accueil — Spectacles{% endblock %}
+{% block content %}
+
+<form method="get" class="filters">
+  <input type="text" name="q" placeholder="Recherche (titre, description, lieu, catégorie)" value="{{ q }}">
+
+  <select name="category">
+    <option value="">Catégorie (toutes)</option>
+    {% for c in categories %}
+      <option value="{{ c }}" {% if c == category %}selected{% endif %}>{{ c }}</option>
+    {% endfor %}
+  </select>
+
+  <select name="location">
+    <option value="">Lieu (tous)</option>
+    {% for l in locations %}
+      <option value="{{ l }}" {% if l == location %}selected{% endif %}>{{ l }}</option>
+    {% endfor %}
+  </select>
+
+  <select name="type">
+    <option value="all" {% if type_filter == "all" %}selected{% endif %}>Tout</option>
+    <option value="image" {% if type_filter == "image" %}selected{% endif %}>Images</option>
+    <option value="pdf" {% if type_filter == "pdf" %}selected{% endif %}>PDF</option>
+  </select>
+
+  <label>Du <input type="date" name="date_from" value="{{ date_from }}"></label>
+  <label>au <input type="date" name="date_to" value="{{ date_to }}"></label>
+
+  <select name="sort">
+    <option value="asc" {% if sort == "asc" %}selected{% endif %}>Tri par date ↑</option>
+    <option value="desc" {% if sort == "desc" %}selected{% endif %}>Tri par date ↓</option>
+  </select>
+
+  <button type="submit">Filtrer</button>
+  <a class="btn-secondary" href="{{ url_for('home') }}">Réinitialiser</a>
+</form>
+
+{% if shows %}
+  <div class="cards">
+    {% for show in shows %}
+      <article class="card">
+        <div class="media">
+          {% if show.has_image() %}
+            <img src="{{ url_for('uploaded_file', filename=show.file_name) }}" alt="Affiche de {{ show.title }}">
+          {% elif show.is_pdf() %}
+            <a class="pdf-thumb" href="{{ url_for('uploaded_file', filename=show.file_name) }}" target="_blank" rel="noopener">
+              📄 PDF — Ouvrir
+            </a>
+          {% else %}
+            <div class="placeholder">Aucune image / PDF</div>
+          {% endif %}
+        </div>
+        <div class="content">
+          <h3>{{ show.title }}</h3>
+          {% if show.date %}<p class="meta">📅 {{ show.date.strftime('%d/%m/%Y') }}</p>{% endif %}
+          {% if show.location %}<p class="meta">📍 {{ show.location }}</p>{% endif %}
+          {% if show.category %}<p class="meta">🏷️ {{ show.category }}</p>{% endif %}
+          {% if show.description %}<p class="desc">{{ show.description }}</p>{% endif %}
+        </div>
+        {% if user and user.is_admin %}
+          <div class="actions">
+            <a href="{{ url_for('show_edit', show_id=show.id) }}">Modifier</a>
+            <form action="{{ url_for('show_delete', show_id=show.id) }}" method="post" onsubmit="return confirm('Supprimer cette annonce ?');">
+              <button type="submit" class="danger">Supprimer</button>
+            </form>
+          </div>
+        {% endif %}
+      </article>
+    {% endfor %}
+  </div>
+{% else %}
+  <p>Aucune annonce pour le moment.</p>
+{% endif %}
+
+{% endblock %}

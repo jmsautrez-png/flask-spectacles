@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <title>{% block title %}Spectacles pour enfants{% endblock %}</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+
+<header class="site-header">
+  <div class="container header-grid">
+    <a href="{{ url_for('home') }}" class="brand">
+      <img src="{{ url_for('static', filename='img/logo.jpg') }}"
+           alt="La Sélection d’Artemisia"
+           style="height:28px;vertical-align:middle;border-radius:4px;margin-right:8px;">
+    </a>
+
+    <nav>
+      <ul class="nav">
+
+        <li><a href="{{ url_for('publish') }}">Publier votre spectacle</a></li>
+        
+
+        {# ----- ADMIN CONNECTÉ ----- #}
+        {% if user and user.is_admin %}
+          <li><a href="{{ url_for('show_new') }}">➕ Ajouter</a></li>
+          <li><a href="{{ url_for('demande_animation') }}">Demande d'animation</a></li>
+          <li><a href="{{ url_for('logout') }}">Se déconnecter ({{ user.username }})</a></li>
+
+        {# ----- UTILISATEUR CONNECTÉ mais pas admin ----- #}
+        {% elif user %}
+          <li><a href="{{ url_for('demande_animation') }}">Demande d'animation</a></li>
+          <li><a href="{{ url_for('logout') }}">Se déconnecter</a></li>
+
+        {# ----- VISITEUR ----- #}
+        {% else %}
+          <li><a href="{{ url_for('login') }}">Se connecter</a></li>
+          <li><a href="{{ url_for('register') }}">S’inscrire</a></li>
+          <li><a href="{{ url_for('demande_animation') }}">Demande d'animation</a></li>
+        {% endif %}
+
+      </ul>
+    </nav>
+  </div>
+</header>
+
+<main class="container">
+
+  {# ----- Messages flash ----- #}
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      <div class="flash-stack">
+        {% for cat, msg in messages %}
+          <div class="flash flash-{{ cat }}">{{ msg }}</div>
+        {% endfor %}
+      </div>
+    {% endif %}
+  {% endwith %}
+
+  {# ----- Contenu des pages ----- #}
+  {% block content %}{% endblock %}
+
+
+  {# ----- Bloc SEO / présentation ----- #}
+  <section class="seo-block" style="margin-top:26px;padding:16px;border:1px solid var(--border);border-radius:12px;background:var(--panel)">
+    <h2 style="margin-top:0">La Sélection d’Artemisia – Spectacles jeune public</h2>
+
+    <p>
+      La Sélection d’Artemisia présente des <strong>spectacles jeune public</strong> et
+      met en relation les <strong>compagnies professionnelles</strong> avec les futurs programmateurs
+      (mairies, écoles, centres culturels, CSE, médiathèques, associations…).
+    </p>
+
+    <p>
+      Le catalogue propose <strong>théâtre, marionnettes, contes, magie, cirque, musique, danse</strong> et plus encore.
+      Chaque spectacle est accompagné d’informations claires pour faciliter la prise de contact.
+    </p>
+
+    <p>
+      Que vous soyez <strong>compagnie</strong> ou <strong>programmateur</strong>,
+      la plateforme simplifie la mise en relation pour vos projets jeune public.
+    </p> 
+
+  <p style="margin-top:12px;font-weight:bold;">
+    👉 Vous êtes une compagnie ou un programmateur ? La Sélection d’Artemisia simplifie la mise en relation pour vos projets jeune public.
+  </p>
+</section>
+  <p style="margin-top:16px;">
+    <a href="{{ url_for('publish') }}" style="display:inline-block;padding:10px 16px;background:var(--accent);color:white;border-radius:6px;font-weight:bold;text-decoration:none;margin-right:8px;">
+      Publier votre spectacle
+    </a>
+
+    <a href="{{ url_for('demande_animation') }}" style="display:inline-block;padding:10px 16px;background:var(--accent);color:white;border-radius:6px;font-weight:bold;text-decoration:none;margin-right:8px;">
+      Demande d'animation
+    </a>
+
+    <a href="{{ url_for('legal') }}" style="display:inline-block;padding:10px 16px;background:var(--accent);color:white;border-radius:6px;font-weight:bold;text-decoration:none;">
+      Contact / Mentions légales
+    </a>
+  </p>  </section>
+  </section>
+
+</main>
+
+</body>
+</html>
+
+

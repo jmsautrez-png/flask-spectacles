@@ -1,0 +1,99 @@
+{% extends "base.html" %}
+{% block title %}Modifier le spectacle{% endblock %}
+{% block content %}
+<h2>Modifier le spectacle</h2>
+<form method="post" enctype="multipart/form-data" class="form">
+  <label>Raison sociale
+    <input type="text" name="raison_sociale" value="{{ show.raison_sociale or '' }}">
+  </label>
+
+  <label>Titre
+    <input type="text" name="title" value="{{ show.title }}" required>
+  </label>
+
+  <label>Description (max 70 mots)
+    <textarea id="description" name="description" rows="4" required>{{ show.description or "" }}</textarea>
+    <div id="desc-counter" style="font-size:.9rem;opacity:.8;margin-top:4px;">0/70 mots</div>
+  </label>
+
+  <div class="grid-2">
+    <label>Ville
+      <input type="text" name="location" value="{{ show.location }}">
+    </label>
+    <label>Catégorie
+      <input type="text" name="category" value="{{ show.category }}">
+    </label> 
+   </div>
+   
+   <label>Âge
+  <input type="text" name="age_range"
+       value="{{ (request.form.get('age_range') if request.method=='POST' else (show.age_range if show else '')) or '' }}"
+       placeholder="Tranche d'âge">
+   </label>
+
+  {% if show.file_name %}
+    {% if show.is_pdf() %}
+        <p>Fichier actuel :
+            <a href="{{ url_for('static', filename='upload/' ~ show.file_name) }}" target="_blank">
+                📄 Voir le PDF ({{ show.file_name }})
+            </a>
+        </p>
+    {% else %}
+        <p>Image actuelle :</p>
+        <img src="{{ url_for('static', filename='upload/' ~ show.file_name) }}"
+             alt="{{ show.title }}"
+             class="show-image">
+    {% endif %}
+{% else %}
+    <p><em>Aucun fichier associé pour l’instant.</em></p>
+{% endif %}
+
+
+
+  <label>Remplacer l'image ou le PDF
+    <input type="file" name="file" accept=".png,.jpg,.jpeg,.gif,.webp,.pdf">
+  </label>
+
+  <div class="actions">
+    <button type="submit">Mettre à jour</button>
+    <a class="btn-secondary" href="{{ url_for('home') }}">Annuler</a>
+  </div>
+</form>
+
+<form action="{{ url_for('show_approve', show_id=show.id) }}" method="POST" style="margin-top:10px;">
+  <button style="background:#35c779;color:white;padding:8px 14px;border:none;border-radius:8px;cursor:pointer;">✅ Valider l’annonce</button>
+</form>
+
+<!-- Script limite 70 mots -->
+<script>
+(function () {
+  const ta = document.getElementById('description');
+  const counter = document.getElementById('desc-counter');
+  const MAX = 70;
+
+  if (!ta || !counter) return;
+
+  function update() {
+    const words = ta.value.trim().split(/\s+/).filter(Boolean);
+    if (words.length > MAX) {
+      ta.value = words.slice(0, MAX).join(' ');
+    }
+    const count = ta.value.trim() ? ta.value.trim().split(/\s+/).length : 0;
+    counter.textContent = `${count}/${MAX} mots`;
+  }
+
+  ta.addEventListener('input', update);
+  update(); // initialiser le compteur
+
+  document.querySelectorAll("form").forEach(form => {
+    form.addEventListener("submit", e => {
+      const words = ta.value.trim().split(/\s+/).filter(Boolean);
+      if (words.length > MAX) {
+        e.preventDefault();
+        alert("La description ne doit pas dépasser 70 mots.");
+      }
+    });
+  });
+})();
+</script>
+{% endblock %}

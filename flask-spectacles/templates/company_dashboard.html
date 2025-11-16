@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Mes spectacles</h1>
+
+<p>
+    <a class="btn publish-btn" href="{{ url_for('publish') }}">
+        + Publier un spectacle
+    </a>
+</p>
+
+<div class="cards company-cards">
+{% for s in shows %} 
+
+  <div class="card show-card company-card">
+    
+    <div class="show-info">
+      <h3>     
+          {{ s.title }}
+          {% if not s.approved %}
+              <small>(en attente de validation)</small>
+          {% endif %}
+      </h3>
+
+      <p>{{ s.category }} • {{ s.location }} • {{ s.age_range or "âge non précisé" }}</p>
+
+      <p>
+        {{ (s.description or "")[:160] }}
+        {% if (s.description or "")|length > 160 %}…{% endif %}
+      </p>
+
+      <a class="edit-link" href="{{ url_for('show_edit_self', show_id=s.id) }}">
+          Modifier
+      </a>
+
+      <form action="{{ url_for('show_delete_self', show_id=s.id) }}"
+            method="post" style="display:inline">
+        <button class="delete-btn" type="submit"
+                onclick="return confirm('Supprimer ce spectacle ?')">
+          Supprimer
+        </button>
+      </form>
+    </div>
+
+    {# ------- PHOTO DU SPECTACLE (À DROITE) ------- #}
+    {% if s.file_name %}
+      <img class="show-image"
+           src="{{ url_for('static', filename='uploads/' ~ s.file_name) }}"
+           alt="{{ s.title }}">
+    {% endif %}
+
+  </div>
+
+{% endfor %}
+</div>
+{% if not shows %}
+  <p>Vous n’avez pas encore de spectacle publié.</p>
+{% endif %}
+{% endblock %}

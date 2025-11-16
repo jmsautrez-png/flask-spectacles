@@ -1,0 +1,47 @@
+
+{% extends "base.html" %}
+{% block title %}Modifier — {{ show.title }}{% endblock %}
+{% block content %}
+<h2>Modifier l’annonce</h2>
+<form method="post" enctype="multipart/form-data" class="form">
+  <label>Titre
+    <input type="text" name="title" value="{{ show.title }}" required>
+  </label>
+
+  <label>Description
+    <textarea name="description" rows="4">{{ show.description }}</textarea>
+  </label>
+
+  <div class="grid-2">
+    <label>Lieu
+      <input type="text" name="location" value="{{ show.location }}">
+    </label>
+    <label>Catégorie
+      <input type="text" name="category" value="{{ show.category }}">
+    </label>
+  </div>
+
+  <label>Date
+    <input type="date" name="date" value="{{ show.date }}">
+  </label>
+
+  <div class="current-file">
+    {% if show.has_image() %}
+      <img src="{{ url_for('uploaded_file', filename=show.file_name) }}" alt="Actuel">
+    {% elif show.is_pdf() %}
+      <a class="pdf-thumb" href="{{ url_for('uploaded_file', filename=show.file_name) }}" target="_blank" rel="noopener">📄 PDF actuel — Ouvrir</a>
+    {% else %}
+      <span>Aucun fichier associé</span>
+    {% endif %}
+  </div>
+
+  <label>Remplacer image/PDF (optionnel)
+    <input type="file" name="file" accept=".png,.jpg,.jpeg,.gif,.webp,.pdf">
+  </label>
+
+  <div class="actions">
+    <button type="submit">Mettre à jour</button>
+    <a class="btn-secondary" href="{{ url_for('home') }}">Annuler</a>
+  </div>
+</form>
+{% endblock %}

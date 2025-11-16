@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>🎭 {% if mode == 'edit' %}Modifier l'annonce{% else %}Annoncer un spectacle{% endif %}</h1>
+
+<form method="post" class="formulaire" style="max-width:640px">
+  <label>Titre du spectacle *
+    <input type="text" name="titre" required value="{{ show.titre if show else '' }}">
+  </label>
+
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:.8rem">
+    <label>Compagnie / Producteur
+      <input type="text" name="compagnie" value="{{ show.compagnie if show else '' }}">
+    </label>
+    <label>Date
+      <input type="date" name="date" value="{{ show.date if show else '' }}">
+    </label>
+  </div>
+
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:.8rem">
+    <label>Ville / Lieu *
+      <input type="text" name="lieu" list="villes-list" required placeholder="ex: Paris"
+             value="{{ show.lieu if show else '' }}">
+      <datalist id="villes-list">
+        {% for v in villes %}<option value="{{ v }}">{% endfor %}
+      </datalist>
+    </label>
+
+    <label>Âge recommandé
+      <input type="text" name="age" list="ages-list" placeholder="ex: 3-6 ans"
+             value="{{ show.age if show else '' }}">
+      <datalist id="ages-list">
+        {% for a in ages %}<option value="{{ a }}">{% endfor %}
+      </datalist>
+    </label>
+  </div>
+
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:.8rem">
+    <label>Prix
+      <input type="text" name="prix" placeholder="ex: 8€ / gratuit" value="{{ show.prix if show else '' }}">
+    </label>
+    <label>Site / billetterie (URL)
+      <input type="url" name="site" placeholder="https://..." value="{{ show.site if show else '' }}">
+    </label>
+  </div>
+
+  <label>Image (URL)
+    <input type="url" name="image" placeholder="https://.../affiche.jpg" value="{{ show.image if show else '' }}">
+  </label>
+
+  <label>Description
+    <textarea name="description" rows="4" placeholder="Résumé…">{{ show.description if show else '' }}</textarea>
+  </label>
+
+  <button class="btn" type="submit">{% if mode == 'edit' %}Enregistrer{% else %}Publier{% endif %}</button>
+</form>
+{% endblock %}
+
+

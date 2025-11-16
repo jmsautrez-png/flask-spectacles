@@ -1,0 +1,47 @@
+
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <title>{% block title %}Spectacles pour enfants{% endblock %}</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+<header class="site-header">
+  <div class="container header-grid">
+    <a href="{{ url_for('home') }}" class="brand">🎪 Spectacles</a>
+    <nav>
+      <ul class="nav">
+        <li><a href="{{ url_for('publish') }}">Publier votre spectacle</a></li>
+        {% if user %}
+          <li><a href="{{ url_for('show_new') }}">➕ Ajouter</a></li>
+          <li><a href="{{ url_for('logout') }}">Se déconnecter ({{ user.username }})</a></li>
+        {% else %}
+          <li><a href="{{ url_for('login') }}">Se connecter</a></li>
+        {% endif %}
+      </ul>
+    </nav>
+  </div>
+</header>
+
+<main class="container">
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      <div class="flash-stack">
+        {% for cat, msg in messages %}
+          <div class="flash flash-{{ cat }}">{{ msg }}</div>
+        {% endfor %}
+      </div>
+    {% endif %}
+  {% endwith %}
+  {% block content %}{% endblock %}
+</main>
+
+<footer class="site-footer">
+  <div class="container">
+    <small>&copy; 2025 Spectacles pour enfants</small>
+  </div>
+</footer>
+</body>
+</html>

@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Mes spectacles</h1>
+
+<p>
+    <a class="btn publish-btn" href="{{ url_for('publish') }}">
+        + Publier un spectacle
+    </a>
+</p>
+
+<div class="cards">
+{% for s in shows %} 
+
+  <article class="card">
+    <div class="media">
+      {% if s.file_name %}
+        {% if s.file_mimetype and 'image' in s.file_mimetype %}
+          <img src="{{ url_for('static', filename='uploads/' ~ s.file_name) }}" alt="{{ s.title }}">
+        {% elif s.file_mimetype and 'pdf' in s.file_mimetype %}
+          <a class="pdf-thumb" href="{{ url_for('static', filename='uploads/' ~ s.file_name) }}" target="_blank">PDF</a>
+        {% endif %}
+      {% else %}
+        <div class="placeholder">Aucun fichier</div>
+      {% endif %}
+    </div>
+
+    <div class="content">
+      {% if s.raison_sociale %}<p class="meta" style="font-weight:600; margin-bottom:8px; color:var(--primary);">{{ s.raison_sociale }}</p>{% endif %}
+      <h3>{{ s.title }}</h3>
+      {% if not s.approved %}
+        <p class="meta" style="color:#ffb347;">(En attente de validation)</p>
+      {% endif %}
+      
+      <p class="meta">
+        {{ s.category }}
+        {% if s.location %} • {{ s.location }}{% endif %}
+        {% if s.age_range %} • {{ s.age_range }}{% endif %}
+      </p>
+
+      {% if s.description %}
+        <p class="desc">{{ s.description }}</p>
+      {% endif %}
+    </div>
+
+    <div class="actions">
+      <a href="{{ url_for('show_edit_self', show_id=s.id) }}">Modifier</a>
+      
+      <form action="{{ url_for('show_delete_self', show_id=s.id) }}" method="post" style="margin:0;">
+        <button type="submit" class="danger" onclick="return confirm('Supprimer ce spectacle ?')">
+          Supprimer
+        </button>
+      </form>
+    </div>
+  </article>
+
+{% else %}
+  <p>Vous n'avez pas encore de spectacle publié.</p>
+{% endfor %}
+</div>
+{% endblock %}

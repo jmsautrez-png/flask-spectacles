@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+{% block title %}Tableau de bord admin{% endblock %}
+
+{% block content %}
+
+<h1>Tableau de bord administrateur</h1>
+
+<h2>📌 Annonces en attente de validation</h2>
+{% if pending %}
+    <div class="cards">
+    {% for show in pending %}
+        <article class="card">
+            <h3>{{ show.title }}</h3>
+            <p>{{ show.category }} • {{ show.location }}</p>
+            <p>{{ show.age_range }}</p>
+
+            <form action="{{ url_for('show_approve', show_id=show.id) }}" method="post">
+                <button type="submit">✅ Valider</button>
+            </form>
+
+            <a href="{{ url_for('show_edit', show_id=show.id) }}">Modifier</a>
+
+            <form action="{{ url_for('show_delete', show_id=show.id) }}" method="post"
+                  onsubmit="return confirm('Supprimer ?');">
+                <button type="submit" class="danger">Supprimer</button>
+            </form>
+        </article>
+    {% endfor %}
+    </div>
+{% else %}
+    <p>Aucune annonce en attente.</p>
+{% endif %}
+
+<hr>
+
+<h2>📚 Toutes les annonces</h2>
+<div class="cards">
+{% for show in shows %}
+    <article class="card">
+
+        {# --------- FICHIER ASSOCIÉ (IMAGE OU PDF) --------- #}
+        {% if show.file_name %}
+            {% if show.is_pdf() %}
+                {# PDF : lien cliquable vers le fichier #}
+                <a href="{{ url_for('static', filename='upload/' ~ show.file_name) }}"
+                   target="_blank"
+                   class="pdf-link">
+                    📄 Voir le PDF
+                </a>
+            {% else %}
+                {# Tout le reste : on tente de l'afficher comme image #}
+                <img src="{{ url_for('static', filename='upload/' ~ show.file_name) }}"
+                     alt="{{ show.title }}"
+                     class="show-image">
+            {% endif %}
+        {% endif %}
+
+        <h3>{{ show.title }}</h3>
+        <p>{{ show.category }} • {{ show.location }}</p>
+
+        {% if not show.approved %}
+            <p style="color:#e67e22;">⏳ Non validée</p>
+        {% else %}
+            <p style="color:#2ecc71;">✔ Validée</p>
+        {% endif %}
+        
+        <a href="{{ url_for('show_edit', show_id=show.id) }}">Modifier</a>
+
+        <form action="{{ url_for('show_delete', show_id=show.id) }}" method="post"
+              onsubmit="return confirm('Supprimer ?');">
+            <button type="submit" class="danger">Supprimer</button>
+        </form>
+    </article>
+{% endfor %}
+</div>
+
+{% endblock %}
