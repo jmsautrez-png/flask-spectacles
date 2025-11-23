@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}Publier votre spectacle{% endblock %}
+{% block title %}Publier votre spectacle ou animation - AnimatoSpectacle{% endblock %}
 
 {% block content %}
 <h2>Publier votre spectacle</h2>
@@ -28,10 +28,10 @@
   <label>Date</label>
   <input type="date" name="date">
 
-  <label>Email de contact</label>
-  <input type="email" name="contact_email">
+  <label>Email de contact <span style="font-size:0.85rem;font-weight:normal;color:var(--muted);">(Pour mettre votre adresse courriel <a href="{{ url_for('legal') }}" style="color:var(--primary);text-decoration:underline;">nous contacter</a>)</span></label>
+  <input type="email" name="contact_email" value="audition_2020@yahoo.fr" {% if not (user and user.is_admin) %}readonly{% endif %}>
 
-  <label>Affiche / PDF</label>
+  <label>Affiche / PDF <span style="font-size:0.85rem;font-weight:normal;color:var(--muted);">(Taille max : 5 MB)</span></label>
   <input type="file" name="file" accept="image/*,application/pdf">
 
   <button type="submit">Envoyer</button>

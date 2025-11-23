@@ -1,5 +1,21 @@
 {% extends "base.html" %}
-{% block title %}{{ show.title }} — Détails{% endblock %}
+
+{% block title %}{{ show.title }}{% if show.raison_sociale %} par {{ show.raison_sociale }}{% endif %} - Spectacle'ment Votre{% endblock %}
+
+{% block description %}{{ show.description[:160] if show.description else 'D\u00e9couvrez ' + show.title + ' - Spectacle et animation professionnelle.' }}{% endblock %}
+
+{% block og_title %}{{ show.title }}{% if show.raison_sociale %} par {{ show.raison_sociale }}{% endif %}{% endblock %}
+
+{% block og_description %}{{ show.description[:200] if show.description else 'D\u00e9couvrez ce spectacle exceptionnel sur Spectacle\'ment Votre.' }}{% endblock %}
+
+{% block og_image %}{% if show.has_image() %}{{ url_for('uploaded_file', filename=show.file_name, _external=True) }}{% else %}{{ url_for('static', filename='img/default-og.jpg', _external=True) }}{% endif %}{% endblock %}
+
+{% block twitter_title %}{{ show.title }}{% endblock %}
+
+{% block twitter_description %}{{ show.description[:160] if show.description else 'D\u00e9couvrez ce spectacle sur Spectacle\'ment Votre' }}{% endblock %}
+
+{% block twitter_image %}{% if show.has_image() %}{{ url_for('uploaded_file', filename=show.file_name, _external=True) }}{% else %}{{ url_for('static', filename='img/default-og.jpg', _external=True) }}{% endif %}{% endblock %}
+
 {% block content %}
 
 <div style="max-width:800px; margin:0 auto;">
@@ -26,6 +42,9 @@
         {% if show.category %}
           <span class="badge">{{ show.category }}</span>
         {% endif %}
+        {% if show.region %}
+          <span class="badge">🗺️ {{ show.region }}</span>
+        {% endif %}
         {% if show.location %}
           <span class="badge">📍 {{ show.location }}</span>
         {% endif %}
@@ -37,34 +56,38 @@
         {% endif %}
       </div>
 
+  <!-- ...badges... -->
+      {% if show.contact_email or show.site_internet %}
+        <div style="margin:24px 0;">
+          <h3>Contact</h3>
+          {% if show.contact_email %}
+            <p>
+              <a href="mailto:{{ show.contact_email }}" style="color:var(--primary); text-decoration:none;">
+                ✉️ {{ show.contact_email }}
+              </a>
+            </p>
+          {% endif %}
+          {% if show.contact_phone %}
+            <p>
+              <span style="color:var(--primary);">📞 {{ show.contact_phone }}</span>
+            </p>
+          {% endif %}
+          {% if show.site_internet %}
+            <p>
+              <a href="{{ show.site_internet }}" target="_blank" style="color:#fff;text-decoration:underline;">🌐 {{ show.site_internet }}</a>
+            </p>
+          {% endif %}
+        </div>
+      {% endif %}
+
       {% if show.description %}
         <div style="margin:24px 0;">
           <h3>Description</h3>
           <p style="line-height:1.6; color:#ddd;">{{ show.description }}</p>
         </div>
       {% endif %}
-
-      {% if show.contact_email %}
-        <div style="margin:24px 0;">
-          <h3>Contact</h3>
-          <p>
-            <a href="mailto:{{ show.contact_email }}" style="color:var(--primary); text-decoration:none;">
-              ✉️ {{ show.contact_email }}
-            </a>
-          </p>
-        </div>
-      {% endif %}
-
-      <div style="margin-top:32px; padding-top:24px; border-top:1px solid var(--border);">
-        <a href="{{ url_for('demande_animation') }}" 
-           style="display:inline-block; padding:12px 24px; background:var(--primary); color:white; border-radius:10px; text-decoration:none; font-weight:600;">
-          📝 Faire une demande d'animation
-        </a>
-      </div>
-    </div>
-  </article>
+  <!-- ...contact, description... -->
 </div>
-
 <style>
 .badge {
   display: inline-flex;
@@ -78,5 +101,4 @@
   color: var(--text);
 }
 </style>
-
 {% endblock %}

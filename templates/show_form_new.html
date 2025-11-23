@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}Ajouter une annonce{% endblock %}
+{% block title %}Ajouter un spectacle ou animation - AnimatoSpectacle{% endblock %}
 {% block content %}
 <h2>Ajouter une annonce</h2>
 <form method="post" enctype="multipart/form-data" class="form">
@@ -11,20 +11,23 @@
     <input type="text" name="title" required>
   </label>
 
-  <label>Description (max 70 mots)
+  <label>Description (max 200 mots)
     <textarea id="description" name="description" rows="4" required></textarea>
-    <div id="desc-counter" style="font-size:.9rem;opacity:.8;margin-top:4px;">0/70 mots</div>
+    <div id="desc-counter" style="font-size:.9rem;opacity:.8;margin-top:4px;">0/200 mots</div>
   </label>
 
   <div class="grid-2">
+    <label>Région
+      <input type="text" name="region" placeholder="Ex: Île-de-France, Bretagne...">
+    </label>
     <label>Lieu
       <input type="text" name="location" placeholder="Ville / Salle">
     </label>
-    <label>Catégorie
-      <input type="text" name="category" placeholder="Magie, Théâtre, Clown…">
-    </label> 
-    
    </div>
+
+  <label>Catégorie
+    <input type="text" name="category" placeholder="Magie, Théâtre, Clown…">
+  </label>
 
    <label>Âge  
       <input type="text" name="age_range"
@@ -32,9 +35,14 @@
        placeholder="Tranche d'âge">
    </label>
 
+  <label>Site internet
+    <input type="url" name="site_internet" placeholder="https://www.monsite.fr" value="{{ show.site_internet if show and show.site_internet else '' }}">
+    <span style="font-size:0.85rem;color:var(--muted);display:block;margin-top:2px;">Indiquez l'adresse complète du site (ex : https://www.monsite.fr). Laissez vide si pas de site.</span>
+  </label>
 
 
-  <label>Image ou PDF
+
+  <label>Image ou PDF <span style="font-size:0.85rem;font-weight:normal;color:var(--muted);">(Taille max : 5 MB)</span>
     <input type="file" name="file" accept=".png,.jpg,.jpeg,.gif,.webp,.pdf">
   </label>
 
@@ -44,12 +52,12 @@
   </div>
 </form>
 
-<!-- Script limite 70 mots -->
+<!-- Script limite 200 mots -->
 <script>
 (function () {
   const ta = document.getElementById('description');
   const counter = document.getElementById('desc-counter');
-  const MAX = 70;
+  const MAX = 200;
 
   if (!ta || !counter) return;
 
@@ -71,7 +79,7 @@
       const words = ta.value.trim().split(/\s+/).filter(Boolean);
       if (words.length > MAX) {
         e.preventDefault();
-        alert("La description ne doit pas dépasser 70 mots.");
+        alert("La description ne doit pas dépasser 200 mots.");
       }
     });
   });

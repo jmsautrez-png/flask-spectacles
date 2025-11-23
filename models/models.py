@@ -9,6 +9,7 @@ class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(80), unique=True, nullable=False)
     password_hash = db.Column(db.String(255), nullable=False)
+    raison_sociale = db.Column(db.String(200), nullable=True)  # Nom de la compagnie/structure
     is_admin = db.Column(db.Boolean, default=False)  # par défaut: utilisateur normal
 
     def set_password(self, password: str):
@@ -25,6 +26,7 @@ class Show(db.Model):
     raison_sociale = db.Column(db.String(200), nullable=True)
     title = db.Column(db.String(150), nullable=False)
     description = db.Column(db.Text, nullable=True)
+    region = db.Column(db.String(100), nullable=True)
     location = db.Column(db.String(120), nullable=True)
     category = db.Column(db.String(80), nullable=True)
     date = db.Column(db.Date, nullable=True)
@@ -35,6 +37,8 @@ class Show(db.Model):
 
     approved = db.Column(db.Boolean, default=False)
     contact_email = db.Column(db.String(255), nullable=True)
+    contact_phone = db.Column(db.String(20), nullable=True)
+    site_internet = db.Column(db.String(255), nullable=True)
 
     # ⬇⬇⬇ Association au propriétaire (compagnie)
     user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=True)

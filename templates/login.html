@@ -1,15 +1,21 @@
 {% extends "base.html" %}
-{% block title %}Connexion — Admin{% endblock %}
+{% block title %}Connexion - AnimatoSpectacle{% endblock %}
 {% block content %}
-<h2>Connexion</h2>
-<form method="post" class="form">
+<h2 style="margin-bottom: 12px;">Connexion</h2>
+<form method="post" class="form" id="loginform">
+  <div class="actions" style="display: flex; gap: 12px; margin-bottom: 16px;">
+    <a class="lost-pass" href="{{ url_for('forgot_password') }}" style="padding:10px 14px; border-radius:10px; background:red; color:#fff; font-weight:700; text-decoration:none; display:inline-block;">Mot de passe oublié ?</a>
+  </div>
   <label>Nom d’utilisateur
     <input name="username" type="text" required autofocus>
   </label>
   <label>Mot de passe
     <input name="password" type="password" required>
   </label>
-  <button type="submit">Se connecter</button>
+  <button type="submit" style="padding:6px 14px; border-radius:10px; background:white; color:#222; font-weight:700; text-decoration:none; display:inline-block; width:100%; margin-top:16px; border:none;">Se connecter</button>
+  <a href="{{ url_for('abonnement_compagnie') }}" style="padding:6px 14px; border-radius:10px; background:#1976d2; color:#fff; font-weight:700; text-decoration:none; display:inline-block; width:100%; margin-top:10px; text-align:center;">Abonnement Compagnie</a>
+  <div style="margin-top:10px; text-align:center;">
+    <a href="http://127.0.0.1:5000/" style="color:#1976d2; font-size:14px;">http://127.0.0.1:5000/</a>
+  </div>
 </form>
-<p><a class="lost-pass" href="{{ url_for('forgot_password') }}">Mot de passe oublié ?</a></p>
 {% endblock %}

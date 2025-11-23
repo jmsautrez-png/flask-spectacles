@@ -1,5 +1,5 @@
 @echo off
-title Demarrage - La Selection d'Artemisia
+title Demarrage - AnimatoSpectacle
 cd /d %~dp0
 
 if not exist .venv (
@@ -15,6 +15,7 @@ pip install --upgrade pip
 pip install -r requirements.txt
 
 echo [*] Demarrage de l'appli (http://127.0.0.1:5000)...
+set FLASK_DEBUG=True
 python app.py
 
 echo.

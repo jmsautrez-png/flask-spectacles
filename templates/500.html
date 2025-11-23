@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+
+{% block title %}Erreur serveur - Spectacle'ment Votre{% endblock %}
+
+{% block description %}Une erreur temporaire s'est produite. Nous travaillons à la résoudre.{% endblock %}
+
+{% block content %}
+<div style="text-align:center; max-width:600px; margin:80px auto; padding:40px 20px;">
+  <div style="font-size:120px; line-height:1; margin-bottom:20px;">🎪</div>
+  
+  <h1 style="font-size:3rem; margin-bottom:16px; color:var(--accent);">500</h1>
+  
+  <h2 style="font-size:1.5rem; margin-bottom:24px; color:var(--text);">
+    Erreur serveur
+  </h2>
+  
+  <p style="font-size:1.1rem; line-height:1.6; color:var(--text-muted); margin-bottom:32px;">
+    Oups ! Une erreur inattendue s'est produite.<br>
+    Nos équipes techniques travaillent pour rétablir le spectacle au plus vite.
+  </p>
+  
+  <div style="display:flex; gap:16px; justify-content:center; flex-wrap:wrap;">
+    <a href="{{ url_for('home') }}" 
+       style="display:inline-block; padding:14px 28px; background:var(--primary); color:white; border-radius:10px; text-decoration:none; font-weight:600; font-size:1.1rem;">
+      🏠 Retour à l'accueil
+    </a>
+    
+    <a href="javascript:history.back()" 
+       style="display:inline-block; padding:14px 28px; background:var(--panel); color:var(--text); border:1px solid var(--border); border-radius:10px; text-decoration:none; font-weight:600; font-size:1.1rem;">
+      ← Retour
+    </a>
+  </div>
+  
+  <div style="margin-top:48px; padding-top:32px; border-top:1px solid var(--border);">
+    <p style="color:var(--text-muted); font-size:0.95rem;">
+      Si le problème persiste, n'hésitez pas à nous contacter via notre
+      <a href="{{ url_for('legal') }}" style="color:var(--primary); text-decoration:underline;">page de contact</a>.
+    </p>
+  </div>
+</div>
+{% endblock %}

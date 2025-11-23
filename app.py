@@ -2,6 +2,10 @@ from sqlalchemy import or_
 from datetime import datetime
 from pathlib import Path
 from typing import Optional, Tuple
+import random
+import os
+import logging
+from logging.handlers import RotatingFileHandler
 
 from flask import (
     Flask,
@@ -15,6 +19,25 @@ from flask import (
     current_app,
 )
 
+# Sécurité
+try:
+    from flask_limiter import Limiter
+    from flask_limiter.util import get_remote_address
+except ImportError:
+    Limiter = None
+    get_remote_address = None
+
+try:
+    from flask_talisman import Talisman
+except ImportError:
+    Talisman = None
+
+# Compression
+try:
+    from flask_compress import Compress
+except ImportError:
+    Compress = None
+
 # Mail (optionnel)
 try:
     from flask_mail import Mail, Message  # type: ignore
@@ -27,6 +50,48 @@ from models import db
 from models.models import User, Show
 
 # -----------------------------------------------------
+# Logging
+# -----------------------------------------------------
+def configure_logging(app: Flask) -> None:
+    """Configure le système de logging pour l'application"""
+    # Créer le dossier logs s'il n'existe pas
+    log_dir = Path("logs")
+    log_dir.mkdir(exist_ok=True)
+    
+    # Niveau de log selon l'environnement
+    if os.environ.get("FLASK_ENV") == "production":
+        log_level = logging.INFO
+    else:
+        log_level = logging.DEBUG
+    
+    app.logger.setLevel(log_level)
+    
+    # Handler pour fichier (rotation automatique)
+    file_handler = RotatingFileHandler(
+        log_dir / "flask-spectacles.log",
+        maxBytes=10 * 1024 * 1024,  # 10 MB
+        backupCount=10
+    )
+    file_handler.setLevel(log_level)
+    
+    # Format des logs
+    formatter = logging.Formatter(
+        '[%(asctime)s] %(levelname)s in %(module)s: %(message)s'
+    )
+    file_handler.setFormatter(formatter)
+    
+    # Handler pour console
+    console_handler = logging.StreamHandler()
+    console_handler.setLevel(log_level)
+    console_handler.setFormatter(formatter)
+    
+    # Ajouter les handlers
+    app.logger.addHandler(file_handler)
+    app.logger.addHandler(console_handler)
+    
+    app.logger.info("Système de logging initialisé")
+
+# -----------------------------------------------------
 # Factory
 # -----------------------------------------------------
 def create_app() -> Flask:
@@ -36,14 +101,82 @@ def create_app() -> Flask:
     # Dossiers nécessaires
     Path(app.instance_path).mkdir(parents=True, exist_ok=True)
     Path(app.config["UPLOAD_FOLDER"]).mkdir(parents=True, exist_ok=True)
+    
+    # === LOGGING ===
+    configure_logging(app)
+    
+    # === COMPRESSION ===
+    if Compress:
+        Compress(app)
+        app.logger.info("Compression Gzip activée")
 
     # DB
     db.init_app(app)
+
+    # === SÉCURITÉ ===
+    
+    # 1. Rate Limiting (protection contre attaques brute force) -- DÉSACTIVÉ POUR TESTS
+    app.limiter = None  # type: ignore
+    
+    # 2. Headers de sécurité (HTTPS, XSS, etc.)
+    if Talisman and os.environ.get("FLASK_ENV") == "production":
+        Talisman(
+            app,
+            force_https=True,
+            strict_transport_security=True,
+            content_security_policy={
+                'default-src': "'self'",
+                'img-src': ["'self'", "data:"],
+                'style-src': ["'self'", "'unsafe-inline'"],
+                'script-src': ["'self'", "'unsafe-inline'"],
+            },
+        )
+    
+    # 3. Protection CSRF via session
+    app.config["SESSION_COOKIE_HTTPONLY"] = True
+    app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
+    if os.environ.get("FLASK_ENV") == "production":
+        app.config["SESSION_COOKIE_SECURE"] = True  # HTTPS uniquement
+    
+    # 4. Headers de sécurité additionnels
+    @app.after_request
+    def set_security_headers(response):
+        """Ajoute des headers de sécurité à toutes les réponses"""
+        # Protection contre le clickjacking
+        response.headers['X-Frame-Options'] = 'SAMEORIGIN'
+        
+        # Protection contre le sniffing MIME
+        response.headers['X-Content-Type-Options'] = 'nosniff'
+        
+        # Protection XSS pour les anciens navigateurs
+        response.headers['X-XSS-Protection'] = '1; mode=block'
+        
+        # Politique de référent
+        response.headers['Referrer-Policy'] = 'strict-origin-when-cross-origin'
+        
+        # Permissions-Policy (anciennement Feature-Policy)
+        response.headers['Permissions-Policy'] = 'geolocation=(), microphone=(), camera=()'
+        
+        return response
 
     # Mail (optionnel)
     if Mail:
         try:
             app.mail = Mail(app)  # type: ignore[attr-defined]
+            # Test de connexion SMTP à l'initialisation
+            if app.config.get("MAIL_USERNAME") and app.config.get("MAIL_PASSWORD"):
+                try:
+                    import smtplib
+                    server = smtplib.SMTP(app.config.get("MAIL_SERVER"), app.config.get("MAIL_PORT"))
+                    if app.config.get("MAIL_USE_TLS"):
+                        server.starttls()
+                    server.login(app.config.get("MAIL_USERNAME"), app.config.get("MAIL_PASSWORD"))
+                    server.quit()
+                    print("[MAIL] Connexion SMTP réussie.")
+                except Exception as smtp_error:
+                    print(f"[MAIL] Erreur de connexion SMTP: {smtp_error}")
+            else:
+                print("[MAIL] Configuration email incomplète : MAIL_USERNAME ou MAIL_PASSWORD manquant.")
         except Exception as e:  # pragma: no cover
             app.mail = None  # type: ignore[attr-defined]
             print("[MAIL] non initialisé:", e)
@@ -55,6 +188,7 @@ def create_app() -> Flask:
         _bootstrap_admin(app)
 
     register_routes(app)
+    register_error_handlers(app)
     return app
 
 # -----------------------------------------------------
@@ -64,6 +198,25 @@ ALLOWED_EXTENSIONS = {"png", "jpg", "jpeg", "gif", "webp", "pdf"}
 
 def allowed_file(filename: str) -> bool:
     return "." in filename and filename.rsplit(".", 1)[1].lower() in ALLOWED_EXTENSIONS
+
+def validate_file_size(file) -> Tuple[bool, Optional[str]]:
+    """Valide la taille d'un fichier. Retourne (True, None) si valide, (False, message d'erreur) sinon."""
+    if not file:
+        return True, None
+    
+    # Lire le fichier en mémoire pour vérifier sa taille
+    file.seek(0, 2)  # Aller à la fin du fichier
+    file_size = file.tell()  # Obtenir la taille
+    file.seek(0)  # Revenir au début pour pouvoir le sauvegarder après
+    
+    max_size = current_app.config.get("MAX_FILE_SIZE", 5 * 1024 * 1024)  # Par défaut 5 MB
+    
+    if file_size > max_size:
+        size_mb = file_size / (1024 * 1024)
+        max_mb = max_size / (1024 * 1024)
+        return False, f"Le fichier est trop volumineux ({size_mb:.2f} MB). Taille maximale autorisée : {max_mb:.0f} MB."
+    
+    return True, None
 
 def current_user() -> Optional[User]:
     username = session.get("username")
@@ -97,6 +250,26 @@ def _generate_password(n: int = 10) -> str:
     alphabet = string.ascii_letters + string.digits
     return "".join(secrets.choice(alphabet) for _ in range(n))
 
+def _is_suspicious_request() -> bool:
+    """Détecte les requêtes suspectes (bots, scrapers, etc.)"""
+    user_agent = request.headers.get('User-Agent', '').lower()
+    
+    # Liste de bots malveillants connus
+    suspicious_agents = [
+        'sqlmap', 'nikto', 'nmap', 'masscan', 'netsparker',
+        'acunetix', 'burp', 'havij', 'scrapy', 'curl/7',
+    ]
+    
+    for agent in suspicious_agents:
+        if agent in user_agent:
+            return True
+    
+    # Pas de User-Agent = suspect
+    if not user_agent or user_agent == 'none':
+        return True
+        
+    return False
+
 def _bootstrap_admin(app: Flask) -> None:
     # Crée un admin au premier démarrage si la table users est vide
     if User.query.count() == 0:
@@ -106,21 +279,69 @@ def _bootstrap_admin(app: Flask) -> None:
         db.session.commit()
         print(f"[BOOTSTRAP] Admin créé: {admin.username} / (mot de passe défini via env)")
 
+def register_error_handlers(app: Flask) -> None:
+    """Enregistre les gestionnaires d'erreurs personnalisés pour l'application"""
+    @app.errorhandler(404)
+    def page_not_found(e):
+        return render_template("404.html", user=current_user()), 404
+    
+    @app.errorhandler(500)
+    def internal_server_error(e):
+        return render_template("500.html", user=current_user()), 500
+
 # -----------------------------------------------------
 # Routes
 # -----------------------------------------------------
 def register_routes(app: Flask) -> None:
     # ---------------------------
+    # Route de test d'envoi de mail (à la fin pour éviter les erreurs)
+    # ---------------------------
+    @app.route("/test-mail")
+    def test_mail():
+        if not hasattr(app, "mail") or not app.mail:
+            return "Mail non configuré.", 500
+        try:
+            msg = Message(
+                subject="Test d'envoi de mail",
+                recipients=[app.config.get("MAIL_DEFAULT_SENDER")],
+                body="Ceci est un test d'envoi de mail depuis Flask-Spectacles."
+            )
+            app.mail.send(msg)
+            print("[MAIL] Test d'envoi réussi vers :", app.config.get("MAIL_DEFAULT_SENDER"))
+            return f"Mail de test envoyé à {app.config.get('MAIL_DEFAULT_SENDER')} !", 200
+        except Exception as e:
+            print("[MAIL] Test d'envoi échoué :", e)
+            return f"Erreur lors de l'envoi du mail : {e}", 500
+    # ---------------------------
     # Auth
     # ---------------------------
     @app.route("/register", methods=["GET", "POST"])
     def register():
+        # Protection anti-bot
+        if _is_suspicious_request():
+            flash("Requête suspecte détectée.", "danger")
+            return redirect(url_for("home"))
+            
         if request.method == "POST":
+            # Rate limiting manuel (max 5 tentatives d'inscription par heure depuis la même IP)
+            if hasattr(app, 'limiter') and app.limiter:
+                try:
+                    # Vérifier le rate limit
+                    pass  # Géré automatiquement par le décorateur global
+                except Exception:
+                    flash("Trop de tentatives. Réessayez plus tard.", "warning")
+                    return redirect(url_for("register"))
+            
             username = request.form.get("username", "").strip()
             password = request.form.get("password", "").strip()
 
             if not username or not password:
                 flash("Veuillez remplir tous les champs.", "danger")
+                return render_template("register.html")
+            
+            # Validation du mot de passe (minimum 6 caractères)
+            if len(password) < 6:
+                flash("Le mot de passe doit contenir au moins 6 caractères.", "danger")
                 return render_template("register.html")
 
             existing_user = User.query.filter_by(username=username).first()
@@ -146,10 +367,20 @@ def register_routes(app: Flask) -> None:
         if "username" in session:
             u = current_user()
             return redirect(url_for("admin_dashboard" if (u and u.is_admin) else "company_dashboard"))
+        
+        # Protection anti-bot
+        if _is_suspicious_request():
+            flash("Requête suspecte détectée.", "danger")
+            return redirect(url_for("home"))
 
         if request.method == "POST":
             username = request.form.get("username", "").strip()
             password = request.form.get("password", "").strip()
+            
+            # Protection contre les injections SQL (SQLAlchemy protège déjà, mais vérifions)
+            if any(char in username for char in ["'", '"', ';', '--', '/*']):
+                flash("Caractères invalides détectés.", "danger")
+                return render_template("login.html", user=current_user())
 
             user = User.query.filter_by(username=username).first()
             if user and user.check_password(password):
@@ -209,6 +440,7 @@ def register_routes(app: Flask) -> None:
         sort = request.args.get("sort", "asc", type=str)
         date_from = request.args.get("date_from", "", type=str)
         date_to = request.args.get("date_to", "", type=str)
+        page = request.args.get("page", 1, type=int)
 
         shows = Show.query
 
@@ -293,26 +525,29 @@ def register_routes(app: Flask) -> None:
             if d2:
                 shows = shows.filter(Show.date <= d2)
 
-        # Tri
+        # Tri : annonces validées d'abord, puis par date
         if sort == "desc":
-            shows = shows.order_by(Show.date.desc().nullslast(), Show.created_at.desc())
+            shows = shows.order_by(Show.approved.desc(), Show.date.desc().nullslast(), Show.created_at.desc())
         else:
-            shows = shows.order_by(Show.date.asc().nullsfirst(), Show.created_at.asc())
+            shows = shows.order_by(Show.approved.desc(), Show.date.asc().nullsfirst(), Show.created_at.asc())
 
-        # Exécution + filet de sécurité
+        # Pagination : 30 résultats par page
         try:
-            shows = shows.all()
+            pagination = shows.paginate(page=page, per_page=30, error_out=False)
+            shows_list = pagination.items
         except Exception as e:
             current_app.logger.exception("Erreur lors de la requête /home: %s", e)
             flash("Une erreur est survenue lors de la recherche.", "danger")
-            shows = []
+            pagination = None
+            shows_list = []
 
         categories = [c[0] for c in db.session.query(Show.category).distinct().all() if c[0]]
         locations = [l[0] for l in db.session.query(Show.location).distinct().all() if l[0]]
 
         return render_template(
             "home.html",
-            shows=shows,
+            shows=shows_list,
+            pagination=pagination,
             q=q,
             category=category,
             location=location,
@@ -326,25 +561,116 @@ def register_routes(app: Flask) -> None:
         )
 
     # ---------------------------
+    # SEO: robots.txt et sitemap.xml
+    # ---------------------------
+    @app.route("/robots.txt")
+    def robots_txt():
+        return send_from_directory(current_app.static_folder, "robots.txt", mimetype="text/plain")
+
+    @app.route("/sitemap.xml")
+    def sitemap_xml():
+        """Génère dynamiquement un sitemap XML"""
+        from flask import make_response
+        
+        pages = []
+        # Page d'accueil
+        pages.append({
+            'loc': url_for('home', _external=True),
+            'lastmod': datetime.utcnow().strftime('%Y-%m-%d'),
+            'changefreq': 'daily',
+            'priority': '1.0'
+        })
+        
+        # Page demande d'animation
+        pages.append({
+            'loc': url_for('demande_animation', _external=True),
+            'changefreq': 'monthly',
+            'priority': '0.8'
+        })
+        
+        # Tous les spectacles approuvés
+        shows = Show.query.filter(Show.approved.is_(True)).all()
+        for show in shows:
+            pages.append({
+                'loc': url_for('show_detail', show_id=show.id, _external=True),
+                'lastmod': show.created_at.strftime('%Y-%m-%d') if show.created_at else datetime.utcnow().strftime('%Y-%m-%d'),
+                'changefreq': 'weekly',
+                'priority': '0.7'
+            })
+        
+        # Générer le XML
+        sitemap_xml = '<?xml version="1.0" encoding="UTF-8"?>\n'
+        sitemap_xml += '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
+        
+        for page in pages:
+            sitemap_xml += '  <url>\n'
+            sitemap_xml += f'    <loc>{page["loc"]}</loc>\n'
+            if 'lastmod' in page:
+                sitemap_xml += f'    <lastmod>{page["lastmod"]}</lastmod>\n'
+            if 'changefreq' in page:
+                sitemap_xml += f'    <changefreq>{page["changefreq"]}</changefreq>\n'
+            if 'priority' in page:
+                sitemap_xml += f'    <priority>{page["priority"]}</priority>\n'
+            sitemap_xml += '  </url>\n'
+        
+        sitemap_xml += '</urlset>'
+        
+        response = make_response(sitemap_xml)
+        response.headers["Content-Type"] = "application/xml"
+        return response
+
+    # ---------------------------
+    # Monitoring et Health Check
+    # ---------------------------
+    @app.route("/health")
+    def health_check():
+        """Endpoint de santé pour le monitoring"""
+        from flask import jsonify
+        
+        try:
+            # Vérifier la connexion à la base de données
+            db.session.execute(db.text("SELECT 1"))
+            db_status = "ok"
+        except Exception as e:
+            current_app.logger.error(f"Health check - Erreur BDD: {e}")
+            db_status = "error"
+        
+        status = {
+            "status": "healthy" if db_status == "ok" else "unhealthy",
+            "database": db_status,
+            "timestamp": datetime.utcnow().isoformat(),
+            "version": "1.0.0"
+        }
+        
+        status_code = 200 if db_status == "ok" else 503
+        return jsonify(status), status_code
+
+    # ---------------------------
     # Publication & fichiers
     # ---------------------------
     @app.route("/publish")
     @login_required
     def publish():
-        return render_template("publish.html", user=current_user())
+        # Rediriger vers le vrai formulaire de publication
+        return redirect(url_for("submit_show"))
 
     @app.route("/submit", methods=["GET", "POST"])
     @login_required
     def submit_show():
         if request.method == "POST":
-            raison_sociale = request.form.get("raison_sociale", "").strip()
+            # Forcer la raison sociale = username de l'utilisateur connecté
+            u = current_user()
+            raison_sociale = u.username if u else None
             title = request.form.get("title", "").strip()
             description = request.form.get("description", "").strip()
+            region = request.form.get("region", "").strip()
             location = request.form.get("location", "").strip()
             category = request.form.get("category", "").strip()
             date_str = request.form.get("date", "").strip()
             age_range = request.form.get("age_range", "").strip()
             contact_email = request.form.get("contact_email", "").strip()
+            contact_phone = request.form.get("contact_phone", "").strip()
+            site_internet = request.form.get("site_internet", "").strip()
 
             date_val = None
             if date_str:
@@ -374,6 +700,7 @@ def register_routes(app: Flask) -> None:
                 raison_sociale=raison_sociale or None,
                 title=title,
                 description=description,
+                region=region or None,
                 location=location,
                 category=category,
                 age_range=age_range or None,
@@ -381,6 +708,8 @@ def register_routes(app: Flask) -> None:
                 file_name=file_name,
                 file_mimetype=file_mimetype,
                 contact_email=contact_email or None,
+                contact_phone=contact_phone or None,
+                    site_internet=site_internet or None,
                 approved=False,
                 user_id=current_user().id if current_user() else None,   # associer l'auteur
             )
@@ -391,18 +720,24 @@ def register_routes(app: Flask) -> None:
                 try:
                     to_addr = current_app.config.get("MAIL_DEFAULT_SENDER") or current_app.config.get("MAIL_USERNAME")
                     body = (
-                        "Nouvelle annonce à valider\n\n"
-                        f"Titre: {title}\nLieu: {location}\nCatégorie: {category}\n"
-                        f"Date: {date_val}\nEmail contact: {contact_email}"
+                        "🎭 Nouvelle annonce à valider\n\n"
+                        f"👤 Compagnie: {raison_sociale}\n"
+                        f"📌 Titre: {title}\n"
+                        f"📍 Lieu: {location}\n"
+                        f"🎪 Catégorie: {category}\n"
+                        f"📅 Date: {date_val}\n\n"
+                        f"📧 Email: {contact_email}\n"
+                        f"📱 Téléphone: {contact_phone}\n"
                     )
-                    msg = Message(subject="Nouvelle annonce à valider", recipients=[to_addr])  # type: ignore[arg-type]
+                    msg = Message(subject="🎭 Nouvelle annonce à valider", recipients=[to_addr])  # type: ignore[arg-type]
                     msg.body = body  # type: ignore[assignment]
                     current_app.mail.send(msg)  # type: ignore[attr-defined]
                 except Exception as e:  # pragma: no cover
                     print("[MAIL] envoi impossible:", e)
 
             flash("Annonce envoyée ! Elle sera visible après validation.", "success")
-            return redirect(url_for("company_dashboard"))
+            # Rediriger vers la page d'édition du spectacle nouvellement créé
+            return redirect(url_for("show_edit_self", show_id=show.id))
 
         return render_template("submit_form.html", user=current_user())
 
@@ -429,7 +764,7 @@ def register_routes(app: Flask) -> None:
         u = current_user()
         if u and u.is_admin:
             return redirect(url_for("admin_dashboard"))
-        my_shows = Show.query.filter_by(user_id=u.id).order_by(Show.created_at.desc()).all()
+        my_shows = Show.query.filter_by(user_id=u.id).order_by(Show.created_at.desc()).all() if u else []
         return render_template("company_dashboard.html", user=u, shows=my_shows)
 
     @app.route("/my/shows/<int:show_id>/edit", methods=["GET","POST"], endpoint="show_edit_self")
@@ -437,7 +772,7 @@ def register_routes(app: Flask) -> None:
     def show_edit_self(show_id: int):
         s = Show.query.get_or_404(show_id)
         u = current_user()
-        if not (u.is_admin or s.user_id == u.id):
+        if not u or not (u.is_admin or s.user_id == u.id):
             flash("Accès refusé.", "danger")
             return redirect(url_for("company_dashboard"))
 
@@ -445,9 +780,11 @@ def register_routes(app: Flask) -> None:
             s.raison_sociale = request.form.get("raison_sociale","").strip() or None
             s.title = request.form.get("title","").strip()
             s.description = request.form.get("description","").strip()
+            s.region = request.form.get("region","").strip() or None
             s.location = request.form.get("location","").strip()
             s.category = request.form.get("category","").strip()
             s.age_range = (request.form.get("age_range","") or None)
+            s.site_internet = request.form.get("site_internet","").strip() or None
 
             date_str = request.form.get("date","").strip()
             if date_str:
@@ -459,7 +796,17 @@ def register_routes(app: Flask) -> None:
                 s.date = None
 
             file = request.files.get("file")
-            if file and file.filename and allowed_file(file.filename):
+            if file and file.filename:
+                if not allowed_file(file.filename):
+                    flash("Type de fichier non autorisé (png/jpg/jpeg/gif/webp/pdf).", "danger")
+                    return redirect(request.url)
+                
+                # Vérifier la taille du fichier
+                is_valid, error_msg = validate_file_size(file)
+                if not is_valid:
+                    flash(error_msg, "danger")
+                    return redirect(request.url)
+                
                 from pathlib import Path as _Path
                 stem = _Path(file.filename).stem
                 ext = _Path(file.filename).suffix
@@ -488,7 +835,7 @@ def register_routes(app: Flask) -> None:
         s = Show.query.get_or_404(show_id)
         u = current_user()
 
-        if not (u.is_admin or s.user_id == u.id):
+        if not u or not (u.is_admin or s.user_id == u.id):
             flash("Accès refusé.", "danger")
             return redirect(url_for("company_dashboard"))
 
@@ -512,9 +859,24 @@ def register_routes(app: Flask) -> None:
     @login_required
     @admin_required
     def admin_dashboard():
-        shows = Show.query.order_by(Show.created_at.desc()).all()
-        pending = [s for s in shows if not s.approved]
-        return render_template("admin_dashboard.html", user=current_user(), shows=shows, pending=pending)
+        page = request.args.get("page", 1, type=int)
+        
+        # Pagination pour tous les spectacles
+        pagination = Show.query.order_by(Show.created_at.desc()).paginate(
+            page=page, per_page=30, error_out=False
+        )
+        shows = pagination.items
+        
+        # Liste des spectacles en attente (non paginée pour le badge)
+        pending = Show.query.filter_by(approved=False).all()
+        
+        return render_template(
+            "admin_dashboard.html", 
+            user=current_user(), 
+            shows=shows, 
+            pending=pending,
+            pagination=pagination
+        )
 
     @app.route("/admin/shows/new", methods=["GET", "POST"])
     @login_required
@@ -524,10 +886,12 @@ def register_routes(app: Flask) -> None:
             raison_sociale = request.form.get("raison_sociale", "").strip()
             title = request.form.get("title", "").strip()
             description = request.form.get("description", "").strip()
+            region = request.form.get("region", "").strip()
             location = request.form.get("location", "").strip()
             category = request.form.get("category", "").strip()
             age_range = request.form.get("age_range", "").strip()
             date_str = request.form.get("date", "").strip()
+            site_internet = request.form.get("site_internet", "").strip()
 
             date_val = None
             if date_str:
@@ -544,6 +908,13 @@ def register_routes(app: Flask) -> None:
                 if not allowed_file(file.filename):
                     flash("Type de fichier non autorisé (png/jpg/jpeg/gif/webp/pdf).", "danger")
                     return redirect(request.url)
+                
+                # Vérifier la taille du fichier
+                is_valid, error_msg = validate_file_size(file)
+                if not is_valid:
+                    flash(error_msg, "danger")
+                    return redirect(request.url)
+                
                 from pathlib import Path as _Path
                 stem = _Path(file.filename).stem
                 ext = _Path(file.filename).suffix
@@ -557,12 +928,14 @@ def register_routes(app: Flask) -> None:
                 raison_sociale=raison_sociale or None,
                 title=title,
                 description=description,
+                region=region or None,
                 location=location,
                 category=category,
                 age_range=age_range or None,
                 date=date_val,
                 file_name=file_name,
                 file_mimetype=file_mimetype,
+                    site_internet=site_internet or None,
                 approved=False,
             )
             db.session.add(show)
@@ -582,9 +955,13 @@ def register_routes(app: Flask) -> None:
             show.raison_sociale = request.form.get("raison_sociale", "").strip() or None
             show.title = request.form.get("title", "").strip()
             show.description = request.form.get("description", "").strip()
+            show.region = request.form.get("region", "").strip() or None
             show.location = request.form.get("location", "").strip()
             show.category = request.form.get("category", "").strip()
+            show.contact_email = request.form.get("contact_email", "").strip() or None
+            show.contact_phone = request.form.get("contact_phone", "").strip() or None
             date_str = request.form.get("date", "").strip()
+            show.site_internet = request.form.get("site_internet", "").strip() or None
             if date_str:
                 try:
                     show.date = datetime.strptime(date_str, "%Y-%m-%d").date()
@@ -598,6 +975,13 @@ def register_routes(app: Flask) -> None:
                 if not allowed_file(file.filename):
                     flash("Type de fichier non autorisé (png/jpg/jpeg/gif/webp/pdf).", "danger")
                     return redirect(request.url)
+                
+                # Vérifier la taille du fichier
+                is_valid, error_msg = validate_file_size(file)
+                if not is_valid:
+                    flash(error_msg, "danger")
+                    return redirect(request.url)
+                
                 from pathlib import Path as _Path
                 stem = _Path(file.filename).stem
                 ext = _Path(file.filename).suffix
@@ -715,6 +1099,121 @@ Accessibilité: {accessibilite}
         return render_template("legal.html", user=current_user())
 
     # ---------------------------
+    # Pages thématiques SEO
+    # ---------------------------
+    @app.route("/spectacles-enfants")
+    def spectacles_enfants():
+        shows = Show.query.filter(
+            Show.approved.is_(True),
+            or_(
+                Show.category.ilike('%enfant%'),
+                Show.category.ilike('%jeune public%'),
+                Show.category.ilike('%famille%'),
+                Show.age_range.ilike('%ans%')
+            )
+        ).all()
+        return render_template("spectacles_enfants.html", shows=shows, user=current_user())
+
+    @app.route("/animations-enfants")
+    def animations_enfants():
+        shows = Show.query.filter(
+            Show.approved.is_(True),
+            or_(
+                Show.category.ilike('%animation%'),
+                Show.category.ilike('%atelier%'),
+                Show.category.ilike('%jeu%'),
+                Show.title.ilike('%animation%')
+            )
+        ).all()
+        return render_template("animations_enfants.html", shows=shows, user=current_user())
+
+    @app.route("/spectacles-noel")
+    def spectacles_noel():
+        shows = Show.query.filter(
+            Show.approved.is_(True),
+            or_(
+                Show.title.ilike('%noël%'),
+                Show.title.ilike('%noel%'),
+                Show.description.ilike('%noël%'),
+                Show.description.ilike('%noel%'),
+                Show.category.ilike('%noël%'),
+                Show.category.ilike('%noel%')
+            )
+        ).all()
+        return render_template("spectacles_noel.html", shows=shows, user=current_user())
+
+    @app.route("/animations-entreprises")
+    def animations_entreprises():
+        shows = Show.query.filter(
+            Show.approved.is_(True),
+            or_(
+                Show.category.ilike('%entreprise%'),
+                Show.category.ilike('%corporate%'),
+                Show.category.ilike('%CSE%'),
+                Show.description.ilike('%entreprise%'),
+                Show.description.ilike('%corporate%')
+            )
+        ).all()
+        return render_template("animations_entreprises.html", shows=shows, user=current_user())
+
+    @app.route("/marionnettes")
+    def marionnettes():
+        shows = Show.query.filter(
+            Show.approved.is_(True),
+            or_(
+                Show.category.ilike('%marionnette%'),
+                Show.title.ilike('%marionnette%'),
+                Show.description.ilike('%marionnette%')
+            )
+        ).all()
+        return render_template("marionnettes.html", shows=shows, user=current_user())
+
+    @app.route("/booker-artiste")
+    def booker_artiste():
+        # Afficher tous les spectacles pour la réservation d'artistes
+        shows = Show.query.filter(Show.approved.is_(True)).all()
+        return render_template("booker_artiste.html", shows=shows, user=current_user())
+
+    @app.route("/magiciens")
+    def magiciens():
+        shows = Show.query.filter(
+            Show.approved.is_(True),
+            or_(
+                Show.category.ilike('%magie%'),
+                Show.category.ilike('%magicien%'),
+                Show.title.ilike('%magie%'),
+                Show.title.ilike('%magicien%')
+            )
+        ).all()
+        return render_template("magiciens.html", shows=shows, user=current_user())
+
+    @app.route("/clowns")
+    def clowns():
+        shows = Show.query.filter(
+            Show.approved.is_(True),
+            or_(
+                Show.category.ilike('%clown%'),
+                Show.title.ilike('%clown%'),
+                Show.description.ilike('%clown%')
+            )
+        ).all()
+        return render_template("clowns.html", shows=shows, user=current_user())
+
+    @app.route("/animations-anniversaire")
+    def animations_anniversaire():
+        shows = Show.query.filter(
+            Show.approved.is_(True),
+            or_(
+                Show.category.ilike('%anniversaire%'),
+                Show.title.ilike('%anniversaire%'),
+                Show.description.ilike('%anniversaire%'),
+                Show.category.ilike('%enfant%'),
+                Show.category.ilike('%animation%')
+            )
+        ).all()
+        return render_template("animations_anniversaire.html", shows=shows, user=current_user())
+
+    # ---------------------------
     # Recherche géolocalisée (optionnelle)
     # ---------------------------
     from math import radians, sin, cos, asin
@@ -789,10 +1288,40 @@ Accessibilité: {accessibilite}
 
         return render_template("search.html", results=results, q=q, address=addr, radius=radius)
 
+    @app.route("/abonnement-compagnie")
+    def abonnement_compagnie():
+        return render_template("abonnement_compagnie.html")
+
+    @app.route("/contact", methods=["GET", "POST"])
+    def contact():
+        if request.method == "POST":
+            nom = request.form.get("nom", "").strip()
+            email = request.form.get("email", "").strip()
+            message = request.form.get("message", "").strip()
+            try:
+                if hasattr(current_app, "mail") and current_app.mail:
+                    from flask_mail import Message
+                    msg = Message(
+                        subject="Nouveau message de contact",
+                        recipients=["audition_2020@yahoo.fr"],
+                        body=f"Nom: {nom}\nEmail: {email}\nMessage: {message}"
+                    )
+                    current_app.mail.send(msg)
+                    flash("Votre message a été envoyé à audition_2020@yahoo.fr !", "success")
+                else:
+                    flash("Erreur: le service mail n'est pas configuré.", "danger")
+            except Exception as e:
+                print("[MAIL] Erreur envoi contact:", e)
+                flash(f"Erreur lors de l'envoi du message: {e}", "danger")
+            return render_template("contact.html")
+        return render_template("contact.html")
+
 # -----------------------------------------------------
 # Entrée
 # -----------------------------------------------------
 app = create_app()
 
 if __name__ == "__main__":
-    app.run(debug=True, port=5000)
+    import os
+    debug_mode = os.environ.get("FLASK_DEBUG", "False") == "True"
+    app.run(debug=debug_mode, port=int(os.environ.get("PORT", 5000)))

@@ -1,20 +1,26 @@
 {% extends "base.html" %}
-{% block title %}Accueil — Spectacles{% endblock %}
+{% block title %}Spectacle'ment Votre - Spectacles et animations pour enfants, entreprises, anniversaires | Artistes professionnels{% endblock %}
+{% block description %}Découvrez des spectacles pour enfants, animations d'entreprise et d'anniversaire. Magie, théâtre, cirque, clowns, marionnettes. Réservez directement avec des artistes professionnels en France.{% endblock %}
 {% block content %}
 
+<h1 style="font-size:1.8rem; margin-bottom:16px;">Spectacles et Animations Professionnels</h1>
+
 <form action="" method="get"
-      style="display:flex; align-items:center; gap:12px; background:#f2f3f7; padding:10px 14px; border-radius:24px; margin:0 0 16px;">
+      style="display:flex; align-items:center; gap:12px; background:#f2f3f7; padding:10px 14px; border-radius:24px; margin:0 0 16px;"
+      role="search"
+      aria-label="Rechercher un spectacle">
   
   <span aria-hidden="true">🔍</span>
   <input name="q" value="{{ q or '' }}" 
-         placeholder="Rechercher un spectacle, une ville, un âge..."
+         placeholder="Recherche une catégorie de spectacle, une ville, un âge..."
+         aria-label="Recherche"
          style="flex:1; border:none; background:transparent; outline:none; font-size:16px;">
 
   <button type="submit"
           style="border:none; background:transparent; font-weight:600; cursor:pointer;">OK</button>
 </form>
 
-<h2>Liste des spectacles</h2>
+<h2>Catalogue des spectacles</h2>
 
 <div class="cards">
   {% for show in shows or [] %}
@@ -35,13 +41,11 @@
       <div class="content">
         {% if show.raison_sociale %}<p class="meta" style="font-weight:600; margin-bottom:8px; color:var(--primary);">{{ show.raison_sociale }}</p>{% endif %}
         <h3>{{ show.title }}</h3>
-        <p class="meta">
-          {{ show.category }}
-          {% if show.location %} • {{ show.location }}{% endif %}
-          {% if show.age_range %} • {{ show.age_range }}{% endif %}
-        </p>
-        {% if show.description %}<p class="desc">{{ show.description }}</p>{% endif %}
-        {% if show.contact_email %}<p class="meta">Contact : {{ show.contact_email }}</p>{% endif %}
+        {% if show.category %}<p class="meta" style="color:white; font-weight:bold;">{{ show.category }}</p>{% endif %}
+        {% if show.region %}<p class="meta" style="color:white; font-weight:bold;">{{ show.region }}</p>{% endif %}
+        {% if show.location %}<p class="meta" style="color:white; font-weight:bold;">{{ show.location }}</p>{% endif %}
+        {% if show.age_range %}<p class="meta" style="color:white; font-weight:bold;">{{ show.age_range }}</p>{% endif %}
+        {% if show.contact_email %}<p class="meta" style="color:white; font-weight:bold;">Contact / Intitulé</p>{% endif %}
         {% if not show.approved %}<p class="meta" style="color:#ffb347;">(En attente de validation)</p>{% endif %}
       </div>
     </a>
@@ -65,5 +69,98 @@
   </article>
   {% endfor %}
 </div>
+
+<!-- Pagination -->
+{% if pagination and pagination.pages > 1 %}
+<nav class="pagination" style="margin: 30px 0; text-align: center;">
+  <div style="display: inline-flex; gap: 8px; align-items: center; flex-wrap: wrap; justify-content: center;">
+    
+    <!-- Page précédente -->
+    {% if pagination.has_prev %}
+      <a href="{{ url_for('home', page=pagination.prev_num, q=q, category=category, location=location, type=type_filter, sort=sort, date_from=date_from, date_to=date_to) }}"
+         style="padding: 8px 12px; background: var(--primary); color: white; text-decoration: none; border-radius: 4px; font-weight: 600;">
+        ← Précédent
+      </a>
+    {% else %}
+      <span style="padding: 8px 12px; background: #ddd; color: #999; border-radius: 4px; font-weight: 600;">
+        ← Précédent
+      </span>
+    {% endif %}
+
+    <!-- Numéros de pages -->
+    {% for p in pagination.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
+      {% if p %}
+        {% if p == pagination.page %}
+          <span style="padding: 8px 12px; background: var(--primary); color: white; border-radius: 4px; font-weight: 600;">
+            {{ p }}
+          </span>
+        {% else %}
+          <a href="{{ url_for('home', page=p, q=q, category=category, location=location, type=type_filter, sort=sort, date_from=date_from, date_to=date_to) }}"
+             style="padding: 8px 12px; background: #f2f3f7; color: var(--text); text-decoration: none; border-radius: 4px; font-weight: 600;">
+            {{ p }}
+          </a>
+        {% endif %}
+      {% else %}
+        <span style="padding: 8px 12px; color: #999;">...</span>
+      {% endif %}
+    {% endfor %}
+
+    <!-- Page suivante -->
+    {% if pagination.has_next %}
+      <a href="{{ url_for('home', page=pagination.next_num, q=q, category=category, location=location, type=type_filter, sort=sort, date_from=date_from, date_to=date_to) }}"
+         style="padding: 8px 12px; background: var(--primary); color: white; text-decoration: none; border-radius: 4px; font-weight: 600;">
+        Suivant →
+      </a>
+    {% else %}
+      <span style="padding: 8px 12px; background: #ddd; color: #999; border-radius: 4px; font-weight: 600;">
+        Suivant →
+      </span>
+    {% endif %}
+  </div>
+
+  <!-- Informations sur les résultats -->
+  <p style="margin-top: 16px; color: var(--muted); font-size: 0.9rem;">
+    Page {{ pagination.page }} sur {{ pagination.pages }} ({{ pagination.total }} résultat{{ 's' if pagination.total > 1 else '' }})
+  </p>
+</nav>
+{% endif %}
+
+<div style="display:flex; gap:12px; justify-content:center; margin-top:32px; margin-bottom:32px;">
+    <a href="{{ url_for('demande_animation') }}" class="btn" style="padding:10px 24px; border-radius:10px; background:transparent; color:var(--text); font-weight:700; text-decoration:none; border:1px solid #ccc;">Demander une animation</a>
+    <a href="{{ url_for('abonnement_compagnie') }}" class="btn" style="padding:10px 24px; border-radius:10px; background:transparent; color:var(--text); font-weight:700; text-decoration:none; border:1px solid #ccc;">Abonnement Compagnie</a>
+    <a href="{{ url_for('contact') }}" class="btn" style="padding:10px 24px; border-radius:10px; background:transparent; color:var(--text); font-weight:700; text-decoration:none; border:1px solid #ccc;">Contact</a>
+    <a href="{{ url_for('publish') }}" class="btn" style="padding:10px 24px; border-radius:10px; background:transparent; color:var(--text); font-weight:700; text-decoration:none; border:1px solid #ccc;">Publier votre spectacle (gratuit)</a>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const seoBlock = document.querySelector('.seo-block h2');
+  const cardsContainer = document.querySelector('.cards');
+  
+  if (seoBlock && cardsContainer) {
+    seoBlock.style.cursor = 'pointer';
+    seoBlock.title = 'Survoler pour mélanger les cartes';
+    
+    seoBlock.addEventListener('mouseenter', function() {
+      const cards = Array.from(cardsContainer.children);
+      
+      // Algorithme de Fisher-Yates pour mélanger le tableau
+      for (let i = cards.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [cards[i], cards[j]] = [cards[j], cards[i]];
+      }
+      
+      // Vider le conteneur et réinsérer les cartes dans le nouvel ordre
+      cardsContainer.innerHTML = '';
+      cards.forEach(card => cardsContainer.appendChild(card));
+      
+      // Animation visuelle
+      cardsContainer.style.transition = 'opacity 0.2s';
+      cardsContainer.style.opacity = '0.6';
+      setTimeout(() => { cardsContainer.style.opacity = '1'; }, 200);
+    });
+  }
+});
+</script>
 
 {% endblock %}

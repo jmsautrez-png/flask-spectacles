@@ -1,29 +1,33 @@
 {% extends "base.html" %}
-{% block title %}Votre spectacle{% endblock %}
+{% block title %}Votre spectacle - AnimatoSpectacle{% endblock %}
 {% block content %}
 <h2>Votre spectacle</h2>
 <form method="post" enctype="multipart/form-data" class="form">
-  <label>Raison sociale
-    <input type="text" name="raison_sociale">
+  <label>Raison sociale <span style="font-size:0.85rem;font-weight:normal;color:var(--muted);">(automatique, non modifiable)</span>
+    <input type="text" name="raison_sociale" value="{{ user.username if user else '' }}" readonly style="background-color: #1a1a1f; cursor: not-allowed; opacity: 0.6;">
   </label>
 
   <label>Titre
     <input type="text" name="title" required>
   </label>
 
-  <label>Description (max 70 mots)
+  <label>Description (max 200 mots)
     <textarea id="description" name="description" rows="4" required></textarea>
-    <div id="desc-counter" style="font-size:.9rem;opacity:.8;margin-top:4px;">0/70 mots</div>
+    <div id="desc-counter" style="font-size:.9rem;opacity:.8;margin-top:4px;">0/200 mots</div>
   </label>
 
   <div class="grid-2">
+    <label>Région
+      <input type="text" name="region" placeholder="Ex: Île-de-France, Bretagne...">
+    </label>
     <label>Lieu
       <input type="text" name="location" placeholder="Ville / Salle">
     </label>
-    <label>Catégorie
-      <input type="text" name="category" placeholder="Magie, Théâtre, Clown…">
-    </label>
    </div>
+
+  <label>Catégorie
+    <input type="text" name="category" placeholder="Magie, Théâtre, Clown…">
+  </label>
 
   <label>Âge
   <input type="text" name="age_range"
@@ -31,11 +35,15 @@
        placeholder="Tranche d'âge">
   </label> 
 
-  <label>Votre e-mail (optionnel, pour contact)
-    <input type="email" name="contact_email" placeholder="ex: nom@domaine.com">
+  <label>Votre e-mail <span style="font-size:0.85rem;font-weight:normal;color:var(--muted);">(Pour mettre votre adresse courriel <a href="{{ url_for('legal') }}" style="color:var(--primary);text-decoration:underline;">nous contacter</a>)</span>
+    <input type="email" name="contact_email" value="audition_2020@yahoo.fr" readonly style="background-color: #1a1a1f; cursor: not-allowed; opacity: 0.6;">
   </label>
 
-  <label>Image ou PDF
+  <label>Votre téléphone <span style="font-size:0.85rem;font-weight:normal;color:var(--muted);">(visible uniquement par l'administrateur)</span>
+    <input type="tel" name="contact_phone" placeholder="06 12 34 56 78" required>
+  </label>
+
+  <label>Image ou PDF <span style="font-size:0.85rem;font-weight:normal;color:var(--muted);">(Taille max : 5 MB)</span>
     <input type="file" name="file" accept=".png,.jpg,.jpeg,.gif,.webp,.pdf">
   </label>
 
@@ -46,19 +54,19 @@
 </form>
 <p class="hint">Votre annonce sera visible après validation par l’administrateur.</p>
 
-<!-- Limiteur 70 mots (front) -->
+<!-- Limiteur 200 mots (front) -->
 <script>
 (function () {
   const ta = document.getElementById('description');
   const counter = document.getElementById('desc-counter');
-  const MAX = 70;
+  const MAX = 200;
 
   if (!ta || !counter) return;
 
   function update() {
     const words = ta.value.trim().split(/\s+/).filter(Boolean);
     if (words.length > MAX) {
-      // tronque au-delà de 70 mots
+      // tronque au-delà de 200 mots
       ta.value = words.slice(0, MAX).join(' ');
     }
     const count = ta.value.trim() ? ta.value.trim().split(/\s+/).length : 0;
@@ -74,7 +82,7 @@
       const words = ta.value.trim().split(/\s+/).filter(Boolean);
       if (words.length > MAX) {
         e.preventDefault();
-        alert('La description ne doit pas dépasser 70 mots.');
+        alert('La description ne doit pas dépasser 200 mots.');
       }
     });
   });

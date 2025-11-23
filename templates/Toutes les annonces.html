@@ -39,14 +39,17 @@
     <article class="card">
 
         {# --------- PHOTO DU SPECTACLE --------- #}
-        {% if show.has_image() and show.file_name %}
-            <img
-                src="{{ url_for('static', filename='upload/' ~ show.file_name) }}"
-                alt="{{ show.title }}"
-                class="show-image">
-        {% elif show.is_pdf() and show.file_name %}
-            <p><em>📄 Fichier PDF : {{ show.file_name }}</em></p>
-        {% endif %}
+        <a href="{{ url_for('demande_animation') }}" class="media-link">
+            <div class="media">
+                {% if show.has_image() %}
+                    <img src="{{ url_for('uploaded_file', filename=show.file_name) }}" alt="{{ show.title }}">
+                {% elif show.is_pdf() %}
+                    <a class="pdf-thumb" href="{{ url_for('uploaded_file', filename=show.file_name) }}" target="_blank">PDF</a>
+                {% else %}
+                    <div class="placeholder">Aucun fichier</div>
+                {% endif %}
+            </div>
+        </a>
 
         <h3>{{ show.title }}</h3>
         <p>{{ show.category }} • {{ show.location }}</p>
