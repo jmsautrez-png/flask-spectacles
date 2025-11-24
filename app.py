@@ -788,11 +788,7 @@ def register_routes(app: Flask) -> None:
         from flask import abort, Response
         import mimetypes
         import botocore
-        # Tente d'abord de servir le fichier localement (pour compatibilité)
-        local_path = Path(current_app.config["UPLOAD_FOLDER"]) / filename
-        if local_path.exists():
-            return send_from_directory(current_app.config["UPLOAD_FOLDER"], filename, as_attachment=False)
-        # Sinon, tente de servir depuis S3
+        # Toujours servir depuis S3
         s3_bucket = current_app.config.get("S3_BUCKET")
         s3_region = current_app.config.get("S3_REGION")
         s3 = boto3.client(
