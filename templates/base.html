@@ -83,7 +83,7 @@
   <div class="container header-grid">
     <a href="{{ url_for('home') }}" class="brand" id="brand-logo">
       <div style="display:inline-block;vertical-align:middle;">
-        <div style="font-weight:bold;font-size:26.4px;color:var(--primary);">Spectacle'ment Votre</div>
+        <div style="font-weight:bold;font-size:26.4px;color:var(--primary);">Spectacle'ment VØtre</div>
         <div style="font-size:14.6px;color:var(--text-muted);line-height:1.2;">Artistes, spectacles, animations la plateforme qui met en scène vos manifestations</div>
       </div>
     </a>
@@ -91,7 +91,7 @@
     <nav>
       <ul class="nav" style="gap:10px;">
 
-        <li><a href="{{ url_for('publish') }}" style="font-size:0.9rem;">Publier votre spectacle</a></li>
+
         
 
         {# ----- ADMIN CONNECTÉ ----- #}
@@ -107,7 +107,9 @@
 
         {# ----- VISITEUR ----- #}
         {% else %}
-          <li><a href="{{ url_for('login') }}" style="font-size:0.9rem;">Se connecter</a></li>
+          <li>
+            <a href="{{ url_for('login') }}" style="font-size:0.9rem;">Se connecter <span style="color:#28a745;font-weight:600;">(être inscrit)</span></a>
+          </li>
           <li><a href="{{ url_for('register') }}" style="font-size:0.9rem;">S'inscrire</a></li>
           <li><a href="{{ url_for('demande_animation') }}" style="font-size:0.9rem;">Demande d'animation</a></li>
         {% endif %}

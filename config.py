@@ -56,3 +56,10 @@ class Config:
     # En production, forcer HTTPS
     if os.environ.get("FLASK_ENV") == "production":
         SESSION_COOKIE_SECURE = True
+
+    # Configuration Amazon S3
+    S3_BUCKET = os.environ.get("S3_BUCKET", "nom-de-votre-bucket")
+    S3_KEY = os.environ.get("S3_KEY", "")  # AWS Access Key ID
+    S3_SECRET = os.environ.get("S3_SECRET", "")  # AWS Secret Access Key
+    S3_REGION = os.environ.get("S3_REGION", "eu-west-3")  # Région par défaut (Paris)
+    S3_CUSTOM_DOMAIN = os.environ.get("S3_CUSTOM_DOMAIN", None)  # Optionnel : domaine personnalisé pour le bucket

@@ -3,7 +3,12 @@
 {% block description %}Découvrez des spectacles pour enfants, animations d'entreprise et d'anniversaire. Magie, théâtre, cirque, clowns, marionnettes. Réservez directement avec des artistes professionnels en France.{% endblock %}
 {% block content %}
 
-<h1 style="font-size:1.8rem; margin-bottom:16px;">Spectacles et Animations Professionnels</h1>
+
+
+<div style="display:flex;align-items:center;justify-content:space-between;gap:18px;flex-wrap:wrap;margin-bottom:18px;">
+  <h1 style="font-size:1.8rem;margin:0;white-space:nowrap;">Spectacles et Animations Professionnels</h1>
+  <a href="{{ url_for('publish') }}" style="background:var(--primary,#6a11cb);color:#fff;padding:8px 18px;border-radius:22px;font-weight:600;font-size:1rem;text-decoration:none;box-shadow:0 2px 8px #0001;transition:background .2s;white-space:nowrap;display:inline-block;">Publier votre spectacle (gratuit)</a>
+</div>
 
 <form action="" method="get"
       style="display:flex; align-items:center; gap:12px; background:#f2f3f7; padding:10px 14px; border-radius:24px; margin:0 0 16px;"

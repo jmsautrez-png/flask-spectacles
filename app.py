@@ -1,3 +1,5 @@
+import sys
+print("PYTHON EXE:", sys.executable)
 from sqlalchemy import or_
 from datetime import datetime
 from pathlib import Path
@@ -6,6 +8,13 @@ import random
 import os
 import logging
 from logging.handlers import RotatingFileHandler
+
+import uuid
+import boto3
+
+# Charger les variables d'environnement du fichier .env
+from dotenv import load_dotenv
+load_dotenv()
 
 from flask import (
     Flask,
@@ -203,20 +212,50 @@ def validate_file_size(file) -> Tuple[bool, Optional[str]]:
     """Valide la taille d'un fichier. Retourne (True, None) si valide, (False, message d'erreur) sinon."""
     if not file:
         return True, None
-    
+
     # Lire le fichier en mémoire pour vérifier sa taille
     file.seek(0, 2)  # Aller à la fin du fichier
     file_size = file.tell()  # Obtenir la taille
     file.seek(0)  # Revenir au début pour pouvoir le sauvegarder après
-    
+
     max_size = current_app.config.get("MAX_FILE_SIZE", 5 * 1024 * 1024)  # Par défaut 5 MB
-    
+
     if file_size > max_size:
         size_mb = file_size / (1024 * 1024)
         max_mb = max_size / (1024 * 1024)
         return False, f"Le fichier est trop volumineux ({size_mb:.2f} MB). Taille maximale autorisée : {max_mb:.0f} MB."
-    
+
     return True, None
+
+
+# Utilitaire : upload d'un fichier sur S3
+def upload_file_to_s3(file) -> str:
+    """
+    Envoie un fichier sur S3 et retourne la *clé* (nom de fichier dans le bucket).
+    """
+    from pathlib import Path as _Path
+
+    ext = _Path(file.filename).suffix.lower()
+    unique_name = f"{uuid.uuid4().hex}{ext}"
+
+    bucket = current_app.config["S3_BUCKET"]
+    region = current_app.config["S3_REGION"]
+
+    s3 = boto3.client(
+        "s3",
+        region_name=region,
+        aws_access_key_id=current_app.config.get("AWS_ACCESS_KEY_ID") or current_app.config.get("S3_KEY"),
+        aws_secret_access_key=current_app.config.get("AWS_SECRET_ACCESS_KEY") or current_app.config.get("S3_SECRET")
+    )
+
+    s3.upload_fileobj(
+        file,
+        bucket,
+        unique_name,
+        ExtraArgs={"ContentType": file.mimetype}
+    )
+
+    return unique_name
 
 def current_user() -> Optional[User]:
     username = session.get("username")
@@ -687,13 +726,15 @@ def register_routes(app: Flask) -> None:
                 if not allowed_file(file.filename):
                     flash("Type de fichier non autorisé (png/jpg/jpeg/gif/webp/pdf).", "danger")
                     return redirect(request.url)
-                from pathlib import Path as _Path
-                stem = _Path(file.filename).stem
-                ext = _Path(file.filename).suffix
-                unique = f"{stem}-{int(datetime.utcnow().timestamp())}{ext}"
-                save_path = _Path(current_app.config["UPLOAD_FOLDER"]) / unique
-                file.save(save_path.as_posix())
-                file_name = unique
+
+                # Vérifier la taille du fichier
+                is_valid, error_msg = validate_file_size(file)
+                if not is_valid:
+                    flash(error_msg, "danger")
+                    return redirect(request.url)
+
+                # 🔥 Envoi sur S3 au lieu du disque local
+                file_name = upload_file_to_s3(file)
                 file_mimetype = file.mimetype
 
             show = Show(
@@ -743,7 +784,30 @@ def register_routes(app: Flask) -> None:
 
     @app.route("/uploads/<path:filename>")
     def uploaded_file(filename):
-        return send_from_directory(current_app.config["UPLOAD_FOLDER"], filename, as_attachment=False)
+        import boto3
+        from flask import abort, Response
+        import mimetypes
+        import botocore
+        # Tente d'abord de servir le fichier localement (pour compatibilité)
+        local_path = Path(current_app.config["UPLOAD_FOLDER"]) / filename
+        if local_path.exists():
+            return send_from_directory(current_app.config["UPLOAD_FOLDER"], filename, as_attachment=False)
+        # Sinon, tente de servir depuis S3
+        s3_bucket = current_app.config.get("S3_BUCKET")
+        s3_region = current_app.config.get("S3_REGION")
+        s3 = boto3.client(
+            "s3",
+            region_name=s3_region,
+            aws_access_key_id=current_app.config.get("AWS_ACCESS_KEY_ID") or current_app.config.get("S3_KEY"),
+            aws_secret_access_key=current_app.config.get("AWS_SECRET_ACCESS_KEY") or current_app.config.get("S3_SECRET")
+        )
+        try:
+            s3_response = s3.get_object(Bucket=s3_bucket, Key=filename)
+            file_data = s3_response["Body"].read()
+            content_type = s3_response.get("ContentType") or mimetypes.guess_type(filename)[0] or "application/octet-stream"
+            return Response(file_data, mimetype=content_type)
+        except botocore.exceptions.ClientError:
+            abort(404)
 
     @app.route("/show/<int:show_id>")
     def show_detail(show_id: int):
@@ -908,20 +972,15 @@ def register_routes(app: Flask) -> None:
                 if not allowed_file(file.filename):
                     flash("Type de fichier non autorisé (png/jpg/jpeg/gif/webp/pdf).", "danger")
                     return redirect(request.url)
-                
+
                 # Vérifier la taille du fichier
                 is_valid, error_msg = validate_file_size(file)
                 if not is_valid:
                     flash(error_msg, "danger")
                     return redirect(request.url)
-                
-                from pathlib import Path as _Path
-                stem = _Path(file.filename).stem
-                ext = _Path(file.filename).suffix
-                unique = f"{stem}-{int(datetime.utcnow().timestamp())}{ext}"
-                save_path = _Path(current_app.config["UPLOAD_FOLDER"]) / unique
-                file.save(save_path.as_posix())
-                file_name = unique
+
+                # 🔥 Envoi sur S3 au lieu du disque local
+                file_name = upload_file_to_s3(file)
                 file_mimetype = file.mimetype
 
             show = Show(
@@ -973,7 +1032,7 @@ def register_routes(app: Flask) -> None:
             file = request.files.get("file")
             if file and file.filename:
                 if not allowed_file(file.filename):
-                    flash("Type de fichier non autorisé (png/jpg/jpeg/gif/webp/pdf).", "danger")
+                    flash("Type de fichier non autorisé (pdf/jpg/jpeg/png/webp/gif).", "danger")
                     return redirect(request.url)
                 
                 # Vérifier la taille du fichier
@@ -1323,5 +1382,4 @@ app = create_app()
 
 if __name__ == "__main__":
     import os
-    debug_mode = os.environ.get("FLASK_DEBUG", "False") == "True"
-    app.run(debug=debug_mode, port=int(os.environ.get("PORT", 5000)))
+    app.run(debug=True, port=int(os.environ.get("PORT", 5000)))

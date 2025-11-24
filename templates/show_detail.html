@@ -86,6 +86,15 @@
           <p style="line-height:1.6; color:#ddd;">{{ show.description }}</p>
         </div>
       {% endif %}
+
+      {% if show.file_name %}
+        <div style="margin:24px 0;">
+          <h3>Fichier associé</h3>
+          <a href="{{ url_for('uploaded_file', filename=show.file_name) }}" target="_blank" style="color:var(--primary);text-decoration:underline;">
+            📎 Télécharger le fichier
+          </a>
+        </div>
+      {% endif %}
   <!-- ...contact, description... -->
 </div>
 <style>
