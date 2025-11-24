@@ -1,18 +1,18 @@
 {% extends "base.html" %}
 
-{% block title %}{{ show.title }}{% if show.raison_sociale %} par {{ show.raison_sociale }}{% endif %} - Spectacle'ment Votre{% endblock %}
+{% block title %}{{ show.title }}{% if show.raison_sociale %} par {{ show.raison_sociale }}{% endif %} - Spectacle'ment VØtre{% endblock %}
 
 {% block description %}{{ show.description[:160] if show.description else 'D\u00e9couvrez ' + show.title + ' - Spectacle et animation professionnelle.' }}{% endblock %}
 
 {% block og_title %}{{ show.title }}{% if show.raison_sociale %} par {{ show.raison_sociale }}{% endif %}{% endblock %}
 
-{% block og_description %}{{ show.description[:200] if show.description else 'D\u00e9couvrez ce spectacle exceptionnel sur Spectacle\'ment Votre.' }}{% endblock %}
+{% block og_description %}{{ show.description[:200] if show.description else 'D\u00e9couvrez ce spectacle exceptionnel sur Spectacle\'ment VØtre.' }}{% endblock %}
 
 {% block og_image %}{% if show.has_image() %}{{ url_for('uploaded_file', filename=show.file_name, _external=True) }}{% else %}{{ url_for('static', filename='img/default-og.jpg', _external=True) }}{% endif %}{% endblock %}
 
 {% block twitter_title %}{{ show.title }}{% endblock %}
 
-{% block twitter_description %}{{ show.description[:160] if show.description else 'D\u00e9couvrez ce spectacle sur Spectacle\'ment Votre' }}{% endblock %}
+{% block twitter_description %}{{ show.description[:160] if show.description else 'D\u00e9couvrez ce spectacle sur Spectacle\'ment VØtre' }}{% endblock %}
 
 {% block twitter_image %}{% if show.has_image() %}{{ url_for('uploaded_file', filename=show.file_name, _external=True) }}{% else %}{{ url_for('static', filename='img/default-og.jpg', _external=True) }}{% endif %}{% endblock %}
 
