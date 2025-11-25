@@ -5,25 +5,25 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   
   <!-- SEO Meta Tags -->
-  <title>{% block title %}Spectacle'ment Votre - Artistes, spectacles, animations la plateforme qui met en scène vos animations{% endblock %}</title>
+  <title>{% block title %}Spectacle'ment VØtre - Artistes, spectacles, animations la plateforme qui met en scène vos animations{% endblock %}</title>
   <meta name="description" content="{% block description %}Trouvez des spectacles et animations pour enfants, entreprises, anniversaires. Théâtre, magie, cirque, clowns, marionnettes. Mise en relation directe avec des compagnies professionnelles.{% endblock %}">
   <meta name="keywords" content="spectacle enfants, animation entreprise, animation anniversaire, magie, théâtre jeune public, cirque, clowns, marionnettes, conteurs, spectacle école, animation événementielle, artistes professionnels">
-  <meta name="author" content="Spectacle'ment Votre">
+  <meta name="author" content="Spectacle'ment VØtre">
   <meta name="robots" content="index, follow">
   
   <!-- Open Graph / Facebook -->
   <meta property="og:type" content="website">
-  <meta property="og:title" content="{% block og_title %}Spectacle'ment Votre - Spectacles et animations professionnels{% endblock %}">
+  <meta property="og:title" content="{% block og_title %}Spectacle'ment VØtre - Spectacles et animations professionnels{% endblock %}">
   <meta property="og:description" content="{% block og_description %}Plateforme de mise en relation entre artistes professionnels et organisateurs d'événements. Spectacles pour enfants, animations entreprise, anniversaires et plus.{% endblock %}">
   <meta property="og:url" content="{{ request.url }}">
-  <meta property="og:site_name" content="Spectacle'ment Votre">
+  <meta property="og:site_name" content="Spectacle'ment VØtre">
   <meta property="og:image" content="{% block og_image %}{{ url_for('static', filename='img/default-og.jpg', _external=True) }}{% endblock %}">
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
   
   <!-- Twitter Card -->
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="{% block twitter_title %}Spectacle'ment Votre - Spectacles et animations{% endblock %}">
+  <meta name="twitter:title" content="{% block twitter_title %}Spectacle'ment VØtre - Spectacles et animations{% endblock %}">
   <meta name="twitter:description" content="{% block twitter_description %}Trouvez l'animation parfaite pour votre événement{% endblock %}">
   <meta name="twitter:image" content="{% block twitter_image %}{{ url_for('static', filename='img/default-og.jpg', _external=True) }}{% endblock %}">
   
@@ -66,7 +66,7 @@
   {
     "@context": "https://schema.org",
     "@type": "WebSite",
-    "name": "Spectacle'ment Votre",
+    "name": "Spectacle'ment VØtre",
     "url": "{{ request.url_root }}",
     "description": "Plateforme de mise en relation pour spectacles et animations professionnels",
     "potentialAction": {
@@ -82,9 +82,12 @@
 <header class="site-header">
   <div class="container header-grid">
     <a href="{{ url_for('home') }}" class="brand" id="brand-logo">
-      <div style="display:inline-block;vertical-align:middle;">
-        <div style="font-weight:bold;font-size:26.4px;color:var(--primary);">Spectacle'ment VØtre</div>
-        <div style="font-size:14.6px;color:var(--text-muted);line-height:1.2;">Artistes, spectacles, animations la plateforme qui met en scène vos manifestations</div>
+      <div style="display:flex;align-items:center;gap:12px;">
+        <div style="width:6px;height:48px;background:var(--primary);border-radius:3px 3px 3px 3px;"></div>
+        <div>
+          <div style="font-weight:bold;font-size:26.4px;color:var(--primary);">Spectacle'ment VØtre</div>
+          <div style="font-size:14.6px;color:var(--text-muted);line-height:1.2;">Artistes, spectacles, animations la plateforme qui met en scène vos manifestations</div>
+        </div>
       </div>
     </a>
 
@@ -138,11 +141,11 @@
 
   {# ----- Bloc SEO / présentation ----- #}
   <section class="seo-block" style="margin-top:26px;padding:16px;border:1px solid var(--border);border-radius:12px;background:var(--panel)">
-    <h2 style="margin-top:0">Spectacle'ment Votre</h2>
+    <h2 style="margin-top:0">Spectacle'ment VØtre</h2>
     <p style="font-size:1.1rem;margin-top:8px;"><strong>Artistes, spectacles, animations la plateforme qui met en scène vos manifestations</strong></p>
 
     <p>
-      <strong>Spectacle'ment Votre</strong> présente des <strong>spectacles jeune public, animations entreprise, animations anniversaire, animations événementielles</strong> et met en relation les <strong>compagnies professionnelles, artistes et animateurs</strong> avec les futurs programmateurs
+      <strong>Spectacle'ment VØtre</strong> présente des <strong>spectacles jeune public, animations entreprise, animations anniversaire, animations événementielles</strong> et met en relation les <strong>compagnies professionnelles, artistes et animateurs</strong> avec les futurs programmateurs
       (mairies, écoles, centres culturels, CSE, comités d'entreprise, médiathèques, associations, particuliers…).
     </p>
 
@@ -157,12 +160,12 @@
     </p> 
 
   <p style="margin-top:12px;font-weight:bold;">
-    👉 Trouvez l'animation parfaite pour votre événement : anniversaire, entreprise, école, festival, mariage, fête de village... Spectacle'ment Votre simplifie la mise en relation !
+    👉 Trouvez l'animation parfaite pour vØtre événement : anniversaire, entreprise, école, festival, mariage, fête de village... Spectacle'ment VØtre simplifie la mise en relation !
   </p>
 </section>
   <p style="margin-top:16px;">
     <a href="{{ url_for('publish') }}" style="display:inline-block;padding:10px 16px;background:var(--accent);color:white;border-radius:6px;font-weight:bold;text-decoration:none;margin-right:8px;">
-      Publier votre spectacle
+      Publier vØtre spectacle
     </a>
 
     <a href="{{ url_for('demande_animation') }}" style="display:inline-block;padding:10px 16px;background:var(--accent);color:white;border-radius:6px;font-weight:bold;text-decoration:none;margin-right:8px;">

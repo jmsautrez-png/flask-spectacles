@@ -1,9 +1,9 @@
 {% extends "base.html" %}
-{% block title %}Publier votre spectacle ou animation - AnimatoSpectacle{% endblock %}
+{% block title %}Publier vØtre spectacle ou animation - AnimatoSpectacle{% endblock %}
 
 {% block content %}
-<h2>Publier votre spectacle</h2>
-<p>Remplissez le formulaire ci-dessous. Votre annonce sera examinée avant publication.</p>
+<h2>Publier vØtre spectacle</h2>
+<p>Remplissez le formulaire ci-dessous. VØtre annonce sera examinée avant publication.</p>
 
 <form action="{{ url_for('submit_show') }}" method="post" enctype="multipart/form-data" class="form">
 
@@ -28,7 +28,7 @@
   <label>Date</label>
   <input type="date" name="date">
 
-  <label>Email de contact <span style="font-size:0.85rem;font-weight:normal;color:var(--muted);">(Pour mettre votre adresse courriel <a href="{{ url_for('legal') }}" style="color:var(--primary);text-decoration:underline;">nous contacter</a>)</span></label>
+  <label>Email de contact <span style="font-size:0.85rem;font-weight:normal;color:var(--muted);">(Pour mettre vØtre adresse courriel <a href="{{ url_for('legal') }}" style="color:var(--primary);text-decoration:underline;">nous contacter</a>)</span></label>
   <input type="email" name="contact_email" value="audition_2020@yahoo.fr" {% if not (user and user.is_admin) %}readonly{% endif %}>
 
   <label>Affiche / PDF <span style="font-size:0.85rem;font-weight:normal;color:var(--muted);">(Taille max : 5 MB)</span></label>

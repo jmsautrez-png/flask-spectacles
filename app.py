@@ -373,11 +373,16 @@ def register_routes(app: Flask) -> None:
             
             username = request.form.get("username", "").strip()
             password = request.form.get("password", "").strip()
+            email = request.form.get("email", "").strip()
+            telephone = request.form.get("telephone", "").strip()
+            raison_sociale = request.form.get("raison_sociale", "").strip()
+            region = request.form.get("region", "").strip()
+            site_internet = request.form.get("site_internet", "").strip()
 
-            if not username or not password:
-                flash("Veuillez remplir tous les champs.", "danger")
+            if not username or not password or not email:
+                flash("Veuillez remplir tous les champs obligatoires.", "danger")
                 return render_template("register.html")
-            
+
             # Validation du mot de passe (minimum 6 caractères)
             if len(password) < 6:
                 flash("Le mot de passe doit contenir au moins 6 caractères.", "danger")
@@ -389,10 +394,33 @@ def register_routes(app: Flask) -> None:
                 return render_template("register.html")
 
             try:
-                user = User(username=username)
+                user = User(
+                    username=username,
+                    raison_sociale=raison_sociale or None,
+                )
                 user.set_password(password)
                 db.session.add(user)
                 db.session.commit()
+
+                # Envoi d'un email à l'admin avec le pédigrée du nouvel utilisateur
+                if getattr(current_app, "mail", None) and current_app.config.get("MAIL_USERNAME"):
+                    try:
+                        to_addr = current_app.config.get("MAIL_DEFAULT_SENDER") or current_app.config.get("MAIL_USERNAME")
+                        body = (
+                            f"Nouvelle inscription utilisateur :\n\n"
+                            f"Nom d'utilisateur : {username}\n"
+                            f"Email : {email}\n"
+                            f"Téléphone : {telephone}\n"
+                            f"Raison sociale : {raison_sociale}\n"
+                            f"Région : {region}\n"
+                            f"Site internet : {site_internet}\n"
+                        )
+                        msg = Message(subject="Nouvelle inscription utilisateur", recipients=[to_addr])  # type: ignore[arg-type]
+                        msg.body = body  # type: ignore[assignment]
+                        current_app.mail.send(msg)  # type: ignore[attr-defined]
+                    except Exception as e:
+                        print("[MAIL] envoi impossible (inscription):", e)
+
                 flash("Compte créé ! Vous pouvez maintenant vous connecter.", "success")
                 return redirect(url_for("login"))
             except Exception:
@@ -788,7 +816,11 @@ def register_routes(app: Flask) -> None:
         from flask import abort, Response
         import mimetypes
         import botocore
-        # Toujours servir depuis S3
+        # Tente d'abord de servir le fichier localement (pour compatibilité)
+        local_path = Path(current_app.config["UPLOAD_FOLDER"]) / filename
+        if local_path.exists():
+            return send_from_directory(current_app.config["UPLOAD_FOLDER"], filename, as_attachment=False)
+        # Sinon, tente de servir depuis S3
         s3_bucket = current_app.config.get("S3_BUCKET")
         s3_region = current_app.config.get("S3_REGION")
         s3 = boto3.client(
