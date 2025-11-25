@@ -1,3 +1,14 @@
+# Import optionnel de Flask-Mail
+try:
+    from flask_mail import Mail, Message
+except ImportError:
+    Mail = None
+    Message = None
+# Import optionnel de Flask-Talisman
+try:
+    from flask_talisman import Talisman
+except ImportError:
+    Talisman = None
 import sys
 print("PYTHON EXE:", sys.executable)
 from sqlalchemy import or_
@@ -9,12 +20,19 @@ import os
 import logging
 from logging.handlers import RotatingFileHandler
 
+
 import uuid
-import boto3
+
+# Import optionnel de Flask-Compress
+try:
+    from flask_compress import Compress
+except ImportError:
+    Compress = None
 
 # Charger les variables d'environnement du fichier .env
 from dotenv import load_dotenv
 load_dotenv()
+
 
 from flask import (
     Flask,
@@ -25,34 +43,8 @@ from flask import (
     flash,
     session,
     send_from_directory,
-    current_app,
+    current_app
 )
-
-# Sécurité
-try:
-    from flask_limiter import Limiter
-    from flask_limiter.util import get_remote_address
-except ImportError:
-    Limiter = None
-    get_remote_address = None
-
-try:
-    from flask_talisman import Talisman
-except ImportError:
-    Talisman = None
-
-# Compression
-try:
-    from flask_compress import Compress
-except ImportError:
-    Compress = None
-
-# Mail (optionnel)
-try:
-    from flask_mail import Mail, Message  # type: ignore
-except Exception:  # pragma: no cover
-    Mail = None  # type: ignore
-    Message = None  # type: ignore
 
 from config import Config
 from models import db
