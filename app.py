@@ -713,9 +713,6 @@ def register_routes(app: Flask) -> None:
 
         return render_template("submit_form.html", user=current_user())
 
-    @app.route("/uploads/<path:filename>")
-    def uploaded_file(filename):
-        return send_from_directory(current_app.config["UPLOAD_FOLDER"], filename, as_attachment=False)
 
     @app.route("/show/<int:show_id>")
     def show_detail(show_id: int):
@@ -1261,6 +1258,7 @@ Accessibilité: {accessibilite}
 # -----------------------------------------------------
 
 app = create_app()
+
 
 
 # Route d'accès aux fichiers uploadés (hors create_app)
