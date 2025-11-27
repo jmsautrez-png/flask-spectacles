@@ -1,4 +1,4 @@
-# La Sélection d’Artemisia — Pack complet (Windows)
+# AnimatoSpectacle — Pack complet (Windows)
 
 ## Lancer
 1) Double‑cliquez **start.bat** (Windows).

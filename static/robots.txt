@@ -1,0 +1,11 @@
+User-agent: *
+Allow: /
+Disallow: /admin/
+Disallow: /login
+Disallow: /register
+Disallow: /logout
+Disallow: /publish
+Disallow: /submit
+
+# Remplacer par votre domaine en production (ex: https://spectaclementvotre.fr/sitemap.xml)
+Sitemap: /sitemap.xml

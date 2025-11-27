@@ -1,17 +1,17 @@
-
 {% extends "base.html" %}
-{% block title %}Connexion — Admin{% endblock %}
+{% block title %}Connexion - AnimatoSpectacle{% endblock %}
 {% block content %}
-<h2>Connexion</h2>
-<form method="post" class="form">
+<h2 style="margin-bottom: 12px;">Connexion</h2>
+<form method="post" class="form" id="loginform">
+  <div class="actions" style="display: flex; gap: 12px; margin-bottom: 16px;">
+    <a class="lost-pass" href="{{ url_for('forgot_password') }}" style="padding:10px 14px; border-radius:10px; background:red; color:#fff; font-weight:700; text-decoration:none; display:inline-block;">Mot de passe oublié ?</a>
+  </div>
   <label>Nom d’utilisateur
     <input name="username" type="text" required autofocus>
   </label>
   <label>Mot de passe
     <input name="password" type="password" required>
   </label>
-  <button type="submit">Se connecter</button>
+  <button type="submit" style="padding:10px 14px; border-radius:10px; background:red; color:#fff; font-weight:700; text-decoration:none; display:inline-block; width:100%; margin-top:16px;">Se connecter</button>
 </form>
-<p class="hint">Astuce : définissez <code>ADMIN_USERNAME</code> et <code>ADMIN_PASSWORD</code> dans vos variables d’environnement pour créer l’admin au premier démarrage.</p>
-<p><a class="lost-pass" href="{{ url_for('forgot_password') }}">Mot de passe oublié ?</a></p>
 {% endblock %}

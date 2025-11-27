@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}Tableau de bord admin{% endblock %}
+{% block title %}Tableau de bord - AnimatoSpectacle{% endblock %}
 
 {% block content %}
 
@@ -13,6 +13,13 @@
             <h3>{{ show.title }}</h3>
             <p>{{ show.category }} • {{ show.location }}</p>
             <p>{{ show.age_range }}</p>
+            
+            <div style="background:#1a1a1e;padding:8px;border-radius:6px;margin:8px 0;font-size:0.85rem;">
+                <div><strong>👤 Compagnie:</strong> {{ show.raison_sociale or 'Non renseignée' }}</div>
+                <div><strong>📍 Région/Ville:</strong> {{ show.location or 'Non renseignée' }}</div>
+                <div><strong>📧 Email:</strong> {{ show.contact_email or 'Non renseigné' }}</div>
+                <div><strong>📱 Téléphone:</strong> {{ show.contact_phone or 'Non renseigné' }}</div>
+            </div>
 
             <form action="{{ url_for('show_approve', show_id=show.id) }}" method="post">
                 <button type="submit">✅ Valider</button>
@@ -55,8 +62,10 @@
             {% endif %}
         {% endif %}
 
+        {% if show.raison_sociale %}<p style="font-weight:600; color:var(--primary); margin:8px 0 4px 0;">{{ show.raison_sociale }}</p>{% endif %}
         <h3>{{ show.title }}</h3>
-        <p>{{ show.category }} • {{ show.location }}</p>
+        <p>{{ show.category }}</p>
+        {% if show.location %}<p>📍 {{ show.location }}</p>{% endif %}
 
         {% if not show.approved %}
             <p style="color:#e67e22;">⏳ Non validée</p>
@@ -73,5 +82,60 @@
     </article>
 {% endfor %}
 </div>
+
+<!-- Pagination -->
+{% if pagination and pagination.pages > 1 %}
+<nav class="pagination" style="margin: 30px 0; text-align: center;">
+  <div style="display: inline-flex; gap: 8px; align-items: center; flex-wrap: wrap; justify-content: center;">
+    
+    <!-- Page précédente -->
+    {% if pagination.has_prev %}
+      <a href="{{ url_for('admin_dashboard', page=pagination.prev_num) }}"
+         style="padding: 8px 12px; background: var(--primary); color: white; text-decoration: none; border-radius: 4px; font-weight: 600;">
+        ← Précédent
+      </a>
+    {% else %}
+      <span style="padding: 8px 12px; background: #ddd; color: #999; border-radius: 4px; font-weight: 600;">
+        ← Précédent
+      </span>
+    {% endif %}
+
+    <!-- Numéros de pages -->
+    {% for p in pagination.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
+      {% if p %}
+        {% if p == pagination.page %}
+          <span style="padding: 8px 12px; background: var(--primary); color: white; border-radius: 4px; font-weight: 600;">
+            {{ p }}
+          </span>
+        {% else %}
+          <a href="{{ url_for('admin_dashboard', page=p) }}"
+             style="padding: 8px 12px; background: #f2f3f7; color: var(--text); text-decoration: none; border-radius: 4px; font-weight: 600;">
+            {{ p }}
+          </a>
+        {% endif %}
+      {% else %}
+        <span style="padding: 8px 12px; color: #999;">...</span>
+      {% endif %}
+    {% endfor %}
+
+    <!-- Page suivante -->
+    {% if pagination.has_next %}
+      <a href="{{ url_for('admin_dashboard', page=pagination.next_num) }}"
+         style="padding: 8px 12px; background: var(--primary); color: white; text-decoration: none; border-radius: 4px; font-weight: 600;">
+        Suivant →
+      </a>
+    {% else %}
+      <span style="padding: 8px 12px; background: #ddd; color: #999; border-radius: 4px; font-weight: 600;">
+        Suivant →
+      </span>
+    {% endif %}
+  </div>
+
+  <!-- Informations sur les résultats -->
+  <p style="margin-top: 16px; color: var(--muted); font-size: 0.9rem;">
+    Page {{ pagination.page }} sur {{ pagination.pages }} ({{ pagination.total }} annonce{{ 's' if pagination.total > 1 else '' }})
+  </p>
+</nav>
+{% endif %}
 
 {% endblock %}

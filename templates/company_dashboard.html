@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% block title %}Mes spectacles - AnimatoSpectacle{% endblock %}
 {% block content %}
 <h1>Mes spectacles</h1>
 
@@ -29,16 +30,6 @@
       <h3>{{ s.title }}</h3>
       {% if not s.approved %}
         <p class="meta" style="color:#ffb347;">(En attente de validation)</p>
-      {% endif %}
-      
-      <p class="meta">
-        {{ s.category }}
-        {% if s.location %} • {{ s.location }}{% endif %}
-        {% if s.age_range %} • {{ s.age_range }}{% endif %}
-      </p>
-
-      {% if s.description %}
-        <p class="desc">{{ s.description }}</p>
       {% endif %}
     </div>
 

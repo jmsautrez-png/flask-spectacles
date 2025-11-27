@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% block title %}Animations anniversaire - AnimatoSpectacle{% endblock %}
+{% block content %}
+
+<h1>Animations pour anniversaires</h1>
+
+<p style="margin-bottom:24px;">
+  Trouvez les meilleures <strong>animations pour anniversaires d'enfants</strong> : 
+  spectacles, ateliers créatifs, maquillage, jeux, structures gonflables, animateurs 
+  professionnels. Faites de l'anniversaire de votre enfant un moment inoubliable !
+</p>
+
+{% if shows %}
+<div class="cards">
+  {% for show in shows %}
+  <article class="card">
+    <a href="{{ url_for('demande_animation') }}" class="media-link">
+      <div class="media">
+        {% if show.has_image() %}
+          <img src="{{ url_for('uploaded_file', filename=show.file_name) }}" alt="{{ show.title }}">
+        {% elif show.is_pdf() %}
+          <a class="pdf-thumb" href="{{ url_for('uploaded_file', filename=show.file_name) }}" target="_blank">PDF</a>
+        {% else %}
+          <div class="placeholder">Aucun fichier</div>
+        {% endif %}
+      </div>
+    </a>
+
+    <a href="{{ url_for('show_detail', show_id=show.id) }}" class="content-link">
+      <div class="content">
+        {% if show.raison_sociale %}<p class="meta" style="font-weight:600; margin-bottom:8px; color:var(--primary);">{{ show.raison_sociale }}</p>{% endif %}
+        <h3>{{ show.title }}</h3>
+        <p class="meta">
+          {{ show.category }}
+          {% if show.location %} • {{ show.location }}{% endif %}
+          {% if show.age_range %} • {{ show.age_range }}{% endif %}
+        </p>
+        {% if show.description %}<p class="desc">{{ show.description }}</p>{% endif %}
+        {% if show.contact_email %}<p class="meta">Contact : {{ show.contact_email }}</p>{% endif %}
+      </div>
+    </a>
+  </article>
+  {% endfor %}
+</div>
+{% else %}
+<div style="padding:24px; background:#f8f9fa; border-radius:8px; text-align:center;">
+  <p style="margin:0; font-size:16px;">Aucune animation pour anniversaires n'est disponible pour le moment.</p>
+  <p style="margin:12px 0 0 0;">N'hésitez pas à <a href="{{ url_for('demande_animation') }}" style="color:var(--primary); font-weight:600;">nous contacter</a> pour vos besoins spécifiques ou consultez nos <a href="{{ url_for('home') }}" style="color:var(--primary); font-weight:600;">autres spectacles</a>.</p>
+</div>
+{% endif %}
+
+{% endblock %}
