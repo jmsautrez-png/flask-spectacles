@@ -96,11 +96,18 @@ def configure_logging(app: Flask) -> None:
 # -----------------------------------------------------
 def create_app() -> Flask:
     app = Flask(__name__, instance_relative_config=True)
+    from pathlib import Path
+    import os
+
+    BASE_DIR = Path(__file__).resolve().parent
+    DEFAULT_UPLOAD_DIR = BASE_DIR / "instance" / "uploads"
+    UPLOAD_DIR = Path(os.environ.get("UPLOAD_DIR", DEFAULT_UPLOAD_DIR.as_posix()))
+    UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
+    app.config["UPLOAD_FOLDER"] = UPLOAD_DIR.as_posix()
     app.config.from_object(Config)
 
     # Dossiers nécessaires
     Path(app.instance_path).mkdir(parents=True, exist_ok=True)
-    Path(app.config["UPLOAD_FOLDER"]).mkdir(parents=True, exist_ok=True)
     
     # === LOGGING ===
     configure_logging(app)
