@@ -11,12 +11,13 @@ echo [*] Activation de l'environnement...
 call .venv\Scripts\activate
 
 echo [*] Installation des dependances...
-pip install --upgrade pip
-pip install -r requirements.txt
+python -m pip install --upgrade pip
+python -m pip install -r requirements.txt
 
 echo [*] Demarrage de l'appli (http://127.0.0.1:5000)...
 set FLASK_DEBUG=True
-python app.py
+set FLASK_APP=wsgi:app
+python -m flask run
 
 echo.
 echo [FIN] App fermee. Appuyez sur une touche pour sortir.

@@ -1,9 +1,11 @@
+
+from flask import Flask, send_from_directory, render_template, request, redirect, url_for, flash, session, current_app
+from pathlib import Path
+import os
 from sqlalchemy import or_
 from datetime import datetime
-from pathlib import Path
 from typing import Optional, Tuple
 import random
-import os
 import logging
 from logging.handlers import RotatingFileHandler
 
@@ -97,14 +99,18 @@ def configure_logging(app: Flask) -> None:
 # -----------------------------------------------------
 def create_app() -> Flask:
     app = Flask(__name__, instance_relative_config=True)
-    from pathlib import Path
-    import os
 
     BASE_DIR = Path(__file__).resolve().parent
     DEFAULT_UPLOAD_DIR = BASE_DIR / "instance" / "uploads"
     UPLOAD_DIR = Path(os.environ.get("UPLOAD_DIR", DEFAULT_UPLOAD_DIR.as_posix()))
     UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
     app.config["UPLOAD_FOLDER"] = UPLOAD_DIR.as_posix()
+
+    # Route d'accès aux fichiers uploadés (dans la factory)
+    @app.route("/uploads/<path:filename>")
+    def uploaded_file(filename):
+        return send_from_directory(app.config["UPLOAD_FOLDER"], filename)
+
     app.config.from_object(Config)
 
     # Dossiers nécessaires
@@ -1261,12 +1267,6 @@ app = create_app()
 
 
 
-# Route d'accès aux fichiers uploadés (hors create_app)
-from flask import send_from_directory, current_app
-
-@app.route("/uploads/<path:filename>")
-def uploaded_file(filename):
-    return send_from_directory(current_app.config["UPLOAD_FOLDER"], filename)
 
 if __name__ == "__main__":
     import os
