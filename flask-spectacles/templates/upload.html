@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <title>Upload de carte</title>
+</head>
+<body>
+  <h1>Ajouter une carte</h1>
+
+  <!-- Messages flash (erreurs, succès) -->
+  {% with messages = get_flashed_messages() %}
+    {% if messages %}
+      <ul style="color:red;">
+        {% for message in messages %}
+          <li>{{ message }}</li>
+        {% endfor %}
+      </ul>
+    {% endif %}
+  {% endwith %}
+
+  <form action="{{ url_for('upload') }}" method="post" enctype="multipart/form-data">
+    <div>
+      <label for="user_id">Identifiant utilisateur :</label>
+      <input type="text" id="user_id" name="user_id" required>
+    </div>
+
+    <div>
+      <label for="texte">Texte :</label>
+      <input type="text" id="texte" name="texte">
+    </div>
+
+    <div>
+      <label for="image">Image (max 200 Ko) :</label>
+      <input type="file" id="image" name="image" accept="image/*" required>
+    </div>
+
+    <button type="submit">Envoyer</button>
+  </form>
+
+  <p>
+    <a href="{{ url_for('list_cards') }}">Voir la liste des utilisateurs ayant une carte</a>
+  </p>
+</body>
+</html>
