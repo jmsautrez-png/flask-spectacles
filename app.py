@@ -19,6 +19,7 @@ from flask import (
     current_app,
 )
 
+
 # Sécurité
 try:
     from flask_limiter import Limiter
@@ -1258,7 +1259,16 @@ Accessibilité: {accessibilite}
 # -----------------------------------------------------
 # Entrée
 # -----------------------------------------------------
+
 app = create_app()
+
+
+# Route d'accès aux fichiers uploadés (hors create_app)
+from flask import send_from_directory, current_app
+
+@app.route("/uploads/<path:filename>")
+def uploaded_file(filename):
+    return send_from_directory(current_app.config["UPLOAD_FOLDER"], filename)
 
 if __name__ == "__main__":
     import os
