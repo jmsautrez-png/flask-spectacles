@@ -1,0 +1,10 @@
+services:
+  - type: web
+    name: flask-spectacles
+    env: python
+    buildCommand: "pip install -r requirements.txt"
+    startCommand: "gunicorn app:app"
+    envVars:
+      - key: FLASK_ENV
+        value: production
+      # Ajoutez ici vos autres variables d'environnement si besoin
