@@ -10,6 +10,7 @@ try:
 except ImportError:
     Talisman = None
 import sys
+
 print("PYTHON EXE:", sys.executable)
 from sqlalchemy import or_
 from datetime import datetime
@@ -20,8 +21,13 @@ import os
 import logging
 from logging.handlers import RotatingFileHandler
 
-
 import uuid
+
+# Import global de boto3 pour éviter NameError
+try:
+    import boto3
+except ImportError:
+    boto3 = None
 
 # Import optionnel de Flask-Compress
 try:

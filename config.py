@@ -57,4 +57,14 @@ class Config:
     if os.environ.get("FLASK_ENV") == "production":
         SESSION_COOKIE_SECURE = True
 
-    # Suppression de la configuration Amazon S3 (non utilisée)
+    # Configuration Amazon S3 (chargée depuis .env ou variables d'environnement)
+    S3_BUCKET = os.environ.get("S3_BUCKET")
+    S3_KEY = os.environ.get("S3_KEY")
+    S3_SECRET = os.environ.get("S3_SECRET")
+    S3_REGION = os.environ.get("S3_REGION")
+    S3_CUSTOM_DOMAIN = os.environ.get("S3_CUSTOM_DOMAIN")
+
+    # Ajout de toutes les variables du .env pour accès via app.config
+    # (si d'autres variables sont ajoutées dans .env, les ajouter ici)
+    # Exemple :
+    # AUTRE_VARIABLE = os.environ.get("AUTRE_VARIABLE")
