@@ -941,7 +941,7 @@ def register_routes(app: Flask) -> None:
         db.session.delete(s)
         db.session.commit()
         flash("Spectacle supprimé.", "success")
-        return redirect(url_for("company_dashboard"))
+        return redirect(request.referrer or url_for("company_dashboard"))
 
     # ---------------------------
     # Espace Admin
@@ -1109,7 +1109,7 @@ def register_routes(app: Flask) -> None:
         db.session.delete(show)
         db.session.commit()
         flash("Annonce supprimée.", "success")
-        return redirect(url_for("admin_dashboard"))
+        return redirect(request.referrer or url_for("admin_dashboard"))
 
     @app.route("/admin/shows/<int:show_id>/approve", methods=["POST"])
     @login_required
