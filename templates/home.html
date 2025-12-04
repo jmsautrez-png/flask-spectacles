@@ -36,7 +36,7 @@
     <a href="{{ url_for('demande_animation') }}" class="media-link">
       <div class="media">
         {% if show.has_image() %}
-          <img src="{{ url_for('uploaded_file', filename=show.file_name) }}" alt="{{ show.title }}">
+          <img src="{{ url_for('uploaded_file', filename=show.file_name) }}" alt="{{ show.title }}" loading="lazy">
         {% elif show.is_pdf() %}
           <a class="pdf-thumb" href="{{ url_for('uploaded_file', filename=show.file_name) }}" target="_blank">PDF</a>
         {% else %}
