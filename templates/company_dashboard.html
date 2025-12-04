@@ -16,7 +16,9 @@
     <div class="media">
       {% if s.file_name %}
         {% if s.file_mimetype and 'image' in s.file_mimetype %}
-          <img src="{{ url_for('static', filename='uploads/' ~ s.file_name) }}" alt="{{ s.title }}">
+          <a href="{{ url_for('show_detail', show_id=s.id) }}">
+            <img src="{{ url_for('static', filename='uploads/' ~ s.file_name) }}" alt="{{ s.title }}" style="cursor:pointer;">
+          </a>
         {% elif s.file_mimetype and 'pdf' in s.file_mimetype %}
           <a class="pdf-thumb" href="{{ url_for('static', filename='uploads/' ~ s.file_name) }}" target="_blank">PDF</a>
         {% endif %}

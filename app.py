@@ -566,7 +566,8 @@ def register_routes(app: Flask) -> None:
         if category:
             shows = shows.filter(Show.category == category)
         if location:
-            shows = shows.filter(Show.location == location)
+            like = f"%{location}%"
+            shows = shows.filter(or_(Show.location.ilike(like), Show.region.ilike(like)))
 
         # Type de fichier
         if type_filter == "image":
@@ -598,7 +599,7 @@ def register_routes(app: Flask) -> None:
 
         # Pagination : 30 résultats par page
         try:
-            pagination = shows.paginate(page=page, per_page=30, error_out=False)
+            pagination = shows.paginate(page=page, per_page=10, error_out=False)
             shows_list = pagination.items
         except Exception as e:
             current_app.logger.exception("Erreur lors de la requête /home: %s", e)

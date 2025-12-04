@@ -28,6 +28,14 @@
   <label>Catégorie
     <input type="text" name="category" value="{{ show.category }}">
   </label>
+
+  <label>Catégorie 2
+    <select name="categorie2" required>
+      <option value="" {% if not show.categorie2 %}selected{% endif %}>-- Choisir --</option>
+      <option value="adulte" {% if show.categorie2 == 'adulte' %}selected{% endif %}>Adulte</option>
+      <option value="enfant" {% if show.categorie2 == 'enfant' %}selected{% endif %}>Enfant</option>
+    </select>
+  </label>
    
    <label>Âge
   <input type="text" name="age_range"
@@ -75,12 +83,10 @@
   <div class="actions">
     <button type="submit">Mettre à jour</button>
     <a class="btn-secondary" href="{{ url_for('home') }}">Annuler</a>
+    <a class="btn-secondary" href="{{ url_for('company_dashboard') }}" style="margin-left:8px;">Retour au tableau de bord</a>
   </div>
 </form>
 
-<form action="{{ url_for('show_approve', show_id=show.id) }}" method="POST" style="margin-top:10px;">
-  <button style="background:#35c779;color:white;padding:8px 14px;border:none;border-radius:8px;cursor:pointer;">✅ Valider l’annonce</button>
-</form>
 
 <!-- Script limite 200 mots -->
 <script>

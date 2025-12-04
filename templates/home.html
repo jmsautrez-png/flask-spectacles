@@ -10,19 +10,22 @@
   <a href="{{ url_for('publish') }}" style="background:var(--primary,#6a11cb);color:#fff;padding:8px 18px;border-radius:22px;font-weight:600;font-size:1rem;text-decoration:none;box-shadow:0 2px 8px #0001;transition:background .2s;white-space:nowrap;display:inline-block;">Publier vØtre spectacle (gratuit)</a>
 </div>
 
+
 <form action="" method="get"
       style="display:flex; align-items:center; gap:12px; background:#f2f3f7; padding:10px 14px; border-radius:24px; margin:0 0 16px;"
       role="search"
       aria-label="Rechercher un spectacle">
-  
   <span aria-hidden="true">🔍</span>
-  <input name="q" value="{{ q or '' }}" 
-         placeholder="Recherche une catégorie de spectacle, une ville, un âge..."
-         aria-label="Recherche"
-         style="flex:1; border:none; background:transparent; outline:none; font-size:16px;">
-
+  <input name="q" value="{{ q or '' }}"
+    placeholder="Recherche catégorie, spectacle, âge..."
+    aria-label="Recherche générale"
+    style="flex:2; border:none; background:transparent; outline:none; font-size:16px;">
+    <input name="location" value="{{ location or '' }}"
+      placeholder="Ville ou région..."
+      aria-label="Recherche par ville ou région"
+      style="flex:1; border:none; background:transparent; outline:none; font-size:16px;">
   <button type="submit"
-          style="border:none; background:transparent; font-weight:600; cursor:pointer;">OK</button>
+     style="border:none; background:transparent; font-weight:600; cursor:pointer;">OK</button>
 </form>
 
 <h2>Catalogue des spectacles</h2>
