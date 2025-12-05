@@ -27,16 +27,16 @@
   <button type="submit"
      style="border:none; background:transparent; font-weight:600; cursor:pointer;">OK</button>
 </form>
-
-<h2>Catalogue des spectacles</h2>
-
-<div class="cards">
+<div style="display:flex;gap:32px;align-items:flex-start;">
+  <div style="flex:3;min-width:0;">
+    <h2>Catalogue des spectacles</h2>
+    <div class="cards">
   {% for show in shows or [] %}
   <article class="card">
     <a href="{{ url_for('demande_animation') }}" class="media-link">
       <div class="media">
         {% if show.has_image() %}
-          <img src="{{ url_for('uploaded_file', filename=show.file_name) }}" alt="{{ show.title }}" loading="lazy">
+          <img src="{{ url_for('uploaded_file', filename=show.file_name) }}" alt="{{ show.title }}">
         {% elif show.is_pdf() %}
           <a class="pdf-thumb" href="{{ url_for('uploaded_file', filename=show.file_name) }}" target="_blank">PDF</a>
         {% else %}
