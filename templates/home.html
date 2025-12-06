@@ -27,145 +27,213 @@
   <button type="submit"
      style="border:none; background:transparent; font-weight:600; cursor:pointer;">OK</button>
 </form>
-<div style="display:flex;gap:32px;align-items:flex-start;">
-  <div style="flex:3;min-width:0;">
-    <h2>Catalogue des spectacles</h2>
+
+<div class="page-layout">
+  <!-- COLONNE GAUCHE : catalogue -->
+  <div class="page-main">
+    <h2 id="catalogue-title">Catalogue des spectacles</h2>
     <div class="cards">
-  {% for show in shows or [] %}
-  <article class="card">
-    <a href="{{ url_for('demande_animation') }}" class="media-link">
-      <div class="media">
-        {% if show.has_image() %}
-          <img src="{{ url_for('uploaded_file', filename=show.file_name) }}" alt="{{ show.title }}">
-        {% elif show.is_pdf() %}
-          <a class="pdf-thumb" href="{{ url_for('uploaded_file', filename=show.file_name) }}" target="_blank">PDF</a>
-        {% else %}
-          <div class="placeholder">Aucun fichier</div>
-        {% endif %}
-      </div>
-    </a>
+      {% for show in shows or [] %}
+      <article class="card">
+        <a href="{{ url_for('demande_animation') }}" class="media-link">
+          <div class="media">
+            {% if show.has_image() %}
+              <img src="{{ url_for('uploaded_file', filename=show.file_name) }}" alt="{{ show.title }}">
+            {% elif show.is_pdf() %}
+              <a class="pdf-thumb" href="{{ url_for('uploaded_file', filename=show.file_name) }}" target="_blank">PDF</a>
+            {% else %}
+              <div class="placeholder">Aucun fichier</div>
+            {% endif %}
+          </div>
+        </a>
 
-    <a href="{{ url_for('show_detail', show_id=show.id) }}" class="content-link">
-      <div class="content">
-        {% if show.raison_sociale %}<p class="meta" style="font-weight:600; margin-bottom:8px; color:var(--primary);">{{ show.raison_sociale }}</p>{% endif %}
-        <h3>{{ show.title }}</h3>
-        {% if show.category %}<p class="meta" style="color:white; font-weight:bold;">{{ show.category }}</p>{% endif %}
-        {% if show.region %}<p class="meta" style="color:white; font-weight:bold;">{{ show.region }}</p>{% endif %}
-        {% if show.location %}<p class="meta" style="color:white; font-weight:bold;">{{ show.location }}</p>{% endif %}
-        {% if show.age_range %}<p class="meta" style="color:white; font-weight:bold;">{{ show.age_range }}</p>{% endif %}
-        {% if show.contact_email %}<p class="meta" style="color:white; font-weight:bold;">Contact / Intitulé</p>{% endif %}
-        {% if not show.approved %}<p class="meta" style="color:#ffb347;">(En attente de validation)</p>{% endif %}
-      </div>
-    </a>
+        <a href="{{ url_for('show_detail', show_id=show.id) }}" class="content-link">
+          <div class="content">
+            {% if show.raison_sociale %}
+              <p class="meta" style="font-weight:600; margin-bottom:8px; color:var(--primary);">
+                {{ show.raison_sociale }}
+              </p>
+            {% endif %}
+            <h3>{{ show.title }}</h3>
+            {% if show.category %}<p class="meta" style="color:white; font-weight:bold;">{{ show.category }}</p>{% endif %}
+            {% if show.region %}<p class="meta" style="color:white; font-weight:bold;">{{ show.region }}</p>{% endif %}
+            {% if show.location %}<p class="meta" style="color:white; font-weight:bold;">{{ show.location }}</p>{% endif %}
+            {% if show.age_range %}<p class="meta" style="color:white; font-weight:bold;">{{ show.age_range }}</p>{% endif %}
+            {% if show.contact_email %}<p class="meta" style="color:white; font-weight:bold;">Contact / Intitulé</p>{% endif %}
+            {% if not show.approved %}<p class="meta" style="color:#ffb347;">(En attente de validation)</p>{% endif %}
+          </div>
+        </a>
 
-    {% if user and user.is_admin %}
-      <div class="actions">
-        <a href="{{ url_for('show_edit', show_id=show.id) }}">Modifier</a>
+        {% if user and user.is_admin %}
+        <div class="actions">
+          <a href="{{ url_for('show_edit', show_id=show.id) }}">Modifier</a>
 
-        <form action="{{ url_for('show_delete', show_id=show.id) }}" method="post"
-              onsubmit="return confirm('Supprimer cette annonce ?');">
-          <button type="submit" class="danger">Supprimer</button>
-        </form>
+          <form action="{{ url_for('show_delete', show_id=show.id) }}" method="post"
+                onsubmit="return confirm('Supprimer cette annonce ?');">
+            <button type="submit" class="danger">Supprimer</button>
+          </form>
 
-        {% if not show.approved %}
+          {% if not show.approved %}
           <form action="{{ url_for('show_approve', show_id=show.id) }}" method="post">
             <button type="submit">✅ Valider</button>
           </form>
+          {% endif %}
+        </div>
+        {% endif %}
+      </article>
+      {% endfor %}
+    </div>
+
+    {# PAGINATION #}
+    {% if pagination and pagination.pages > 1 %}
+    <nav class="pagination" style="margin: 30px 0; text-align: center;">
+      <div style="display: inline-flex; gap: 8px; align-items: center; flex-wrap: wrap; justify-content: center;">
+        {% if pagination.has_prev %}
+          <a href="{{ url_for('home', page=pagination.prev_num, q=q, category=category, location=location, type=type_filter, sort=sort, date_from=date_from, date_to=date_to) }}"
+             style="padding: 8px 12px; background: var(--primary); color: white; text-decoration: none; border-radius: 4px; font-weight: 600;">
+            ← Précédent
+          </a>
+        {% else %}
+          <span style="padding: 8px 12px; background: #ddd; color: #999; border-radius: 4px; font-weight: 600;">
+            ← Précédent
+          </span>
+        {% endif %}
+
+        {% for p in pagination.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
+          {% if p %}
+            {% if p == pagination.page %}
+              <span style="padding: 8px 12px; background: var(--primary); color: white; border-radius: 4px; font-weight: 600;">
+                {{ p }}
+              </span>
+            {% else %}
+              <a href="{{ url_for('home', page=p, q=q, category=category, location=location, type=type_filter, sort=sort, date_from=date_from, date_to=date_to) }}"
+                 style="padding: 8px 12px; background: #f2f3f7; color: var(--text); text-decoration: none; border-radius: 4px; font-weight: 600;">
+                {{ p }}
+              </a>
+            {% endif %}
+          {% else %}
+            <span style="padding: 8px 12px; color: #999;">...</span>
+          {% endif %}
+        {% endfor %}
+
+        {% if pagination.has_next %}
+          <a href="{{ url_for('home', page=pagination.next_num, q=q, category=category, location=location, type=type_filter, sort=sort, date_from=date_from, date_to=date_to) }}"
+             style="padding: 8px 12px; background: var(--primary); color: white; text-decoration: none; border-radius: 4px; font-weight: 600;">
+            Suivant →
+          </a>
+        {% else %}
+          <span style="padding: 8px 12px; background: #ddd; color: #999; border-radius: 4px; font-weight: 600;">
+            Suivant →
+          </span>
         {% endif %}
       </div>
-    {% endif %}
-  </article>
-  {% endfor %}
-</div>
 
-<!-- Pagination -->
-{% if pagination and pagination.pages > 1 %}
-<nav class="pagination" style="margin: 30px 0; text-align: center;">
-  <div style="display: inline-flex; gap: 8px; align-items: center; flex-wrap: wrap; justify-content: center;">
-    
-    <!-- Page précédente -->
-    {% if pagination.has_prev %}
-      <a href="{{ url_for('home', page=pagination.prev_num, q=q, category=category, location=location, type=type_filter, sort=sort, date_from=date_from, date_to=date_to) }}"
-         style="padding: 8px 12px; background: var(--primary); color: white; text-decoration: none; border-radius: 4px; font-weight: 600;">
-        ← Précédent
-      </a>
-    {% else %}
-      <span style="padding: 8px 12px; background: #ddd; color: #999; border-radius: 4px; font-weight: 600;">
-        ← Précédent
-      </span>
+      <p style="margin-top: 16px; color: var(--muted); font-size: 0.9rem;">
+        Page {{ pagination.page }} sur {{ pagination.pages }} ({{ pagination.total }} résultat{{ 's' if pagination.total > 1 else '' }})
+      </p>
+    </nav>
     {% endif %}
 
-    <!-- Numéros de pages -->
-    {% for p in pagination.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
-      {% if p %}
-        {% if p == pagination.page %}
-          <span style="padding: 8px 12px; background: var(--primary); color: white; border-radius: 4px; font-weight: 600;">
-            {{ p }}
-          </span>
-        {% else %}
-          <a href="{{ url_for('home', page=p, q=q, category=category, location=location, type=type_filter, sort=sort, date_from=date_from, date_to=date_to) }}"
-             style="padding: 8px 12px; background: #f2f3f7; color: var(--text); text-decoration: none; border-radius: 4px; font-weight: 600;">
-            {{ p }}
-          </a>
-        {% endif %}
-      {% else %}
-        <span style="padding: 8px 12px; color: #999;">...</span>
-      {% endif %}
-    {% endfor %}
-
-    <!-- Page suivante -->
-    {% if pagination.has_next %}
-      <a href="{{ url_for('home', page=pagination.next_num, q=q, category=category, location=location, type=type_filter, sort=sort, date_from=date_from, date_to=date_to) }}"
-         style="padding: 8px 12px; background: var(--primary); color: white; text-decoration: none; border-radius: 4px; font-weight: 600;">
-        Suivant →
-      </a>
-    {% else %}
-      <span style="padding: 8px 12px; background: #ddd; color: #999; border-radius: 4px; font-weight: 600;">
-        Suivant →
-      </span>
-    {% endif %}
+    <div style="display:flex; gap:12px; justify-content:center; margin-top:32px; margin-bottom:32px;">
+      <a href="{{ url_for('demande_animation') }}" class="btn" style="padding:10px 24px; border-radius:10px; background:transparent; color:var(--text); font-weight:700; text-decoration:none; border:1px solid #ccc;">Demander une animation</a>
+      <a href="{{ url_for('abonnement_compagnie') }}" class="btn" style="padding:10px 24px; border-radius:10px; background:transparent; color:var(--text); font-weight:700; text-decoration:none; border:1px solid #ccc;">Abonnement Compagnie</a>
+      <a href="{{ url_for('contact') }}" class="btn" style="padding:10px 24px; border-radius:10px; background:transparent; color:var(--text); font-weight:700; text-decoration:none; border:1px solid #ccc;">Contact</a>
+      <a href="{{ url_for('publish') }}" class="btn" style="padding:10px 24px; border-radius:10px; background:transparent; color:var(--text); font-weight:700; text-decoration:none; border:1px solid #ccc;">Publier vØtre spectacle (gratuit)</a>
+    </div>
   </div>
 
-  <!-- Informations sur les résultats -->
-  <p style="margin-top: 16px; color: var(--muted); font-size: 0.9rem;">
-    Page {{ pagination.page }} sur {{ pagination.pages }} ({{ pagination.total }} résultat{{ 's' if pagination.total > 1 else '' }})
-  </p>
-</nav>
-{% endif %}
-
-<div style="display:flex; gap:12px; justify-content:center; margin-top:32px; margin-bottom:32px;">
-    <a href="{{ url_for('demande_animation') }}" class="btn" style="padding:10px 24px; border-radius:10px; background:transparent; color:var(--text); font-weight:700; text-decoration:none; border:1px solid #ccc;">Demander une animation</a>
-    <a href="{{ url_for('abonnement_compagnie') }}" class="btn" style="padding:10px 24px; border-radius:10px; background:transparent; color:var(--text); font-weight:700; text-decoration:none; border:1px solid #ccc;">Abonnement Compagnie</a>
-    <a href="{{ url_for('contact') }}" class="btn" style="padding:10px 24px; border-radius:10px; background:transparent; color:var(--text); font-weight:700; text-decoration:none; border:1px solid #ccc;">Contact</a>
-    <a href="{{ url_for('publish') }}" class="btn" style="padding:10px 24px; border-radius:10px; background:transparent; color:var(--text); font-weight:700; text-decoration:none; border:1px solid #ccc;">Publier vØtre spectacle (gratuit)</a>
+  <!-- COLONNE DROITE : ton nouveau bloc -->
+  <aside class="page-sidebar">
+    <section class="seo-block">
+      <h2>Besoin d’un spectacle&nbsp;?</h2>
+      <p>
+        Retrouvez rapidement un spectacle par thème&nbsp;:
+      </p>
+      <ul style="list-style:none; padding:0; margin:0 0 12px 0;">
+        <li><a href="#" class="theme-btn" data-theme="marionnette" style="color:#ff0000;">Marionnette</a></li>
+        <li><a href="#" class="theme-btn" data-theme="atelier" style="color:#ff0000;">Atelier</a></li>
+        <li><a href="#" class="theme-btn" data-theme="spectacle" style="color:#ff0000;">Spectacle</a></li>
+        <li><a href="#" class="theme-btn" data-theme="clown" style="color:#ff0000;">Clown</a></li>
+        <li><a href="#" class="theme-btn" data-theme="concert" style="color:#ff0000;">Concert</a></li>
+        <li><a href="#" class="theme-btn" data-theme="bal" style="color:#ff0000;">Bal</a></li>
+        <li><a href="#" class="theme-btn" data-theme="spectacle enfant" style="color:#ff0000;">Spectacle enfant</a></li>
+        <li><a href="#" class="theme-btn" data-theme="magicien" style="color:#ff0000;">Magicien</a></li>
+        <!-- Ajoutez d'autres thèmes si besoin -->
+      </ul>
+    </section>
+  </aside>
 </div>
-
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-  const seoBlock = document.querySelector('.seo-block h2');
-  const cardsContainer = document.querySelector('.cards');
-  
-  if (seoBlock && cardsContainer) {
-    seoBlock.style.cursor = 'pointer';
-    seoBlock.title = 'Survoler pour mélanger les cartes';
-    
-    seoBlock.addEventListener('mouseenter', function() {
-      const cards = Array.from(cardsContainer.children);
-      
-      // Algorithme de Fisher-Yates pour mélanger le tableau
-      for (let i = cards.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [cards[i], cards[j]] = [cards[j], cards[i]];
+  // Filtrage dynamique des cartes par thème au clic (figé)
+  const themeBtns = document.querySelectorAll('.theme-btn');
+  const cards = document.querySelectorAll('.card');
+  const catalogueTitle = document.getElementById('catalogue-title');
+  const defaultTitle = 'Catalogue des spectacles';
+  let selectedBtn = null;
+
+  function resetAll() {
+    cards.forEach(card => { card.style.display = ''; });
+    catalogueTitle.textContent = defaultTitle;
+    themeBtns.forEach(btn => {
+      btn.textContent = btn.getAttribute('data-original');
+      btn.classList.remove('selected-theme');
+    });
+    selectedBtn = null;
+    localStorage.removeItem('selectedTheme');
+  }
+
+  themeBtns.forEach(btn => {
+    btn.setAttribute('data-original', btn.textContent);
+    btn.addEventListener('click', function(e) {
+      e.preventDefault();
+      if (selectedBtn === btn) {
+        resetAll();
+        return;
       }
-      
-      // Vider le conteneur et réinsérer les cartes dans le nouvel ordre
-      cardsContainer.innerHTML = '';
-      cards.forEach(card => cardsContainer.appendChild(card));
-      
-      // Animation visuelle
-      cardsContainer.style.transition = 'opacity 0.2s';
-      cardsContainer.style.opacity = '0.6';
-      setTimeout(() => { cardsContainer.style.opacity = '1'; }, 200);
+      const theme = btn.getAttribute('data-theme').toLowerCase();
+      let found = 0;
+      cards.forEach(card => {
+        // On suppose que la catégorie est dans un p.meta
+        const meta = card.querySelectorAll('.meta');
+        let match = false;
+        meta.forEach(m => {
+          if (m.textContent.toLowerCase().includes(theme)) {
+            match = true;
+          }
+        });
+        card.style.display = match ? '' : 'none';
+        if (match) found++;
+      });
+      catalogueTitle.textContent = found ? 'Spectacles : ' + btn.getAttribute('data-original') : defaultTitle;
+      themeBtns.forEach(b => {
+        b.textContent = b.getAttribute('data-original');
+        b.classList.remove('selected-theme');
+      });
+      btn.textContent = found ? btn.getAttribute('data-original') + ' (' + found + ')' : btn.getAttribute('data-original');
+      btn.classList.add('selected-theme');
+      selectedBtn = btn;
+      // Mémoriser le thème sélectionné
+      localStorage.setItem('selectedTheme', theme);
+    });
+  });
+
+  // Optionnel : bouton pour réinitialiser le filtre
+  const resetBtn = document.createElement('li');
+  resetBtn.innerHTML = '<a href="#" style="color:#ff0000;font-weight:bold;">Tout</a>';
+  resetBtn.addEventListener('click', function(e) {
+    e.preventDefault();
+    resetAll();
+  });
+  document.querySelector('.seo-block ul').insertBefore(resetBtn, document.querySelector('.seo-block ul').firstChild);
+
+  // Appliquer le filtre mémorisé au chargement
+  const savedTheme = localStorage.getItem('selectedTheme');
+  if (savedTheme) {
+    themeBtns.forEach(btn => {
+      if (btn.getAttribute('data-theme').toLowerCase() === savedTheme) {
+        btn.click();
+      }
     });
   }
 });
