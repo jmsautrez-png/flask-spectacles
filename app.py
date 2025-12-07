@@ -599,7 +599,7 @@ def register_routes(app: Flask) -> None:
 
         # Pagination : 30 résultats par page
         try:
-            pagination = shows.paginate(page=page, per_page=10, error_out=False)
+            pagination = shows.paginate(page=page, per_page=12, error_out=False)
             shows_list = pagination.items
         except Exception as e:
             current_app.logger.exception("Erreur lors de la requête /home: %s", e)

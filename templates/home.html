@@ -7,7 +7,14 @@
 
 <div style="display:flex;align-items:center;justify-content:space-between;gap:18px;flex-wrap:wrap;margin-bottom:18px;">
   <h1 style="font-size:1.8rem;margin:0;white-space:nowrap;">Spectacles et Animations Professionnels</h1>
-  <a href="{{ url_for('publish') }}" style="background:var(--primary,#6a11cb);color:#fff;padding:8px 18px;border-radius:22px;font-weight:600;font-size:1rem;text-decoration:none;box-shadow:0 2px 8px #0001;transition:background .2s;white-space:nowrap;display:inline-block;">Publier vØtre spectacle (gratuit)</a>
+  <div style="display:flex;gap:10px;align-items:center;">
+    <a href="{{ url_for('demande_animation') }}" style="background:#ffb347;color:#222;padding:8px 18px;border-radius:22px;font-weight:600;font-size:1rem;text-decoration:none;box-shadow:0 2px 8px #0001;transition:background .2s;white-space:nowrap;display:inline-block;">
+      <span style="font-weight:bold;">Mairie, CSE, école, etc.</span> : demandez votre animation
+    </a>
+    <a href="{{ url_for('publish') }}" style="background:var(--primary,#6a11cb);color:#fff;padding:8px 18px;border-radius:22px;font-weight:600;font-size:1rem;text-decoration:none;box-shadow:0 2px 8px #0001;transition:background .2s;white-space:nowrap;display:inline-block;">
+      <span style="font-weight:bold;">Producteur, compagnie</span> : Publier vØtre spectacle (gratuit)
+    </a>
+  </div>
 </div>
 
 
@@ -136,7 +143,7 @@
 
     <div style="display:flex; gap:12px; justify-content:center; margin-top:32px; margin-bottom:32px;">
       <a href="{{ url_for('demande_animation') }}" class="btn" style="padding:10px 24px; border-radius:10px; background:transparent; color:var(--text); font-weight:700; text-decoration:none; border:1px solid #ccc;">Demander une animation</a>
-      <a href="{{ url_for('abonnement_compagnie') }}" class="btn" style="padding:10px 24px; border-radius:10px; background:transparent; color:var(--text); font-weight:700; text-decoration:none; border:1px solid #ccc;">Abonnement Compagnie</a>
+      <a href="{{ url_for('abonnement_compagnie') }}" class="btn" style="padding:10px 24px; border-radius:10px; background:#6a11cb; color:#fff; font-weight:700; text-decoration:none; border:none; box-shadow:0 2px 8px #0001;">Abonnement Compagnie</a>
       <a href="{{ url_for('contact') }}" class="btn" style="padding:10px 24px; border-radius:10px; background:transparent; color:var(--text); font-weight:700; text-decoration:none; border:1px solid #ccc;">Contact</a>
       <a href="{{ url_for('publish') }}" class="btn" style="padding:10px 24px; border-radius:10px; background:transparent; color:var(--text); font-weight:700; text-decoration:none; border:1px solid #ccc;">Publier vØtre spectacle (gratuit)</a>
     </div>
@@ -173,13 +180,8 @@ document.addEventListener('DOMContentLoaded', function() {
   let selectedBtn = null;
 
   function resetAll() {
-    cards.forEach(card => { card.style.display = ''; });
-    catalogueTitle.textContent = defaultTitle;
-    themeBtns.forEach(btn => {
-      btn.textContent = btn.getAttribute('data-original');
-      btn.classList.remove('selected-theme');
-    });
-    selectedBtn = null;
+    // Redirige vers la page d'accueil sans filtre
+    window.location.href = window.location.pathname;
     localStorage.removeItem('selectedTheme');
   }
 
@@ -187,33 +189,12 @@ document.addEventListener('DOMContentLoaded', function() {
     btn.setAttribute('data-original', btn.textContent);
     btn.addEventListener('click', function(e) {
       e.preventDefault();
-      if (selectedBtn === btn) {
-        resetAll();
-        return;
-      }
       const theme = btn.getAttribute('data-theme').toLowerCase();
-      let found = 0;
-      cards.forEach(card => {
-        // On suppose que la catégorie est dans un p.meta
-        const meta = card.querySelectorAll('.meta');
-        let match = false;
-        meta.forEach(m => {
-          if (m.textContent.toLowerCase().includes(theme)) {
-            match = true;
-          }
-        });
-        card.style.display = match ? '' : 'none';
-        if (match) found++;
-      });
-      catalogueTitle.textContent = found ? 'Spectacles : ' + btn.getAttribute('data-original') : defaultTitle;
-      themeBtns.forEach(b => {
-        b.textContent = b.getAttribute('data-original');
-        b.classList.remove('selected-theme');
-      });
-      btn.textContent = found ? btn.getAttribute('data-original') + ' (' + found + ')' : btn.getAttribute('data-original');
-      btn.classList.add('selected-theme');
-      selectedBtn = btn;
-      // Mémoriser le thème sélectionné
+      // Redirige vers la page d'accueil avec le paramètre de filtre
+      const url = new URL(window.location.href);
+      url.searchParams.set('category', theme);
+      url.searchParams.delete('page'); // On revient à la première page
+      window.location.href = url.pathname + url.search;
       localStorage.setItem('selectedTheme', theme);
     });
   });
@@ -227,15 +208,7 @@ document.addEventListener('DOMContentLoaded', function() {
   });
   document.querySelector('.seo-block ul').insertBefore(resetBtn, document.querySelector('.seo-block ul').firstChild);
 
-  // Appliquer le filtre mémorisé au chargement
-  const savedTheme = localStorage.getItem('selectedTheme');
-  if (savedTheme) {
-    themeBtns.forEach(btn => {
-      if (btn.getAttribute('data-theme').toLowerCase() === savedTheme) {
-        btn.click();
-      }
-    });
-  }
+  // Appliquer le filtre mémorisé au chargement (optionnel, mais ici on laisse le backend gérer)
 });
 </script>
 
