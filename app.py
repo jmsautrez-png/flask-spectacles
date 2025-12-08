@@ -227,32 +227,15 @@ def validate_file_size(file) -> Tuple[bool, Optional[str]]:
 
 
 # Utilitaire : upload d'un fichier sur S3
-def upload_file_to_s3(file) -> str:
+def upload_file_local(file) -> str:
     """
-    Envoie un fichier sur S3 et retourne la *clé* (nom de fichier dans le bucket).
+    Sauvegarde le fichier localement et retourne le nom unique.
     """
     from pathlib import Path as _Path
-
     ext = _Path(file.filename).suffix.lower()
     unique_name = f"{uuid.uuid4().hex}{ext}"
-
-    bucket = current_app.config["S3_BUCKET"]
-    region = current_app.config["S3_REGION"]
-
-    s3 = boto3.client(
-        "s3",
-        region_name=region,
-        aws_access_key_id=current_app.config.get("AWS_ACCESS_KEY_ID") or current_app.config.get("S3_KEY"),
-        aws_secret_access_key=current_app.config.get("AWS_SECRET_ACCESS_KEY") or current_app.config.get("S3_SECRET")
-    )
-
-    s3.upload_fileobj(
-        file,
-        bucket,
-        unique_name,
-        ExtraArgs={"ContentType": file.mimetype}
-    )
-
+    save_path = _Path(current_app.config["UPLOAD_FOLDER"]) / unique_name
+    file.save(save_path.as_posix())
     return unique_name
 
 def current_user() -> Optional[User]:
@@ -760,8 +743,8 @@ def register_routes(app: Flask) -> None:
                     flash(error_msg, "danger")
                     return redirect(request.url)
 
-                # 🔥 Envoi sur S3 au lieu du disque local
-                file_name = upload_file_to_s3(file)
+                # Sauvegarde locale du fichier
+                file_name = upload_file_local(file)
                 file_mimetype = file.mimetype
 
             show = Show(
