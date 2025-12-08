@@ -990,7 +990,7 @@ def register_routes(app: Flask) -> None:
                     return redirect(request.url)
 
                 # 🔥 Envoi sur S3 au lieu du disque local
-                file_name = upload_file_to_s3(file)
+                file_name = upload_file_local(file)
                 file_mimetype = file.mimetype
 
             show = Show(
