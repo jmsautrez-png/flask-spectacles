@@ -1,3 +1,6 @@
+# Ignorer les bases SQLite locales
+app.db
+instance/db.sqlite3
 # Cache Python
 __pycache__/
 *.pyc
