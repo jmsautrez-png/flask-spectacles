@@ -107,7 +107,10 @@ def create_app() -> Flask:
 
     # Dossiers nécessaires
     Path(app.instance_path).mkdir(parents=True, exist_ok=True)
-    Path(app.config["UPLOAD_FOLDER"]).mkdir(parents=True, exist_ok=True)
+    # Gestion du dossier d'uploads via UPLOAD_DIR
+    UPLOAD_DIR = os.getenv("UPLOAD_DIR", os.path.join(app.instance_path, "uploads"))
+    os.makedirs(UPLOAD_DIR, exist_ok=True)
+    app.config["UPLOAD_FOLDER"] = UPLOAD_DIR
     
     # === LOGGING ===
     configure_logging(app)
@@ -795,16 +798,7 @@ def register_routes(app: Flask) -> None:
 
     @app.route("/uploads/<path:filename>")
     def uploaded_file(filename):
-        import boto3
-        from flask import abort, Response
-        import mimetypes
-        import botocore
-        # Tente d'abord de servir le fichier localement (pour compatibilité)
-        local_path = Path(current_app.config["UPLOAD_FOLDER"]) / filename
-        if local_path.exists():
-            return send_from_directory(current_app.config["UPLOAD_FOLDER"], filename, as_attachment=False)
-        # Sinon, tente de servir depuis S3
-        s3_bucket = current_app.config.get("S3_BUCKET")
+        return send_from_directory(app.config["UPLOAD_FOLDER"], filename)
         s3_region = current_app.config.get("S3_REGION")
         s3 = boto3.client(
             "s3",
@@ -882,12 +876,13 @@ def register_routes(app: Flask) -> None:
                     flash(error_msg, "danger")
                     return redirect(request.url)
                 
-                from pathlib import Path as _Path
-                stem = _Path(file.filename).stem
-                ext = _Path(file.filename).suffix
-                unique = f"{stem}-{int(datetime.utcnow().timestamp())}{ext}"
-                save_path = _Path(current_app.config["UPLOAD_FOLDER"]) / unique
-                file.save(save_path.as_posix())
+                from werkzeug.utils import secure_filename
+                import uuid, os
+                ext = os.path.splitext(secure_filename(file.filename))[1].lower()
+                filename = f"{uuid.uuid4().hex}{ext}"
+                file.save(os.path.join(current_app.config["UPLOAD_FOLDER"], filename))
+                # En DB, tu stockes juste : filename
+                s.file_name = filename
                 if s.file_name:
                     old = _Path(current_app.config["UPLOAD_FOLDER"]) / s.file_name
                     if old.exists():
@@ -1052,12 +1047,13 @@ def register_routes(app: Flask) -> None:
                     flash(error_msg, "danger")
                     return redirect(request.url)
                 
-                from pathlib import Path as _Path
-                stem = _Path(file.filename).stem
-                ext = _Path(file.filename).suffix
-                unique = f"{stem}-{int(datetime.utcnow().timestamp())}{ext}"
-                save_path = _Path(current_app.config["UPLOAD_FOLDER"]) / unique
-                file.save(save_path.as_posix())
+                from werkzeug.utils import secure_filename
+                import uuid, os
+                ext = os.path.splitext(secure_filename(file.filename))[1].lower()
+                filename = f"{uuid.uuid4().hex}{ext}"
+                file.save(os.path.join(current_app.config["UPLOAD_FOLDER"], filename))
+                # En DB, tu stockes juste : filename
+                show.file_name = filename
 
                 if show.file_name:
                     old_path = _Path(current_app.config["UPLOAD_FOLDER"]) / show.file_name
