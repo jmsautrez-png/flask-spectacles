@@ -547,7 +547,8 @@ def register_routes(app: Flask) -> None:
 
         # Filtres simples
         if category:
-            shows = shows.filter(Show.category == category)
+            from sqlalchemy import func
+            shows = shows.filter(func.lower(Show.category).like(f"%{category.lower()}%"))
         if location:
             like = f"%{location}%"
             shows = shows.filter(or_(Show.location.ilike(like), Show.region.ilike(like)))

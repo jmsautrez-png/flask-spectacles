@@ -43,10 +43,13 @@
   </div> 
 
   <div class="form-row">
-  <label for="age_range">Tranche d’âge du public</label>
-  <input type="text" id="age_range" name="age_range"
-         value="{{ request.form.get('age_range') if request.method=='POST' else (show.age_range if show else '') }}"
-         placeholder="tout public…" required>
+    <label for="age_range">Tranche d’âge du public</label>
+    <select id="age_range" name="age_range" required>
+      <option value="">-- Choisir --</option>
+      <option value="enfant" {% if (request.form.get('age_range') if request.method=='POST' else (show.age_range if show else '')) == 'enfant' %}selected{% endif %}>Enfant</option>
+      <option value="adulte" {% if (request.form.get('age_range') if request.method=='POST' else (show.age_range if show else '')) == 'adulte' %}selected{% endif %}>Adulte</option>
+      <option value="tout public" {% if (request.form.get('age_range') if request.method=='POST' else (show.age_range if show else '')) == 'tout public' %}selected{% endif %}>Tout public</option>
+    </select>
   </div>
   <div class="form-row">
     <label for="jauge">Jauge estimée</label>

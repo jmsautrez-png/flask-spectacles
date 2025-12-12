@@ -23,7 +23,12 @@
   <input type="text" name="category">
 
   <label>Tranche d’âge</label>
-  <input type="text" name="age_range" placeholder="Ex : 3-6 ans">
+  <select name="age_range" required>
+    <option value="">-- Choisir --</option>
+    <option value="enfant">Enfant</option>
+    <option value="adulte">Adulte</option>
+    <option value="tout public">Tout public</option>
+  </select>
 
   <label>Date</label>
   <input type="date" name="date">

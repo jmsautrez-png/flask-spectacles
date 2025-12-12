@@ -30,19 +30,16 @@
     <input type="text" name="category" placeholder="Magie, Théâtre, Clown…">
   </label>
 
-  <label>Catégorie 2
-    <select name="categorie2" required>
+  <!-- Champ categorie2 supprimé (nettoyé) -->
+
+  <label>Âge
+    <select name="age_range" required>
       <option value="">-- Choisir --</option>
-      <option value="adulte">Adulte</option>
-      <option value="enfant">Enfant</option>
+      <option value="enfant" {% if (request.form.get('age_range') if request.method=='POST' else (show.age_range if show else '')) == 'enfant' %}selected{% endif %}>Enfant</option>
+      <option value="adulte" {% if (request.form.get('age_range') if request.method=='POST' else (show.age_range if show else '')) == 'adulte' %}selected{% endif %}>Adulte</option>
+      <option value="tout public" {% if (request.form.get('age_range') if request.method=='POST' else (show.age_range if show else '')) == 'tout public' %}selected{% endif %}>Tout public</option>
     </select>
   </label>
-
-   <label>Âge  
-      <input type="text" name="age_range"
-       value="{{ (request.form.get('age_range') if request.method=='POST' else (show.age_range if show else '')) or '' }}"
-       placeholder="Tranche d'âge">
-   </label>
 
   <label>Site internet
     <input type="url" name="site_internet" placeholder="https://www.monsite.fr" value="{{ show.site_internet if show and show.site_internet else '' }}">
