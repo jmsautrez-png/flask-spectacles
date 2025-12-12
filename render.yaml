@@ -7,4 +7,9 @@ services:
     envVars:
       - key: FLASK_ENV
         value: production
+    volumes:
+      - name: uploads
+        mountPath: static/uploads
+volumes:
+  - name: uploads
       # Ajoutez ici vos autres variables d'environnement si besoin
