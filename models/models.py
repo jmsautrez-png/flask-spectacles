@@ -47,5 +47,8 @@ class Show(db.Model):
     def is_pdf(self) -> bool:
         return (self.file_mimetype or "").lower().startswith("application/pdf")
 
-    def has_image(self) -> bool:
-        return (self.file_mimetype or "").lower().startswith("image/")
+    def has_image(self):
+        if self.file_name:
+            ext = self.file_name.rsplit(".", 1)[-1].lower()
+            return ext in {"jpg", "jpeg", "png", "gif", "webp"}
+        return False
