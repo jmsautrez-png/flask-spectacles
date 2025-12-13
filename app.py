@@ -233,16 +233,57 @@ def validate_file_size(file) -> Tuple[bool, Optional[str]]:
 
 
 # Utilitaire : upload d'un fichier sur S3
-def upload_file_local(file) -> str:
+def upload_file_to_s3(file) -> str:
     """
-    Sauvegarde le fichier localement et retourne le nom unique.
+    Upload le fichier sur S3 et retourne le nom unique.
+    Fallback sur stockage local si S3 n'est pas configuré.
     """
     from pathlib import Path as _Path
     ext = _Path(file.filename).suffix.lower()
     unique_name = f"{uuid.uuid4().hex}{ext}"
+    
+    # Vérifier si S3 est configuré
+    s3_bucket = current_app.config.get("S3_BUCKET")
+    s3_key = current_app.config.get("S3_KEY")
+    s3_secret = current_app.config.get("S3_SECRET")
+    s3_region = current_app.config.get("S3_REGION")
+    
+    if s3_bucket and s3_key and s3_secret and boto3:
+        try:
+            s3_client = boto3.client(
+                "s3",
+                region_name=s3_region,
+                aws_access_key_id=s3_key,
+                aws_secret_access_key=s3_secret
+            )
+            
+            # Upload to S3
+            s3_client.upload_fileobj(
+                file,
+                s3_bucket,
+                unique_name,
+                ExtraArgs={
+                    "ContentType": file.content_type or "application/octet-stream"
+                }
+            )
+            current_app.logger.info(f"[S3] Fichier uploadé avec succès: {unique_name}")
+            return unique_name
+            
+        except Exception as e:
+            current_app.logger.error(f"[S3] Erreur upload S3, fallback local: {e}")
+            # Fallback to local storage
+    
+    # Fallback: sauvegarde locale
     save_path = _Path(current_app.config["UPLOAD_FOLDER"]) / unique_name
     file.save(save_path.as_posix())
+    current_app.logger.info(f"[LOCAL] Fichier sauvegardé localement: {unique_name}")
     return unique_name
+
+
+# Alias pour rétrocompatibilité
+def upload_file_local(file) -> str:
+    """Alias vers upload_file_to_s3 pour rétrocompatibilité."""
+    return upload_file_to_s3(file)
 
 def current_user() -> Optional[User]:
     username = session.get("username")
@@ -701,6 +742,62 @@ def register_routes(app: Flask) -> None:
         status_code = 200 if db_status == "ok" else 503
         return jsonify(status), status_code
 
+    @app.route("/health/s3")
+    def s3_health_check():
+        """Endpoint pour vérifier la connectivité S3"""
+        from flask import jsonify
+        
+        s3_bucket = current_app.config.get("S3_BUCKET")
+        s3_key = current_app.config.get("S3_KEY")
+        s3_secret = current_app.config.get("S3_SECRET")
+        s3_region = current_app.config.get("S3_REGION")
+        
+        if not (s3_bucket and s3_key and s3_secret):
+            return jsonify({
+                "status": "not_configured",
+                "message": "S3 credentials not set",
+                "bucket": s3_bucket or "not set",
+                "region": s3_region or "not set"
+            }), 200
+        
+        if not boto3:
+            return jsonify({
+                "status": "error",
+                "message": "boto3 not installed"
+            }), 500
+        
+        try:
+            import botocore
+            s3_client = boto3.client(
+                "s3",
+                region_name=s3_region,
+                aws_access_key_id=s3_key,
+                aws_secret_access_key=s3_secret
+            )
+            # Test: list bucket (requires s3:ListBucket permission)
+            s3_client.head_bucket(Bucket=s3_bucket)
+            
+            return jsonify({
+                "status": "ok",
+                "bucket": s3_bucket,
+                "region": s3_region,
+                "message": "S3 connection successful"
+            }), 200
+            
+        except botocore.exceptions.ClientError as e:
+            error_code = e.response.get('Error', {}).get('Code', 'Unknown')
+            return jsonify({
+                "status": "error",
+                "bucket": s3_bucket,
+                "error_code": error_code,
+                "message": str(e)
+            }), 500
+        except Exception as e:
+            return jsonify({
+                "status": "error",
+                "message": str(e)
+            }), 500
+
     # ---------------------------
     # Publication & fichiers
     # ---------------------------
@@ -801,29 +898,46 @@ def register_routes(app: Flask) -> None:
 
     @app.route("/uploads/<path:filename>")
     def uploaded_file(filename):
-        import boto3
         from flask import abort, Response
         import mimetypes
-        import botocore
+        
         # Tente d'abord de servir le fichier localement (pour compatibilité)
         local_path = Path(current_app.config["UPLOAD_FOLDER"]) / filename
         if local_path.exists():
             return send_from_directory(current_app.config["UPLOAD_FOLDER"], filename, as_attachment=False)
+        
         # Sinon, tente de servir depuis S3
         s3_bucket = current_app.config.get("S3_BUCKET")
+        s3_key = current_app.config.get("S3_KEY")
+        s3_secret = current_app.config.get("S3_SECRET")
         s3_region = current_app.config.get("S3_REGION")
-        s3 = boto3.client(
-            "s3",
-            region_name=s3_region,
-            aws_access_key_id=current_app.config.get("AWS_ACCESS_KEY_ID") or current_app.config.get("S3_KEY"),
-            aws_secret_access_key=current_app.config.get("AWS_SECRET_ACCESS_KEY") or current_app.config.get("S3_SECRET")
-        )
+        
+        if not (s3_bucket and s3_key and s3_secret and boto3):
+            current_app.logger.warning(f"[UPLOADS] Fichier non trouvé localement et S3 non configuré: {filename}")
+            abort(404)
+        
         try:
-            s3_response = s3.get_object(Bucket=s3_bucket, Key=filename)
+            import botocore
+            s3_client = boto3.client(
+                "s3",
+                region_name=s3_region,
+                aws_access_key_id=s3_key,
+                aws_secret_access_key=s3_secret
+            )
+            s3_response = s3_client.get_object(Bucket=s3_bucket, Key=filename)
             file_data = s3_response["Body"].read()
             content_type = s3_response.get("ContentType") or mimetypes.guess_type(filename)[0] or "application/octet-stream"
-            return Response(file_data, mimetype=content_type)
-        except botocore.exceptions.ClientError:
+            
+            # Add cache headers for better performance
+            response = Response(file_data, mimetype=content_type)
+            response.headers["Cache-Control"] = "public, max-age=31536000"  # 1 year cache
+            return response
+            
+        except botocore.exceptions.ClientError as e:
+            current_app.logger.error(f"[S3] Erreur lecture fichier {filename}: {e}")
+            abort(404)
+        except Exception as e:
+            current_app.logger.error(f"[S3] Erreur inattendue pour {filename}: {e}")
             abort(404)
 
     @app.route("/show/<int:show_id>")

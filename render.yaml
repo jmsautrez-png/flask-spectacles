@@ -7,4 +7,13 @@ services:
     envVars:
       - key: FLASK_ENV
         value: production
-      # Ajoutez ici vos autres variables d'environnement si besoin
+      - key: S3_BUCKET
+        value: spectacle-ment-votre
+      - key: S3_KEY
+        sync: false  # Set manually in Render dashboard for security
+      - key: S3_SECRET
+        sync: false  # Set manually in Render dashboard for security
+      - key: S3_REGION
+        value: eu-west-1
+      # Note: S3_KEY and S3_SECRET must be added manually in Render dashboard
+      # for security reasons (not stored in git)
