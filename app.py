@@ -103,7 +103,9 @@ def configure_logging(app: Flask) -> None:
 # -----------------------------------------------------
 def create_app() -> Flask:
     app = Flask(__name__, instance_relative_config=True)
+
     app.config.from_object(Config)
+    app.logger.info("UPLOAD_FOLDER=%s", app.config["UPLOAD_FOLDER"])
 
     # Dossiers nécessaires
     Path(app.instance_path).mkdir(parents=True, exist_ok=True)

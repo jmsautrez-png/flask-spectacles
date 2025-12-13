@@ -9,7 +9,11 @@ from pathlib import Path
 class Config:
     SECRET_KEY = os.environ.get("SECRET_KEY", "dev-secret-key")
     INSTANCE_PATH = os.environ.get("INSTANCE_PATH", None)
-    UPLOAD_FOLDER = os.environ.get("UPLOAD_FOLDER", "static/uploads")
+    # Utilise UPLOAD_DIR (Render) ou UPLOAD_FOLDER (autre), sinon fallback local
+    UPLOAD_FOLDER = os.environ.get(
+        "UPLOAD_DIR",
+        os.environ.get("UPLOAD_FOLDER", str(Path("instance") / "uploads"))
+    )
 
     ADMIN_USERNAME = os.environ.get("ADMIN_USERNAME", "admin")
     ADMIN_PASSWORD = os.environ.get("ADMIN_PASSWORD", "admin")

@@ -47,7 +47,9 @@
             {% if show.has_image() %}
               <img src="{{ url_for('uploaded_file', filename=show.file_name) }}" alt="{{ show.title }}">
             {% elif show.is_pdf() %}
-              <a class="pdf-thumb" href="{{ url_for('uploaded_file', filename=show.file_name) }}" target="_blank">PDF</a>
+              <div class="pdf-thumb">
+                <a href="{{ url_for('uploaded_file', filename=show.file_name) }}" target="_blank" rel="noopener">PDF</a>
+              </div>
             {% else %}
               <div class="placeholder">Aucun fichier</div>
             {% endif %}
