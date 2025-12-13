@@ -105,7 +105,11 @@ def create_app() -> Flask:
     app = Flask(__name__, instance_relative_config=True)
 
     app.config.from_object(Config)
-    app.logger.info("UPLOAD_FOLDER=%s", app.config["UPLOAD_FOLDER"])
+    import os
+    app.logger.info("ENV UPLOAD_DIR=%s", os.environ.get("UPLOAD_DIR"))
+    app.logger.info("ENV UPLOAD_FOLDER=%s", os.environ.get("UPLOAD_FOLDER"))
+    app.logger.info("CONFIG UPLOAD_FOLDER=%s", app.config.get("UPLOAD_FOLDER"))
+    app.logger.info("UPLOAD_FOLDER exists? %s", os.path.isdir(app.config.get("UPLOAD_FOLDER", "")))
 
     # Dossiers nécessaires
     Path(app.instance_path).mkdir(parents=True, exist_ok=True)
