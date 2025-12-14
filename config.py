@@ -36,15 +36,16 @@ class Config:
         "pool_recycle": 300,     # Recycle les connexions après 5 minutes
     }
 
-    # Configuration Email (variables d'environnement recommandées en production)
+    # Configuration Email (variables d'environnement OBLIGATOIRES en production)
     MAIL_SERVER = os.environ.get("MAIL_SERVER", "smtp.gmail.com")
     MAIL_PORT = int(os.environ.get("MAIL_PORT", 587))
     MAIL_USE_TLS = os.environ.get("MAIL_USE_TLS", "True") == "True"
     MAIL_USE_SSL = os.environ.get("MAIL_USE_SSL", "False") == "True"
-    # Adresse email admin fixée
-    MAIL_USERNAME = "artemisiacompagnie@gmail.com"
-    MAIL_PASSWORD = "ouzd fafg akwu ulwd"  # Mot de passe d'application Gmail
-    MAIL_DEFAULT_SENDER = "artemisiacompagnie@gmail.com"
+    # IMPORTANT: ne jamais stocker de secrets dans le code.
+    # Configurer ces variables sur Render / en local via .env
+    MAIL_USERNAME = os.environ.get("MAIL_USERNAME")
+    MAIL_PASSWORD = os.environ.get("MAIL_PASSWORD")
+    MAIL_DEFAULT_SENDER = os.environ.get("MAIL_DEFAULT_SENDER") or MAIL_USERNAME
     # Affichage de l'adresse email utilisée pour l'envoi des mails
     print(f"[CONFIG] MAIL_DEFAULT_SENDER utilisé : {MAIL_DEFAULT_SENDER}")
 

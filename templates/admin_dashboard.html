@@ -49,14 +49,14 @@
         {% if show.file_name %}
             {% if show.is_pdf() %}
                 {# PDF : lien cliquable vers le fichier #}
-                <a href="{{ url_for('static', filename='upload/' ~ show.file_name) }}"
+                <a href="{{ url_for('uploaded_file', filename=show.file_name) }}"
                    target="_blank"
                    class="pdf-link">
                     📄 Voir le PDF
                 </a>
             {% else %}
                 {# Tout le reste : on tente de l'afficher comme image #}
-                <img src="{{ url_for('static', filename='upload/' ~ show.file_name) }}"
+                <img src="{{ url_for('uploaded_file', filename=show.file_name) }}"
                      alt="{{ show.title }}"
                      class="show-image">
             {% endif %}

@@ -57,13 +57,13 @@
   {% if show.file_name %}
     {% if show.is_pdf() %}
         <p>Fichier actuel :
-            <a href="{{ url_for('static', filename='upload/' ~ show.file_name) }}" target="_blank">
+            <a href="{{ url_for('uploaded_file', filename=show.file_name) }}" target="_blank">
                 📄 Voir le PDF ({{ show.file_name }})
             </a>
         </p>
     {% else %}
         <p>Image actuelle :</p>
-        <img src="{{ url_for('static', filename='upload/' ~ show.file_name) }}"
+        <img src="{{ url_for('uploaded_file', filename=show.file_name) }}"
              alt="{{ show.title }}"
              class="show-image">
     {% endif %}
