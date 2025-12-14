@@ -16,8 +16,9 @@
 - [ ] Variables d'environnement DATABASE_URL configurée
 
 ### 3. Fichiers statiques
-- [ ] Configurer un CDN ou stockage cloud pour les uploads (AWS S3, Cloudinary, etc.)
-- [ ] Actuellement : uploads dans static/uploads (OK pour petit volume)
+- [x] AWS S3 configuré pour les uploads (persistance garantie)
+- [x] Fallback local disponible pour développement
+- [x] Variables S3_BUCKET, S3_KEY, S3_SECRET, S3_REGION requises en production
 
 ### 4. Performance
 - [x] Pagination implémentée (30/page)
@@ -72,17 +73,32 @@ heroku open
 # 4. Déploiement automatique à chaque push
 ```
 
-### Option 3: Render
+### Option 3: Render (Configuration actuelle)
 
 ```bash
 # 1. Aller sur render.com
 # 2. New > Web Service
 # 3. Connecter votre repo GitHub
-# 4. Build Command: pip install -r requirements.txt
-# 5. Start Command: gunicorn app:app
-# 6. Ajouter variables d'environnement
-# 7. Créer PostgreSQL database (gratuit)
+# 4. Le fichier render.yaml configure automatiquement le build
+
+# 5. Ajouter ces variables d'environnement dans le dashboard Render:
+#    - SECRET_KEY (générer une clé aléatoire)
+#    - ADMIN_USERNAME
+#    - ADMIN_PASSWORD
+#    - DATABASE_URL (si PostgreSQL)
+
+# 6. OBLIGATOIRE - Variables S3 pour la persistance des images:
+#    - S3_BUCKET=spectacle-ment-votre
+#    - S3_KEY=votre-access-key-id
+#    - S3_SECRET=votre-secret-access-key
+#    - S3_REGION=eu-west-1
+
+# 7. Vérifier après déploiement:
+curl https://votre-app.onrender.com/health
+curl https://votre-app.onrender.com/health/s3
 ```
+
+> ⚠️ **Important**: Sans les variables S3, les images uploadées seront perdues à chaque redéploiement.
 
 ### Option 4: VPS (Digital Ocean, AWS, etc.)
 
@@ -126,11 +142,33 @@ MAIL_USERNAME=votre-email@gmail.com
 MAIL_PASSWORD=mot-de-passe-application
 MAIL_DEFAULT_SENDER=votre-email@gmail.com
 
-# Uploads
-UPLOAD_FOLDER=static/uploads
+# Uploads locaux (fallback uniquement)
+UPLOAD_FOLDER=instance/uploads
 
 # Port (si nécessaire)
 PORT=5000
+```
+
+## 🔧 Variables d'environnement AWS S3 (OBLIGATOIRES en production)
+
+```bash
+S3_BUCKET=votre-bucket-s3
+S3_KEY=AKIA...votre-access-key
+S3_SECRET=votre-secret-access-key
+S3_REGION=eu-west-1
+```
+
+### Vérification de la connexion S3
+
+Après déploiement, tester la connectivité S3 :
+
+```bash
+curl https://votre-app.onrender.com/health/s3
+```
+
+Réponse attendue :
+```json
+{"status": "ok", "bucket": "spectacle-ment-votre", "region": "eu-west-1", "message": "S3 connection successful"}
 ```
 
 ## 📝 Configuration Email Gmail
@@ -183,8 +221,9 @@ python app.py
 - Vérifier SECRET_KEY est défini
 
 **Uploads ne fonctionnent pas:**
-- En production, utiliser un service de stockage externe (S3, Cloudinary)
-- Heroku efface les fichiers à chaque redémarrage
+- Vérifier les variables S3 sont configurées : `curl https://votre-app.com/health/s3`
+- Vérifier que l'utilisateur IAM a les permissions `PutObject` et `GetObject`
+- Vérifier que le bucket existe et est accessible
 
 **Base de données vide:**
 - Exécuter les migrations
