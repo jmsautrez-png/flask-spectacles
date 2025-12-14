@@ -176,20 +176,23 @@ def create_app() -> Flask:
     if Mail:
         try:
             app.mail = Mail(app)  # type: ignore[attr-defined]
-            # Test de connexion SMTP à l'initialisation
-            if app.config.get("MAIL_USERNAME") and app.config.get("MAIL_PASSWORD"):
-                try:
-                    import smtplib
-                    server = smtplib.SMTP(app.config.get("MAIL_SERVER"), app.config.get("MAIL_PORT"))
-                    if app.config.get("MAIL_USE_TLS"):
-                        server.starttls()
-                    server.login(app.config.get("MAIL_USERNAME"), app.config.get("MAIL_PASSWORD"))
-                    server.quit()
-                    print("[MAIL] Connexion SMTP réussie.")
-                except Exception as smtp_error:
-                    print(f"[MAIL] Erreur de connexion SMTP: {smtp_error}")
-            else:
-                print("[MAIL] Configuration email incomplète : MAIL_USERNAME ou MAIL_PASSWORD manquant.")
+            # NOTE: éviter toute connexion réseau au démarrage (fragilise le déploiement/CI).
+            # Si vous voulez tester SMTP, activer explicitement:
+            # MAIL_SMTP_TEST_ON_STARTUP=1 (idéalement uniquement en production)
+            if os.environ.get("MAIL_SMTP_TEST_ON_STARTUP") == "1":
+                if app.config.get("MAIL_USERNAME") and app.config.get("MAIL_PASSWORD"):
+                    try:
+                        import smtplib
+                        server = smtplib.SMTP(app.config.get("MAIL_SERVER"), app.config.get("MAIL_PORT"))
+                        if app.config.get("MAIL_USE_TLS"):
+                            server.starttls()
+                        server.login(app.config.get("MAIL_USERNAME"), app.config.get("MAIL_PASSWORD"))
+                        server.quit()
+                        print("[MAIL] Connexion SMTP réussie.")
+                    except Exception as smtp_error:
+                        print(f"[MAIL] Erreur de connexion SMTP: {smtp_error}")
+                else:
+                    print("[MAIL] Configuration email incomplète : MAIL_USERNAME ou MAIL_PASSWORD manquant.")
         except Exception as e:  # pragma: no cover
             app.mail = None  # type: ignore[attr-defined]
             print("[MAIL] non initialisé:", e)
@@ -233,6 +236,35 @@ def validate_file_size(file) -> Tuple[bool, Optional[str]]:
 
 
 # Utilitaire : upload d'un fichier sur S3
+def _s3_client():
+    """Crée un client S3 si configuré, sinon retourne None."""
+    s3_bucket = current_app.config.get("S3_BUCKET")
+    s3_key = current_app.config.get("S3_KEY")
+    s3_secret = current_app.config.get("S3_SECRET")
+    s3_region = current_app.config.get("S3_REGION")
+    if not (s3_bucket and s3_key and s3_secret and boto3):
+        return None
+    return boto3.client(
+        "s3",
+        region_name=s3_region,
+        aws_access_key_id=s3_key,
+        aws_secret_access_key=s3_secret,
+    )
+
+
+def delete_file_s3(key: str) -> None:
+    """Supprime un objet S3 (best-effort)."""
+    s3_bucket = current_app.config.get("S3_BUCKET")
+    client = _s3_client()
+    if not (client and s3_bucket and key):
+        return
+    try:
+        client.delete_object(Bucket=s3_bucket, Key=key)
+        current_app.logger.info("[S3] Fichier supprimé: %s", key)
+    except Exception as e:
+        current_app.logger.warning("[S3] Suppression impossible (%s): %s", key, e)
+
+
 def upload_file_to_s3(file) -> str:
     """
     Upload le fichier sur S3 et retourne le nom unique.
@@ -244,19 +276,10 @@ def upload_file_to_s3(file) -> str:
     
     # Vérifier si S3 est configuré
     s3_bucket = current_app.config.get("S3_BUCKET")
-    s3_key = current_app.config.get("S3_KEY")
-    s3_secret = current_app.config.get("S3_SECRET")
-    s3_region = current_app.config.get("S3_REGION")
-    
-    if s3_bucket and s3_key and s3_secret and boto3:
+    s3_client = _s3_client()
+
+    if s3_client and s3_bucket:
         try:
-            s3_client = boto3.client(
-                "s3",
-                region_name=s3_region,
-                aws_access_key_id=s3_key,
-                aws_secret_access_key=s3_secret
-            )
-            
             # Upload to S3
             s3_client.upload_fileobj(
                 file,
@@ -664,6 +687,11 @@ def register_routes(app: Flask) -> None:
     def robots_txt():
         return send_from_directory(current_app.static_folder, "robots.txt", mimetype="text/plain")
 
+    @app.route("/favicon.ico")
+    def favicon_ico():
+        # Certains navigateurs requêtent /favicon.ico par défaut.
+        return redirect(url_for("static", filename="img/favicon.svg"))
+
     @app.route("/sitemap.xml")
     def sitemap_xml():
         """Génère dynamiquement un sitemap XML"""
@@ -1001,21 +1029,20 @@ def register_routes(app: Flask) -> None:
                 if not is_valid:
                     flash(error_msg, "danger")
                     return redirect(request.url)
-                
-                from pathlib import Path as _Path
-                stem = _Path(file.filename).stem
-                ext = _Path(file.filename).suffix
-                unique = f"{stem}-{int(datetime.utcnow().timestamp())}{ext}"
-                save_path = _Path(current_app.config["UPLOAD_FOLDER"]) / unique
-                file.save(save_path.as_posix())
+
+                # Supprimer l'ancien fichier (best-effort)
                 if s.file_name:
-                    old = _Path(current_app.config["UPLOAD_FOLDER"]) / s.file_name
-                    if old.exists():
-                        try:
-                            old.unlink()
-                        except Exception:
-                            pass
-                s.file_name = unique
+                    delete_file_s3(s.file_name)
+                    try:
+                        old_local = Path(current_app.config["UPLOAD_FOLDER"]) / s.file_name
+                        if old_local.exists():
+                            old_local.unlink()
+                    except Exception:
+                        pass
+
+                # Upload S3 (fallback local si S3 non configuré)
+                new_name = upload_file_local(file)
+                s.file_name = new_name
                 s.file_mimetype = file.mimetype
 
             db.session.commit()
@@ -1035,6 +1062,7 @@ def register_routes(app: Flask) -> None:
             return redirect(url_for("company_dashboard"))
 
         if s.file_name:
+            delete_file_s3(s.file_name)
             p = Path(current_app.config["UPLOAD_FOLDER"]) / s.file_name
             if p.exists():
                 try:
@@ -1171,23 +1199,20 @@ def register_routes(app: Flask) -> None:
                 if not is_valid:
                     flash(error_msg, "danger")
                     return redirect(request.url)
-                
-                from pathlib import Path as _Path
-                stem = _Path(file.filename).stem
-                ext = _Path(file.filename).suffix
-                unique = f"{stem}-{int(datetime.utcnow().timestamp())}{ext}"
-                save_path = _Path(current_app.config["UPLOAD_FOLDER"]) / unique
-                file.save(save_path.as_posix())
 
+                # Supprimer l'ancien fichier (best-effort)
                 if show.file_name:
-                    old_path = _Path(current_app.config["UPLOAD_FOLDER"]) / show.file_name
-                    if old_path.exists():
-                        try:
-                            old_path.unlink()
-                        except Exception:
-                            pass
+                    delete_file_s3(show.file_name)
+                    try:
+                        old_local = Path(current_app.config["UPLOAD_FOLDER"]) / show.file_name
+                        if old_local.exists():
+                            old_local.unlink()
+                    except Exception:
+                        pass
 
-                show.file_name = unique
+                # Upload S3 (fallback local si S3 non configuré)
+                new_name = upload_file_local(file)
+                show.file_name = new_name
                 show.file_mimetype = file.mimetype
 
             db.session.commit()
@@ -1203,6 +1228,7 @@ def register_routes(app: Flask) -> None:
         show = Show.query.get_or_404(show_id)
 
         if show.file_name:
+            delete_file_s3(show.file_name)
             p = Path(current_app.config["UPLOAD_FOLDER"]) / show.file_name
             if p.exists():
                 try:
