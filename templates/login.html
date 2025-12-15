@@ -1,21 +1,55 @@
 {% extends "base.html" %}
-{% block title %}Connexion - AnimatoSpectacle{% endblock %}
+{% block title %}Connexion - Spectacle'ment VØtre{% endblock %}
+
 {% block content %}
-<h2 style="margin-bottom: 12px;">Connexion</h2>
-<form method="post" class="form" id="loginform">
-  <div class="actions" style="display: flex; gap: 12px; margin-bottom: 16px;">
-    <a class="lost-pass" href="{{ url_for('forgot_password') }}" style="padding:10px 14px; border-radius:10px; background:red; color:#fff; font-weight:700; text-decoration:none; display:inline-block;">Mot de passe oublié ?</a>
-  </div>
-  <label>Nom d’utilisateur
-    <input name="username" type="text" required autofocus>
-  </label>
-  <label>Mot de passe
-    <input name="password" type="password" required>
-  </label>
-  <button type="submit" style="padding:6px 14px; border-radius:10px; background:white; color:#222; font-weight:700; text-decoration:none; display:inline-block; width:100%; margin-top:16px; border:none;">Se connecter</button>
-  <a href="{{ url_for('abonnement_compagnie') }}" style="padding:6px 14px; border-radius:10px; background:#1976d2; color:#fff; font-weight:700; text-decoration:none; display:inline-block; width:100%; margin-top:10px; text-align:center;">Abonnement Compagnie</a>
-  <div style="margin-top:10px; text-align:center;">
-    <a href="http://127.0.0.1:5000/" style="color:#1976d2; font-size:14px;">http://127.0.0.1:5000/</a>
-  </div>
-</form>
+<div class="demande-wrap" style="max-width:500px;">
+  <h1 style="margin:0 0 8px 0;">Connexion</h1>
+  <p class="text-muted" style="margin:0 0 24px 0;">
+    Connectez-vous pour accéder à votre espace personnel.
+  </p>
+
+  <form method="post" class="form demande-form" novalidate>
+    
+    <fieldset class="demande-section">
+      <legend>Identifiants</legend>
+
+      <label style="margin-bottom:16px;">
+        <span class="label-text">Nom d'utilisateur <span class="req">*</span></span>
+        <input name="username" type="text" required autofocus placeholder="Votre nom d'utilisateur"
+               value="{{ request.form.get('username','') }}">
+      </label>
+
+      <label style="margin-bottom:0;">
+        <span class="label-text">Mot de passe <span class="req">*</span></span>
+        <input name="password" type="password" required placeholder="Votre mot de passe">
+      </label>
+    </fieldset>
+
+    <div class="demande-actions">
+      <button type="submit" class="publish-btn" style="width:100%; padding:14px; font-size:1rem;">
+        Se connecter
+      </button>
+      
+      <div style="display:flex; gap:12px; margin-top:12px;">
+        <a class="lost-pass" href="{{ url_for('forgot_password') }}" 
+           style="flex:1; padding:10px; border-radius:8px; background:var(--danger); color:#fff; font-weight:600; text-decoration:none; display:block; text-align:center;">
+          Mot de passe oublié ?
+        </a>
+        <a href="{{ url_for('abonnement_compagnie') }}" 
+           style="flex:1; padding:10px; border-radius:8px; background:#1976d2; color:#fff; font-weight:600; text-decoration:none; display:block; text-align:center;">
+          Abonnement Compagnie
+        </a>
+      </div>
+
+      <p class="text-muted" style="margin:16px 0 0 0; font-size:0.85rem; text-align:center;">
+        Pas encore de compte ? <a href="{{ url_for('register') }}" style="color:var(--primary); text-decoration:underline;">S'inscrire</a>
+      </p>
+    </div>
+  </form>
+</div>
+
+{# Hide SEO block on login page #}
+<style>
+  main.container .seo-block { display: none; }
+</style>
 {% endblock %}
