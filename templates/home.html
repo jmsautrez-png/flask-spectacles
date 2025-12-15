@@ -43,7 +43,7 @@
     <div class="cards">
       {% for show in shows or [] %}
       <article class="card">
-        <a href="{{ url_for('demande_animation') }}" class="media-link">
+        <a href="{{ url_for('show_detail', show_id=show.id) }}" class="media-link">
           <div class="media">
             {% if show.has_image() %}
               <img src="{{ url_for('uploaded_file', filename=show.file_name) }}" alt="{{ show.title }}">
