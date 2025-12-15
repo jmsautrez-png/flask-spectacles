@@ -65,10 +65,26 @@
               </p>
             {% endif %}
             <h3>{{ show.title }}</h3>
-            {% if show.category %}<p class="meta" style="color:white; font-weight:bold;">{{ show.category }}</p>{% endif %}
-            {% if show.region %}<p class="meta" style="color:white; font-weight:bold;">{{ show.region }}</p>{% endif %}
-            {% if show.location %}<p class="meta" style="color:white; font-weight:bold;">{{ show.location }}</p>{% endif %}
-            {% if show.age_range %}<p class="meta" style="color:white; font-weight:bold;">{{ show.age_range }}</p>{% endif %}
+            {% if show.category %}
+              <p class="meta" style="color:white; font-weight:bold;">
+                <span style="opacity:0.6; font-size:0.85em;">Type:</span> {{ show.category }}
+              </p>
+            {% endif %}
+            {% if show.region %}
+              <p class="meta" style="color:white; font-weight:bold;">
+                <span style="opacity:0.6; font-size:0.85em;">Région:</span> {{ show.region }}
+              </p>
+            {% endif %}
+            {% if show.location %}
+              <p class="meta" style="color:white; font-weight:bold;">
+                <span style="opacity:0.6; font-size:0.85em;">Ville:</span> {{ show.location }}
+              </p>
+            {% endif %}
+            {% if show.age_range %}
+              <p class="meta" style="color:white; font-weight:bold;">
+                <span style="opacity:0.6; font-size:0.85em;">Public:</span> {{ show.age_range }}
+              </p>
+            {% endif %}
             {% if show.contact_email %}<p class="meta" style="color:white; font-weight:bold;">Contact / Intitulé</p>{% endif %}
             {% if not show.approved %}<p class="meta" style="color:#ffb347;">(En attente de validation)</p>{% endif %}
           </div>
