@@ -9,33 +9,49 @@
 {% if pending %}
     <div class="cards">
     {% for show in pending %}
-        <article class="card">
-            <h3>{{ show.title }}</h3>
-            <p>{{ show.category }} • {{ show.location }}</p>
-            <p>{{ show.age_range }}</p>
-            
-            <div style="background:#1a1a1e;padding:8px;border-radius:6px;margin:8px 0;font-size:0.85rem;">
-                <div><strong>👤 Compagnie:</strong> {{ show.raison_sociale or 'Non renseignée' }}</div>
-                <div><strong>📍 Région/Ville:</strong> {{ show.location or 'Non renseignée' }}</div>
-                <div><strong>📧 Email:</strong> {{ show.contact_email or 'Non renseigné' }}</div>
-                <div><strong>📱 Téléphone:</strong> {{ show.contact_phone or 'Non renseigné' }}</div>
+        <article class="card" style="border-color:#e67e22;">
+            <div class="media">
+                {% if show.file_name %}
+                    {% if show.is_pdf() %}
+                        <a href="{{ url_for('uploaded_file', filename=show.file_name) }}"
+                           target="_blank" class="pdf-thumb">📄 PDF</a>
+                    {% else %}
+                        <img src="{{ url_for('uploaded_file', filename=show.file_name) }}"
+                             alt="{{ show.title }}">
+                    {% endif %}
+                {% else %}
+                    <div class="placeholder">Aucun fichier</div>
+                {% endif %}
             </div>
 
-            <form action="{{ url_for('show_approve', show_id=show.id) }}" method="post">
-                <button type="submit">✅ Valider</button>
-            </form>
+            <div class="content">
+                <h3>{{ show.title }}</h3>
+                <p class="meta">{{ show.category }} • {{ show.location }}</p>
+                {% if show.age_range %}<p class="meta">{{ show.age_range }}</p>{% endif %}
+                
+                <div style="background:#1a1a1e;padding:8px;border-radius:6px;margin:8px 0;font-size:0.8rem;">
+                    <div>👤 <strong>Compagnie:</strong> {{ show.raison_sociale or 'Non renseignée' }}</div>
+                    <div>📍 <strong>Région/Ville:</strong> {{ show.location or 'Non renseignée' }}</div>
+                    <div>📧 <strong>Email:</strong> {{ show.contact_email or 'Non renseigné' }}</div>
+                    <div>📱 <strong>Téléphone:</strong> {{ show.contact_phone or 'Non renseigné' }}</div>
+                </div>
+            </div>
 
-            <a href="{{ url_for('show_edit', show_id=show.id) }}">Modifier</a>
-
-            <form action="{{ url_for('show_delete', show_id=show.id) }}" method="post"
-                  onsubmit="return confirm('Supprimer ?');">
-                <button type="submit" class="danger">Supprimer</button>
-            </form>
+            <div class="actions">
+                <form action="{{ url_for('show_approve', show_id=show.id) }}" method="post" style="flex:1; margin:0;">
+                    <button type="submit" style="width:100%; background:var(--ok);">✅ Valider</button>
+                </form>
+                <a href="{{ url_for('show_edit', show_id=show.id) }}">Modifier</a>
+                <form action="{{ url_for('show_delete', show_id=show.id) }}" method="post"
+                      onsubmit="return confirm('Supprimer ?');" style="flex:1; margin:0;">
+                    <button type="submit" class="danger" style="width:100%;">Supprimer</button>
+                </form>
+            </div>
         </article>
     {% endfor %}
     </div>
 {% else %}
-    <p>Aucune annonce en attente.</p>
+    <p style="color:var(--muted);">Aucune annonce en attente.</p>
 {% endif %}
 
 <hr>
@@ -44,41 +60,46 @@
 <div class="cards">
 {% for show in shows %}
     <article class="card">
-
         {# --------- FICHIER ASSOCIÉ (IMAGE OU PDF) --------- #}
-        {% if show.file_name %}
-            {% if show.is_pdf() %}
-                {# PDF : lien cliquable vers le fichier #}
-                <a href="{{ url_for('uploaded_file', filename=show.file_name) }}"
-                   target="_blank"
-                   class="pdf-link">
-                    📄 Voir le PDF
-                </a>
+        <div class="media">
+            {% if show.file_name %}
+                {% if show.is_pdf() %}
+                    <a href="{{ url_for('uploaded_file', filename=show.file_name) }}"
+                       target="_blank"
+                       class="pdf-thumb">
+                        📄 PDF
+                    </a>
+                {% else %}
+                    <img src="{{ url_for('uploaded_file', filename=show.file_name) }}"
+                         alt="{{ show.title }}">
+                {% endif %}
             {% else %}
-                {# Tout le reste : on tente de l'afficher comme image #}
-                <img src="{{ url_for('uploaded_file', filename=show.file_name) }}"
-                     alt="{{ show.title }}"
-                     class="show-image">
+                <div class="placeholder">Aucun fichier</div>
             {% endif %}
-        {% endif %}
+        </div>
 
-        {% if show.raison_sociale %}<p style="font-weight:600; color:var(--primary); margin:8px 0 4px 0;">{{ show.raison_sociale }}</p>{% endif %}
-        <h3>{{ show.title }}</h3>
-        <p>{{ show.category }}</p>
-        {% if show.location %}<p>📍 {{ show.location }}</p>{% endif %}
+        <div class="content">
+            {% if show.raison_sociale %}
+                <p class="meta" style="font-weight:600; color:var(--primary);">{{ show.raison_sociale }}</p>
+            {% endif %}
+            <h3>{{ show.title }}</h3>
+            <p class="meta">{{ show.category }}</p>
+            {% if show.location %}<p class="meta">📍 {{ show.location }}</p>{% endif %}
 
-        {% if not show.approved %}
-            <p style="color:#e67e22;">⏳ Non validée</p>
-        {% else %}
-            <p style="color:#2ecc71;">✔ Validée</p>
-        {% endif %}
+            {% if not show.approved %}
+                <p class="meta" style="color:#e67e22;">⏳ Non validée</p>
+            {% else %}
+                <p class="meta" style="color:#2ecc71;">✔ Validée</p>
+            {% endif %}
+        </div>
         
-        <a href="{{ url_for('show_edit', show_id=show.id) }}">Modifier</a>
-
-        <form action="{{ url_for('show_delete', show_id=show.id) }}" method="post"
-              onsubmit="return confirm('Supprimer ?');">
-            <button type="submit" class="danger">Supprimer</button>
-        </form>
+        <div class="actions">
+            <a href="{{ url_for('show_edit', show_id=show.id) }}">Modifier</a>
+            <form action="{{ url_for('show_delete', show_id=show.id) }}" method="post"
+                  onsubmit="return confirm('Supprimer ?');" style="flex:1; margin:0;">
+                <button type="submit" class="danger" style="width:100%;">Supprimer</button>
+            </form>
+        </div>
     </article>
 {% endfor %}
 </div>
