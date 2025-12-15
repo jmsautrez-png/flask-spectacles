@@ -2,90 +2,150 @@
 {% block title %}Demander une animation pour anniversaire, entreprise, école - Spectacle'ment VØtre{% endblock %}
 
 {% block content %}
-<h1>Demande d’animation</h1>
-<p>Remplissez ce formulaire, nous vous répondrons rapidement.</p>
+<div class="demande-wrap">
+  <h1 style="margin:0 0 6px 0;">Demande d’animation</h1>
+  <p class="text-muted" style="margin:0 0 18px 0;">
+    Remplissez les informations essentielles. Les champs marqués <span style="color:var(--primary); font-weight:700;">*</span> sont obligatoires.
+  </p>
 
-<form action="{{ url_for('demande_animation') }}" method="POST" class="form-stack">
+  <form action="{{ url_for('demande_animation') }}" method="POST" class="form demande-form" novalidate>
+    <fieldset class="demande-section">
+      <legend>1) Vos coordonnées</legend>
 
-  <div class="form-row">
-    <label for="structure">Structure / Organisateur</label>
-    <input type="text" id="structure" name="structure" placeholder="Nom de la mairie, école, association…" required>
-  </div>
+      <div class="grid-2">
+        <label>
+          Structure / Organisateur <span class="req">*</span>
+          <input type="text" id="structure" name="structure" required autocomplete="organization"
+                 placeholder="Mairie, école, association…"
+                 value="{{ request.form.get('structure','') }}">
+          <small class="hint">Ex : Mairie de X, École Y, Association Z…</small>
+        </label>
 
-  <div class="form-row">
-    <label for="telephone">Téléphone</label>
-    <input type="tel" id="telephone" name="telephone" placeholder="06 00 00 00 00" required>
-  </div>
+        <label>
+          Nom / Prénom (contact principal) <span class="req">*</span>
+          <input type="text" id="nom" name="nom" required autocomplete="name"
+                 placeholder="Votre nom"
+                 value="{{ request.form.get('nom','') }}">
+        </label>
+      </div>
 
-  <div class="form-row">
-    <label for="lieu_ville">Lieu / ville</label>
-    <input type="text" id="lieu_ville" name="lieu_ville" required>
-  </div>
-  
-  <div class="form-row">
-  <label for="nom">Nom / Prénom ou contact principal</label>
-  <input type="text" id="nom" name="nom" required>
-  </div>
+      <div class="grid-2">
+        <label>
+          E-mail de contact <span class="req">*</span>
+          <input type="email" id="contact_email" name="contact_email" required autocomplete="email"
+                 placeholder="votre@email.fr"
+                 value="{{ request.form.get('contact_email','') }}">
+          <small class="hint">Nous l’utilisons uniquement pour répondre à votre demande.</small>
+        </label>
 
-  <div class="form-row">
-    <label for="dates_horaires">Date(s) et horaires</label>
-    <input type="text" id="dates_horaires" name="dates_horaires" placeholder="Ex : 15/12 (14h-16h), 18/12 (10h-12h)" required>
-  </div>
+        <label>
+          Téléphone <span class="req">*</span>
+          <input type="tel" id="telephone" name="telephone" required autocomplete="tel"
+                 inputmode="tel" placeholder="06 00 00 00 00"
+                 value="{{ request.form.get('telephone','') }}">
+        </label>
+      </div>
+    </fieldset>
 
-  <div class="form-row">
-    <label for="type_espace">Type d’espace mis à disposition</label>
-    <input type="text" id="type_espace" name="type_espace" placeholder="Salle polyvalente, gymnase, plein air…" required>
-  </div>
+    <fieldset class="demande-section">
+      <legend>2) Votre événement</legend>
 
-  <div class="form-row">
-    <label for="genre_recherche">Genre recherché</label>
-    <input type="text" id="genre_recherche" name="genre_recherche" placeholder="Théâtre, conte, cirque, musique…" required>
-  </div> 
+      <div class="grid-2">
+        <label>
+          Lieu / Ville <span class="req">*</span>
+          <input type="text" id="lieu_ville" name="lieu_ville" required autocomplete="address-level2"
+                 placeholder="Paris, Lyon…"
+                 value="{{ request.form.get('lieu_ville','') }}">
+        </label>
 
-  <div class="form-row">
-    <label for="age_range">Tranche d’âge du public</label>
-    <select id="age_range" name="age_range" required>
-      <option value="">-- Choisir --</option>
-      <option value="enfant" {% if (request.form.get('age_range') if request.method=='POST' else (show.age_range if show else '')) == 'enfant' %}selected{% endif %}>Enfant</option>
-      <option value="adulte" {% if (request.form.get('age_range') if request.method=='POST' else (show.age_range if show else '')) == 'adulte' %}selected{% endif %}>Adulte</option>
-      <option value="tout public" {% if (request.form.get('age_range') if request.method=='POST' else (show.age_range if show else '')) == 'tout public' %}selected{% endif %}>Tout public</option>
-    </select>
-  </div>
-  <div class="form-row">
-    <label for="jauge">Jauge estimée</label>
-    <input type="number" id="jauge" name="jauge" min="1" step="1" placeholder="Ex : 120" required>
-  </div>
+        <label>
+          Date(s) et horaires <span class="req">*</span>
+          <input type="text" id="dates_horaires" name="dates_horaires" required
+                 placeholder="Ex : 15/12 (14h-16h), 18/12 (10h-12h)"
+                 value="{{ request.form.get('dates_horaires','') }}">
+        </label>
+      </div>
 
-  <div class="form-row">
-    <label for="budget">Budget indicatif</label>
-    <input type="text" id="budget" name="budget" placeholder="Ex : 1000–1500 €" required>
-  </div>
+      <div class="grid-2">
+        <label>
+          Genre recherché <span class="req">*</span>
+          <input type="text" id="genre_recherche" name="genre_recherche" required
+                 placeholder="Magie, théâtre, clown, musique…"
+                 value="{{ request.form.get('genre_recherche','') }}">
+        </label>
 
-  <div class="form-row">
-    <label for="contraintes">Contraintes techniques</label>
-    <textarea id="contraintes" name="contraintes" rows="4" placeholder="Scène, hauteur sous plafond, noir total, régie, puissance électrique…"></textarea>
-  </div>
+        <label>
+          Tranche d’âge du public <span class="req">*</span>
+          <select id="age_range" name="age_range" required>
+            <option value="">-- Choisir --</option>
+            <option value="enfant" {% if request.form.get('age_range','') == 'enfant' %}selected{% endif %}>Enfant</option>
+            <option value="adulte" {% if request.form.get('age_range','') == 'adulte' %}selected{% endif %}>Adulte</option>
+            <option value="tout public" {% if request.form.get('age_range','') == 'tout public' %}selected{% endif %}>Tout public</option>
+          </select>
+          <small class="hint">Aide au choix de l’artiste / spectacle.</small>
+        </label>
+      </div>
 
-  <div class="form-row">
-    <label for="accessibilite">Accessibilité</label>
-    <textarea id="accessibilite" name="accessibilite" rows="3" placeholder="PMR, parking, déchargement, ascenseur…"></textarea>
-  </div>
+      <div class="grid-2">
+        <label>
+          Jauge estimée <span class="req">*</span>
+          <input type="number" id="jauge" name="jauge" min="1" step="1" required inputmode="numeric"
+                 placeholder="Ex : 120"
+                 value="{{ request.form.get('jauge','') }}">
+        </label>
 
-  <div class="form-row">
-    <label for="contact_email">VØtre e-mail de contact</label>
-    <input type="email" id="contact_email" name="contact_email" placeholder="vØtre@email.fr" required>
-  </div>
+        <label>
+          Budget indicatif <span class="req">*</span>
+          <input type="text" id="budget" name="budget" required
+                 placeholder="Ex : 1000–1500 €"
+                 value="{{ request.form.get('budget','') }}">
+          <small class="hint">Même une fourchette aide à proposer les bonnes options.</small>
+        </label>
+      </div>
+    </fieldset>
 
-  <div class="form-row">
-    <button type="submit" class="btn btn-primary">Envoyer la demande</button>
-  </div>
-</form>
+    <fieldset class="demande-section">
+      <legend>3) L’espace / contraintes</legend>
 
+      <label>
+        Type d’espace mis à disposition <span class="req">*</span>
+        <input type="text" id="type_espace" name="type_espace" required
+               placeholder="Salle polyvalente, gymnase, plein air…"
+               value="{{ request.form.get('type_espace','') }}">
+      </label>
+
+      <details class="demande-details">
+        <summary>Ajouter des précisions (optionnel)</summary>
+        <div style="margin-top:12px;" class="grid-2">
+          <label>
+            Contraintes techniques
+            <textarea id="contraintes" name="contraintes" rows="4"
+                      placeholder="Scène, hauteur sous plafond, noir total, régie, puissance électrique…">{{ request.form.get('contraintes','') }}</textarea>
+          </label>
+
+          <label>
+            Accessibilité
+            <textarea id="accessibilite" name="accessibilite" rows="4"
+                      placeholder="PMR, parking, déchargement, ascenseur…">{{ request.form.get('accessibilite','') }}</textarea>
+          </label>
+        </div>
+      </details>
+    </fieldset>
+
+    <div class="demande-actions">
+      <button type="submit" class="publish-btn" style="width:100%; text-align:center;">
+        Envoyer la demande
+      </button>
+      <p class="text-muted" style="margin:10px 0 0 0; font-size:0.85rem; text-align:center;">
+        Réponse rapide — vous serez contacté par e-mail / téléphone.
+      </p>
+    </div>
+  </form>
+</div>
+
+{# This page is conversion-focused; hide the long SEO block below the form. #}
 <style>
-.form-stack .form-row { margin-bottom: 12px; }
-.form-stack label { display:block; font-weight:600; margin-bottom:6px; }
-.form-stack input, .form-stack textarea { width:100%; padding:8px; border:1px solid var(--border); border-radius:8px; }
-.btn.btn-primary { background: var(--accent); color:#fff; border:none; padding:10px 14px; border-radius:10px; cursor:pointer; }
+  main.container .seo-block { display: none; }
 </style>
 {% endblock %}
 

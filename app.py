@@ -1337,7 +1337,8 @@ def register_routes(app: Flask) -> None:
             if not all([structure, telephone, lieu_ville, nom, dates_horaires, 
                        type_espace, genre_recherche, age_range, jauge, budget, contact_email]):
                 flash("Veuillez remplir tous les champs obligatoires.", "danger")
-                return redirect(url_for("demande_animation"))
+                # UX: keep user on page and preserve entered values (no redirect)
+                return render_template("demande_animation.html", user=current_user()), 400
 
             # Envoi d'email si configuré
             if getattr(current_app, "mail", None) and current_app.config.get("MAIL_USERNAME"):

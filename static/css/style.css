@@ -20,6 +20,62 @@ main.container {
   padding-top: 28px;
   padding-bottom: 20px;
 }
+
+/* ============================================
+   Demande d'animation - UX improvements (page-scoped via classes)
+   ============================================ */
+.demande-wrap{
+  max-width: 980px;
+  margin: 0 auto;
+}
+.demande-form{
+  gap: 16px;
+}
+.demande-section{
+  border: 1px solid var(--border);
+  background: rgba(255,255,255,0.01);
+  border-radius: 14px;
+  padding: 14px;
+}
+.demande-section legend{
+  padding: 0 8px;
+  font-weight: 800;
+  color: var(--text);
+}
+.demande-form label{
+  font-weight: 650;
+}
+.demande-form .hint{
+  display:block;
+  margin-top: 6px;
+  color: var(--muted);
+  font-weight: 500;
+  font-size: 0.85rem;
+}
+.demande-form .req{
+  color: var(--primary);
+  font-weight: 800;
+}
+.demande-form textarea{
+  min-height: 120px;
+  resize: vertical;
+}
+.demande-details{
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1px solid var(--border);
+}
+.demande-details summary{
+  cursor: pointer;
+  color: var(--text);
+  font-weight: 700;
+}
+.demande-details summary:hover{
+  color: var(--primary);
+}
+.demande-actions{
+  margin-top: 4px;
+}
 .brand{ color:var(--text); text-decoration:none; font-weight:700; font-size:1.15rem; display:flex; align-items:center; gap:8px; }
 .nav{ display:flex; gap:16px; list-style:none; margin:0; padding:0; }
 .nav a{ color:var(--text); text-decoration:none; opacity:.9; } .nav a:hover{ opacity:1; }
