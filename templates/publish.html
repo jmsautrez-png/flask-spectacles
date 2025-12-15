@@ -1,102 +1,47 @@
 {% extends "base.html" %}
-{% block title %}Publier vØtre spectacle ou animation - Spectacle'ment VØtre{% endblock %}
+{% block title %}Publier vØtre spectacle ou animation - AnimatoSpectacle{% endblock %}
 
 {% block content %}
-<div class="demande-wrap">
-  <h1 style="margin:0 0 8px 0;">Publier vØtre spectacle</h1>
-  <p class="text-muted" style="margin:0 0 24px 0;">
-    Remplissez le formulaire ci-dessous. Les champs marqués <span style="color:var(--primary); font-weight:700;">*</span> sont obligatoires. VØtre annonce sera examinée avant publication.
-  </p>
+<h2>Publier vØtre spectacle</h2>
+<p>Remplissez le formulaire ci-dessous. VØtre annonce sera examinée avant publication.</p>
 
-  <form action="{{ url_for('submit_show') }}" method="post" enctype="multipart/form-data" class="form demande-form" novalidate>
-    
-    <fieldset class="demande-section">
-      <legend>Informations du spectacle</legend>
+<form action="{{ url_for('submit_show') }}" method="post" enctype="multipart/form-data" class="form">
 
-      <label style="margin-bottom:16px;">
-        <span class="label-text">Raison sociale</span>
-        <input type="text" name="raison_sociale" placeholder="Nom de votre compagnie, association…"
-               value="{{ request.form.get('raison_sociale','') }}">
-      </label>
+  <label>Raison sociale</label>
+  <input type="text" name="raison_sociale">
 
-      <label style="margin-bottom:16px;">
-        <span class="label-text">Titre du spectacle <span class="req">*</span></span>
-        <input type="text" name="title" required placeholder="Titre du spectacle"
-               value="{{ request.form.get('title','') }}">
-      </label>
+  <label>Titre du spectacle</label>
+  <input type="text" name="title" required>
 
-      <label style="margin-bottom:0;">
-        <span class="label-text">Description</span>
-        <textarea name="description" rows="5"
-                  placeholder="Décrivez votre spectacle…">{{ request.form.get('description','') }}</textarea>
-      </label>
-    </fieldset>
+  <label>Description</label>
+  <textarea name="description"></textarea>
 
-    <fieldset class="demande-section">
-      <legend>Localisation et public</legend>
+  <label>Lieu</label>
+  <input type="text" name="location">
 
-      <div class="grid-2">
-        <label>
-          <span class="label-text">Lieu</span>
-          <input type="text" name="location" placeholder="Ville"
-                 value="{{ request.form.get('location','') }}">
-        </label>
+  <label>Catégorie</label>
+  <input type="text" name="category">
 
-        <label>
-          <span class="label-text">Date</span>
-          <input type="date" name="date" value="{{ request.form.get('date','') }}">
-        </label>
-      </div>
+  <label>Tranche d’âge</label>
+  <select name="age_range" required>
+    <option value="">-- Choisir --</option>
+    <option value="enfant">Enfant</option>
+    <option value="adulte">Adulte</option>
+    <option value="tout public">Tout public</option>
+  </select>
 
-      <div class="grid-2">
-        <label>
-          <span class="label-text">Catégorie</span>
-          <input type="text" name="category" placeholder="Magie, Théâtre, Clown…"
-                 value="{{ request.form.get('category','') }}">
-        </label>
+  <label>Date</label>
+  <input type="date" name="date">
 
-        <label>
-          <span class="label-text">Tranche d'âge <span class="req">*</span></span>
-          <select name="age_range" required>
-            <option value="">-- Choisir --</option>
-            <option value="enfant" {% if request.form.get('age_range','') == 'enfant' %}selected{% endif %}>Enfant</option>
-            <option value="adulte" {% if request.form.get('age_range','') == 'adulte' %}selected{% endif %}>Adulte</option>
-            <option value="tout public" {% if request.form.get('age_range','') == 'tout public' %}selected{% endif %}>Tout public</option>
-          </select>
-        </label>
-      </div>
-    </fieldset>
+  <label>Email de contact <span style="font-size:0.85rem;font-weight:normal;color:var(--muted);">(Pour mettre vØtre adresse courriel <a href="{{ url_for('legal') }}" style="color:var(--primary);text-decoration:underline;">nous contacter</a>)</span></label>
+  <input type="email" name="contact_email" value="audition_2020@yahoo.fr" {% if not (user and user.is_admin) %}readonly{% endif %}>
 
-    <fieldset class="demande-section">
-      <legend>Contact et fichiers</legend>
+  <label>Affiche / PDF <span style="font-size:0.85rem;font-weight:normal;color:var(--muted);">(Taille max : 5 MB)</span></label>
+  <input type="file" name="file" accept="image/*,application/pdf">
 
-      <label style="margin-bottom:16px;">
-        <span class="label-text">Email de contact</span>
-        <input type="email" name="contact_email" value="audition_2020@yahoo.fr" 
-               {% if not (user and user.is_admin) %}readonly{% endif %}
-               placeholder="email@exemple.fr">
-        <small class="hint">Pour mettre vØtre adresse courriel, <a href="{{ url_for('legal') }}" style="color:var(--primary);text-decoration:underline;">nous contacter</a>.</small>
-      </label>
+  <button type="submit">Envoyer</button>
+</form>
 
-      <label style="margin-bottom:0;">
-        <span class="label-text">Affiche / PDF <span style="font-size:0.85rem;font-weight:normal;color:var(--muted);">(Taille max : 5 MB)</span></span>
-        <input type="file" name="file" accept="image/*,application/pdf">
-      </label>
-    </fieldset>
-
-    <div class="demande-actions">
-      <button type="submit" class="publish-btn" style="width:100%; padding:14px; font-size:1rem;">
-        Envoyer
-      </button>
-      <p class="text-muted" style="margin:12px 0 0 0; font-size:0.85rem; text-align:center;">
-        Votre annonce sera examinée avant publication.
-      </p>
-    </div>
-  </form>
-</div>
-
-{# Hide SEO block on this form page #}
-<style>
-  main.container .seo-block { display: none; }
-</style>
 {% endblock %}
+
+
