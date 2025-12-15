@@ -39,9 +39,9 @@
 
             <div class="actions">
                 <form action="{{ url_for('show_approve', show_id=show.id) }}" method="post" style="flex:1; margin:0;">
-                    <button type="submit" style="width:100%; background:var(--ok);">✅ Valider</button>
+                    <button type="submit" style="width:100%; background:var(--ok); color:#fff;">Valider</button>
                 </form>
-                <a href="{{ url_for('show_edit', show_id=show.id) }}">Modifier</a>
+                <a href="{{ url_for('show_edit', show_id=show.id) }}" style="flex:1; display:flex; align-items:center; justify-content:center;">Modifier</a>
                 <form action="{{ url_for('show_delete', show_id=show.id) }}" method="post"
                       onsubmit="return confirm('Supprimer ?');" style="flex:1; margin:0;">
                     <button type="submit" class="danger" style="width:100%;">Supprimer</button>
