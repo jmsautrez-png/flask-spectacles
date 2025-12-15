@@ -44,6 +44,9 @@ main.container {
 }
 .demande-form label{
   font-weight: 650;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
 }
 .demande-form .hint{
   display:block;
@@ -59,6 +62,20 @@ main.container {
 .demande-form textarea{
   min-height: 120px;
   resize: vertical;
+}
+.demande-form input,
+.demande-form select,
+.demande-form textarea{
+  width: 100%;
+  box-sizing: border-box;
+}
+.demande-form select{
+  padding: 10px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: #121218;
+  color: var(--text);
+  min-height: 44px;
 }
 .demande-details{
   margin-top: 12px;
