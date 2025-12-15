@@ -5,8 +5,28 @@ services:
     buildCommand: "pip install -r requirements.txt"
     startCommand: "gunicorn app:app"
     envVars:
+      # === CRITICAL: Security ===
+      - key: SECRET_KEY
+        generateValue: true  # Render generates a random value, persists across deploys
+      
       - key: FLASK_ENV
         value: production
+      
+      # === CRITICAL: Database (PostgreSQL) ===
+      # Link to your Render PostgreSQL database
+      - key: DATABASE_URL
+        fromDatabase:
+          name: flask-spectacles-db
+          property: connectionString
+      
+      # === Admin credentials ===
+      # Set these manually in Render dashboard for security
+      - key: ADMIN_USERNAME
+        sync: false  # Set manually in Render dashboard
+      - key: ADMIN_PASSWORD
+        sync: false  # Set manually in Render dashboard
+      
+      # === AWS S3 Configuration ===
       - key: S3_BUCKET
         value: spectacle-ment-votre
       - key: S3_KEY
@@ -15,5 +35,9 @@ services:
         sync: false  # Set manually in Render dashboard for security
       - key: S3_REGION
         value: eu-west-1
-      # Note: S3_KEY and S3_SECRET must be added manually in Render dashboard
-      # for security reasons (not stored in git)
+
+databases:
+  - name: flask-spectacles-db
+    databaseName: flask_spectacles
+    user: flask_user
+    plan: free  # Change to 'starter' for production persistence beyond 90 days

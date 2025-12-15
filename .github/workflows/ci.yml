@@ -25,14 +25,48 @@ jobs:
       - name: Syntax check
         run: python -m compileall -q .
 
+      - name: Validate render.yaml
+        run: |
+          echo "Checking render.yaml exists..."
+          test -f render.yaml || (echo "❌ render.yaml not found!" && exit 1)
+          
+          echo "Checking for critical environment variables in render.yaml..."
+          grep -q "SECRET_KEY" render.yaml || (echo "❌ SECRET_KEY not in render.yaml!" && exit 1)
+          grep -q "DATABASE_URL" render.yaml || (echo "❌ DATABASE_URL not in render.yaml!" && exit 1)
+          grep -q "ADMIN_USERNAME" render.yaml || (echo "❌ ADMIN_USERNAME not in render.yaml!" && exit 1)
+          grep -q "ADMIN_PASSWORD" render.yaml || (echo "❌ ADMIN_PASSWORD not in render.yaml!" && exit 1)
+          
+          echo "✅ render.yaml validation passed"
+
+      - name: Check for hardcoded secrets
+        run: |
+          echo "Checking for hardcoded secrets in Python files..."
+          # Check for common secret patterns (excluding test files and config defaults)
+          if grep -rE "(password|secret|api_key)\s*=\s*['\"][^'\"]{8,}['\"]" --include="*.py" --exclude="config.py" --exclude="test*.py" .; then
+            echo "⚠️  Warning: Possible hardcoded secrets found. Review the above matches."
+          else
+            echo "✅ No hardcoded secrets detected"
+          fi
+
       - name: Run unit tests
         env:
           FLASK_ENV: production
-          SECRET_KEY: ci-secret
+          SECRET_KEY: ci-secret-key-for-testing-only
           ADMIN_USERNAME: admin
           ADMIN_PASSWORD: admin
-          # Ensure we don't attempt SMTP connections in CI.
+          DATABASE_URL: sqlite:///test.db
+          # Ensure we don't attempt SMTP connections in CI
           MAIL_SMTP_TEST_ON_STARTUP: "0"
         run: python -m unittest discover -s . -p "test*.py" -v
 
-
+      - name: Test app startup
+        env:
+          FLASK_ENV: production
+          SECRET_KEY: ci-secret-key-for-testing-only
+          ADMIN_USERNAME: testadmin
+          ADMIN_PASSWORD: testpassword123
+          DATABASE_URL: sqlite:///test.db
+          MAIL_SMTP_TEST_ON_STARTUP: "0"
+        run: |
+          echo "Testing app can start without errors..."
+          python -c "from app import create_app; app = create_app(); print('✅ App created successfully')"

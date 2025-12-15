@@ -101,11 +101,57 @@ def configure_logging(app: Flask) -> None:
 # -----------------------------------------------------
 # Factory
 # -----------------------------------------------------
+def _validate_production_config(app: Flask) -> None:
+    """Validate critical environment variables in production."""
+    import os
+    if os.environ.get("FLASK_ENV") != "production":
+        return  # Skip validation in development
+    
+    warnings = []
+    errors = []
+    
+    # Critical: SECRET_KEY must not be the default
+    if app.config.get("SECRET_KEY") == "dev-secret-key":
+        errors.append("SECRET_KEY is using default value. Set it in Render environment variables!")
+    
+    # Critical: Database should be PostgreSQL in production
+    db_uri = app.config.get("SQLALCHEMY_DATABASE_URI", "")
+    if "sqlite" in db_uri.lower():
+        errors.append("DATABASE_URL not set. Using ephemeral SQLite! Set DATABASE_URL in Render.")
+    
+    # Warning: Admin credentials using defaults
+    if app.config.get("ADMIN_USERNAME") == "admin":
+        warnings.append("ADMIN_USERNAME using default 'admin'. Consider setting a custom value.")
+    if app.config.get("ADMIN_PASSWORD") == "admin":
+        warnings.append("ADMIN_PASSWORD using default 'admin'. Set a strong password in Render!")
+    
+    # Warning: S3 not fully configured
+    s3_vars = ["S3_BUCKET", "S3_KEY", "S3_SECRET", "S3_REGION"]
+    missing_s3 = [v for v in s3_vars if not app.config.get(v)]
+    if missing_s3:
+        warnings.append(f"S3 not fully configured (missing: {', '.join(missing_s3)}). Uploads will use local disk (ephemeral!).")
+    
+    # Log warnings
+    for w in warnings:
+        app.logger.warning(f"[CONFIG] ⚠️  {w}")
+    
+    # Log errors and optionally fail
+    for e in errors:
+        app.logger.error(f"[CONFIG] ❌ {e}")
+    
+    if errors:
+        app.logger.error("[CONFIG] ❌ CRITICAL CONFIGURATION ERRORS DETECTED. App may not work correctly!")
+
+
 def create_app() -> Flask:
     app = Flask(__name__, instance_relative_config=True)
 
     app.config.from_object(Config)
     import os
+    
+    # Validate production configuration
+    _validate_production_config(app)
+    
     app.logger.info("ENV UPLOAD_DIR=%s", os.environ.get("UPLOAD_DIR"))
     app.logger.info("ENV UPLOAD_FOLDER=%s", os.environ.get("UPLOAD_FOLDER"))
     app.logger.info("CONFIG UPLOAD_FOLDER=%s", app.config.get("UPLOAD_FOLDER"))
@@ -361,13 +407,28 @@ def _is_suspicious_request() -> bool:
     return False
 
 def _bootstrap_admin(app: Flask) -> None:
-    # Crée un admin au premier démarrage si la table users est vide
+    """
+    Creates an admin user on first startup if the users table is empty.
+    Credentials come from ADMIN_USERNAME and ADMIN_PASSWORD environment variables.
+    """
     if User.query.count() == 0:
-        admin = User(username=app.config["ADMIN_USERNAME"], is_admin=True)
-        admin.set_password(app.config["ADMIN_PASSWORD"])
+        username = app.config["ADMIN_USERNAME"]
+        password = app.config["ADMIN_PASSWORD"]
+        
+        admin = User(username=username, is_admin=True)
+        admin.set_password(password)
         db.session.add(admin)
         db.session.commit()
-        print(f"[BOOTSTRAP] Admin créé: {admin.username} / (mot de passe défini via env)")
+        
+        # Clear log message so operator knows what credentials to use
+        app.logger.info("=" * 60)
+        app.logger.info("[BOOTSTRAP] Admin user created!")
+        app.logger.info(f"[BOOTSTRAP]   Username: {username}")
+        if password == "admin":
+            app.logger.warning("[BOOTSTRAP]   Password: admin (DEFAULT - CHANGE IN RENDER!)")
+        else:
+            app.logger.info("[BOOTSTRAP]   Password: (set via ADMIN_PASSWORD env var)")
+        app.logger.info("=" * 60)
 
 def register_error_handlers(app: Flask) -> None:
     """Enregistre les gestionnaires d'erreurs personnalisés pour l'application"""
