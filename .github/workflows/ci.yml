@@ -50,7 +50,7 @@ jobs:
 
       - name: Run unit tests
         env:
-          FLASK_ENV: production
+          FLASK_ENV: testing  # Use 'testing' to disable Talisman HTTPS redirect
           SECRET_KEY: ci-secret-key-for-testing-only
           ADMIN_USERNAME: admin
           ADMIN_PASSWORD: admin
@@ -61,7 +61,7 @@ jobs:
 
       - name: Test app startup
         env:
-          FLASK_ENV: production
+          FLASK_ENV: testing  # Use 'testing' to disable Talisman HTTPS redirect
           SECRET_KEY: ci-secret-key-for-testing-only
           ADMIN_USERNAME: testadmin
           ADMIN_PASSWORD: testpassword123
