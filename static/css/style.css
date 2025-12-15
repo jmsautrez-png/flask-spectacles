@@ -14,6 +14,12 @@ body{ margin:0; font-family:system-ui,Segoe UI,Roboto,Arial; color:var(--text); 
 .container{ width:min(1540px,94%); margin:0 auto; }
 .site-header{ background:rgba(23,23,27,.75); border-bottom:1px solid var(--border); position:sticky; top:0; backdrop-filter:blur(8px); z-index:10; }
 .header-grid{ display:flex; align-items:center; justify-content:space-between; padding:14px 0; }
+
+/* Main content spacing below header */
+main.container {
+  padding-top: 28px;
+  padding-bottom: 20px;
+}
 .brand{ color:var(--text); text-decoration:none; font-weight:700; font-size:1.15rem; display:flex; align-items:center; gap:8px; }
 .nav{ display:flex; gap:16px; list-style:none; margin:0; padding:0; }
 .nav a{ color:var(--text); text-decoration:none; opacity:.9; } .nav a:hover{ opacity:1; }
