@@ -1,62 +1,96 @@
 {% extends "base.html" %}
-{% block title %}Ajouter un spectacle ou animation - AnimatoSpectacle{% endblock %}
+{% block title %}Ajouter un spectacle ou animation - Spectacle'ment VØtre{% endblock %}
+
 {% block content %}
-<h2>Ajouter une annonce</h2>
-<form method="post" enctype="multipart/form-data" class="form">
-  <label>Raison sociale
-    <input type="text" name="raison_sociale">
-  </label>
+<div class="demande-wrap">
+  <h1 style="margin:0 0 8px 0;">Ajouter une annonce</h1>
+  <p class="text-muted" style="margin:0 0 24px 0;">
+    Remplissez les informations essentielles. Les champs marqués <span style="color:var(--primary); font-weight:700;">*</span> sont obligatoires.
+  </p>
 
-  <label>Titre
-    <input type="text" name="title" required>
-  </label>
+  <form method="post" enctype="multipart/form-data" class="form demande-form" novalidate>
+    
+    <fieldset class="demande-section">
+      <legend>Informations générales</legend>
 
-  <label>Description (max 200 mots)
-    <textarea id="description" name="description" rows="4" required></textarea>
-    <div id="desc-counter" style="font-size:.9rem;opacity:.8;margin-top:4px;">0/200 mots</div>
-  </label>
+      <label style="margin-bottom:16px;">
+        <span class="label-text">Raison sociale</span>
+        <input type="text" name="raison_sociale" placeholder="Nom de votre compagnie, association…">
+      </label>
 
-  <div class="grid-2">
-    <label>Région
-      <input type="text" name="region" placeholder="Ex: Île-de-France, Bretagne...">
-    </label>
-    <label>Lieu
-      <input type="text" name="location" placeholder="Ville / Salle">
-    </label>
-   </div>
+      <label style="margin-bottom:16px;">
+        <span class="label-text">Titre <span class="req">*</span></span>
+        <input type="text" name="title" required placeholder="Titre du spectacle">
+      </label>
 
+      <label style="margin-bottom:0;">
+        <span class="label-text">Description (max 200 mots) <span class="req">*</span></span>
+        <textarea id="description" name="description" rows="5" required placeholder="Décrivez votre spectacle…"></textarea>
+        <div id="desc-counter" style="font-size:0.85rem;color:var(--muted);margin-top:6px;">0/200 mots</div>
+      </label>
+    </fieldset>
 
-  <label>Catégorie
-    <input type="text" name="category" placeholder="Magie, Théâtre, Clown…">
-  </label>
+    <fieldset class="demande-section">
+      <legend>Localisation et public</legend>
 
-  <!-- Champ categorie2 supprimé (nettoyé) -->
+      <div class="grid-2">
+        <label>
+          <span class="label-text">Région</span>
+          <input type="text" name="region" placeholder="Ex: Île-de-France, Bretagne...">
+        </label>
 
-  <label>Âge
-    <select name="age_range" required>
-      <option value="">-- Choisir --</option>
-      <option value="enfant" {% if (request.form.get('age_range') if request.method=='POST' else (show.age_range if show else '')) == 'enfant' %}selected{% endif %}>Enfant</option>
-      <option value="adulte" {% if (request.form.get('age_range') if request.method=='POST' else (show.age_range if show else '')) == 'adulte' %}selected{% endif %}>Adulte</option>
-      <option value="tout public" {% if (request.form.get('age_range') if request.method=='POST' else (show.age_range if show else '')) == 'tout public' %}selected{% endif %}>Tout public</option>
-    </select>
-  </label>
+        <label>
+          <span class="label-text">Lieu</span>
+          <input type="text" name="location" placeholder="Ville / Salle">
+        </label>
+      </div>
 
-  <label>Site internet
-    <input type="url" name="site_internet" placeholder="https://www.monsite.fr" value="{{ show.site_internet if show and show.site_internet else '' }}">
-    <span style="font-size:0.85rem;color:var(--muted);display:block;margin-top:2px;">Indiquez l'adresse complète du site (ex : https://www.monsite.fr). Laissez vide si pas de site.</span>
-  </label>
+      <div class="grid-2">
+        <label>
+          <span class="label-text">Catégorie</span>
+          <input type="text" name="category" placeholder="Magie, Théâtre, Clown…">
+        </label>
 
+        <label>
+          <span class="label-text">Âge <span class="req">*</span></span>
+          <select name="age_range" required>
+            <option value="">-- Choisir --</option>
+            <option value="enfant" {% if (request.form.get('age_range') if request.method=='POST' else (show.age_range if show else '')) == 'enfant' %}selected{% endif %}>Enfant</option>
+            <option value="adulte" {% if (request.form.get('age_range') if request.method=='POST' else (show.age_range if show else '')) == 'adulte' %}selected{% endif %}>Adulte</option>
+            <option value="tout public" {% if (request.form.get('age_range') if request.method=='POST' else (show.age_range if show else '')) == 'tout public' %}selected{% endif %}>Tout public</option>
+          </select>
+        </label>
+      </div>
+    </fieldset>
 
+    <fieldset class="demande-section">
+      <legend>Contact et fichiers</legend>
 
-  <label>Image ou PDF <span style="font-size:0.85rem;font-weight:normal;color:var(--muted);">(Taille max : 5 MB)</span>
-    <input type="file" name="file" accept=".png,.jpg,.jpeg,.gif,.webp,.pdf">
-  </label>
+      <label style="margin-bottom:16px;">
+        <span class="label-text">Site internet</span>
+        <input type="url" name="site_internet" placeholder="https://www.monsite.fr" value="{{ show.site_internet if show and show.site_internet else '' }}">
+        <small class="hint">Indiquez l'adresse complète du site (ex : https://www.monsite.fr). Laissez vide si pas de site.</small>
+      </label>
 
-  <div class="actions">
-    <button type="submit">Enregistrer</button>
-    <a class="btn-secondary" href="{{ url_for('home') }}">Annuler</a>
-  </div>
-</form>
+      <label style="margin-bottom:0;">
+        <span class="label-text">Image ou PDF <span style="font-size:0.85rem;font-weight:normal;color:var(--muted);">(Taille max : 5 MB)</span></span>
+        <input type="file" name="file" accept=".png,.jpg,.jpeg,.gif,.webp,.pdf">
+      </label>
+    </fieldset>
+
+    <div class="demande-actions">
+      <div style="display:flex; gap:12px;">
+        <button type="submit" class="publish-btn" style="flex:1; padding:14px; font-size:1rem;">
+          Enregistrer
+        </button>
+        <a class="btn-secondary" href="{{ url_for('home') }}" 
+           style="flex:1; padding:14px; font-size:1rem; text-align:center; background:#23232a; color:var(--text); text-decoration:none; border-radius:8px; border:1px solid var(--border); display:flex; align-items:center; justify-content:center;">
+          Annuler
+        </a>
+      </div>
+    </div>
+  </form>
+</div>
 
 <!-- Script limite 200 mots -->
 <script>
@@ -79,7 +113,7 @@
   ta.addEventListener('input', update);
   update();
 
-  // Sécurité à l’envoi du formulaire
+  // Sécurité à l'envoi du formulaire
   document.querySelectorAll("form").forEach(form => {
     form.addEventListener("submit", e => {
       const words = ta.value.trim().split(/\s+/).filter(Boolean);
@@ -92,4 +126,8 @@
 })();
 </script>
 
+{# Hide SEO block on this form page #}
+<style>
+  main.container .seo-block { display: none; }
+</style>
 {% endblock %}
