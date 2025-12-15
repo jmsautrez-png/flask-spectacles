@@ -5,13 +5,13 @@
 
 
 
-<div style="display:flex;align-items:center;justify-content:space-between;gap:18px;flex-wrap:wrap;margin-bottom:18px;">
-  <h1 style="font-size:1.8rem;margin:0;white-space:nowrap;">Spectacles et Animations Professionnels</h1>
-  <div style="display:flex;gap:10px;align-items:center;">
-    <a href="{{ url_for('demande_animation') }}" style="background:#ffb347;color:#222;padding:8px 18px;border-radius:22px;font-weight:600;font-size:1rem;text-decoration:none;box-shadow:0 2px 8px #0001;transition:background .2s;white-space:nowrap;display:inline-block;">
+<div style="display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:16px;">
+  <h1 style="font-size:1.6rem;margin:0;">Spectacles et Animations Professionnels</h1>
+  <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+    <a href="{{ url_for('demande_animation') }}" style="background:#ffb347;color:#222;padding:8px 16px;border-radius:22px;font-weight:600;font-size:0.9rem;text-decoration:none;box-shadow:0 2px 8px #0001;transition:background .2s;white-space:nowrap;display:inline-block;">
       <span style="font-weight:bold;">Mairie, CSE, école, etc.</span> : demandez votre animation
     </a>
-    <a href="{{ url_for('publish') }}" style="background:var(--primary,#6a11cb);color:#fff;padding:8px 18px;border-radius:22px;font-weight:600;font-size:1rem;text-decoration:none;box-shadow:0 2px 8px #0001;transition:background .2s;white-space:nowrap;display:inline-block;">
+    <a href="{{ url_for('publish') }}" style="background:var(--primary);color:#fff;padding:8px 16px;border-radius:22px;font-weight:600;font-size:0.9rem;text-decoration:none;box-shadow:0 2px 8px #0001;transition:background .2s;white-space:nowrap;display:inline-block;">
       <span style="font-weight:bold;">Producteur, compagnie</span> : Publier vØtre spectacle (gratuit)
     </a>
   </div>
@@ -19,26 +19,27 @@
 
 
 <form action="" method="get"
-      style="display:flex; align-items:center; gap:12px; background:#f2f3f7; padding:10px 14px; border-radius:24px; margin:0 0 16px;"
+      style="display:flex; align-items:center; gap:12px; background:var(--panel); border:1px solid var(--border); padding:10px 16px; border-radius:12px; margin:0 0 20px;"
       role="search"
       aria-label="Rechercher un spectacle">
-  <span aria-hidden="true">🔍</span>
+  <span aria-hidden="true" style="color:var(--muted);">🔍</span>
   <input name="q" value="{{ q or '' }}"
     placeholder="Recherche catégorie, spectacle, âge..."
     aria-label="Recherche générale"
-    style="flex:2; border:none; background:transparent; outline:none; font-size:16px;">
-    <input name="location" value="{{ location or '' }}"
-      placeholder="Ville ou région..."
-      aria-label="Recherche par ville ou région"
-      style="flex:1; border:none; background:transparent; outline:none; font-size:16px;">
+    style="flex:2; border:none; background:transparent; outline:none; font-size:15px; color:var(--text);">
+  <span style="color:var(--border);">|</span>
+  <input name="location" value="{{ location or '' }}"
+    placeholder="Ville ou région..."
+    aria-label="Recherche par ville ou région"
+    style="flex:1; border:none; background:transparent; outline:none; font-size:15px; color:var(--text);">
   <button type="submit"
-     style="border:none; background:transparent; font-weight:600; cursor:pointer;">OK</button>
+     style="border:none; background:var(--primary); color:white; font-weight:600; cursor:pointer; padding:6px 14px; border-radius:8px;">Rechercher</button>
 </form>
 
 <div class="page-layout">
   <!-- COLONNE GAUCHE : catalogue -->
   <div class="page-main">
-    <h2 id="catalogue-title">Catalogue des spectacles</h2>
+    <h2 id="catalogue-title" style="margin-top:0; margin-bottom:16px; font-size:1.3rem;">Catalogue des spectacles</h2>
     <div class="cards">
       {% for show in shows or [] %}
       <article class="card">
@@ -143,12 +144,6 @@
     </nav>
     {% endif %}
 
-    <div style="display:flex; gap:12px; justify-content:center; margin-top:32px; margin-bottom:32px;">
-      <a href="{{ url_for('demande_animation') }}" class="btn" style="padding:10px 24px; border-radius:10px; background:transparent; color:var(--text); font-weight:700; text-decoration:none; border:1px solid #ccc;">Demander une animation</a>
-      <a href="{{ url_for('abonnement_compagnie') }}" class="btn" style="padding:10px 24px; border-radius:10px; background:#6a11cb; color:#fff; font-weight:700; text-decoration:none; border:none; box-shadow:0 2px 8px #0001;">Abonnement Compagnie</a>
-      <a href="{{ url_for('contact') }}" class="btn" style="padding:10px 24px; border-radius:10px; background:transparent; color:var(--text); font-weight:700; text-decoration:none; border:1px solid #ccc;">Contact</a>
-      <a href="{{ url_for('publish') }}" class="btn" style="padding:10px 24px; border-radius:10px; background:transparent; color:var(--text); font-weight:700; text-decoration:none; border:1px solid #ccc;">Publier vØtre spectacle (gratuit)</a>
-    </div>
   </div>
 
   <!-- COLONNE DROITE : ton nouveau bloc -->

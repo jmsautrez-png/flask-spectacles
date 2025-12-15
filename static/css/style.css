@@ -29,7 +29,7 @@ body{ margin:0; font-family:system-ui,Segoe UI,Roboto,Arial; color:var(--text); 
 .cards {
   display: grid;
   gap: 20px;
-  grid-template-columns: repeat(4, 1fr);  /* 4 columns for better visibility */
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));  /* Auto-fill based on space */
 }
 
 .card {
@@ -353,19 +353,20 @@ a[href*="edit"]:hover {
    ============================================ */
 .page-layout {
   display: flex;
-  gap: 32px;
+  gap: 24px;
   align-items: flex-start;
 }
 
 .page-main {
-  flex: 3;
+  flex: 1;
   min-width: 0;
 }
 
 .page-sidebar {
-  flex: 1;
-  align-self: flex-start;
-  min-width: 200px;
+  width: 220px;
+  flex-shrink: 0;
+  position: sticky;
+  top: 80px;  /* Below header */
 }
 
 .seo-block {
@@ -374,7 +375,7 @@ a[href*="edit"]:hover {
   border-radius: 16px;
   padding: 16px;
   margin-bottom: 16px;
-  margin-top: 30%;
+  margin-top: 0;
 }
 
 .seo-block h2 {
@@ -382,21 +383,24 @@ a[href*="edit"]:hover {
   font-size: 1.1rem;
 }
 
+.seo-block ul li {
+  padding: 4px 0;
+}
+
+.seo-block ul li a {
+  display: block;
+  padding: 6px 10px;
+  border-radius: 6px;
+  transition: background 0.15s ease;
+}
+
+.seo-block ul li a:hover {
+  background: rgba(255, 0, 0, 0.1);
+}
+
 /* ============================================
    RESPONSIVE BREAKPOINTS
    ============================================ */
-@media (max-width: 1400px) {
-  .cards {
-    grid-template-columns: repeat(3, 1fr);
-  }
-}
-
-@media (max-width: 1100px) {
-  .cards {
-    grid-template-columns: repeat(2, 1fr);
-  }
-}
-
 @media (max-width: 960px) {
   .page-layout {
     flex-direction: column;
@@ -404,14 +408,12 @@ a[href*="edit"]:hover {
 
   .page-sidebar {
     width: 100%;
-  }
-
-  .cards {
-    grid-template-columns: repeat(2, 1fr);
+    position: static;
+    order: -1;  /* Move sidebar above cards on mobile */
   }
   
-  .seo-block {
-    margin-top: 0;
+  .cards {
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
   }
 }
 
@@ -426,6 +428,11 @@ a[href*="edit"]:hover {
   
   .grid-2 {
     grid-template-columns: 1fr;
+  }
+  
+  .header-grid {
+    flex-direction: column;
+    gap: 12px;
   }
 }
 
