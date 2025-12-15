@@ -1,89 +1,142 @@
 {% extends "base.html" %}
-{% block title %}Compléter le spectacle - AnimatoSpectacle{% endblock %}
+{% block title %}Compléter le spectacle - Spectacle'ment VØtre{% endblock %}
+
 {% block content %}
-<h2>Compléter le spectacle</h2>
-<form method="post" enctype="multipart/form-data" class="form">
-  <label>Raison sociale
-    <input type="text" name="raison_sociale" value="{{ show.raison_sociale or '' }}">
-  </label>
+<div class="demande-wrap">
+  <h1 style="margin:0 0 8px 0;">Compléter le spectacle</h1>
+  <p class="text-muted" style="margin:0 0 24px 0;">
+    Modifiez les informations de votre spectacle. Les champs marqués <span style="color:var(--primary); font-weight:700;">*</span> sont obligatoires.
+  </p>
 
-  <label>Titre
-    <input type="text" name="title" value="{{ show.title }}" required>
-  </label>
+  <form method="post" enctype="multipart/form-data" class="form demande-form" novalidate>
+    
+    <fieldset class="demande-section">
+      <legend>Informations du spectacle</legend>
 
-  <label>Description (max 200 mots)
-    <textarea id="description" name="description" rows="4" required>{{ show.description or "" }}</textarea>
-    <div id="desc-counter" style="font-size:.9rem;opacity:.8;margin-top:4px;">0/200 mots</div>
-  </label>
-
-  <div class="grid-2">
-      <label>Ville
-        <input type="text" name="location" value="{{ show.location }}">
+      <label style="margin-bottom:16px;">
+        <span class="label-text">Raison sociale</span>
+        <input type="text" name="raison_sociale" value="{{ show.raison_sociale or '' }}"
+               placeholder="Nom de votre compagnie, association…">
       </label>
-      <label>Région
-        <input type="text" name="region" value="{{ show.region or '' }}" placeholder="Ex: Île-de-France, Bretagne...">
+
+      <label style="margin-bottom:16px;">
+        <span class="label-text">Titre <span class="req">*</span></span>
+        <input type="text" name="title" value="{{ show.title }}" required
+               placeholder="Titre du spectacle">
       </label>
-   </div>
 
-  <label>Catégorie
-    <input type="text" name="category" value="{{ show.category }}">
-  </label>
+      <label style="margin-bottom:0;">
+        <span class="label-text">Description (max 200 mots) <span class="req">*</span></span>
+        <textarea id="description" name="description" rows="5" required
+                  placeholder="Décrivez votre spectacle…">{{ show.description or "" }}</textarea>
+        <div id="desc-counter" style="font-size:0.85rem;color:var(--muted);margin-top:6px;">0/200 mots</div>
+      </label>
+    </fieldset>
 
-  <!-- Champ catégorie 2 supprimé (nettoyé) -->
-   
-  <label>Âge
-    <select name="age_range" required>
-      <option value="">-- Choisir --</option>
-      <option value="enfant" {% if (request.form.get('age_range') if request.method=='POST' else (show.age_range if show else '')) == 'enfant' %}selected{% endif %}>Enfant</option>
-      <option value="adulte" {% if (request.form.get('age_range') if request.method=='POST' else (show.age_range if show else '')) == 'adulte' %}selected{% endif %}>Adulte</option>
-      <option value="tout public" {% if (request.form.get('age_range') if request.method=='POST' else (show.age_range if show else '')) == 'tout public' %}selected{% endif %}>Tout public</option>
-    </select>
-  </label>
+    <fieldset class="demande-section">
+      <legend>Localisation et public</legend>
 
-  <label>Site internet
-    <input type="url" name="site_internet" placeholder="https://www.monsite.fr" value="{{ show.site_internet if show and show.site_internet else '' }}">
-    <span style="font-size:0.95rem;color:#fff;font-weight:bold;display:block;margin-top:2px;">(visible si abonnement)</span>
-  </label>
+      <div class="grid-2">
+        <label>
+          <span class="label-text">Ville</span>
+          <input type="text" name="location" value="{{ show.location }}"
+                 placeholder="Ville">
+        </label>
 
-  <label>Email de contact <span style="font-size:0.85rem;font-weight:normal;color:var(--muted);">(Modifiable uniquement par l'admin)</span>
-    <input type="email" name="contact_email" value="{{ show.contact_email or 'audition_2020@yahoo.fr' }}">
-    <span style="font-size:0.95rem;color:#fff;font-weight:bold;display:block;margin-top:2px;">(visible si abonnement)</span>
-  </label>
+        <label>
+          <span class="label-text">Région</span>
+          <input type="text" name="region" value="{{ show.region or '' }}"
+                 placeholder="Ex: Île-de-France, Bretagne…">
+        </label>
+      </div>
 
-  <label>Téléphone de contact <span style="font-size:0.85rem;font-weight:normal;color:var(--muted);">(visible uniquement par l'administrateur)</span>
-    <input type="tel" name="contact_phone" value="{{ show.contact_phone or '' }}" placeholder="06 12 34 56 78">
-  </label>
+      <div class="grid-2">
+        <label>
+          <span class="label-text">Catégorie</span>
+          <input type="text" name="category" value="{{ show.category }}"
+                 placeholder="Magie, Théâtre, Clown…">
+        </label>
 
-  {% if show.file_name %}
-    {% if show.is_pdf() %}
-        <p>Fichier actuel :
-            <a href="{{ url_for('uploaded_file', filename=show.file_name) }}" target="_blank">
-                📄 Voir le PDF ({{ show.file_name }})
-            </a>
-        </p>
-    {% else %}
-        <p>Image actuelle :</p>
-        <img src="{{ url_for('uploaded_file', filename=show.file_name) }}"
-             alt="{{ show.title }}"
-             class="show-image">
-    {% endif %}
-{% else %}
-    <p><em>Aucun fichier associé pour l’instant.</em></p>
-{% endif %}
+        <label>
+          <span class="label-text">Âge <span class="req">*</span></span>
+          <select name="age_range" required>
+            <option value="">-- Choisir --</option>
+            <option value="enfant" {% if show.age_range == 'enfant' %}selected{% endif %}>Enfant</option>
+            <option value="adulte" {% if show.age_range == 'adulte' %}selected{% endif %}>Adulte</option>
+            <option value="tout public" {% if show.age_range == 'tout public' %}selected{% endif %}>Tout public</option>
+          </select>
+        </label>
+      </div>
+    </fieldset>
 
+    <fieldset class="demande-section">
+      <legend>Contact et fichiers</legend>
 
+      <label style="margin-bottom:16px;">
+        <span class="label-text">Site internet</span>
+        <input type="url" name="site_internet" placeholder="https://www.monsite.fr"
+               value="{{ show.site_internet if show and show.site_internet else '' }}">
+        <small class="hint" style="color:#ffb347;font-weight:600;">(visible si abonnement)</small>
+      </label>
 
-  <label>Remplacer l'image ou le PDF <span style="font-size:0.85rem;font-weight:normal;color:var(--muted);">(Taille max : 5 MB)</span>
-    <input type="file" name="file" accept=".png,.jpg,.jpeg,.gif,.webp,.pdf">
-  </label>
+      <div class="grid-2">
+        <label>
+          <span class="label-text">Email de contact</span>
+          <input type="email" name="contact_email" 
+                 value="{{ show.contact_email or 'audition_2020@yahoo.fr' }}"
+                 placeholder="email@exemple.fr">
+          <small class="hint" style="color:#ffb347;font-weight:600;">(visible si abonnement)</small>
+        </label>
 
-  <div class="actions">
-    <button type="submit">Mettre à jour</button>
-    <a class="btn-secondary" href="{{ url_for('home') }}">Annuler</a>
-    <a class="btn-secondary" href="{{ url_for('company_dashboard') }}" style="margin-left:8px;">Retour au tableau de bord</a>
-  </div>
-</form>
+        <label>
+          <span class="label-text">Téléphone de contact</span>
+          <input type="tel" name="contact_phone" value="{{ show.contact_phone or '' }}"
+                 placeholder="06 12 34 56 78">
+          <small class="hint">(visible uniquement par l'administrateur)</small>
+        </label>
+      </div>
 
+      {% if show.file_name %}
+      <div style="margin:16px 0; padding:16px; background:rgba(255,255,255,0.03); border-radius:8px; border:1px solid var(--border);">
+        <p style="margin:0 0 8px 0; font-weight:600;">Fichier actuel :</p>
+        {% if show.is_pdf() %}
+          <a href="{{ url_for('uploaded_file', filename=show.file_name) }}" target="_blank"
+             style="color:var(--primary); text-decoration:underline;">
+            📄 Voir le PDF ({{ show.file_name }})
+          </a>
+        {% else %}
+          <img src="{{ url_for('uploaded_file', filename=show.file_name) }}"
+               alt="{{ show.title }}"
+               style="max-width:300px; border-radius:8px; display:block; margin-top:8px;">
+        {% endif %}
+      </div>
+      {% else %}
+      <p style="color:var(--muted); font-style:italic; margin:16px 0;">Aucun fichier associé pour l'instant.</p>
+      {% endif %}
+
+      <label style="margin-bottom:0;">
+        <span class="label-text">Remplacer l'image ou le PDF <span style="font-size:0.85rem;font-weight:normal;color:var(--muted);">(Taille max : 5 MB)</span></span>
+        <input type="file" name="file" accept=".png,.jpg,.jpeg,.gif,.webp,.pdf">
+      </label>
+    </fieldset>
+
+    <div class="demande-actions">
+      <div style="display:flex; gap:12px; flex-wrap:wrap;">
+        <button type="submit" class="publish-btn" style="flex:1; min-width:200px; padding:14px; font-size:1rem;">
+          Mettre à jour
+        </button>
+        <a class="btn-secondary" href="{{ url_for('company_dashboard') }}"
+           style="flex:1; min-width:180px; padding:14px; font-size:1rem; text-align:center; background:#23232a; color:var(--text); text-decoration:none; border-radius:8px; border:1px solid var(--border); display:flex; align-items:center; justify-content:center;">
+          Retour au tableau de bord
+        </a>
+        <a class="btn-secondary" href="{{ url_for('home') }}"
+           style="padding:14px 20px; font-size:1rem; text-align:center; background:transparent; color:var(--text); text-decoration:none; border-radius:8px; border:1px solid var(--border); display:flex; align-items:center; justify-content:center;">
+          Annuler
+        </a>
+      </div>
+    </div>
+  </form>
+</div>
 
 <!-- Script limite 200 mots -->
 <script>
@@ -111,10 +164,15 @@
       const words = ta.value.trim().split(/\s+/).filter(Boolean);
       if (words.length > MAX) {
         e.preventDefault();
-        alert("La description ne doit pas dépasser 70 mots.");
+        alert("La description ne doit pas dépasser 200 mots.");
       }
     });
   });
 })();
 </script>
+
+{# Hide SEO block on this form page #}
+<style>
+  main.container .seo-block { display: none; }
+</style>
 {% endblock %}
