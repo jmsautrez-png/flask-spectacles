@@ -16,31 +16,45 @@
 
 {% block twitter_image %}{% if show.has_image() %}{{ url_for('uploaded_file', filename=show.file_name, _external=True) }}{% else %}{{ url_for('static', filename='img/default-og.svg', _external=True) }}{% endif %}{% endblock %}
 
+{% block seo_block %}
+{# Hide SEO block on detail pages #}
+{% endblock %}
+
 {% block content %}
 
-<div style="max-width:800px; margin:0 auto;">
-  <a href="{{ url_for('home') }}" style="display:inline-block; margin-bottom:16px; color:var(--text); text-decoration:none;">← Retour aux spectacles</a>
+<div style="max-width:900px; margin:0 auto;">
+  <!-- Back Button -->
+  <a href="{{ url_for('home') }}" class="back-link" style="display:inline-flex; align-items:center; gap:8px; margin-bottom:24px; padding:10px 16px; color:var(--text); text-decoration:none; background:var(--panel); border:1px solid var(--border); border-radius:8px; font-weight:500; transition:all 0.2s ease;">
+    <span>←</span> Retour aux spectacles
+  </a>
   
-  <article class="card" style="max-width:none;">
+  <article class="card" style="max-width:none; box-shadow:0 4px 16px rgba(0,0,0,0.2);">
     {% if show.has_image() or show.is_pdf() %}
-      <div class="media" style="aspect-ratio:16/9; max-height:400px;">
+      <div class="media" style="aspect-ratio:16/9; max-height:450px;">
         {% if show.has_image() %}
-          <img src="{{ url_for('uploaded_file', filename=show.file_name) }}" alt="{{ show.title }}" style="width:100%; height:100%; object-fit:contain;">
+          <img src="{{ url_for('uploaded_file', filename=show.file_name) }}" alt="{{ show.title }}" style="width:100%; height:100%; object-fit:cover;">
         {% elif show.is_pdf() %}
           <a class="pdf-thumb" href="{{ url_for('uploaded_file', filename=show.file_name) }}" target="_blank" style="font-size:2rem;">📄 Voir le PDF</a>
         {% endif %}
       </div>
     {% endif %}
 
-    <div class="content" style="padding:24px;">
+    <div class="content" style="padding:32px;">
+      <!-- Company Name -->
       {% if show.raison_sociale %}
-        <p style="font-size:1.1rem; font-weight:600; color:var(--primary); margin-bottom:8px;">{{ show.raison_sociale }}</p>
+        <p style="font-size:1.15rem; font-weight:700; color:var(--primary); margin:0 0 12px 0; text-transform:uppercase; letter-spacing:0.5px;">{{ show.raison_sociale }}</p>
       {% endif %}
-      <h1 style="margin-top:0;">{{ show.title }}</h1>
       
-      <div style="display:flex; gap:16px; flex-wrap:wrap; margin-bottom:16px;">
+      <!-- Title -->
+      <h1 style="margin:0 0 20px 0; font-size:2rem; line-height:1.2;">{{ show.title }}</h1>
+      
+      <!-- Badges -->
+      <div style="display:flex; gap:10px; flex-wrap:wrap; margin-bottom:32px;">
         {% if show.category %}
-          <span class="badge">{{ show.category }}</span>
+          <span class="badge badge-category">{{ show.category }}</span>
+        {% endif %}
+        {% if show.age_range %}
+          <span class="badge">👶 {{ show.age_range }}</span>
         {% endif %}
         {% if show.region %}
           <span class="badge">🗺️ {{ show.region }}</span>
@@ -48,52 +62,64 @@
         {% if show.location %}
           <span class="badge">📍 {{ show.location }}</span>
         {% endif %}
-        {% if show.age_range %}
-          <span class="badge">👶 {{ show.age_range }}</span>
-        {% endif %}
         {% if show.date %}
           <span class="badge">📅 {{ show.date.strftime('%d/%m/%Y') }}</span>
         {% endif %}
       </div>
 
-  <!-- ...badges... -->
-      {% if show.contact_email or show.site_internet %}
-        <div style="margin:24px 0;">
-          <h3>Contact</h3>
-          {% if show.contact_email %}
-            <p>
-              <a href="mailto:{{ show.contact_email }}" style="color:var(--primary); text-decoration:none;">
-                ✉️ {{ show.contact_email }}
-              </a>
-            </p>
-          {% endif %}
-          {% if show.contact_phone %}
-            <p>
-              <span style="color:var(--primary);">📞 {{ show.contact_phone }}</span>
-            </p>
-          {% endif %}
-          {% if show.site_internet %}
-            <p>
-              <a href="{{ show.site_internet }}" target="_blank" style="color:#fff;text-decoration:underline;">🌐 {{ show.site_internet }}</a>
-            </p>
-          {% endif %}
-        </div>
-      {% endif %}
-
+      <!-- Description -->
       {% if show.description %}
-        <div style="margin:24px 0;">
-          <h3>Description</h3>
-          <p style="line-height:1.6; color:#ddd; font-size:1.4em;">{{ show.description }}</p>
+        <div style="margin-bottom:32px; padding:20px; background:rgba(255,255,255,0.02); border-left:3px solid var(--primary); border-radius:8px;">
+          <h3 style="margin:0 0 12px 0; font-size:1.1rem; color:var(--text);">Description</h3>
+          <p style="line-height:1.7; color:#ddd; margin:0; font-size:1rem;">{{ show.description }}</p>
         </div>
       {% endif %}
 
-      {% if show.file_name %}
-        <div style="margin:24px 0;">
-          <h3>Fichier associé</h3>
-          <a href="{{ url_for('uploaded_file', filename=show.file_name) }}" target="_blank" style="color:var(--primary);text-decoration:underline;">
-            📎 Télécharger le fichier
-          </a>
+      <!-- Contact Section -->
+      {% if show.contact_email or show.contact_phone or show.site_internet %}
+        <div style="margin-bottom:32px; padding:24px; background:var(--panel); border:1px solid var(--border); border-radius:12px;">
+          <h3 style="margin:0 0 16px 0; font-size:1.2rem; color:var(--text);">Contact</h3>
+          <div style="display:flex; flex-direction:column; gap:12px;">
+            {% if show.contact_email %}
+              <a href="mailto:{{ show.contact_email }}" class="contact-item" style="display:flex; align-items:center; gap:12px; padding:12px 16px; background:rgba(255,255,255,0.03); border:1px solid var(--border); border-radius:8px; color:var(--text); text-decoration:none; transition:all 0.2s ease;">
+                <span style="font-size:1.3rem;">✉️</span>
+                <div style="flex:1;">
+                  <div style="font-size:0.8rem; color:var(--muted); margin-bottom:2px;">Email</div>
+                  <div style="font-weight:500; color:var(--primary);">{{ show.contact_email }}</div>
+                </div>
+              </a>
+            {% endif %}
+            
+            {% if show.contact_phone %}
+              <div class="contact-item" style="display:flex; align-items:center; gap:12px; padding:12px 16px; background:rgba(255,255,255,0.03); border:1px solid var(--border); border-radius:8px;">
+                <span style="font-size:1.3rem;">📞</span>
+                <div style="flex:1;">
+                  <div style="font-size:0.8rem; color:var(--muted); margin-bottom:2px;">Téléphone</div>
+                  <div style="font-weight:600; color:var(--primary); font-size:1.05rem;">{{ show.contact_phone }}</div>
+                </div>
+              </div>
+            {% endif %}
+            
+            {% if show.site_internet %}
+              <a href="{{ show.site_internet }}" target="_blank" rel="noopener" class="contact-item" style="display:flex; align-items:center; gap:12px; padding:12px 16px; background:rgba(255,255,255,0.03); border:1px solid var(--border); border-radius:8px; color:var(--text); text-decoration:none; transition:all 0.2s ease;">
+                <span style="font-size:1.3rem;">🌐</span>
+                <div style="flex:1;">
+                  <div style="font-size:0.8rem; color:var(--muted); margin-bottom:2px;">Site internet</div>
+                  <div style="font-weight:500; color:var(--primary); word-break:break-all;">{{ show.site_internet }}</div>
+                </div>
+                <span style="font-size:1.2rem; opacity:0.5;">→</span>
+              </a>
+            {% endif %}
+          </div>
         </div>
+      {% endif %}
+
+      <!-- Download File -->
+      {% if show.file_name %}
+        <a href="{{ url_for('uploaded_file', filename=show.file_name) }}" target="_blank" style="display:inline-flex; align-items:center; gap:10px; padding:14px 20px; background:var(--primary); color:white; text-decoration:none; border-radius:10px; font-weight:600; transition:all 0.2s ease; box-shadow:0 2px 8px rgba(220,38,38,0.3);">
+          <span style="font-size:1.2rem;">📎</span>
+          Télécharger le fichier
+        </a>
       {% endif %}
     </div>
   </article>
@@ -104,12 +130,38 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 6px 12px;
-  background: var(--panel);
+  padding: 8px 14px;
+  background: rgba(255,255,255,0.05);
   border: 1px solid var(--border);
-  border-radius: 8px;
+  border-radius: 20px;
   font-size: 0.9rem;
   color: var(--text);
+  font-weight: 500;
+}
+
+.badge-category {
+  background: var(--primary);
+  color: white;
+  border-color: var(--primary);
+  font-weight: 600;
+}
+
+.back-link:hover {
+  background: rgba(255,255,255,0.05);
+  transform: translateX(-4px);
+}
+
+.contact-item:hover {
+  background: rgba(255,255,255,0.06) !important;
+  border-color: var(--primary) !important;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+}
+
+a[href*="uploaded_file"]:hover {
+  background: var(--primary-hover) !important;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(220,38,38,0.4) !important;
 }
 </style>
 {% endblock %}

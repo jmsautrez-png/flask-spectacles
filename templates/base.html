@@ -164,7 +164,7 @@
   {# ----- Contenu des pages ----- #}
   {% block content %}{% endblock %}
 
-
+  {% block seo_block %}
   {# ----- Bloc SEO / présentation ----- #}
   <section class="seo-block" style="margin-top:26px;padding:16px;border:1px solid var(--border);border-radius:12px;background:var(--panel)">
     <h2 style="margin-top:0">Spectacle'ment VØtre</h2>
@@ -189,6 +189,7 @@
     👉 Trouvez l'animation parfaite pour vØtre événement : anniversaire, entreprise, école, festival, mariage, fête de village... Spectacle'ment VØtre simplifie la mise en relation !
   </p>
 </section>
+  {% endblock %}
 
 <footer class="site-footer">
   <div style="display:flex; gap:12px; flex-wrap:wrap; justify-content:center;">
