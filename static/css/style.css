@@ -99,6 +99,7 @@ main.container {
 .demande-form input[type="email"],
 .demande-form input[type="tel"],
 .demande-form input[type="number"],
+.demande-form input[type="url"],
 .demande-form select,
 .demande-form textarea {
   width: 100% !important;
