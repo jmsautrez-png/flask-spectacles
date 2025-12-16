@@ -4,10 +4,14 @@
   --panel:#17171b;
   --muted:#8b8b94;
   --text:#f5f6f8;
-  --primary:#ff0000;
-  --danger:#ff0000;
+  --primary:#6366f1;
+  --primary-hover:#4f46e5;
+  --danger:#ef4444;
+  --danger-hover:#dc2626;
   --ok:#35c779;
   --border:#2a2a31;
+  --secondary:#3b3b47;
+  --secondary-hover:#4a4a5a;
 }
 *{ box-sizing:border-box; }
 body{ margin:0; font-family:system-ui,Segoe UI,Roboto,Arial; color:var(--text); background:var(--bg); min-height:100vh; }
@@ -192,12 +196,47 @@ main.container {
 .brand{ color:var(--text); text-decoration:none; font-weight:700; font-size:1.15rem; display:flex; align-items:center; gap:8px; transition:opacity 0.2s; }
 .brand:hover{ opacity:0.9; }
 .nav{ display:flex; gap:16px; list-style:none; margin:0; padding:0; }
-.nav a{ color:var(--text); text-decoration:none; transition:all 0.2s ease; }
+.nav a{ 
+  color:var(--text); 
+  text-decoration:none; 
+  transition:all 0.2s ease;
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-weight: 500;
+}
 .nav a:hover{ transform:translateY(-1px); }
-.nav a[style*="background:var(--primary)"]:hover{ opacity:0.9; }
+.nav a[style*="background:var(--primary)"] {
+  background: var(--primary) !important;
+  color: white !important;
+  box-shadow: 0 2px 4px rgba(99,102,241,0.2);
+}
+.nav a[style*="background:var(--primary)"]:hover{ 
+  background: var(--primary-hover) !important;
+  box-shadow: 0 4px 8px rgba(99,102,241,0.3);
+}
 .nav a[style*="border:1px"]:hover{ background:rgba(255,255,255,0.05); }
 .nav a[style*="color:var(--muted)"]:hover{ color:var(--text); }
 .site-footer{ border-top:1px solid var(--border); margin-top:40px; padding:20px 0; color:var(--muted); }
+
+/* Footer button styles */
+.site-footer a[style*="background:var(--primary)"] {
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 4px rgba(99,102,241,0.2);
+}
+
+.site-footer a[style*="background:var(--primary)"]:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(99,102,241,0.3);
+}
+
+.site-footer a[style*="border:1px"] {
+  transition: all 0.2s ease;
+}
+
+.site-footer a[style*="border:1px"]:hover {
+  background: rgba(255,255,255,0.05);
+  transform: translateY(-2px);
+}
 
 .flash-stack{ display:grid; gap:8px; margin:18px 0; }
 .flash{ padding:10px 12px; border-radius:10px; background:var(--panel); border:1px solid var(--border); }
@@ -369,30 +408,34 @@ main.container {
 .card .actions button {
   flex: 1;
   text-align: center;
-  padding: 8px 10px;
+  padding: 9px 12px;
   border-radius: 8px;
-  background: #23232a;
+  background: var(--secondary);
   color: var(--text);
   text-decoration: none;
-  border: 1px solid var(--border);
+  border: none;
   cursor: pointer;
   font-size: 0.85rem;
-  transition: background 0.2s ease;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.15);
 }
 
 .card .actions a:hover,
 .card .actions button:hover {
-  background: #2d2d36;
+  background: var(--secondary-hover);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 6px rgba(0,0,0,0.25);
 }
 
 .card .actions .danger {
-  background: #2a151a;
-  border-color: #3d1a23;
-  color: #ffb0bf;
+  background: var(--danger);
+  color: white;
 }
 
 .card .actions .danger:hover {
-  background: #3a1f24;
+  background: var(--danger-hover);
+  box-shadow: 0 2px 6px rgba(239,68,68,0.3);
 }
 
 /* ============================================
@@ -438,18 +481,32 @@ main.container {
 
 .actions button,
 .actions .btn-secondary {
-  padding: 10px 14px;
+  padding: 10px 16px;
   border-radius: 10px;
-  border: 1px solid var(--border);
+  border: none;
   background: var(--primary);
   color: white;
   cursor: pointer;
   text-decoration: none;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+}
+
+.actions button:hover {
+  background: var(--primary-hover);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(99,102,241,0.25);
 }
 
 .btn-secondary {
-  background: #23232a;
+  background: var(--secondary);
   color: var(--text);
+}
+
+.btn-secondary:hover {
+  background: var(--secondary-hover);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.3);
 }
 
 /* ============================================
@@ -458,53 +515,62 @@ main.container {
 .lost-pass {
   display: inline-block;
   padding: 8px 14px;
-  border-radius: 6px;
-  font-weight: 700;
+  border-radius: 8px;
+  font-weight: 600;
   text-decoration: none;
   font-size: 14px;
   margin-top: 8px;
   background: var(--danger);
   color: #fff !important;
+  transition: all 0.2s ease;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.2);
 }
 
 .lost-pass:hover {
-  filter: brightness(.92);
+  background: var(--danger-hover);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(239,68,68,0.25);
 }
 
 a[href*="edit"] {
-  color: #ff0000;
-  font-weight: normal;
+  color: var(--primary);
+  font-weight: 500;
+  transition: all 0.2s ease;
 }
 
 a[href*="edit"]:hover {
-  color: #f7f5f5;
+  color: var(--primary-hover);
   text-decoration: none;
-  filter: brightness(1.2);
 }
 
 .btn {
-  color: #ff0000;
+  color: var(--primary);
   text-decoration: none;
-  font-weight: normal;
+  font-weight: 500;
+  transition: all 0.2s ease;
 }
 
 .btn:hover {
-  color: #e8e7ea;
+  color: var(--primary-hover);
 }
 
 .publish-btn {
   display: inline-block;
-  padding: 10px 20px;
+  padding: 11px 22px;
   background: var(--primary);
   color: white !important;
-  border-radius: 8px;
+  border-radius: 10px;
   font-weight: 600;
   text-decoration: none;
-  transition: background 0.2s ease;
+  border: none;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 4px rgba(99,102,241,0.2);
 }
 
 .publish-btn:hover {
-  background: #cc0000;
+  background: var(--primary-hover);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 12px rgba(99,102,241,0.3);
 }
 
 /* ============================================
@@ -576,7 +642,17 @@ a[href*="edit"]:hover {
 }
 
 .seo-block ul li a:hover {
-  background: rgba(255, 0, 0, 0.1);
+  background: rgba(99, 102, 241, 0.15);
+}
+
+.theme-btn {
+  transition: all 0.2s ease;
+  font-weight: 500;
+}
+
+.theme-btn:hover {
+  color: var(--primary-hover) !important;
+  transform: translateX(4px);
 }
 
 /* ============================================

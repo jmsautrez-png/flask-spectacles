@@ -179,14 +179,14 @@
         Retrouvez rapidement un spectacle par thème&nbsp;:
       </p>
       <ul style="list-style:none; padding:0; margin:0 0 12px 0;">
-        <li><a href="#" class="theme-btn" data-theme="marionnette" style="color:#ff0000;">Marionnette</a></li>
-        <li><a href="#" class="theme-btn" data-theme="atelier" style="color:#ff0000;">Atelier</a></li>
-        <li><a href="#" class="theme-btn" data-theme="spectacle" style="color:#ff0000;">Spectacle</a></li>
-        <li><a href="#" class="theme-btn" data-theme="clown" style="color:#ff0000;">Clown</a></li>
-        <li><a href="#" class="theme-btn" data-theme="concert" style="color:#ff0000;">Concert</a></li>
-        <li><a href="#" class="theme-btn" data-theme="bal" style="color:#ff0000;">Bal</a></li>
-        <li><a href="#" class="theme-btn" data-theme="spectacle enfant" style="color:#ff0000;">Spectacle enfant</a></li>
-        <li><a href="#" class="theme-btn" data-theme="magicien" style="color:#ff0000;">Magicien</a></li>
+        <li><a href="#" class="theme-btn" data-theme="marionnette" style="color:var(--primary);">Marionnette</a></li>
+        <li><a href="#" class="theme-btn" data-theme="atelier" style="color:var(--primary);">Atelier</a></li>
+        <li><a href="#" class="theme-btn" data-theme="spectacle" style="color:var(--primary);">Spectacle</a></li>
+        <li><a href="#" class="theme-btn" data-theme="clown" style="color:var(--primary);">Clown</a></li>
+        <li><a href="#" class="theme-btn" data-theme="concert" style="color:var(--primary);">Concert</a></li>
+        <li><a href="#" class="theme-btn" data-theme="bal" style="color:var(--primary);">Bal</a></li>
+        <li><a href="#" class="theme-btn" data-theme="spectacle enfant" style="color:var(--primary);">Spectacle enfant</a></li>
+        <li><a href="#" class="theme-btn" data-theme="magicien" style="color:var(--primary);">Magicien</a></li>
         <!-- Ajoutez d'autres thèmes si besoin -->
       </ul>
     </section>
@@ -223,7 +223,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
   // Optionnel : bouton pour réinitialiser le filtre
   const resetBtn = document.createElement('li');
-  resetBtn.innerHTML = '<a href="#" style="color:#ff0000;font-weight:bold;">Tout</a>';
+  resetBtn.innerHTML = '<a href="#" style="color:var(--primary);font-weight:bold;">Tout</a>';
   resetBtn.addEventListener('click', function(e) {
     e.preventDefault();
     resetAll();
