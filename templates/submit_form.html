@@ -1,66 +1,126 @@
 {% extends "base.html" %}
 {% block title %}VØtre spectacle - AnimatoSpectacle{% endblock %}
 {% block content %}
-<h2>VØtre spectacle</h2>
-<form method="post" enctype="multipart/form-data" class="form">
-  <label>Raison sociale <span style="font-size:0.85rem;font-weight:normal;color:var(--muted);">(automatique, non modifiable)</span>
-    <input type="text" name="raison_sociale" value="{{ user.username if user else '' }}" readonly style="background-color: #1a1a1f; cursor: not-allowed; opacity: 0.6;">
-  </label>
 
-  <label>Titre
-    <input type="text" name="title" required>
-  </label>
+<div class="demande-wrap">
+  <h2>Publier votre spectacle</h2>
+  <p style="color:var(--muted); margin-bottom:24px;">Remplissez le formulaire ci-dessous. Votre annonce sera examinée avant publication.</p>
 
-  <label>Description (max 200 mots)
-    <textarea id="description" name="description" rows="4" required></textarea>
-    <div id="desc-counter" style="font-size:.9rem;opacity:.8;margin-top:4px;">0/200 mots</div>
-  </label>
+  <form method="post" enctype="multipart/form-data" class="demande-form">
 
-  <div class="grid-2">
-    <label>Région
-      <input type="text" name="region" placeholder="Ex: Île-de-France, Bretagne...">
-    </label>
-    <label>Lieu
-      <input type="text" name="location" placeholder="Ville / Salle">
-    </label>
-   </div>
+    <!-- SECTION: Informations de la compagnie -->
+    <fieldset class="demande-section">
+      <legend>Informations de la compagnie</legend>
+      
+      <div>
+        <label>
+          <span class="label-text">Raison sociale</span>
+          <span class="hint">Automatique, non modifiable</span>
+          <input type="text" name="raison_sociale" value="{{ user.username if user else '' }}" readonly style="background-color: #1a1a1f; cursor: not-allowed; opacity: 0.6;">
+        </label>
+      </div>
 
+      <div class="grid-2">
+        <div>
+          <label>
+            <span class="label-text">Votre e-mail</span>
+            <span class="hint">Pour mettre votre adresse courriel <a href="{{ url_for('legal') }}" style="color:var(--primary);text-decoration:underline;">nous contacter</a></span>
+            <input type="email" name="contact_email" value="audition_2020@yahoo.fr" readonly style="background-color: #1a1a1f; cursor: not-allowed; opacity: 0.6;">
+          </label>
+        </div>
 
-  <label>Catégorie
-    <input type="text" name="category" placeholder="Magie, Théâtre, Clown…">
-  </label>
+        <div>
+          <label>
+            <span class="label-text">Votre téléphone <span class="req">*</span></span>
+            <span class="hint">Visible uniquement par l'administrateur</span>
+            <input type="tel" name="contact_phone" placeholder="06 12 34 56 78" required>
+          </label>
+        </div>
+      </div>
+    </fieldset>
 
-  <label>Catégorie 2
-      <option value="">-- Choisir --</option>
-      <option value="adulte">Adulte</option>
-      <option value="enfant">Enfant</option>
-    </select>
-  </label>
+    <!-- SECTION: Détails du spectacle -->
+    <fieldset class="demande-section">
+      <legend>Détails du spectacle</legend>
+      
+      <div>
+        <label>
+          <span class="label-text">Titre du spectacle <span class="req">*</span></span>
+          <input type="text" name="title" placeholder="Ex: La magie des 4 éléments" required>
+        </label>
+      </div>
 
-  <label>Âge
-  <input type="text" name="age_range"
-       value="{{ (request.form.get('age_range') if request.method=='POST' else (show.age_range if show else '')) or '' }}"
-       placeholder="Tranche d'âge">
-  </label> 
+      <div>
+        <label>
+          <span class="label-text">Description <span class="req">*</span></span>
+          <span class="hint">Maximum 200 mots - Décrivez votre spectacle, ses points forts, le message...</span>
+          <textarea id="description" name="description" rows="4" placeholder="Décrivez votre spectacle..." required></textarea>
+          <div id="desc-counter" style="font-size:0.85rem; color:var(--muted); margin-top:4px;">0/200 mots</div>
+        </label>
+      </div>
 
-  <label>VØtre e-mail <span style="font-size:0.85rem;font-weight:normal;color:var(--muted);">(Pour mettre vØtre adresse courriel <a href="{{ url_for('legal') }}" style="color:var(--primary);text-decoration:underline;">nous contacter</a>)</span>
-    <input type="email" name="contact_email" value="audition_2020@yahoo.fr" readonly style="background-color: #1a1a1f; cursor: not-allowed; opacity: 0.6;">
-  </label>
+      <div class="grid-2">
+        <div>
+          <label>
+            <span class="label-text">Région</span>
+            <input type="text" name="region" placeholder="Ex: Île-de-France, Bretagne">
+          </label>
+        </div>
 
-  <label>VØtre téléphone <span style="font-size:0.85rem;font-weight:normal;color:var(--muted);">(visible uniquement par l'administrateur)</span>
-    <input type="tel" name="contact_phone" placeholder="06 12 34 56 78" required>
-  </label>
+        <div>
+          <label>
+            <span class="label-text">Lieu</span>
+            <input type="text" name="location" placeholder="Ville ou salle">
+          </label>
+        </div>
+      </div>
 
-  <label>Image ou PDF <span style="font-size:0.85rem;font-weight:normal;color:var(--muted);">(Taille max : 5 MB)</span>
-    <input type="file" name="file" accept=".png,.jpg,.jpeg,.gif,.webp,.pdf">
-  </label>
+      <div class="grid-2">
+        <div>
+          <label>
+            <span class="label-text">Catégorie</span>
+            <input type="text" name="category" placeholder="Ex: Magie, Théâtre, Clown">
+          </label>
+        </div>
 
-  <div class="actions">
-    <button type="submit">Envoyer</button>
-    <a class="btn-secondary" href="{{ url_for('home') }}">Annuler</a>
-  </div>
-</form>
-<p class="hint">VØtre annonce sera visible après validation par l’administrateur.</p>
+        <div>
+          <label>
+            <span class="label-text">Âge / Public</span>
+            <input type="text" name="age_range" placeholder="Ex: 3-6 ans, Tout public, Adulte">
+          </label>
+        </div>
+      </div>
+    </fieldset>
+
+    <!-- SECTION: Fichier -->
+    <fieldset class="demande-section">
+      <legend>Affiche ou document</legend>
+      
+      <div>
+        <label>
+          <span class="label-text">Image ou PDF</span>
+          <span class="hint">Taille max : 5 MB - Formats acceptés : PNG, JPG, JPEG, GIF, WEBP, PDF</span>
+          <input type="file" name="file" accept=".png,.jpg,.jpeg,.gif,.webp,.pdf">
+        </label>
+      </div>
+    </fieldset>
+
+    <div style="display:flex; gap:12px; justify-content:space-between; align-items:center; margin-top:24px;">
+      <p style="color:var(--muted); font-size:0.9rem; margin:0;">
+        <span style="color:#ffb347;">⚠️</span> Votre annonce sera visible après validation par l'administrateur
+      </p>
+      <div style="display:flex; gap:12px;">
+        <a href="{{ url_for('home') }}" style="padding:10px 20px; border:1px solid var(--border); border-radius:8px; font-weight:600; text-decoration:none; color:var(--text);">
+          Annuler
+        </a>
+        <button type="submit" style="background:var(--primary); color:white; padding:10px 24px; border:none; border-radius:8px; font-weight:600; cursor:pointer; font-size:1rem;">
+          Envoyer
+        </button>
+      </div>
+    </div>
+
+  </form>
+</div>
 
 <!-- Limiteur 200 mots (front) -->
 <script>
