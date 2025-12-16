@@ -4,31 +4,111 @@
 
 {% block content %}
 
-<section class="contact-block" style="margin-top:26px;padding:16px;border:1px solid var(--border);border-radius:12px;background:var(--panel)">
-  <h1 style="margin-top:0">Informations légales & Contact</h1>
+<div style="max-width:900px; margin:0 auto;">
+  <h1 style="font-size:2rem; margin:20px 0 8px 0; color:var(--text);">Informations légales & Contact</h1>
+  <p style="color:var(--muted); margin-bottom:32px;">Coordonnées et informations légales de la plateforme</p>
 
-  <p><strong>Raison sociale :</strong><br>
-   Spectacle'ment VØtre </p>
+  <!-- Contact Cards -->
+  <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(280px, 1fr)); gap:20px; margin-bottom:32px;">
+    
+    <!-- Card: Coordonnées -->
+    <div style="background:var(--panel); border:1px solid var(--border); border-radius:12px; padding:20px;">
+      <h2 style="font-size:1.1rem; margin:0 0 16px 0; color:var(--primary); display:flex; align-items:center; gap:8px;">
+        📍 Coordonnées
+      </h2>
+      
+      <div style="display:flex; flex-direction:column; gap:12px; font-size:0.95rem;">
+        <div>
+          <div style="color:var(--muted); font-size:0.85em; margin-bottom:2px;">Raison sociale</div>
+          <div style="font-weight:600;">Spectacle'ment VØtre</div>
+        </div>
+        
+        <div>
+          <div style="color:var(--muted); font-size:0.85em; margin-bottom:2px;">Adresse</div>
+          <div style="font-weight:500; line-height:1.5;">
+            Rue du Chateau<br>
+            11170 Villespy
+          </div>
+        </div>
+      </div>
+    </div>
 
-  <p><strong>Adresse :</strong><br>
-   Spectacle'ment VØtre<br>
-     Rue du Chateau<br>
-     11170 Villespy</p>
+    <!-- Card: Contact -->
+    <div style="background:var(--panel); border:1px solid var(--border); border-radius:12px; padding:20px;">
+      <h2 style="font-size:1.1rem; margin:0 0 16px 0; color:var(--primary); display:flex; align-items:center; gap:8px;">
+        💬 Contact
+      </h2>
+      
+      <div style="display:flex; flex-direction:column; gap:12px; font-size:0.95rem;">
+        <div>
+          <div style="color:var(--muted); font-size:0.85em; margin-bottom:2px;">Téléphone</div>
+          <a href="tel:+33676070179" style="font-weight:600; color:var(--primary); text-decoration:none;">
+            06 76 07 01 79
+          </a>
+        </div>
+        
+        <div>
+          <div style="color:var(--muted); font-size:0.85em; margin-bottom:2px;">E-mail</div>
+          <a href="mailto:audition_2020@yahoo.fr" style="font-weight:600; color:var(--primary); text-decoration:none; word-break:break-all;">
+            audition_2020@yahoo.fr
+          </a>
+        </div>
+      </div>
+    </div>
 
-  <p><strong>Téléphone :</strong><br>
-     06 76 07 01 79<br>
-   </p>
+    <!-- Card: Informations légales -->
+    <div style="background:var(--panel); border:1px solid var(--border); border-radius:12px; padding:20px;">
+      <h2 style="font-size:1.1rem; margin:0 0 16px 0; color:var(--primary); display:flex; align-items:center; gap:8px;">
+        📄 Informations légales
+      </h2>
+      
+      <div style="display:flex; flex-direction:column; gap:12px; font-size:0.95rem;">
+        <div>
+          <div style="color:var(--muted); font-size:0.85em; margin-bottom:2px;">N° SIRET</div>
+          <div style="font-weight:600; font-family:monospace;">434 739 769 00058</div>
+        </div>
+        
+        <div>
+          <div style="color:var(--muted); font-size:0.85em; margin-bottom:2px;">Code APE</div>
+          <div style="font-weight:600; font-family:monospace;">9001Z</div>
+        </div>
+        
+        <div>
+          <div style="color:var(--muted); font-size:0.85em; margin-bottom:2px;">Licence spectacle</div>
+          <div style="font-weight:500; line-height:1.4;">
+            Licence_2<br>
+            <span style="font-size:0.9em;">PLATESV-R-2025-001991</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
 
-  <p><strong>E-mail :</strong><br>
-     <a href="mailto:audition_2020@yahoo.fr" style="color:#e74c3c;">
-       audition_2020@yahoo.fr
-     </a>
-  </p>
+  <!-- About Section -->
+  <div style="background:var(--panel); border:1px solid var(--border); border-radius:12px; padding:24px; margin-bottom:32px;">
+    <h2 style="font-size:1.3rem; margin:0 0 16px 0; color:var(--text);">À propos de Spectacle'ment VØtre</h2>
+    
+    <div style="display:flex; flex-direction:column; gap:16px; font-size:0.95rem; line-height:1.7; color:var(--text);">
+      <p style="margin:0;">
+        <strong>Spectacle'ment VØtre</strong> présente des <strong>spectacles jeune public, animations entreprise, animations anniversaire, animations événementielles</strong> et met en relation les <strong>compagnies professionnelles, artistes et animateurs</strong> avec les futurs programmateurs (mairies, écoles, centres culturels, CSE, comités d'entreprise, médiathèques, associations, particuliers…).
+      </p>
 
-  <p><strong>N° SIRET :</strong> 434 739 769 00058<br>
-     <strong>Code APE :</strong> 9001Z<br>
-     <strong>Licence spectacle :</strong> Licence_2 / Catégorie PLATESV-R-2025-001991
-  </p>
-</section>
+      <p style="margin:0;">
+        Le catalogue propose des <strong>animations pour enfants, animations familiales, spectacles d'entreprise, théâtre, marionnettes, contes, magie, cirque, musique, danse, clowns, spectacles de rue</strong> et plus encore. Que ce soit pour une <strong>fête d'anniversaire, un événement d'entreprise, une animation scolaire, une fête de village</strong> ou tout autre événement, chaque spectacle est accompagné d'informations claires pour faciliter la prise de contact.
+      </p>
+
+      <p style="margin:0;">
+        Que vous soyez <strong>compagnie artistique, artiste indépendant, animateur professionnel, entreprise, collectivité, association</strong> ou <strong>particulier</strong>, la plateforme simplifie la mise en relation pour tous vos projets d'<strong>animations et spectacles entièrement gratuitement</strong>.
+      </p>
+
+      <div style="background:rgba(156,39,176,0.1); border-left:3px solid #9c27b0; padding:12px 16px; border-radius:6px; margin-top:8px;">
+        <p style="margin:0; font-weight:600; color:var(--text);">
+          👉 Trouvez l'animation parfaite pour vØtre événement : anniversaire, entreprise, école, festival, mariage, fête de village... Spectacle'ment VØtre simplifie la mise en relation !
+        </p>
+      </div>
+    </div>
+  </div>
+
+</div>
 
 {% endblock %}
