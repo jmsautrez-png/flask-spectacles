@@ -1,13 +1,106 @@
 {% extends "base.html" %}
-{% block title %}Contact{% endblock %}
+{% block title %}Contact & Abonnement - Spectacle'ment VØtre{% endblock %}
+
+{% block seo_block %}
+{# Hide SEO block on contact page #}
+{% endblock %}
+
 {% block content %}
-<h2>Contact/Abonnement</h2>
-<p>Pour toute demande d'abonnement, de question ou information complémentaire, veuillez remplir le formulaire ci-dessous ou nous écrire à
-<a href="mailto:audition_2020@yahoo.fr" style="color: red; font-weight: bold;">audition_2020@yahoo.fr</a>.</p>
-<form method="post" style="max-width:400px; margin:auto;">
-    <label>Nom<br><input type="text" name="nom" required></label><br><br>
-    <label>Email<br><input type="email" name="email" required></label><br><br>
-    <label>Message<br><textarea name="message" rows="5" required></textarea></label><br><br>
-    <button type="submit" style="padding:8px 20px; border-radius:8px; background:#1976d2; color:#fff; font-weight:700; border:none;">Envoyer</button>
-</form>
+<div style="max-width:700px; margin:0 auto;">
+  
+  <!-- Page Header -->
+  <div style="text-align:center; margin-bottom:40px;">
+    <h1 style="font-size:2rem; margin:0 0 12px 0;">Contact/Abonnement</h1>
+    <p style="color:var(--muted); font-size:1rem; line-height:1.6; max-width:600px; margin:0 auto;">
+      Pour toute demande d'abonnement, de question ou information complémentaire, veuillez remplir le formulaire ci-dessous ou nous écrire à 
+      <a href="mailto:audition_2020@yahoo.fr" style="color:var(--primary); font-weight:600; text-decoration:none; border-bottom:2px solid var(--primary);">audition_2020@yahoo.fr</a>
+    </p>
+  </div>
+
+  <!-- Contact Form Card -->
+  <div style="background:var(--panel); border:1px solid var(--border); border-radius:16px; padding:32px; box-shadow:0 4px 16px rgba(0,0,0,0.2);">
+    <form method="post" class="contact-form">
+      
+      <!-- Name Field -->
+      <div style="margin-bottom:20px;">
+        <label style="display:block; margin-bottom:8px; font-weight:600; color:var(--text); font-size:0.95rem;">
+          Nom <span style="color:var(--primary);">*</span>
+        </label>
+        <input 
+          type="text" 
+          name="nom" 
+          required
+          placeholder="Votre nom complet"
+          style="width:100%; padding:12px 16px; border-radius:10px; border:1px solid var(--border); background:#121218; color:var(--text); font-size:1rem; font-family:inherit; transition:all 0.2s ease;">
+      </div>
+
+      <!-- Email Field -->
+      <div style="margin-bottom:20px;">
+        <label style="display:block; margin-bottom:8px; font-weight:600; color:var(--text); font-size:0.95rem;">
+          Email <span style="color:var(--primary);">*</span>
+        </label>
+        <input 
+          type="email" 
+          name="email" 
+          required
+          placeholder="votre.email@exemple.fr"
+          style="width:100%; padding:12px 16px; border-radius:10px; border:1px solid var(--border); background:#121218; color:var(--text); font-size:1rem; font-family:inherit; transition:all 0.2s ease;">
+      </div>
+
+      <!-- Message Field -->
+      <div style="margin-bottom:24px;">
+        <label style="display:block; margin-bottom:8px; font-weight:600; color:var(--text); font-size:0.95rem;">
+          Message <span style="color:var(--primary);">*</span>
+        </label>
+        <textarea 
+          name="message" 
+          rows="6" 
+          required
+          placeholder="Décrivez votre demande..."
+          style="width:100%; padding:12px 16px; border-radius:10px; border:1px solid var(--border); background:#121218; color:var(--text); font-size:1rem; font-family:inherit; resize:vertical; min-height:120px; line-height:1.5; transition:all 0.2s ease;"></textarea>
+      </div>
+
+      <!-- Submit Button -->
+      <button 
+        type="submit" 
+        style="width:100%; padding:14px 24px; border-radius:10px; background:var(--primary); color:white; font-weight:700; font-size:1.05rem; border:none; cursor:pointer; transition:all 0.2s ease; box-shadow:0 2px 8px rgba(220,38,38,0.3);">
+        Envoyer le message
+      </button>
+    </form>
+  </div>
+
+  <!-- Additional Contact Info -->
+  <div style="margin-top:32px; padding:24px; background:rgba(255,255,255,0.02); border:1px solid var(--border); border-radius:12px; text-align:center;">
+    <p style="margin:0; color:var(--muted); font-size:0.95rem;">
+      💡 <strong style="color:var(--text);">Réponse rapide :</strong> Nous nous engageons à répondre à toutes les demandes sous 48h maximum
+    </p>
+  </div>
+
+</div>
+
+<style>
+.contact-form input:focus,
+.contact-form textarea:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(220,38,38,0.1);
+}
+
+.contact-form input::placeholder,
+.contact-form textarea::placeholder {
+  color: var(--muted);
+  opacity: 0.6;
+}
+
+.contact-form button:hover {
+  background: var(--primary-hover);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(220,38,38,0.4);
+}
+
+.contact-form button:active {
+  transform: translateY(0);
+}
+</style>
+
 {% endblock %}
