@@ -1,25 +1,129 @@
 {% extends "base.html" %}
 {% block title %}Abonnement Compagnie{% endblock %}
 {% block content %}
-<h2 style="margin-bottom: 12px;">Abonnement Compagnie</h2>
-<div style="font-size:16px; line-height:2; white-space:pre-line;">
-Spectacle’ment VØtre est un SaaS dédié à la mise en relation entre acheteurs de spectacles et producteurs. Fort d’un fichier clientèle qualifié construit sur plus de 30 ans, il envoie toute l’année les informations diffusées sur la plateforme à ses acheteurs, offrant ainsi une visibilité directe et durable aux producteurs.
 
+<div style="max-width:900px; margin:0 auto;">
+  <h1 style="font-size:2rem; margin:20px 0 8px 0; color:var(--text);">Abonnement Compagnie</h1>
+  <p style="color:var(--muted); margin-bottom:32px; font-size:1.05rem; line-height:1.6;">
+    Maximisez la visibilité de vos spectacles et développez votre audience avec notre service d'abonnement professionnel
+  </p>
 
+  <!-- Platform Description -->
+  <div style="background:var(--panel); border:1px solid var(--border); border-radius:12px; padding:24px; margin-bottom:32px;">
+    <h2 style="font-size:1.2rem; margin:0 0 12px 0; color:var(--text); display:flex; align-items:center; gap:8px;">
+      🎯 À propos de Spectacle'ment VØtre
+    </h2>
+    <p style="margin:0; font-size:0.95rem; line-height:1.7; color:var(--text);">
+      Spectacle'ment VØtre est un <strong>SaaS dédié à la mise en relation entre acheteurs de spectacles et producteurs</strong>. 
+      Fort d'un <strong>fichier clientèle qualifié construit sur plus de 30 ans</strong>, il envoie toute l'année les informations 
+      diffusées sur la plateforme à ses acheteurs, offrant ainsi une <strong>visibilité directe et durable aux producteurs</strong>.
+    </p>
+  </div>
 
+  <!-- Subscription Offer Card -->
+  <div style="background:linear-gradient(135deg, rgba(40,167,69,0.15) 0%, rgba(40,167,69,0.05) 100%); border:2px solid rgba(40,167,69,0.3); border-radius:16px; padding:32px; margin-bottom:32px; position:relative; overflow:hidden;">
+    
+    <!-- Badge -->
+    <div style="display:inline-block; background:#28a745; color:white; padding:8px 16px; border-radius:24px; font-weight:700; font-size:0.9rem; margin-bottom:20px; box-shadow:0 4px 12px rgba(40,167,69,0.3);">
+      💼 Abonnement mensuel – 10 €/mois
+    </div>
 
+    <h3 style="font-size:1.3rem; margin:0 0 20px 0; color:var(--text);">
+      Fonctionnalités complètes pour les professionnels
+    </h3>
 
-<div style="font-weight:600;font-size:1.08em;margin-bottom:6px;"><span style="background:rgba(40,167,69,0.7);color:#fff;padding:2px 8px;border-radius:7px;box-shadow:0 2px 8px #0001;">1. Abonnement mensuel (10 €/mois)</span></div>
+    <p style="color:var(--muted); margin-bottom:24px; font-size:0.95rem;">
+      En souscrivant à un abonnement de <strong style="color:#28a745;">10 € par mois</strong>, le producteur bénéficie de :
+    </p>
 
-    En souscrivant à un abonnement de 10 € par mois, le producteur bénéficie de fonctionnalités complètes :
-    • Déblocage de son numéro de téléphone, visible par les acheteurs.
-    • Affichage de son site internet.
-    • Accès total à l’édition de toutes les informations de son spectacle.
-    • Gestion directe des demandes, contacts et ventes.
+    <!-- Features Grid -->
+    <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(250px, 1fr)); gap:16px; margin-bottom:32px;">
+      
+      <!-- Feature 1 -->
+      <div style="background:var(--panel); border:1px solid var(--border); border-radius:10px; padding:16px; display:flex; gap:12px;">
+        <div style="font-size:1.8rem; flex-shrink:0;">📞</div>
+        <div>
+          <div style="font-weight:600; margin-bottom:4px; color:var(--text);">Téléphone visible</div>
+          <div style="font-size:0.85rem; color:var(--muted); line-height:1.5;">
+            Déblocage de votre numéro de téléphone, visible par les acheteurs
+          </div>
+        </div>
+      </div>
 
+      <!-- Feature 2 -->
+      <div style="background:var(--panel); border:1px solid var(--border); border-radius:10px; padding:16px; display:flex; gap:12px;">
+        <div style="font-size:1.8rem; flex-shrink:0;">🌐</div>
+        <div>
+          <div style="font-weight:600; margin-bottom:4px; color:var(--text);">Site internet</div>
+          <div style="font-size:0.85rem; color:var(--muted); line-height:1.5;">
+            Affichage de votre site internet sur votre profil
+          </div>
+        </div>
+      </div>
+
+      <!-- Feature 3 -->
+      <div style="background:var(--panel); border:1px solid var(--border); border-radius:10px; padding:16px; display:flex; gap:12px;">
+        <div style="font-size:1.8rem; flex-shrink:0;">✏️</div>
+        <div>
+          <div style="font-weight:600; margin-bottom:4px; color:var(--text);">Édition totale</div>
+          <div style="font-size:0.85rem; color:var(--muted); line-height:1.5;">
+            Accès total à l'édition de toutes les informations de votre spectacle
+          </div>
+        </div>
+      </div>
+
+      <!-- Feature 4 -->
+      <div style="background:var(--panel); border:1px solid var(--border); border-radius:10px; padding:16px; display:flex; gap:12px;">
+        <div style="font-size:1.8rem; flex-shrink:0;">📊</div>
+        <div>
+          <div style="font-weight:600; margin-bottom:4px; color:var(--text);">Gestion directe</div>
+          <div style="font-size:0.85rem; color:var(--muted); line-height:1.5;">
+            Gestion directe des demandes, contacts et ventes
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- CTA Button -->
+    <div style="text-align:center;">
+      <a href="{{ url_for('contact') }}" 
+         style="display:inline-block; padding:14px 32px; border-radius:12px; background:#28a745; color:white; font-weight:700; font-size:1.05rem; text-decoration:none; box-shadow:0 4px 16px rgba(40,167,69,0.4); transition:all 0.3s ease;">
+        S'abonner maintenant
+      </a>
+      <p style="margin:12px 0 0 0; font-size:0.85rem; color:var(--muted);">
+        💳 Paiement sécurisé – Sans engagement
+      </p>
+    </div>
+
+  </div>
+
+  <!-- Benefits Section -->
+  <div style="background:var(--panel); border:1px solid var(--border); border-radius:12px; padding:24px;">
+    <h2 style="font-size:1.2rem; margin:0 0 16px 0; color:var(--text); display:flex; align-items:center; gap:8px;">
+      ✨ Pourquoi s'abonner ?
+    </h2>
+    
+    <div style="display:flex; flex-direction:column; gap:12px; font-size:0.95rem; line-height:1.7; color:var(--text);">
+      <div style="display:flex; gap:10px;">
+        <span style="color:#28a745; font-weight:bold; flex-shrink:0;">✓</span>
+        <span><strong>Visibilité maximale :</strong> Vos spectacles sont envoyés à notre fichier clientèle qualifié de plus de 30 ans</span>
+      </div>
+      <div style="display:flex; gap:10px;">
+        <span style="color:#28a745; font-weight:bold; flex-shrink:0;">✓</span>
+        <span><strong>Contact direct :</strong> Les acheteurs peuvent vous contacter directement par téléphone</span>
+      </div>
+      <div style="display:flex; gap:10px;">
+        <span style="color:#28a745; font-weight:bold; flex-shrink:0;">✓</span>
+        <span><strong>Contrôle total :</strong> Modifiez vos informations à tout moment selon vos besoins</span>
+      </div>
+      <div style="display:flex; gap:10px;">
+        <span style="color:#28a745; font-weight:bold; flex-shrink:0;">✓</span>
+        <span><strong>Tarif accessible :</strong> Seulement 10 € par mois pour une visibilité professionnelle</span>
+      </div>
+    </div>
+  </div>
 
 </div>
-<div style="margin-top:24px; text-align:center;">
-    <a href="{{ url_for('contact') }}" style="padding:10px 24px; border-radius:10px; background:#1976d2; color:#fff; font-weight:700; text-decoration:none; display:inline-block;">S’abonner</a>
-</div>
+
 {% endblock %}
