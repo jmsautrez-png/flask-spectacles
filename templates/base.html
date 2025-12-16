@@ -81,39 +81,66 @@
 <header class="site-header">
   <div class="container header-grid">
     <a href="{{ url_for('home') }}" class="brand" id="brand-logo">
-      <div style="display:flex;align-items:center;gap:12px;">
-        <div style="width:6px;height:48px;background:var(--primary);border-radius:3px 3px 3px 3px;"></div>
+      <div style="display:flex; align-items:center; gap:14px;">
+        <div style="width:4px; height:40px; background:var(--primary); border-radius:2px;"></div>
         <div>
-          <div style="font-weight:bold;font-size:26.4px;color:var(--primary);">Spectacle'ment VØtre</div>
-          <div style="font-size:14.6px;color:var(--text-muted);line-height:1.2;">Artistes, spectacles, animations la plateforme qui met en scène vos manifestations</div>
+          <div style="font-weight:700; font-size:1.5rem; color:var(--primary); letter-spacing:-0.5px;">Spectacle'ment VØtre</div>
+          <div style="font-size:0.75rem; color:var(--muted); line-height:1.3; margin-top:2px;">Artistes, spectacles & animations</div>
         </div>
       </div>
     </a>
 
     <nav>
-      <ul class="nav" style="gap:10px;">
-
-
-        
+      <ul class="nav" style="display:flex; gap:8px; align-items:center; list-style:none; margin:0; padding:0;">
 
         {# ----- ADMIN CONNECTÉ ----- #}
         {% if user and user.is_admin %}
-          <li><a href="{{ url_for('show_new') }}" style="font-size:0.9rem;">➕ Ajouter</a></li>
-          <li><a href="{{ url_for('demande_animation') }}" style="font-size:0.9rem;">Demande d'animation</a></li>
-          <li><a href="{{ url_for('logout') }}" style="font-size:0.9rem;">Se déconnecter ({{ user.username }})</a></li>
+          <li>
+            <a href="{{ url_for('show_new') }}" style="padding:8px 14px; background:var(--primary); color:white; border-radius:6px; font-weight:600; font-size:0.85rem; text-decoration:none; display:inline-block; transition:opacity 0.2s;">
+              + Ajouter
+            </a>
+          </li>
+          <li>
+            <a href="{{ url_for('demande_animation') }}" style="padding:8px 14px; background:transparent; color:var(--text); border:1px solid var(--border); border-radius:6px; font-weight:500; font-size:0.85rem; text-decoration:none; display:inline-block; transition:background 0.2s;">
+              Demandes
+            </a>
+          </li>
+          <li>
+            <a href="{{ url_for('logout') }}" style="padding:8px 14px; background:transparent; color:var(--muted); font-weight:500; font-size:0.85rem; text-decoration:none; display:inline-block; transition:color 0.2s;">
+              Déconnexion ({{ user.username }})
+            </a>
+          </li>
 
         {# ----- UTILISATEUR CONNECTÉ mais pas admin ----- #}
         {% elif user %}
-          <li><a href="{{ url_for('demande_animation') }}" style="font-size:0.9rem;">Demande d'animation</a></li>
-          <li><a href="{{ url_for('logout') }}" style="font-size:0.9rem;">Se déconnecter</a></li>
+          <li>
+            <a href="{{ url_for('demande_animation') }}" style="padding:8px 14px; background:var(--primary); color:white; border-radius:6px; font-weight:600; font-size:0.85rem; text-decoration:none; display:inline-block; transition:opacity 0.2s;">
+              Demande d'animation
+            </a>
+          </li>
+          <li>
+            <a href="{{ url_for('logout') }}" style="padding:8px 14px; background:transparent; color:var(--muted); font-weight:500; font-size:0.85rem; text-decoration:none; display:inline-block; transition:color 0.2s;">
+              Déconnexion
+            </a>
+          </li>
 
         {# ----- VISITEUR ----- #}
         {% else %}
           <li>
-            <a href="{{ url_for('login') }}" style="font-size:0.9rem;">Se connecter <span style="color:#28a745;font-weight:600;">(être inscrit)</span></a>
+            <a href="{{ url_for('login') }}" style="padding:8px 14px; background:transparent; color:var(--text); border:1px solid var(--border); border-radius:6px; font-weight:500; font-size:0.85rem; text-decoration:none; display:inline-block; transition:background 0.2s;">
+              Se connecter
+            </a>
           </li>
-          <li><a href="{{ url_for('register') }}" style="font-size:0.9rem;">S'inscrire</a></li>
-          <li><a href="{{ url_for('demande_animation') }}" style="font-size:0.9rem;">Demande d'animation</a></li>
+          <li>
+            <a href="{{ url_for('register') }}" style="padding:8px 14px; background:var(--primary); color:white; border-radius:6px; font-weight:600; font-size:0.85rem; text-decoration:none; display:inline-block; transition:opacity 0.2s;">
+              S'inscrire
+            </a>
+          </li>
+          <li>
+            <a href="{{ url_for('demande_animation') }}" style="padding:8px 14px; background:transparent; color:var(--muted); font-weight:500; font-size:0.85rem; text-decoration:none; display:inline-block; transition:color 0.2s;">
+              Demande d'animation
+            </a>
+          </li>
         {% endif %}
 
       </ul>
