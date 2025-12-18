@@ -1,3 +1,10 @@
+/* Tous les champs du formulaire demande_animation en blanc */
+.demande-form input,
+.demande-form select,
+.demande-form textarea {
+  background: #fff !important;
+  color: #222 !important;
+}
 /* thème */
 :root{
   --bg:#0f0f12;
@@ -95,25 +102,7 @@ main.container {
 }
 
 /* ALL inputs must be identical width */
-.demande-form input[type="text"],
-.demande-form input[type="email"],
-.demande-form input[type="tel"],
-.demande-form input[type="number"],
-.demande-form input[type="url"],
-.demande-form select,
-.demande-form textarea {
-  width: 100% !important;
-  max-width: 100% !important;
-  box-sizing: border-box !important;
-  padding: 12px !important;
-  border-radius: 8px;
-  border: 1px solid var(--border);
-  background: #121218;
-  color: var(--text);
-  font-size: 0.95rem;
-  font-family: inherit;
-  margin: 0;
-}
+/* Annulation fond blanc sur tous les champs demande-form */
 
 .demande-form input::placeholder,
 .demande-form textarea::placeholder {
