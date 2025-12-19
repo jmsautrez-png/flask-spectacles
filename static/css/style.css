@@ -236,10 +236,30 @@ main.container {
    CARDS GRID - Improved sizing
    ============================================ */
 /* Affichage par rangées de six cartes */
- .cards {
+/* Grille fixe : 6 cartes par rangée, 3 rangées (18 cartes max par page) */
+.cards {
   display: grid;
-  gap: 20px;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));  /* Auto-fill based on space */
+  gap: 18px;
+  grid-template-columns: repeat(6, 1fr);
+  grid-auto-rows: 1fr;
+  max-width: 100%;
+}
+
+@media (max-width: 1200px) {
+  .cards {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+@media (max-width: 800px) {
+  .cards {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+@media (max-width: 500px) {
+  .cards {
+    grid-template-columns: 1fr;
+  }
+}
 }
 }
 
