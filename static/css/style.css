@@ -235,10 +235,12 @@ main.container {
 /* ============================================
    CARDS GRID - Improved sizing
    ============================================ */
+/* Affichage par rangées de six cartes */
 .cards {
   display: grid;
   gap: 20px;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));  /* Auto-fill based on space */
+  grid-template-columns: repeat(6, 1fr);
+}
 }
 
 .card {
