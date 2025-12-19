@@ -211,6 +211,46 @@
 
 </main>
 
+
+<script>
+// Mélange aléatoire des cartes toutes les 30 secondes sur toutes les pages
+document.addEventListener('DOMContentLoaded', function() {
+  function shuffleCards() {
+    const cardsContainer = document.querySelector('.cards');
+    if (!cardsContainer) return;
+    const cards = Array.from(cardsContainer.children);
+    for (let i = cards.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [cards[i], cards[j]] = [cards[j], cards[i]];
+    }
+    cards.forEach(card => cardsContainer.appendChild(card));
+  }
+  setInterval(shuffleCards, 30000); // toutes les 30 secondes
+  
+    // Pagination automatique toutes les 30 secondes
+    function autoPaginate() {
+      // Cherche le bouton/lien "page suivante"
+      const next = document.querySelector('a[rel="next"]');
+      if (next) {
+        window.location.href = next.href;
+      } else {
+        // Si pas de page suivante, cherche la première page (numéro 1 ou rel="first")
+        const first = document.querySelector('a[rel="first"]');
+        if (first) {
+          window.location.href = first.href;
+        } else {
+          // Sinon, essaie de trouver un lien vers la page 1 dans la pagination
+          const pageOne = Array.from(document.querySelectorAll('a')).find(a => a.textContent.trim() === '1');
+          if (pageOne) {
+            window.location.href = pageOne.href;
+          }
+        }
+      }
+    }
+    setInterval(autoPaginate, 30000); // toutes les 30 secondes
+});
+</script>
+
 </body>
 </html>
 

@@ -197,18 +197,6 @@
 </div>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-  // Mélange aléatoire des cartes toutes les 30 secondes
-  function shuffleCards() {
-    const cardsContainer = document.querySelector('.cards');
-    if (!cardsContainer) return;
-    const cards = Array.from(cardsContainer.children);
-    for (let i = cards.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [cards[i], cards[j]] = [cards[j], cards[i]];
-    }
-    cards.forEach(card => cardsContainer.appendChild(card));
-  }
-  setInterval(shuffleCards, 30000); // toutes les 30 secondes
 
   const themeBtns = document.querySelectorAll('.theme-btn');
   const cards = document.querySelectorAll('.card');
