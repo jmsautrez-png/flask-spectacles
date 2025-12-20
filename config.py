@@ -1,7 +1,7 @@
 # ---------------------------------------------
 # Adresse email admin utilisée pour l'envoi des mails
 # Toutes les notifications administratives seront envoyées à :
-# artemisiacompagnie@gmail.com
+# contac@spectacleanimation.fr
 # ---------------------------------------------
 import os
 from pathlib import Path
