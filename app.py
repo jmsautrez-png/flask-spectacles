@@ -55,6 +55,7 @@ from flask import (
 from config import Config
 from models import db
 from models.models import User, Show
+from rapidfuzz import fuzz
 
 # -----------------------------------------------------
 # Logging
@@ -628,67 +629,36 @@ def register_routes(app: Flask) -> None:
         if not u or not u.is_admin:
             shows = shows.filter(Show.approved.is_(True))
 
-        # Recherche texte + âges (6, 6 ans, 6-10, 6/10, 6 à 10, etc.)
+
+        # Recherche texte + fuzzy (tolérance aux fautes)
         if q:
+            # Recherche SQL classique pour filtrer grossièrement
             like = f"%{q}%"
+            shows = shows.filter(or_(Show.title.ilike(like), Show.description.ilike(like), Show.location.ilike(like), Show.region.ilike(like), Show.category.ilike(like)))
+            # Recherche fuzzy sur les résultats filtrés
+            all_shows = shows.all()
+            def fuzzy_score(show):
+                champs = [show.title or '', show.description or '', show.location or '', show.region or '', show.category or '']
+                return max(fuzz.partial_ratio(q.lower(), champ.lower()) for champ in champs)
+            # Seuil de tolérance (ajustable)
+            threshold = 60
+            shows_list = [s for s in all_shows if fuzzy_score(s) >= threshold]
+        else:
+            shows_list = shows.all()
 
-            variants = {q}
-            if any(c.isdigit() for c in q):
-                cleaned = q.lower().replace("ans", "").strip()
-                seps = [" - ", "-", "—", "–", "à", "a", "/", " "]
-                norm = cleaned
-                for sep in seps:
-                    norm = norm.replace(sep, "/")
 
-                variants.update({
-                    cleaned,
-                    cleaned.replace(" ", ""),
-                    cleaned.replace("-", "/"),
-                    cleaned.replace("/", "-"),
-                    cleaned.replace(" ", "-"),
-                    cleaned.replace(" ", "/"),
-                    norm,
-                    norm.replace("/", "-"),
-                    norm.replace("/", ""),
-                })
-
-            conditions = [
-                Show.title.ilike(like),
-                Show.description.ilike(like),
-                Show.location.ilike(like),
-                Show.category.ilike(like),
-            ]
-
-            # Facultatif si le champ existe
-            try:
-                Show.contact_email  # type: ignore[attr-defined]
-                conditions.append(Show.contact_email.ilike(like))  # type: ignore[attr-defined]
-            except Exception:
-                pass
-
-            for v in {v for v in variants if v}:
-                v_like = f"%{v}%"
-                try:
-                    conditions.append(Show.age_range.ilike(v_like))
-                except Exception:
-                    pass
-                conditions.append(Show.description.ilike(v_like))
-
-            shows = shows.filter(or_(*conditions))
-
-        # Filtres simples
+        # Filtres simples (appliqués après fuzzy)
         if category:
-            from sqlalchemy import func
-            shows = shows.filter(func.lower(Show.category).like(f"%{category.lower()}%"))
+            shows_list = [s for s in shows_list if category.lower() in (s.category or '').lower()]
         if location:
-            like = f"%{location}%"
-            shows = shows.filter(or_(Show.location.ilike(like), Show.region.ilike(like)))
+            shows_list = [s for s in shows_list if location.lower() in ((s.location or '') + ' ' + (s.region or '')).lower()]
 
-        # Type de fichier
+
+        # Type de fichier (appliqué après fuzzy)
         if type_filter == "image":
-            shows = shows.filter(Show.file_mimetype.ilike("image/%"))
+            shows_list = [s for s in shows_list if (s.file_mimetype or '').startswith('image/')]
         elif type_filter == "pdf":
-            shows = shows.filter(Show.file_mimetype.ilike("application/pdf"))
+            shows_list = [s for s in shows_list if (s.file_mimetype or '').startswith('application/pdf')]
 
         # Filtres de dates
         def parse_date(s: str):
@@ -706,21 +676,25 @@ def register_routes(app: Flask) -> None:
             if d2:
                 shows = shows.filter(Show.date <= d2)
 
-        # Tri : annonces validées d'abord, puis par date
-        if sort == "desc":
-            shows = shows.order_by(Show.approved.desc(), Show.date.desc().nullslast(), Show.created_at.desc())
-        else:
-            shows = shows.order_by(Show.approved.desc(), Show.date.asc().nullsfirst(), Show.created_at.asc())
 
-        # Pagination : 30 résultats par page
-        try:
-            pagination = shows.paginate(page=page, per_page=24, error_out=False)
-            shows_list = pagination.items
-        except Exception as e:
-            current_app.logger.exception("Erreur lors de la requête /home: %s", e)
-            flash("Une erreur est survenue lors de la recherche.", "danger")
-            pagination = None
-            shows_list = []
+        # Tri : annonces validées d'abord, puis par date
+        shows_list = sorted(shows_list, key=lambda s: (not s.approved, s.date or datetime.min, s.created_at or datetime.min), reverse=(sort=="desc"))
+
+        # Pagination manuelle
+        per_page = 24
+        total = len(shows_list)
+        start = (page - 1) * per_page
+        end = start + per_page
+        page_items = shows_list[start:end]
+        class Pagination:
+            def __init__(self, items, page, per_page, total):
+                self.items = items
+                self.page = page
+                self.per_page = per_page
+                self.total = total
+                self.pages = (total + per_page - 1) // per_page
+        pagination = Pagination(page_items, page, per_page, total)
+        shows_list = page_items
 
         categories = [c[0] for c in db.session.query(Show.category).distinct().all() if c[0]]
         locations = [l[0] for l in db.session.query(Show.location).distinct().all() if l[0]]
