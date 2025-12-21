@@ -55,7 +55,6 @@ from flask import (
 from config import Config
 from models import db
 from models.models import User, Show
-from rapidfuzz import fuzz
 
 # -----------------------------------------------------
 # Logging
@@ -629,41 +628,67 @@ def register_routes(app: Flask) -> None:
         if not u or not u.is_admin:
             shows = shows.filter(Show.approved.is_(True))
 
-
-        # Recherche texte + fuzzy (tolérance aux fautes)
+        # Recherche texte + âges (6, 6 ans, 6-10, 6/10, 6 à 10, etc.)
         if q:
+            like = f"%{q}%"
+
+            variants = {q}
+            if any(c.isdigit() for c in q):
+                cleaned = q.lower().replace("ans", "").strip()
+                seps = [" - ", "-", "—", "–", "à", "a", "/", " "]
+                norm = cleaned
+                for sep in seps:
+                    norm = norm.replace(sep, "/")
+
+                variants.update({
+                    cleaned,
+                    cleaned.replace(" ", ""),
+                    cleaned.replace("-", "/"),
+                    cleaned.replace("/", "-"),
+                    cleaned.replace(" ", "-"),
+                    cleaned.replace(" ", "/"),
+                    norm,
+                    norm.replace("/", "-"),
+                    norm.replace("/", ""),
+                })
+
+            conditions = [
+                Show.title.ilike(like),
+                Show.description.ilike(like),
+                Show.location.ilike(like),
+                Show.category.ilike(like),
+            ]
+
+            # Facultatif si le champ existe
             try:
-                # Recherche SQL classique pour filtrer grossièrement
-                like = f"%{q}%"
-                shows = shows.filter(or_(Show.title.ilike(like), Show.description.ilike(like), Show.location.ilike(like), Show.region.ilike(like), Show.category.ilike(like)))
-                # Limite le nombre de résultats pour éviter surcharge
-                all_shows = shows.limit(300).all()
-                def fuzzy_score(show):
-                    champs = [show.title or '', show.description or '', show.location or '', show.region or '', show.category or '']
-                    return max(fuzz.partial_ratio(q.lower(), champ.lower()) for champ in champs)
-                # Seuil de tolérance (ajustable)
-                threshold = 40
-                shows_list = [s for s in all_shows if fuzzy_score(s) >= threshold]
-            except Exception as e:
-                current_app.logger.exception("Erreur lors de la recherche fuzzy : %s", e)
-                flash("Une erreur est survenue lors de la recherche avancée.", "danger")
-                shows_list = []
-        else:
-            shows_list = shows.all()
+                Show.contact_email  # type: ignore[attr-defined]
+                conditions.append(Show.contact_email.ilike(like))  # type: ignore[attr-defined]
+            except Exception:
+                pass
 
+            for v in {v for v in variants if v}:
+                v_like = f"%{v}%"
+                try:
+                    conditions.append(Show.age_range.ilike(v_like))
+                except Exception:
+                    pass
+                conditions.append(Show.description.ilike(v_like))
 
-        # Filtres simples (appliqués après fuzzy)
+            shows = shows.filter(or_(*conditions))
+
+        # Filtres simples
         if category:
-            shows_list = [s for s in shows_list if category.lower() in (s.category or '').lower()]
+            from sqlalchemy import func
+            shows = shows.filter(func.lower(Show.category).like(f"%{category.lower()}%"))
         if location:
-            shows_list = [s for s in shows_list if location.lower() in ((s.location or '') + ' ' + (s.region or '')).lower()]
+            like = f"%{location}%"
+            shows = shows.filter(or_(Show.location.ilike(like), Show.region.ilike(like)))
 
-
-        # Type de fichier (appliqué après fuzzy)
+        # Type de fichier
         if type_filter == "image":
-            shows_list = [s for s in shows_list if (s.file_mimetype or '').startswith('image/')]
+            shows = shows.filter(Show.file_mimetype.ilike("image/%"))
         elif type_filter == "pdf":
-            shows_list = [s for s in shows_list if (s.file_mimetype or '').startswith('application/pdf')]
+            shows = shows.filter(Show.file_mimetype.ilike("application/pdf"))
 
         # Filtres de dates
         def parse_date(s: str):
@@ -681,38 +706,21 @@ def register_routes(app: Flask) -> None:
             if d2:
                 shows = shows.filter(Show.date <= d2)
 
-
         # Tri : annonces validées d'abord, puis par date
-        shows_list = sorted(shows_list, key=lambda s: (not s.approved, s.date or datetime.min, s.created_at or datetime.min), reverse=(sort=="desc"))
+        if sort == "desc":
+            shows = shows.order_by(Show.approved.desc(), Show.date.desc().nullslast(), Show.created_at.desc())
+        else:
+            shows = shows.order_by(Show.approved.desc(), Show.date.asc().nullsfirst(), Show.created_at.asc())
 
-        # Pagination manuelle
-        per_page = 24
-        total = len(shows_list)
-        start = (page - 1) * per_page
-        end = start + per_page
-        page_items = shows_list[start:end]
-        class Pagination:
-            def __init__(self, items, page, per_page, total):
-                self.items = items
-                self.page = page
-                self.per_page = per_page
-                self.total = total
-                self.pages = (total + per_page - 1) // per_page
-
-            def iter_pages(self, left_edge=2, left_current=2, right_current=5, right_edge=2):
-                last = 0
-                for num in range(1, self.pages + 1):
-                    if (
-                        num <= left_edge
-                        or (self.page - left_current <= num <= self.page + right_current)
-                        or num > self.pages - right_edge
-                    ):
-                        if last + 1 != num:
-                            yield None
-                        yield num
-                        last = num
-        pagination = Pagination(page_items, page, per_page, total)
-        shows_list = page_items
+        # Pagination : 30 résultats par page
+        try:
+            pagination = shows.paginate(page=page, per_page=24, error_out=False)
+            shows_list = pagination.items
+        except Exception as e:
+            current_app.logger.exception("Erreur lors de la requête /home: %s", e)
+            flash("Une erreur est survenue lors de la recherche.", "danger")
+            pagination = None
+            shows_list = []
 
         categories = [c[0] for c in db.session.query(Show.category).distinct().all() if c[0]]
         locations = [l[0] for l in db.session.query(Show.location).distinct().all() if l[0]]

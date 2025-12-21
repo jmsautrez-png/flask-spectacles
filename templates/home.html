@@ -183,6 +183,8 @@
         <li><a href="#" class="theme-btn" data-theme="atelier" style="color:var(--primary);">Atelier</a></li>
         <li><a href="#" class="theme-btn" data-theme="concert" style="color:var(--primary);">Concert</a></li>
         <li><a href="#" class="theme-btn" data-theme="cirque" style="color:var(--primary);">Cirque</a></li>
+        <li><a href="#" class="theme-btn" data-theme="rue" style="color:var(--primary);">Spectacle de rue</a></li>
+        <li><a href="#" class="theme-btn" data-theme="orchestre" style="color:var(--primary);">Orchestre</a></li>
         <!-- Ajoutez d'autres thèmes si besoin -->
       </ul>
     </section>
@@ -192,32 +194,24 @@
 document.addEventListener('DOMContentLoaded', function() {
 
   const themeBtns = document.querySelectorAll('.theme-btn');
-  const cards = document.querySelectorAll('.card');
-  const catalogueTitle = document.getElementById('catalogue-title');
-  const defaultTitle = 'Catalogue des spectacles';
-  let selectedBtn = null;
-
   function resetAll() {
-    // Redirige vers la page d'accueil sans filtre
     window.location.href = window.location.pathname;
     localStorage.removeItem('selectedTheme');
   }
-
   themeBtns.forEach(btn => {
     btn.setAttribute('data-original', btn.textContent);
     btn.addEventListener('click', function(e) {
+      // N'empêche le comportement par défaut QUE pour les boutons de thème
       e.preventDefault();
       const theme = btn.getAttribute('data-theme').toLowerCase();
-      // Redirige vers la page d'accueil avec le paramètre de filtre
       const url = new URL(window.location.href);
       url.searchParams.set('category', theme);
-      url.searchParams.delete('page'); // On revient à la première page
+      url.searchParams.delete('page');
       window.location.href = url.pathname + url.search;
       localStorage.setItem('selectedTheme', theme);
     });
   });
-
-  // Optionnel : bouton pour réinitialiser le filtre
+  // Bouton pour réinitialiser le filtre
   const resetBtn = document.createElement('li');
   resetBtn.innerHTML = '<a href="#" style="color:var(--primary);font-weight:bold;">Tout</a>';
   resetBtn.addEventListener('click', function(e) {
@@ -225,8 +219,6 @@ document.addEventListener('DOMContentLoaded', function() {
     resetAll();
   });
   document.querySelector('.seo-block ul').insertBefore(resetBtn, document.querySelector('.seo-block ul').firstChild);
-
-  // Appliquer le filtre mémorisé au chargement (optionnel, mais ici on laisse le backend gérer)
 });
 </script>
 
