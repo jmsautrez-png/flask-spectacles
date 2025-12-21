@@ -59,6 +59,9 @@
         {% if show.location %}
           <span class="badge">📍 {{ show.location }}</span>
         {% endif %}
+        {% if show.region %}
+          <span class="badge">🗺️ {{ show.region }}</span>
+        {% endif %}
         {% if show.date %}
           <span class="badge">📅 {{ show.date.strftime('%d/%m/%Y') }}</span>
         {% endif %}

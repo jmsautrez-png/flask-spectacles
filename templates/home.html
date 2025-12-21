@@ -1,3 +1,4 @@
+
 {% extends "base.html" %}
 {% block title %}Spectacle'ment VØtre - Spectacles et animations pour enfants, entreprises, anniversaires | Artistes professionnels{% endblock %}
 {% block description %}Découvrez des spectacles pour enfants, animations d'entreprise et d'anniversaire. Magie, théâtre, cirque, clowns, marionnettes. Réservez directement avec des artistes professionnels en France.{% endblock %}
@@ -77,14 +78,7 @@
               </div>
               {% endif %}
               
-              {% if show.location %}
-              <div style="display:flex; align-items:center; gap:6px;">
-                <span style="opacity:0.7; min-width:20px;">📍</span>
-                <span style="color:rgba(255,255,255,0.9);">
-                  {{ show.location }}
-                </span>
-              </div>
-              {% endif %}
+
               
               {% if show.age_range %}
               <div style="display:flex; align-items:center; gap:6px;">
