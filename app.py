@@ -632,17 +632,22 @@ def register_routes(app: Flask) -> None:
 
         # Recherche texte + fuzzy (tolérance aux fautes)
         if q:
-            # Recherche SQL classique pour filtrer grossièrement
-            like = f"%{q}%"
-            shows = shows.filter(or_(Show.title.ilike(like), Show.description.ilike(like), Show.location.ilike(like), Show.region.ilike(like), Show.category.ilike(like)))
-            # Recherche fuzzy sur les résultats filtrés
-            all_shows = shows.all()
-            def fuzzy_score(show):
-                champs = [show.title or '', show.description or '', show.location or '', show.region or '', show.category or '']
-                return max(fuzz.partial_ratio(q.lower(), champ.lower()) for champ in champs)
-            # Seuil de tolérance (ajustable)
-            threshold = 40
-            shows_list = [s for s in all_shows if fuzzy_score(s) >= threshold]
+            try:
+                # Recherche SQL classique pour filtrer grossièrement
+                like = f"%{q}%"
+                shows = shows.filter(or_(Show.title.ilike(like), Show.description.ilike(like), Show.location.ilike(like), Show.region.ilike(like), Show.category.ilike(like)))
+                # Limite le nombre de résultats pour éviter surcharge
+                all_shows = shows.limit(300).all()
+                def fuzzy_score(show):
+                    champs = [show.title or '', show.description or '', show.location or '', show.region or '', show.category or '']
+                    return max(fuzz.partial_ratio(q.lower(), champ.lower()) for champ in champs)
+                # Seuil de tolérance (ajustable)
+                threshold = 40
+                shows_list = [s for s in all_shows if fuzzy_score(s) >= threshold]
+            except Exception as e:
+                current_app.logger.exception("Erreur lors de la recherche fuzzy : %s", e)
+                flash("Une erreur est survenue lors de la recherche avancée.", "danger")
+                shows_list = []
         else:
             shows_list = shows.all()
 
