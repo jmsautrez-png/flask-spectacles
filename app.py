@@ -641,7 +641,7 @@ def register_routes(app: Flask) -> None:
                 champs = [show.title or '', show.description or '', show.location or '', show.region or '', show.category or '']
                 return max(fuzz.partial_ratio(q.lower(), champ.lower()) for champ in champs)
             # Seuil de tolérance (ajustable)
-            threshold = 60
+            threshold = 40
             shows_list = [s for s in all_shows if fuzzy_score(s) >= threshold]
         else:
             shows_list = shows.all()
