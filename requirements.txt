@@ -1,3 +1,4 @@
+rapidfuzz
 Flask>=3.0
 Flask-SQLAlchemy>=3.1
 SQLAlchemy>=2.0
