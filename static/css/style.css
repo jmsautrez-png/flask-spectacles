@@ -21,7 +21,13 @@
   --secondary-hover:#4a4a5a;
 }
 *{ box-sizing:border-box; }
-body{ margin:0; font-family:system-ui,Segoe UI,Roboto,Arial; color:var(--text); background:var(--bg); min-height:100vh; }
+body{
+  margin:0;
+  font-family:system-ui,Segoe UI,Roboto,Arial;
+  color:var(--text);
+  background:linear-gradient(135deg, #0a1833 0%, #162447 60%, #283e5e 100%);
+  min-height:100vh;
+}
 .container{ width:min(1540px,94%); margin:0 auto; }
 .site-header{ background:rgba(23,23,27,.85); border-bottom:1px solid var(--border); position:sticky; top:0; backdrop-filter:blur(12px); z-index:10; box-shadow:0 2px 8px rgba(0,0,0,0.1); }
 .header-grid{ display:flex; align-items:center; justify-content:space-between; padding:16px 0; }
