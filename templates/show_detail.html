@@ -24,11 +24,11 @@
 
 <div style="max-width:900px; margin:0 auto;">
   <!-- Back Button -->
-  <a href="{{ url_for('home') }}" class="back-link" style="display:inline-flex; align-items:center; gap:8px; margin-bottom:24px; padding:10px 16px; color:var(--text); text-decoration:none; background:var(--panel); border:1px solid var(--border); border-radius:8px; font-weight:500; transition:all 0.2s ease;">
+  <a href="{{ url_for('home') }}" class="back-link" style="display:inline-flex; align-items:center; gap:8px; margin-bottom:24px; padding:10px 16px; color:#fff; text-decoration:none; background:linear-gradient(135deg,#162447 0%,#283e5e 100%); border:2px solid #283e5e; border-radius:10px; font-weight:500; box-shadow:0 2px 8px #16244722; transition:all 0.2s;">
     <span>←</span> Retour aux spectacles
   </a>
   
-  <article class="card" style="max-width:none; box-shadow:0 4px 16px rgba(0,0,0,0.2);">
+  <article class="card" style="max-width:none; background:linear-gradient(135deg,#1b2a4e 0%,#355c7d 100%); box-shadow:0 4px 16px #355c7d22; border-radius:18px; color:#fff;">
     {% if show.has_image() or show.is_pdf() %}
       <div class="media" style="aspect-ratio:16/9; max-height:450px; display:flex; align-items:center; justify-content:center; background:#0e0e13;">
         {% if show.has_image() %}
@@ -69,7 +69,7 @@
 
       <!-- Description -->
       {% if show.description %}
-        <div style="margin-bottom:32px; padding:20px; background:rgba(255,255,255,0.02); border-left:3px solid var(--primary); border-radius:8px;">
+        <div style="margin-bottom:32px; padding:20px; background:linear-gradient(135deg,#162447 0%,#283e5e 100%); border-left:3px solid #1976d2; border-radius:12px; box-shadow:0 2px 8px #16244722; color:#fff;">
           <h3 style="margin:0 0 12px 0; font-size:1.1rem; color:var(--text);">Description</h3>
           <p style="line-height:1.7; color:#ddd; margin:0; font-size:1rem;">{{ show.description }}</p>
         </div>
@@ -77,7 +77,7 @@
 
       <!-- Contact Section -->
       {% if show.contact_email or show.contact_phone or show.site_internet %}
-        <div style="margin-bottom:32px; padding:24px; background:var(--panel); border:1px solid var(--border); border-radius:12px;">
+        <div style="margin-bottom:32px; padding:24px; background:linear-gradient(135deg,#162447 0%,#283e5e 100%); border:2px solid #283e5e; border-radius:14px; box-shadow:0 2px 8px #16244722; color:#fff;">
           <h3 style="margin:0 0 16px 0; font-size:1.2rem; color:var(--text);">Contact</h3>
           <div style="display:flex; flex-direction:column; gap:12px;">
             {% if show.contact_email %}
@@ -116,7 +116,7 @@
 
       <!-- Download File -->
       {% if show.file_name %}
-        <a href="{{ url_for('uploaded_file', filename=show.file_name) }}" target="_blank" style="display:inline-flex; align-items:center; gap:10px; padding:14px 20px; background:var(--primary); color:white; text-decoration:none; border-radius:10px; font-weight:600; transition:all 0.2s ease; box-shadow:0 2px 8px rgba(220,38,38,0.3);">
+        <a href="{{ url_for('uploaded_file', filename=show.file_name) }}" target="_blank" style="display:inline-flex; align-items:center; gap:10px; padding:14px 20px; background:linear-gradient(135deg,#1976d2 0%,#355c7d 100%); color:white; text-decoration:none; border-radius:10px; font-weight:700; transition:all 0.2s; box-shadow:0 2px 8px #1976d244;">
           <span style="font-size:1.2rem;">📎</span>
           Télécharger le fichier
         </a>

@@ -2,15 +2,15 @@
 {% block title %}Publier vØtre spectacle ou animation - AnimatoSpectacle{% endblock %}
 
 {% block content %}
-<div class="demande-wrap">
-  <h2>Publier vØtre spectacle</h2>
-  <p style="color:var(--muted); margin-bottom:24px;">Remplissez le formulaire ci-dessous. VØtre annonce sera examinée avant publication.</p>
+<div class="demande-wrap" style="background:linear-gradient(135deg,#162447 0%,#283e5e 100%); border:2px solid #283e5e; border-radius:16px; padding:32px; margin-bottom:32px; box-shadow:0 4px 16px #16244722; color:#fff;">
+  <h2 style="color:#fff; text-shadow:0 2px 8px #16244766;">Publier vØtre spectacle</h2>
+  <p style="color:#e0e6f6; margin-bottom:24px; text-shadow:0 1px 4px #16244744;">Remplissez le formulaire ci-dessous. VØtre annonce sera examinée avant publication.</p>
 
   <form action="{{ url_for('submit_show') }}" method="post" enctype="multipart/form-data" class="demande-form">
 
     <!-- SECTION: Informations de la compagnie -->
     <fieldset class="demande-section">
-      <legend>Informations de la compagnie</legend>
+      <legend style="color:#fff; text-shadow:0 2px 8px #16244766;">Informations de la compagnie</legend>
       
       <div class="grid-2">
         <div>
@@ -32,7 +32,7 @@
 
     <!-- SECTION: Détails du spectacle -->
     <fieldset class="demande-section">
-      <legend>Détails du spectacle</legend>
+      <legend style="color:#fff; text-shadow:0 2px 8px #16244766;">Détails du spectacle</legend>
       
       <div>
         <label>
@@ -89,7 +89,7 @@
 
     <!-- SECTION: Fichier -->
     <fieldset class="demande-section">
-      <legend>Affiche ou document</legend>
+      <legend style="color:#fff; text-shadow:0 2px 8px #16244766;">Affiche ou document</legend>
       
       <div>
         <label>
@@ -102,8 +102,9 @@
 
     <div style="display:flex; gap:12px; justify-content:flex-end; margin-top:24px;">
       <button type="submit" style="background:var(--primary); color:white; padding:10px 24px; border:none; border-radius:8px; font-weight:600; cursor:pointer; font-size:1rem;">
-        Envoyer
+          Envoyer
       </button>
+      <button type="submit" style="background:linear-gradient(135deg,#1976d2 0%,#355c7d 100%); color:white; padding:10px 24px; border:none; border-radius:10px; font-weight:700; cursor:pointer; font-size:1rem; box-shadow:0 2px 8px #1976d244; transition:all 0.2s;">
     </div>
 
   </form>
