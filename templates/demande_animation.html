@@ -2,7 +2,7 @@
 {% block title %}Demander une animation pour anniversaire, entreprise, école - Spectacle'ment VØtre{% endblock %}
 
 {% block content %}
-<div class="demande-wrap" style="background:linear-gradient(135deg,#162447 0%,#283e5e 100%); border:2px solid #283e5e; border-radius:16px; padding:32px; margin-bottom:32px; position:relative; overflow:hidden; box-shadow:0 4px 16px #16244722; color:#fff;">
+<div class="demande-wrap" style="background:linear-gradient(135deg,#1b2a4e 0%,#355c7d 100%); border:2px solid #355c7d; border-radius:16px; padding:32px; margin-bottom:32px; position:relative; overflow:hidden; box-shadow:0 4px 16px #355c7d22; color:#fff;">
   <h1 style="margin:0 0 8px 0;">Demande d'animation</h1>
   <p class="text-muted" style="margin:0 0 24px 0;">
     Remplissez les informations essentielles. Les champs marqués <span style="color:var(--primary); font-weight:700;">*</span> sont obligatoires.
@@ -147,6 +147,31 @@
 
 {# Hide SEO block on this conversion-focused page #}
 <style>
+    .demande-form input,
+    .demande-form textarea,
+    .demande-form select {
+      background:linear-gradient(135deg,#22335a 0%,#2d4263 100%);
+      color:#fff;
+      border:1.5px solid #355c7d;
+      border-radius:8px;
+      font-size:1rem;
+      font-family:inherit;
+      padding:12px 16px;
+      transition:all 0.2s;
+      box-shadow:0 1px 4px #16244722;
+    }
+    .demande-form input:focus,
+    .demande-form textarea:focus,
+    .demande-form select:focus {
+      outline:none;
+      border-color:#1976d2;
+      box-shadow:0 0 0 3px #1976d244;
+    }
+    .demande-form input::placeholder,
+    .demande-form textarea::placeholder {
+      color:#b0b8d8;
+      opacity:0.8;
+    }
   main.container .seo-block { display: none; }
 </style>
 {% endblock %}

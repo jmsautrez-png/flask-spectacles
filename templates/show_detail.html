@@ -30,7 +30,7 @@
   
   <article class="card" style="max-width:none; background:linear-gradient(135deg,#1b2a4e 0%,#355c7d 100%); box-shadow:0 4px 16px #355c7d22; border-radius:18px; color:#fff;">
     {% if show.has_image() or show.is_pdf() %}
-      <div class="media" style="aspect-ratio:16/9; max-height:450px; display:flex; align-items:center; justify-content:center; background:#0e0e13;">
+      <div class="media" style="aspect-ratio:16/9; max-height:450px; display:flex; align-items:center; justify-content:center; background:linear-gradient(135deg,#162447 0%,#283e5e 100%); border-radius:14px; box-shadow:0 2px 8px #16244722;">
         {% if show.has_image() %}
           <img src="{{ url_for('uploaded_file', filename=show.file_name) }}" alt="{{ show.title }}" style="max-width:100%; max-height:100%; width:auto; height:auto; object-fit:contain;">
         {% elif show.is_pdf() %}
