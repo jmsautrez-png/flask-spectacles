@@ -8,7 +8,7 @@
 /* thème */
 :root{
   --bg:#0f0f12;
-  --panel:#283e5e;
+  --panel:#17171b;
   --muted:#8b8b94;
   --text:#f5f6f8;
   --primary:#dc2626;
@@ -500,7 +500,7 @@ main.container {
 .actions button,
 .actions .btn-secondary {
   padding: 10px 16px;
-  border-radius: 10px;
+  --panel:#000000;
   border: none;
   background: var(--primary);
   color: white;
