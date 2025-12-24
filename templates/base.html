@@ -14,6 +14,8 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   
+  <!-- Favicon pour Google et navigateurs -->
+  <link rel="icon" type="image/jpeg" href="{{ url_for('static', filename='img/légé_spectaclemnet-votre_logo.jpg') }}">
   <!-- SEO Meta Tags -->
   <meta name="google-site-verification" content="El4lpt0naRzFdXqihVvr6K27e1FFc7TTsXFMCq-VybE" />
   <title>{% block title %}Spectacle'ment VØtre - Artistes, spectacles, animations la plateforme qui met en scène vos animations{% endblock %}</title>
@@ -111,11 +113,7 @@
               + Ajouter
             </a>
           </li>
-          <li>
-            <a href="{{ url_for('demande_animation') }}" style="padding:8px 14px; background:transparent; color:var(--text); border:1px solid var(--border); border-radius:6px; font-weight:500; font-size:0.85rem; text-decoration:none; display:inline-block; transition:background 0.2s;">
-              Demandes
-            </a>
-          </li>
+          {# Bouton Demandes supprimé #}
           <li>
             <a href="{{ url_for('logout') }}" style="padding:8px 14px; background:transparent; color:var(--muted); font-weight:500; font-size:0.85rem; text-decoration:none; display:inline-block; transition:color 0.2s;">
               Déconnexion ({{ user.username }})
@@ -124,11 +122,7 @@
 
         {# ----- UTILISATEUR CONNECTÉ mais pas admin ----- #}
         {% elif user %}
-          <li>
-            <a href="{{ url_for('demande_animation') }}" style="padding:8px 14px; background:var(--primary); color:white; border-radius:6px; font-weight:600; font-size:0.85rem; text-decoration:none; display:inline-block; transition:opacity 0.2s;">
-              Demande d'animation
-            </a>
-          </li>
+          {# Bouton Demande d'animation supprimé #}
           <li>
             <a href="{{ url_for('logout') }}" style="padding:8px 14px; background:transparent; color:var(--muted); font-weight:500; font-size:0.85rem; text-decoration:none; display:inline-block; transition:color 0.2s;">
               Déconnexion
@@ -147,11 +141,7 @@
               S'inscrire
             </a>
           </li>
-          <li>
-            <a href="{{ url_for('demande_animation') }}" style="padding:8px 14px; background:transparent; color:var(--muted); font-weight:500; font-size:0.85rem; text-decoration:none; display:inline-block; transition:color 0.2s;">
-              Demande d'animation
-            </a>
-          </li>
+          {# Bouton Demande d'animation supprimé #}
         {% endif %}
 
       </ul>
