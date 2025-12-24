@@ -7,13 +7,13 @@
 
 
 <div style="display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:16px;">
-  <h1 style="font-size:1.6rem;margin:0;">artistes, spectacles, animations<br><span style="font-size:1.05rem;font-weight:400;color:#ffffff;">la plateforme qui met en scène vos manifestations</span></h1>
+  <h1 style="font-size:1.15rem;margin:0;font-weight:500;color:#fff;line-height:1.4;">Pour trouver rapidement la bonne animation, au bon public, au bon endroit.</h1>
   <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
     <a href="{{ url_for('demande_animation') }}" style="background:linear-gradient(135deg,#162447 0%,#283e5e 100%);color:#fff;padding:8px 18px;border-radius:22px;font-weight:600;font-size:0.95rem;text-decoration:none;box-shadow:0 2px 8px #16244744;transition:background .2s;white-space:nowrap;display:inline-block;letter-spacing:0.5px;">
-        Demande d'animation
+        Je cherche un spectacle
       </a>
       <a href="{{ url_for('publish') }}" style="background:linear-gradient(135deg,#1b2a4e 0%,#355c7d 100%);color:#fff;padding:8px 18px;border-radius:22px;font-weight:600;font-size:0.95rem;text-decoration:none;box-shadow:0 2px 8px #1b2a4e44;transition:background .2s;white-space:nowrap;display:inline-block;letter-spacing:0.5px;">
-        Publier vØtre spectacle
+        Je suis artiste / compagnie
       </a>
       <a href="{{ url_for('abonnement_compagnie') }}" style="background:linear-gradient(135deg,#283e5e 0%,#1976d2 100%);color:#fff;padding:8px 18px;border-radius:22px;font-weight:600;font-size:0.95rem;text-decoration:none;box-shadow:0 2px 8px #1976d244;transition:background .2s;white-space:nowrap;display:inline-block;letter-spacing:0.5px;">
         Abonnement Compagnie
@@ -43,7 +43,7 @@
 <div class="page-layout">
   <!-- COLONNE GAUCHE : catalogue -->
   <div class="page-main">
-    <h2 id="catalogue-title" style="margin-top:0; margin-bottom:16px; font-size:1.3rem;">Catalogue des spectacles</h2>
+    <h2 id="catalogue-title" style="margin-top:0; margin-bottom:16px; font-size:1.15rem; font-weight:500; color:#fff; line-height:1.4;">Spectacle'ment VØtre la plateforme qui connecte facilement les organisateurs d’événements avec des artistes et compagnies de spectacle vivant.</h2>
     <div class="cards">
       {% for show in shows or [] %}
       <article class="card" style="border:2px solid #222;border-radius:16px;box-shadow:0 2px 12px #0008;padding:0 0 8px 0;transition:box-shadow .2s;color:#fff;">
@@ -170,7 +170,7 @@
   <!-- COLONNE DROITE : ton nouveau bloc -->
   <aside class="page-sidebar">
     <section class="seo-block" style="background:linear-gradient(135deg,#162447 0%,#283e5e 100%); border:2px solid #283e5e; border-radius:16px; padding:24px; margin-bottom:24px; box-shadow:0 2px 12px #16244722; color:#fff;">
-      <h2>Besoin d’un spectacle, une animation, un atelier, un concert, un DJ etc..?</h2>
+      <h2>Mairie, CSE, Ecole etc. — Besoin d’un spectacle, une animation, un atelier, un concert, un DJ etc..?</h2>
       <p>
         Retrouvez rapidement un spectacle par thème&nbsp;:
       </p>
@@ -185,7 +185,9 @@
         <li><a href="#" class="theme-btn" data-theme="cirque" style="color:var(--primary);">Cirque</a></li>
         <li><a href="#" class="theme-btn" data-theme="rue" style="color:var(--primary);">Spectacle de rue</a></li>
         <li><a href="#" class="theme-btn" data-theme="orchestre" style="color:var(--primary);">Orchestre</a></li>
-        <!-- Ajoutez d'autres thèmes si besoin -->
+        <li><a href="#" class="theme-btn" data-theme="arbre-noel" style="color:var(--primary);font-weight:600;">Arbre de Noël</a></li>
+        <li><a href="#" class="theme-btn" data-theme="animation-ecole" style="color:var(--primary);font-weight:600;">Animation école</a></li>
+        <li><a href="#" class="theme-btn" data-theme="fete-village" style="color:var(--primary);font-weight:600;">Fête de village</a></li>
       </ul>
     </section>
   </aside>

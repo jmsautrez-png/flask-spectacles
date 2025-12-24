@@ -649,7 +649,7 @@ a[href*="edit"]:hover {
 }
 
 .seo-block ul li {
-  padding: 4px 0;
+  padding: 0,1px 0;
 }
 
 .seo-block ul li a {
@@ -659,19 +659,14 @@ a[href*="edit"]:hover {
   transition: background 0.15s ease;
 }
 
-.seo-block ul li a:hover {
-  background: rgba(220, 38, 38, 0.15);
-}
+
 
 .theme-btn {
   transition: all 0.2s ease;
   font-weight: 500;
 }
 
-.theme-btn:hover {
-  color: var(--primary-hover) !important;
-  transform: translateX(4px);
-}
+
 
 /* ============================================
    RESPONSIVE BREAKPOINTS
