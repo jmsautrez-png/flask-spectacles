@@ -71,12 +71,7 @@
             <h3 style="margin:0 0 6px 0; line-height:1.2;">{{ show.title }}</h3>
             
             <div style="display:flex; flex-direction:column; gap:4px; font-size:0.85em; margin-top:-2px;">
-              {% if show.category %}
-              <div style="display:flex; align-items:center; gap:6px;">
-                <span style="opacity:0.7; min-width:20px;">🎭</span>
-                <span style="color:rgba(255,255,255,0.9);">{{ show.category }}</span>
-              </div>
-              {% endif %}
+
               
 
               
@@ -86,6 +81,7 @@
                 <span style="color:rgba(255,255,255,0.9);">{{ show.age_range }}</span>
               </div>
               {% endif %}
+
             </div>
             
             {% if not show.approved %}
@@ -188,9 +184,9 @@
         <li><a href="#" class="theme-btn" data-theme="cirque" style="color:var(--primary);">Cirque</a></li>
         <li><a href="#" class="theme-btn" data-theme="rue" style="color:var(--primary);">Spectacle de rue</a></li>
         <li><a href="#" class="theme-btn" data-theme="orchestre" style="color:var(--primary);">Orchestre</a></li>
-        <li><a href="#" class="theme-btn" data-theme="arbre-noel" style="color:var(--primary);font-weight:600;">Arbre de Noël</a></li>
-        <li><a href="#" class="theme-btn" data-theme="animation-ecole" style="color:var(--primary);font-weight:600;">Animation école</a></li>
-        <li><a href="#" class="theme-btn" data-theme="fete-village" style="color:var(--primary);font-weight:600;">Fête de village</a></li>
+        <li><a href="#" class="theme-btn" data-theme="Arbre de Noël" style="color:var(--primary);font-weight:600;">Arbre de Noël</a></li>
+        <li><a href="#" class="theme-btn" data-theme="Animation école" style="color:var(--primary);font-weight:600;">Animation école</a></li>
+        <li><a href="#" class="theme-btn" data-theme="Fête de village" style="color:var(--primary);font-weight:600;">Fête de village</a></li>
       </ul>
     </section>
   </aside>
@@ -208,7 +204,13 @@ document.addEventListener('DOMContentLoaded', function() {
     btn.addEventListener('click', function(e) {
       // N'empêche le comportement par défaut QUE pour les boutons de thème
       e.preventDefault();
-      const theme = btn.getAttribute('data-theme').toLowerCase();
+      let theme = btn.getAttribute('data-theme');
+      // Pour les 3 boutons spéciaux, garder accents pour la recherche
+      if (["Arbre de Noël", "Animation école", "Fête de village"].includes(theme)) {
+        // rien, garder theme tel quel
+      } else {
+        theme = theme.toLowerCase();
+      }
       const url = new URL(window.location.href);
       url.searchParams.set('category', theme);
       url.searchParams.delete('page');
