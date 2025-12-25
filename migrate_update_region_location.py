@@ -60,4 +60,4 @@ c.execute('DROP TABLE shows_old;')
 conn.commit()
 conn.close()
 
-print('Migration terminée : champs region et location à 200 caractères.')
+print('Migration terminée : champs region et location à 250 caractères.')
