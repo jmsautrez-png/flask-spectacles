@@ -28,7 +28,7 @@ class Show(db.Model):
     description = db.Column(db.Text, nullable=True)
     region = db.Column(db.String(200), nullable=True)
     location = db.Column(db.String(200), nullable=True)
-    category = db.Column(db.String(80), nullable=True)
+    category = db.Column(db.String(200), nullable=True)
     date = db.Column(db.Date, nullable=True)
     age_range = db.Column(db.String(50), nullable=True)
     file_name = db.Column(db.String(255), nullable=True)
