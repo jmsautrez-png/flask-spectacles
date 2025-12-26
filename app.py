@@ -980,8 +980,8 @@ def register_routes(app: Flask) -> None:
                     print("[MAIL] envoi impossible:", e)
 
             flash("Annonce envoyée ! Elle sera visible après validation.", "success")
-            # Rediriger vers la page d'édition du spectacle nouvellement créé
-            return redirect(url_for("show_edit_self", show_id=show.id))
+            # Afficher uniquement le message flash après création
+            return render_template("flash_only_child.html", user=u)
 
         return render_template("submit_form.html", user=current_user())
 
@@ -1108,7 +1108,7 @@ def register_routes(app: Flask) -> None:
 
             db.session.commit()
             flash("Spectacle mis à jour.", "success")
-            return redirect(url_for("company_dashboard"))
+            return render_template("flash_only_child.html", user=u)
 
         return render_template("show_form_edit.html", show=s, user=u)
 
@@ -1134,7 +1134,7 @@ def register_routes(app: Flask) -> None:
         db.session.delete(s)
         db.session.commit()
         flash("Spectacle supprimé.", "success")
-        return redirect(request.referrer or url_for("company_dashboard"))
+        return render_template("flash_only_child.html", user=u)
 
     # ---------------------------
     # Espace Admin
