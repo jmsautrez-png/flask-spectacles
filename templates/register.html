@@ -55,12 +55,35 @@
         </label>
       </div>
 
-      <div class="grid-2">
+      
+
         <label>
           <span class="label-text">Région</span>
-          <input type="text" name="region" placeholder="Ex: Île-de-France"
+          <input type="text" name="region" id="region-input" placeholder="Ex: Île-de-France"
                  value="{{ request.form.get('region','') }}">
         </label>
+
+        <div style="background:#e3f2fd; color:#1565c0; border:1px solid #90caf9; border-radius:7px; padding:7px 12px; margin:10px 0 8px 0; font-size:0.97em; font-weight:500;">
+          Cliquez sur une région pour remplir automatiquement le champ ci-dessus&nbsp;:
+        </div>
+        <div class="region-buttons" style="display:flex; flex-wrap:wrap; gap:6px; margin-bottom:14px; position:relative;">
+          <div id="region-hover-banner" style="display:none; position:absolute; left:0; right:0; top:-38px; background:#fffde7; color:#795548; border:1px solid #ffe082; border-radius:7px; padding:7px 12px; font-size:0.97em; font-weight:500; z-index:10; text-align:center; pointer-events:none; transition:opacity 0.2s; opacity:0;">
+            Cliquez pour sélectionner cette région
+          </div>
+          {% set regions = [
+            'Auvergne-Rhône-Alpes', 'Bourgogne-Franche-Comté', 'Bretagne', 'Centre-Val de Loire',
+            'Corse', 'Grand Est', 'Hauts-de-France', 'Île-de-France', 'Normandie',
+            'Nouvelle-Aquitaine', 'Occitanie', 'Pays de la Loire', 'Provence-Alpes-Côte d\'Azur',
+            'Guadeloupe', 'Martinique', 'Guyane', 'La Réunion', 'Mayotte'
+          ] %}
+          {% for reg in regions %}
+            <button type="button" class="btn-region" style="padding:4px 10px; border-radius:5px; border:1px solid var(--border); background:var(--panel); color:var(--text); font-size:0.95em; cursor:pointer;"
+              onmouseover="document.getElementById('region-hover-banner').style.display='block'; document.getElementById('region-hover-banner').style.opacity='1';"
+              onmouseout="document.getElementById('region-hover-banner').style.opacity='0'; setTimeout(function(){document.getElementById('region-hover-banner').style.display='none';},200);"
+              onclick="document.getElementById('region-input').value='{{ reg }}'"
+            >{{ reg }}</button>
+          {% endfor %}
+        </div>
 
         <label>
           <span class="label-text">Site internet</span>

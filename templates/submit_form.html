@@ -42,14 +42,12 @@
     <!-- SECTION: Détails du spectacle -->
     <fieldset class="demande-section">
       <legend>Détails du spectacle</legend>
-      
       <div>
         <label>
           <span class="label-text">Titre du spectacle <span class="req">*</span></span>
           <input type="text" name="title" placeholder="Ex: La magie des 4 éléments" required>
         </label>
       </div>
-
       <div>
         <label>
           <span class="label-text">Description <span class="req">*</span></span>
@@ -58,31 +56,147 @@
           <div id="desc-counter" style="font-size:0.85rem; color:var(--muted); margin-top:4px;">0/200 mots</div>
         </label>
       </div>
-
       <div class="grid-2">
         <div>
           <label>
             <span class="label-text">Région</span>
-            <input type="text" name="region" placeholder="Ex: Île-de-France, Bretagne">
+            <input type="text" name="region" id="region-input" placeholder="Ex: Île-de-France, Bretagne">
           </label>
+          <div style="background:#e3f2fd; color:#1565c0; border:1px solid #90caf9; border-radius:7px; padding:7px 12px; margin:10px 0 8px 0; font-size:0.97em; font-weight:500;">
+            Cliquez sur une région pour remplir automatiquement le champ ci-dessus&nbsp;:
+          </div>
+          <div class="region-buttons" style="display:flex; flex-wrap:wrap; gap:6px; margin-bottom:14px; position:relative;">
+            <div id="region-hover-banner" style="display:none; position:absolute; left:0; right:0; top:-38px; background:#fffde7; color:#795548; border:1px solid #ffe082; border-radius:7px; padding:7px 12px; font-size:0.97em; font-weight:500; z-index:10; text-align:center; pointer-events:none; transition:opacity 0.2s; opacity:0;">
+              Cliquez pour sélectionner cette région
+            </div>
+            {% set regions = [
+              'Auvergne-Rhône-Alpes', 'Bourgogne-Franche-Comté', 'Bretagne', 'Centre-Val de Loire', 'Corse',
+              'Grand Est', 'Hauts-de-France', 'Île-de-France', 'Normandie', 'Nouvelle-Aquitaine', 'Occitanie',
+              'Pays de la Loire', 'Provence-Alpes-Côte d\'Azur', 'Guadeloupe', 'Martinique', 'Guyane',
+              'La Réunion', 'Mayotte'
+            ] %}
+            {% set region_styles = {
+              'Auvergne-Rhône-Alpes':      'background:#a5d6a7; color:#1b5e20; border:1px solid #388e3c;',
+              'Bourgogne-Franche-Comté':   'background:#ffe082; color:#6d4c41; border:1px solid #ffb300;',
+              'Bretagne':                  'background:#90caf9; color:#0d47a1; border:1px solid #1976d2;',
+              'Centre-Val de Loire':       'background:#f8bbd0; color:#ad1457; border:1px solid #ec407a;',
+              'Corse':                     'background:#fff9c4; color:#795548; border:1px solid #fbc02d;',
+              'Grand Est':                 'background:#b0bec5; color:#263238; border:1px solid #607d8b;',
+              'Hauts-de-France':           'background:#b3e5fc; color:#01579b; border:1px solid #0288d1;',
+              'Île-de-France':             'background:#d1c4e9; color:#4527a0; border:1px solid #7e57c2;',
+              'Normandie':                 'background:#ffe0b2; color:#e65100; border:1px solid #ff9800;',
+              'Nouvelle-Aquitaine':        'background:#c8e6c9; color:#2e7d32; border:1px solid #43a047;',
+              'Occitanie':                 'background:#ffccbc; color:#bf360c; border:1px solid #ff7043;',
+              'Pays de la Loire':          'background:#f0f4c3; color:#827717; border:1px solid #cddc39;',
+              'Provence-Alpes-Côte d\'Azur': 'background:#ffe082; color:#e65100; border:1px solid #ffb300;',
+              'Guadeloupe':                'background:#b2ebf2; color:#006064; border:1px solid #00bcd4;',
+              'Martinique':                'background:#f48fb1; color:#ad1457; border:1px solid #ec407a;',
+              'Guyane':                    'background:#c5e1a5; color:#33691e; border:1px solid #8bc34a;',
+              'La Réunion':                'background:#ffe0b2; color:#e65100; border:1px solid #ff9800;',
+              'Mayotte':                   'background:#b3e5fc; color:#01579b; border:1px solid #0288d1;'
+            } %}
+            {% for reg in regions %}
+              <button type="button" class="btn-region"
+                style="padding:4px 10px; border-radius:5px; font-size:0.95em; cursor:pointer; margin-bottom:2px; {{ region_styles[reg]|default('background:#eee; color:#333; border:1px solid #bbb;') }}"
+                onmouseover="document.getElementById('region-hover-banner').style.display='block'; document.getElementById('region-hover-banner').style.opacity='1';"
+                onmouseout="document.getElementById('region-hover-banner').style.opacity='0'; setTimeout(function(){document.getElementById('region-hover-banner').style.display='none';},200);"
+                onclick="document.getElementById('region-input').value='{{ reg }}'"
+              >{{ reg }}</button>
+            {% endfor %}
+          </div>
         </div>
-
         <div>
           <label>
             <span class="label-text">Lieu</span>
-            <input type="text" name="location" placeholder="Ville ou salle">
+            <input type="text" name="location" id="ville-input" placeholder="Ville ou salle">
           </label>
+          <div style="background:#e3f2fd; color:#1565c0; border:1px solid #90caf9; border-radius:7px; padding:7px 12px; margin:10px 0 8px 0; font-size:0.97em; font-weight:500;">
+            Cliquez sur une ville pour remplir automatiquement le champ ci-dessus, ou inscrivez votre ville&nbsp;:
+          </div>
+          <div class="ville-buttons" style="display:flex; flex-wrap:wrap; gap:6px; margin-bottom:14px; position:relative;">
+            <div id="ville-hover-banner" style="display:none; position:absolute; left:0; right:0; top:-38px; background:#fffde7; color:#795548; border:1px solid #ffe082; border-radius:7px; padding:7px 12px; font-size:0.97em; font-weight:500; z-index:10; text-align:center; pointer-events:none; transition:opacity 0.2s; opacity:0;">
+              Cliquez pour sélectionner cette ville
+            </div>
+            {% set villes = [
+              'Paris', 'Marseille', 'Lyon', 'Toulouse', 'Nice', 'Nantes', 'Montpellier', 'Strasbourg', 'Bordeaux',
+              'Lille', 'Rennes', 'Reims', 'Le Havre', 'Saint-Étienne', 'Toulon', 'Grenoble', 'Dijon', 'Angers',
+              'Nîmes', 'Villeurbanne'
+            ] %}
+            {% set ville_styles = {
+              'Paris':         'background:#1976d2; color:#fff; border:1px solid #0d47a1;',
+              'Marseille':     'background:#ffb300; color:#fff; border:1px solid #ff6f00;',
+              'Lyon':          'background:#a084ca; color:#fff; border:1px solid #7c5eb6;',
+              'Toulouse':      'background:#e53935; color:#fff; border:1px solid #b71c1c;',
+              'Nice':          'background:#43a047; color:#fff; border:1px solid #2e7d32;',
+              'Nantes':        'background:#00bcd4; color:#fff; border:1px solid #008ba3;',
+              'Montpellier':   'background:#fbc02d; color:#fff; border:1px solid #f9a825;',
+              'Strasbourg':    'background:#607d8b; color:#fff; border:1px solid #455a64;',
+              'Bordeaux':      'background:#6d4c41; color:#fff; border:1px solid #3e2723;',
+              'Lille':         'background:#ec407a; color:#fff; border:1px solid #ad1457;',
+              'Rennes':        'background:#388e3c; color:#fff; border:1px solid #1b5e20;',
+              'Reims':         'background:#b0bec5; color:#263238; border:1px solid #607d8b;',
+              'Le Havre':      'background:#ffe082; color:#6d4c41; border:1px solid #ffb300;',
+              'Saint-Étienne': 'background:#f8bbd0; color:#ad1457; border:1px solid #ec407a;',
+              'Toulon':        'background:#b3e5fc; color:#01579b; border:1px solid #0288d1;',
+              'Grenoble':      'background:#c8e6c9; color:#2e7d32; border:1px solid #43a047;',
+              'Dijon':         'background:#ffe0b2; color:#e65100; border:1px solid #ff9800;',
+              'Angers':        'background:#f0f4c3; color:#827717; border:1px solid #cddc39;',
+              'Nîmes':         'background:#f48fb1; color:#ad1457; border:1px solid #ec407a;',
+              'Villeurbanne':  'background:#b2ebf2; color:#006064; border:1px solid #00bcd4;'
+            } %}
+            {% for ville in villes %}
+              <button type="button" class="btn-ville"
+                style="padding:4px 10px; border-radius:5px; font-size:0.95em; cursor:pointer; margin-bottom:2px; {{ ville_styles[ville]|default('background:#eee; color:#333; border:1px solid #bbb;') }}"
+                onmouseover="document.getElementById('ville-hover-banner').style.display='block'; document.getElementById('ville-hover-banner').style.opacity='1';"
+                onmouseout="document.getElementById('ville-hover-banner').style.opacity='0'; setTimeout(function(){document.getElementById('ville-hover-banner').style.display='none';},200);"
+                onclick="document.getElementById('ville-input').value='{{ ville }}'"
+              >{{ ville }}</button>
+            {% endfor %}
+          </div>
         </div>
       </div>
-
       <div class="grid-2">
         <div>
           <label>
             <span class="label-text">Catégorie</span>
-            <input type="text" name="category" placeholder="Ex: Magie, Théâtre, Clown">
+            <input type="text" name="category" id="category-input" placeholder="Ex: Magie, Théâtre, Clown">
           </label>
+          <div style="background:#e3f2fd; color:#1565c0; border:1px solid #90caf9; border-radius:7px; padding:7px 12px; margin:10px 0 8px 0; font-size:0.97em; font-weight:500;">
+            Cliquez sur une catégorie pour remplir automatiquement le champ ci-dessus&nbsp;:
+          </div>
+          <div class="category-buttons" style="display:flex; flex-wrap:wrap; gap:6px; margin-bottom:14px; position:relative;">
+            <div id="category-hover-banner" style="display:none; position:absolute; left:0; right:0; top:-38px; background:#fffde7; color:#795548; border:1px solid #ffe082; border-radius:7px; padding:7px 12px; font-size:0.97em; font-weight:500; z-index:10; text-align:center; pointer-events:none; transition:opacity 0.2s; opacity:0;">
+              Cliquez pour sélectionner cette catégorie
+            </div>
+            {% set categories = [
+              'Marionnette', 'Magie', 'Clown', 'Théâtre', 'Spectacle enfant', 'Atelier', 'Concert', 'Cirque',
+              'Spectacle de rue', 'Orchestre', 'Arbre de Noël', 'Animation école', 'Fête de village'
+            ] %}
+            {% set cat_styles = {
+              'Marionnette':   'background:#a084ca; color:#fff; border:1px solid #7c5eb6;',
+              'Magie':         'background:#1976d2; color:#fff; border:1px solid #1565c0;',
+              'Clown':         'background:#ff9800; color:#fff; border:1px solid #f57c00;',
+              'Théâtre':       'background:#8d6e63; color:#fff; border:1px solid #6d4c41;',
+              'Spectacle enfant': 'background:#43a047; color:#fff; border:1px solid #2e7d32;',
+              'Atelier':       'background:#00bcd4; color:#fff; border:1px solid #008ba3;',
+              'Concert':       'background:#e53935; color:#fff; border:1px solid #b71c1c;',
+              'Cirque':        'background:#fbc02d; color:#fff; border:1px solid #f9a825;',
+              'Spectacle de rue': 'background:#607d8b; color:#fff; border:1px solid #455a64;',
+              'Orchestre':     'background:#6d4c41; color:#fff; border:1px solid #3e2723;',
+              'Arbre de Noël': 'background:#388e3c; color:#fff; border:1px solid #1b5e20;',
+              'Animation école': 'background:#ec407a; color:#fff; border:1px solid #ad1457;',
+              'Fête de village': 'background:#ffb300; color:#fff; border:1px solid #ff6f00;'
+            } %}
+            {% for cat in categories %}
+              <button type="button" class="btn-category"
+                style="padding:4px 10px; border-radius:5px; font-size:0.95em; cursor:pointer; margin-bottom:2px; {{ cat_styles[cat] }}"
+                onmouseover="document.getElementById('category-hover-banner').style.display='block'; document.getElementById('category-hover-banner').style.opacity='1';"
+                onmouseout="document.getElementById('category-hover-banner').style.opacity='0'; setTimeout(function(){document.getElementById('category-hover-banner').style.display='none';},200);"
+                onclick="document.getElementById('category-input').value='{{ cat }}'"
+              >{{ cat }}</button>
+            {% endfor %}
+          </div>
         </div>
-
         <div>
           <label>
             <span class="label-text">Âge / Public</span>
