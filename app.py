@@ -1242,7 +1242,8 @@ def register_routes(app: Flask) -> None:
                         f"Date: {date_val}\n\n"
                         f"Lien direct vers l'annonce (public) : {show_url}\n\n"
                         "Sauf demande explicite de votre part, cette annonce restera en ligne.\n"
-                        "Si vous souhaitez la retirer ou la modifier, merci de nous contacter.\n\n"
+                        "Si vous souhaitez la retirer ou la modifier, merci de nous contacter par simple retour de ce mail.\n\n"
+                        "Aussi, vous bénéficiez dès aujourd'hui d'un abonnement gratuit de six mois (voir onglet Abonnement).\n\n"
                         "Cordialement,\nL'équipe Spectacle'ment"
                     )
                     msg = Message(subject="Votre spectacle est publié sur Spectacle'ment !", recipients=[to_addr])  # type: ignore[arg-type]
