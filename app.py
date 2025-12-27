@@ -1166,7 +1166,9 @@ def register_routes(app: Flask) -> None:
     @login_required
     @admin_required
     def show_new():
+
         if request.method == "POST":
+
             raison_sociale = request.form.get("raison_sociale", "").strip()
             title = request.form.get("title", "").strip()
             description = request.form.get("description", "").strip()
@@ -1176,6 +1178,7 @@ def register_routes(app: Flask) -> None:
             age_range = request.form.get("age_range", "").strip()
             date_str = request.form.get("date", "").strip()
             site_internet = request.form.get("site_internet", "").strip()
+            contact_email = request.form.get("contact_email", "").strip()
 
             date_val = None
             if date_str:
@@ -1214,11 +1217,38 @@ def register_routes(app: Flask) -> None:
                 date=date_val,
                 file_name=file_name,
                 file_mimetype=file_mimetype,
-                    site_internet=site_internet or None,
+                site_internet=site_internet or None,
+                contact_email=contact_email or None,
                 approved=False,
             )
             db.session.add(show)
             db.session.commit()
+
+            # Envoi automatique d'un email avec le lien du spectacle à la compagnie
+            if getattr(current_app, "mail", None) and current_app.config.get("MAIL_USERNAME"):
+                try:
+                    # On privilégie l'email de la compagnie si présent, sinon fallback admin
+                    to_addr = contact_email if contact_email else (current_app.config.get("MAIL_DEFAULT_SENDER") or current_app.config.get("MAIL_USERNAME"))
+                    show_url = url_for("show_detail", show_id=show.id, _external=True)
+                    body = (
+                        "Bonjour,\n\n"
+                        "Spectacle'ment est la plateforme qui promeut gratuitement vos spectacles auprès des mairies, CSE et écoles.\n\n"
+                        f"Le spectacle de votre compagnie ({raison_sociale}) est désormais publié gratuitement sur notre site.\n\n"
+                        f"Titre: {title}\n"
+                        f"Lieu: {location}\n"
+                        f"Catégorie: {category}\n"
+                        f"Date: {date_val}\n\n"
+                        f"Lien direct vers l'annonce (public) : {show_url}\n\n"
+                        "Sauf demande explicite de votre part, cette annonce restera en ligne.\n"
+                        "Si vous souhaitez la retirer ou la modifier, merci de nous contacter.\n\n"
+                        "Cordialement,\nL'équipe Spectacle'ment"
+                    )
+                    msg = Message(subject="Votre spectacle est publié sur Spectacle'ment !", recipients=[to_addr])  # type: ignore[arg-type]
+                    msg.body = body  # type: ignore[assignment]
+                    current_app.mail.send(msg)  # type: ignore[attr-defined]
+                except Exception as e:
+                    print("[MAIL] envoi automatique impossible:", e)
+
             flash("Annonce créée (en attente).", "success")
             return redirect(url_for("admin_dashboard"))
 
