@@ -1037,7 +1037,9 @@ def register_routes(app: Flask) -> None:
         if not show.approved and not (u and u.is_admin):
             flash("Ce spectacle n'est pas encore approuvé.", "warning")
             return redirect(url_for("home"))
-        return render_template("show_detail.html", show=show, user=u)
+        # On ne transmet l'email de contact que si l'admin l'a renseigné (contact_email non vide)
+        admin_email = show.contact_email.strip() if show.contact_email and show.contact_email.strip() else None
+        return render_template("show_detail.html", show=show, user=u, admin_email=admin_email)
 
     # ---------------------------
     # Espace Compagnie
@@ -1233,7 +1235,7 @@ def register_routes(app: Flask) -> None:
                     body = (
                         "Bonjour,\n\n"
                         "Spectacle'ment est la plateforme qui promeut gratuitement vos spectacles auprès des mairies, CSE et écoles.\n\n"
-                        f"Le spectacle de votre compagnie ({raison_sociale}) est désormais publié gratuitement sur notre site.\n\n"
+                        f"Le spectacle de votre compagnie ({raison_sociale}) est désormais publié sur notre site.\n\n"
                         f"Titre: {title}\n"
                         f"Lieu: {location}\n"
                         f"Catégorie: {category}\n"
