@@ -96,12 +96,12 @@
               'Mayotte':                   'background:#b3e5fc; color:#01579b; border:1px solid #0288d1;'
             } %}
             {% for reg in regions %}
-              <button type="button" class="btn-region"
-                style="padding:4px 10px; border-radius:5px; font-size:0.95em; cursor:pointer; margin-bottom:2px; {{ region_styles[reg]|default('background:#eee; color:#333; border:1px solid #bbb;') }}"
-                onmouseover="document.getElementById('region-hover-banner').style.display='block'; document.getElementById('region-hover-banner').style.opacity='1';"
-                onmouseout="document.getElementById('region-hover-banner').style.opacity='0'; setTimeout(function(){document.getElementById('region-hover-banner').style.display='none';},200);"
-                onclick="document.getElementById('region-input').value='{{ reg }}'"
-              >{{ reg }}</button>
+                <button type="button" class="btn-region"
+                  style="padding:4px 10px; border-radius:5px; font-size:0.95em; cursor:pointer; margin-bottom:2px; {{ region_styles[reg]|default('background:#eee; color:#333; border:1px solid #bbb;') }}"
+                  onmouseover="document.getElementById('region-hover-banner').style.display='block'; document.getElementById('region-hover-banner').style.opacity='1';"
+                  onmouseout="document.getElementById('region-hover-banner').style.opacity='0'; setTimeout(function(){document.getElementById('region-hover-banner').style.display='none';},200);"
+                  onclick="ajouterRegion('{{ reg }}')"
+                >{{ reg }}</button>
             {% endfor %}
           </div>
         </div>
@@ -149,10 +149,20 @@
                 style="padding:4px 10px; border-radius:5px; font-size:0.95em; cursor:pointer; margin-bottom:2px; {{ ville_styles[ville]|default('background:#eee; color:#333; border:1px solid #bbb;') }}"
                 onmouseover="document.getElementById('ville-hover-banner').style.display='block'; document.getElementById('ville-hover-banner').style.opacity='1';"
                 onmouseout="document.getElementById('ville-hover-banner').style.opacity='0'; setTimeout(function(){document.getElementById('ville-hover-banner').style.display='none';},200);"
-                onclick="document.getElementById('ville-input').value='{{ ville }}'"
+                 onclick="ajouterVille('{{ ville }}')"
               >{{ ville }}</button>
             {% endfor %}
           </div>
+            <script>
+            function ajouterVille(ville) {
+              var input = document.getElementById('ville-input');
+              var villes = input.value.split(',').map(function(v) { return v.trim(); }).filter(function(v) { return v.length > 0; });
+              if (villes.indexOf(ville) === -1) {
+                villes.push(ville);
+                input.value = villes.join(', ');
+              }
+            }
+            </script>
         </div>
       </div>
       <div class="grid-2">
@@ -168,6 +178,16 @@
             <div id="category-hover-banner" style="display:none; position:absolute; left:0; right:0; top:-38px; background:#fffde7; color:#795548; border:1px solid #ffe082; border-radius:7px; padding:7px 12px; font-size:0.97em; font-weight:500; z-index:10; text-align:center; pointer-events:none; transition:opacity 0.2s; opacity:0;">
               Cliquez pour sélectionner cette catégorie
             </div>
+            <script>
+            function ajouterCategorie(cat) {
+                var input = document.getElementById('category-input');
+                var cats = input.value.split(',').map(function(c) { return c.trim(); }).filter(function(c) { return c.length > 0; });
+                if (cats.indexOf(cat) === -1) {
+                    cats.push(cat);
+                    input.value = cats.join(', ');
+                }
+            }
+            </script>
             {% set categories = [
               'Marionnette', 'Magie', 'Clown', 'Théâtre', 'Spectacle enfant', 'Atelier', 'Concert', 'Cirque',
               'Spectacle de rue', 'Orchestre', 'Arbre de Noël', 'Animation école', 'Fête de village'
@@ -192,7 +212,7 @@
                 style="padding:4px 10px; border-radius:5px; font-size:0.95em; cursor:pointer; margin-bottom:2px; {{ cat_styles[cat] }}"
                 onmouseover="document.getElementById('category-hover-banner').style.display='block'; document.getElementById('category-hover-banner').style.opacity='1';"
                 onmouseout="document.getElementById('category-hover-banner').style.opacity='0'; setTimeout(function(){document.getElementById('category-hover-banner').style.display='none';},200);"
-                onclick="document.getElementById('category-input').value='{{ cat }}'"
+                onclick="ajouterCategorie('{{ cat }}')"
               >{{ cat }}</button>
             {% endfor %}
           </div>
@@ -200,7 +220,14 @@
         <div>
           <label>
             <span class="label-text">Âge / Public</span>
-            <input type="text" name="age_range" placeholder="Ex: 3-6 ans, Tout public, Adulte">
+            <select name="age_range" required>
+              <option value="">-- Choisir --</option>
+              <option value="enfant_2_6">Enfant (2/6 ans)</option>
+              <option value="enfant_6_10">Enfant (6/10 ans)</option>
+              <option value="adolescent">Adolescent</option>
+              <option value="adulte">Adulte</option>
+              <option value="tout public">Tout public</option>
+            </select>
           </label>
         </div>
       </div>
@@ -236,6 +263,16 @@
   </form>
 </div>
 
+              <script>
+              function ajouterRegion(region) {
+                  var input = document.getElementById('region-input');
+                  var regions = input.value.split(',').map(function(r) { return r.trim(); }).filter(function(r) { return r.length > 0; });
+                  if (regions.indexOf(region) === -1) {
+                      regions.push(region);
+                      input.value = regions.join(', ');
+                  }
+              }
+              </script>
 <!-- Limiteur 200 mots (front) -->
 <script>
 (function () {
