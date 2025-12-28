@@ -730,9 +730,42 @@ def register_routes(app: Flask) -> None:
 
         # Préparer les sections : à la une, nouveaux spectacles (6), puis le reste
         a_la_une = [s for s in shows_list if s.category and ("à la une" in s.category.lower() or "a la une" in s.category.lower() or "une" in s.category.lower())]
-        nouveaux = [s for s in shows_list if s not in a_la_une][:6]
+        nouveaux = [s for s in shows_list if s not in a_la_une][:7]
         deja_affiches = set(a_la_une + nouveaux)
-        autres = [s for s in shows_list if s not in deja_affiches]
+
+        # Pagination pour la liste normale
+        # Suppression de l'import inutile Pagination
+        autres_query = [s for s in shows_list if s not in deja_affiches]
+        per_page = 24
+        autres_page = page
+        total_autres = len(autres_query)
+        start = (autres_page - 1) * per_page
+        end = start + per_page
+        autres = autres_query[start:end]
+        # Création d'un objet de pagination factice
+        class SimplePagination:
+            def __init__(self, page, per_page, total):
+                self.page = page
+                self.per_page = per_page
+                self.total = total
+                self.pages = (total + per_page - 1) // per_page
+                self.has_prev = page > 1
+                self.has_next = page < self.pages
+                self.prev_num = page - 1
+                self.next_num = page + 1
+            def iter_pages(self, left_edge=2, right_edge=2, left_current=2, right_current=2):
+                last = 0
+                for num in range(1, self.pages + 1):
+                    if (
+                        num <= left_edge
+                        or num > self.pages - right_edge
+                        or abs(num - self.page) <= left_current
+                    ):
+                        if last + 1 != num:
+                            yield None
+                        yield num
+                        last = num
+        pagination = SimplePagination(autres_page, per_page, total_autres)
 
         return render_template(
             "home.html",
@@ -964,9 +997,10 @@ def register_routes(app: Flask) -> None:
                 file_mimetype=file_mimetype,
                 contact_email=contact_email or None,
                 contact_phone=contact_phone or None,
-                    site_internet=site_internet or None,
+                site_internet=site_internet or None,
                 approved=False,
                 user_id=current_user().id if current_user() else None,   # associer l'auteur
+                created_at=datetime.utcnow(),
             )
             db.session.add(show)
             db.session.commit()
@@ -980,6 +1014,7 @@ def register_routes(app: Flask) -> None:
                         f"📌 Titre: {title}\n"
                         f"📍 Lieu: {location}\n"
                         f"🎪 Catégorie: {category}\n"
+                        f"🗓️ Créé le: {show.created_at.strftime('%d/%m/%Y %H:%M') if show.created_at else ''}\n"
                         f"📅 Date: {date_val}\n\n"
                         f"📧 Email: {contact_email}\n"
                         f"📱 Téléphone: {contact_phone}\n"
@@ -1250,13 +1285,16 @@ def register_routes(app: Flask) -> None:
                         f"Titre: {title}\n"
                         f"Lieu: {location}\n"
                         f"Catégorie: {category}\n"
-                        f"Date: {date_val}\n\n"
+                        f"🗓️ Créé le: {show.created_at.strftime('%d/%m/%Y %H:%M') if show.created_at else ''}\n"
+                    )
+                    if date_val:
+                        body += f"Date: {date_val}\n\n"
+                    body += (
                         f"Lien direct vers l'annonce (public) : {show_url}\n\n"
                         "Sauf demande explicite de votre part, cette annonce restera en ligne.\n"
                         "Si vous souhaitez la retirer ou la modifier, merci de nous contacter par simple retour de ce mail.\n\n"
                         "Aussi, vous bénéficiez dès aujourd'hui d'un abonnement gratuit de six mois (voir onglet Abonnement).\n\n"
                         "N'hésitez pas à vous inscrire et ajouter vos spectacles sur la plateforme (Inscription/Connexion > Ajouter votre spectacle).\n\n"
-                         
                         "Cordialement,\nL'équipe Spectacle'ment VØtre"
                     )
                     msg = Message(subject="Votre spectacle est publié sur Spectacle'ment VØtre !", recipients=[to_addr])  # type: ignore[arg-type]

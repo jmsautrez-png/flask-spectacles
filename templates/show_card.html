@@ -28,6 +28,9 @@
           <span style="color:rgba(255,255,255,0.9);">{{ show.age_range }}</span>
         </div>
         {% endif %}
+        <div style="color:#b3e5fc;font-size:0.82em;margin-top:2px;">
+          <span style="opacity:0.7;">🗓️ Créé le :</span> {{ show.created_at.strftime('%d/%m/%Y') if show.created_at else '' }}
+        </div>
       </div>
       {% if not show.approved %}
       {% endif %}
