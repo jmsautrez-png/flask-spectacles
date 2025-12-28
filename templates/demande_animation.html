@@ -12,6 +12,8 @@
   </p>
 
   <form action="{{ url_for('demande_animation') }}" method="POST" class="form demande-form" novalidate>
+
+      <input type="hidden" name="auto_datetime" id="auto_datetime" value="">
     
     <fieldset class="demande-section">
       <legend>1) Vos coordonnées</legend>
@@ -145,6 +147,18 @@
       <span style="display:block; margin-top:10px; font-size:0.95em; color:var(--muted);">Réponse rapide — vous serez contacté par e-mail / téléphone.</span>
     </div>
   </form>
+
+  <script>
+  // Remplit le champ caché auto_datetime avec la date et l'heure locale au chargement du formulaire
+  document.addEventListener('DOMContentLoaded', function() {
+    var now = new Date();
+    var formatted = now.toLocaleDateString('fr-FR') + ' ' + now.toLocaleTimeString('fr-FR');
+    var input = document.getElementById('auto_datetime');
+    if (input) {
+      input.value = formatted;
+    }
+  });
+  </script>
 </div>
 
 {# Hide SEO block on this conversion-focused page #}

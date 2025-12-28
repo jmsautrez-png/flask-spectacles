@@ -983,9 +983,10 @@ def register_routes(app: Flask) -> None:
                         f"📌 Titre: {title}\n"
                         f"📍 Lieu: {location}\n"
                         f"🎪 Catégorie: {category}\n"
-                        f"📅 Date: {date_val}\n\n"
-                        f"📧 Email: {contact_email}\n"
-                        f"📱 Téléphone: {contact_phone}\n"
+                        + (f"📅 Date: {date_val}\n\n" if date_val else "")
+                        + f"Date de création de la fiche : {show.created_at.strftime('%d/%m/%Y %H:%M')}\n\n"
+                        + f"📧 Email: {contact_email}\n"
+                        + f"📱 Téléphone: {contact_phone}\n"
                     )
                     msg = Message(subject="🎭 Nouvelle annonce à valider", recipients=[to_addr])  # type: ignore[arg-type]
                     msg.body = body  # type: ignore[assignment]
@@ -1253,14 +1254,14 @@ def register_routes(app: Flask) -> None:
                         f"Titre: {title}\n"
                         f"Lieu: {location}\n"
                         f"Catégorie: {category}\n"
-                        f"Date: {date_val}\n\n"
-                        f"Lien direct vers l'annonce (public) : {show_url}\n\n"
-                        "Sauf demande explicite de votre part, cette annonce restera en ligne.\n"
-                        "Si vous souhaitez la retirer ou la modifier, merci de nous contacter par simple retour de ce mail.\n\n"
-                        "Aussi, vous bénéficiez dès aujourd'hui d'un abonnement gratuit de six mois (voir onglet Abonnement).\n\n"
-                        "N'hésitez pas à vous inscrire et ajouter vos spectacles sur la plateforme (Inscription/Connexion > Ajouter votre spectacle).\n\n"
-                         
-                        "Cordialement,\nL'équipe Spectacle'ment VØtre"
+                        + (f"Date: {date_val}\n\n" if date_val else "")
+                        + f"Date de création de la fiche : {show.created_at.strftime('%d/%m/%Y %H:%M')}\n\n"
+                        + f"Lien direct vers l'annonce (public) : {show_url}\n\n"
+                        + "Sauf demande explicite de votre part, cette annonce restera en ligne.\n"
+                        + "Si vous souhaitez la retirer ou la modifier, merci de nous contacter par simple retour de ce mail.\n\n"
+                        + "Aussi, vous bénéficiez dès aujourd'hui d'un abonnement gratuit de six mois (voir onglet Abonnement).\n\n"
+                        + "N'hésitez pas à vous inscrire et ajouter vos spectacles sur la plateforme (Inscription/Connexion > Ajouter votre spectacle).\n\n"
+                        + "Cordialement,\nL'équipe Spectacle'ment VØtre"
                     )
                     msg = Message(subject="Votre spectacle est publié sur Spectacle'ment VØtre !", recipients=[to_addr])  # type: ignore[arg-type]
                     msg.body = body  # type: ignore[assignment]
@@ -1367,6 +1368,8 @@ def register_routes(app: Flask) -> None:
     @app.route("/demande_animation", methods=["GET", "POST"])
     def demande_animation():
         if request.method == "POST":
+            # Récupérer la date et l'heure d'envoi automatique
+            auto_datetime = request.form.get("auto_datetime", "")
             # Récupération des données du formulaire
             structure = request.form.get("structure", "").strip()
             telephone = request.form.get("telephone", "").strip()
@@ -1396,6 +1399,7 @@ def register_routes(app: Flask) -> None:
                     body = f"""
 Nouvelle demande d'animation
 
+Date et heure de la demande (automatique) : {auto_datetime}
 Structure: {structure}
 Contact: {nom}
 Téléphone: {telephone}

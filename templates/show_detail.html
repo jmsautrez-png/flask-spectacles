@@ -24,15 +24,15 @@
 
 <div style="max-width:900px; margin:0 auto;">
   <!-- Back Button -->
-  <a href="{{ url_for('home') }}" class="back-link" style="display:inline-flex; align-items:center; gap:8px; margin-bottom:24px; padding:10px 16px; color:#fff; text-decoration:none; background:linear-gradient(135deg,#162447 0%,#283e5e 100%); border:2px solid #283e5e; border-radius:10px; font-weight:500; box-shadow:0 2px 8px #16244722; transition:all 0.2s;">
+  <a href="{{ url_for('home') }}" class="back-link" style="display:inline-flex; align-items:center; gap:8px; margin-bottom:24px; padding:10px 16px; color:var(--text); text-decoration:none; background:var(--panel); border:1px solid var(--border); border-radius:8px; font-weight:500; transition:all 0.2s ease;">
     <span>←</span> Retour aux spectacles
   </a>
   
-  <article class="card" style="max-width:none; background:linear-gradient(135deg,#1b2a4e 0%,#355c7d 100%); box-shadow:0 4px 16px #355c7d22; border-radius:18px; color:#fff;">
+  <article class="card" style="max-width:none; box-shadow:0 4px 16px rgba(0,0,0,0.2);">
     {% if show.has_image() or show.is_pdf() %}
-      <div class="media" style="aspect-ratio:16/9; max-height:450px; display:flex; align-items:center; justify-content:center; background:linear-gradient(135deg,#162447 0%,#283e5e 100%); border-radius:14px; box-shadow:0 2px 8px #16244722;">
+      <div class="media" style="aspect-ratio:16/9; max-height:450px;">
         {% if show.has_image() %}
-          <img src="{{ url_for('uploaded_file', filename=show.file_name) }}" alt="{{ show.title }}" style="max-width:100%; max-height:100%; width:auto; height:auto; object-fit:contain;">
+          <img src="{{ url_for('uploaded_file', filename=show.file_name) }}" alt="{{ show.title }}" style="width:100%; height:100%; object-fit:cover;">
         {% elif show.is_pdf() %}
           <a class="pdf-thumb" href="{{ url_for('uploaded_file', filename=show.file_name) }}" target="_blank" style="font-size:2rem;">📄 Voir le PDF</a>
         {% endif %}
@@ -56,11 +56,11 @@
         {% if show.age_range %}
           <span class="badge">👶 {{ show.age_range }}</span>
         {% endif %}
-        {% if show.location %}
-          <span class="badge">📍 {{ show.location }}</span>
-        {% endif %}
         {% if show.region %}
           <span class="badge">🗺️ {{ show.region }}</span>
+        {% endif %}
+        {% if show.location %}
+          <span class="badge">📍 {{ show.location }}</span>
         {% endif %}
         {% if show.date %}
           <span class="badge">📅 {{ show.date.strftime('%d/%m/%Y') }}</span>
@@ -69,26 +69,27 @@
 
       <!-- Description -->
       {% if show.description %}
-        <div style="margin-bottom:32px; padding:20px; background:linear-gradient(135deg,#162447 0%,#283e5e 100%); border-left:3px solid #1976d2; border-radius:12px; box-shadow:0 2px 8px #16244722; color:#fff;">
+        <div style="margin-bottom:32px; padding:20px; background:rgba(255,255,255,0.02); border-left:3px solid var(--primary); border-radius:8px;">
           <h3 style="margin:0 0 12px 0; font-size:1.1rem; color:var(--text);">Description</h3>
           <p style="line-height:1.7; color:#ddd; margin:0; font-size:1rem;">{{ show.description }}</p>
         </div>
       {% endif %}
 
       <!-- Contact Section -->
-      {% if admin_email or show.contact_phone or show.site_internet %}
-        <div style="margin-bottom:32px; padding:24px; background:linear-gradient(135deg,#162447 0%,#283e5e 100%); border:2px solid #283e5e; border-radius:14px; box-shadow:0 2px 8px #16244722; color:#fff;">
+      {% if show.contact_email or show.contact_phone or show.site_internet %}
+        <div style="margin-bottom:32px; padding:24px; background:var(--panel); border:1px solid var(--border); border-radius:12px;">
           <h3 style="margin:0 0 16px 0; font-size:1.2rem; color:var(--text);">Contact</h3>
           <div style="display:flex; flex-direction:column; gap:12px;">
-            {% if admin_email %}
-              <a href="mailto:{{ admin_email }}" class="contact-item" style="display:flex; align-items:center; gap:12px; padding:12px 16px; background:rgba(255,255,255,0.03); border:1px solid var(--border); border-radius:8px; color:var(--text); text-decoration:none; transition:all 0.2s ease;">
+            {% if show.contact_email %}
+              <a href="mailto:{{ show.contact_email }}" class="contact-item" style="display:flex; align-items:center; gap:12px; padding:12px 16px; background:rgba(255,255,255,0.03); border:1px solid var(--border); border-radius:8px; color:var(--text); text-decoration:none; transition:all 0.2s ease;">
                 <span style="font-size:1.3rem;">✉️</span>
                 <div style="flex:1;">
                   <div style="font-size:0.8rem; color:var(--muted); margin-bottom:2px;">Email</div>
-                  <div style="font-weight:500; color:var(--primary);">{{ admin_email }}</div>
+                  <div style="font-weight:500; color:var(--primary);">{{ show.contact_email }}</div>
                 </div>
               </a>
             {% endif %}
+            
             {% if show.contact_phone %}
               <div class="contact-item" style="display:flex; align-items:center; gap:12px; padding:12px 16px; background:rgba(255,255,255,0.03); border:1px solid var(--border); border-radius:8px;">
                 <span style="font-size:1.3rem;">📞</span>
@@ -98,6 +99,7 @@
                 </div>
               </div>
             {% endif %}
+            
             {% if show.site_internet %}
               <a href="{{ show.site_internet }}" target="_blank" rel="noopener" class="contact-item" style="display:flex; align-items:center; gap:12px; padding:12px 16px; background:rgba(255,255,255,0.03); border:1px solid var(--border); border-radius:8px; color:var(--text); text-decoration:none; transition:all 0.2s ease;">
                 <span style="font-size:1.3rem;">🌐</span>
@@ -114,12 +116,22 @@
 
       <!-- Download File -->
       {% if show.file_name %}
-        <a href="{{ url_for('uploaded_file', filename=show.file_name) }}" target="_blank" style="display:inline-flex; align-items:center; gap:10px; padding:14px 20px; background:linear-gradient(135deg,#1976d2 0%,#355c7d 100%); color:white; text-decoration:none; border-radius:10px; font-weight:700; transition:all 0.2s; box-shadow:0 2px 8px #1976d244;">
+        <a href="{{ url_for('uploaded_file', filename=show.file_name) }}" target="_blank" style="display:inline-flex; align-items:center; gap:10px; padding:14px 20px; background:var(--primary); color:white; text-decoration:none; border-radius:10px; font-weight:600; transition:all 0.2s ease; box-shadow:0 2px 8px rgba(220,38,38,0.3);">
           <span style="font-size:1.2rem;">📎</span>
           Télécharger le fichier
         </a>
       {% endif %}
     </div>
+    {% if show.created_at %}
+    <div style="margin:32px 0 0 0; padding:16px; background:#f8f9fa; color:#222; border-radius:10px; text-align:center; font-size:1.05em;">
+      <strong>Date de création de la fiche :</strong> {{ show.created_at.strftime('%d/%m/%Y %H:%M') }}
+    </div>
+    {% endif %}
+    {% if show.auto_datetime %}
+    <div style="margin-top:32px; padding:16px; background:#f8f9fa; color:#222; border-radius:10px; text-align:center; font-size:1.05em;">
+      <strong>Date de création de la demande :</strong> {{ show.auto_datetime }}
+    </div>
+    {% endif %}
   </article>
 </div>
 
