@@ -707,10 +707,8 @@ def register_routes(app: Flask) -> None:
                 shows = shows.filter(Show.date <= d2)
 
         # Tri : annonces validées d'abord, puis par date
-        if sort == "desc":
-            shows = shows.order_by(Show.approved.desc(), Show.date.desc().nullslast(), Show.created_at.desc())
-        else:
-            shows = shows.order_by(Show.approved.desc(), Show.date.asc().nullsfirst(), Show.created_at.asc())
+        # Toujours trier du plus récent au plus ancien pour l'affichage
+        shows = shows.order_by(Show.created_at.desc())
 
         # Pagination : 30 résultats par page
         try:
