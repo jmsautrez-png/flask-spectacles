@@ -1,0 +1,51 @@
+<article class="card" style="border:2px solid #222;border-radius:16px;box-shadow:0 2px 12px #0008;padding:0 0 8px 0;transition:box-shadow .2s;color:#fff;">
+  <a href="{{ url_for('show_detail', show_id=show.id) }}" class="media-link">
+    <div class="media">
+      {% if show.has_image() %}
+        <img src="{{ url_for('uploaded_file', filename=show.file_name) }}" alt="{{ show.title }}">
+      {% elif show.is_pdf() %}
+        <div class="pdf-thumb">
+          <a href="{{ url_for('uploaded_file', filename=show.file_name) }}" target="_blank" rel="noopener">PDF</a>
+        </div>
+      {% else %}
+        <div class="placeholder">Aucun fichier</div>
+      {% endif %}
+    </div>
+  </a>
+
+  <a href="{{ url_for('show_detail', show_id=show.id) }}" class="content-link">
+    <div class="content">
+      {% if show.raison_sociale %}
+        <p class="meta" style="font-weight:600; margin-bottom:8px; color:var(--primary); font-size:0.85em;">
+          {{ show.raison_sociale }}
+        </p>
+      {% endif %}
+      <h3 style="margin:0 0 6px 0; line-height:1.2;">{{ show.title }}</h3>
+      <div style="display:flex; flex-direction:column; gap:4px; font-size:0.85em; margin-top:-2px;">
+        {% if show.age_range %}
+        <div style="display:flex; align-items:center; gap:6px;">
+          <span style="opacity:0.7; min-width:20px;">👥</span>
+          <span style="color:rgba(255,255,255,0.9);">{{ show.age_range }}</span>
+        </div>
+        {% endif %}
+      </div>
+      {% if not show.approved %}
+      {% endif %}
+    </div>
+  </a>
+
+  {% if user and user.is_admin %}
+  <div class="actions">
+    <a href="{{ url_for('show_edit', show_id=show.id) }}">Modifier</a>
+    <form action="{{ url_for('show_delete', show_id=show.id) }}" method="post"
+          onsubmit="return confirm('Supprimer cette annonce ?');">
+      <button type="submit" class="danger">Supprimer</button>
+    </form>
+    {% if not show.approved %}
+    <form action="{{ url_for('show_approve', show_id=show.id) }}" method="post">
+      <button type="submit">✅ Valider</button>
+    </form>
+    {% endif %}
+  </div>
+  {% endif %}
+</article>

@@ -712,36 +712,33 @@ def register_routes(app: Flask) -> None:
         else:
             shows = shows.order_by(Show.approved.desc(), Show.date.asc().nullsfirst(), Show.created_at.asc())
 
-        # Pagination : 30 résultats par page
+
+        # Affichage de tous les nouveaux spectacles (les plus récents) sur une seule page, sans pagination
         try:
-            pagination = shows.paginate(page=page, per_page=24, error_out=False)
-            shows_list = pagination.items
+            shows_list = shows.order_by(Show.created_at.desc()).all()
+            pagination = None
         except Exception as e:
             current_app.logger.exception("Erreur lors de la requête /home: %s", e)
             flash("Une erreur est survenue lors de la recherche.", "danger")
-            pagination = None
             shows_list = []
+            pagination = None
 
         categories = [c[0] for c in db.session.query(Show.category).distinct().all() if c[0]]
         locations = [l[0] for l in db.session.query(Show.location).distinct().all() if l[0]]
 
         # Tri personnalisé : Spectacle enfant d'abord, Atelier en dernier, autres entre les deux
 
-        def genre_order(show):
-            cat = (show.category or '').strip().lower()
-            if 'à la une' in cat or 'a la une' in cat or 'une' in cat:
-                return 0
-            elif 'enfant' in cat:
-                return 1
-            elif 'atelier' in cat:
-                return 3
-            else:
-                return 2
-        shows_list_sorted = sorted(shows_list, key=genre_order)
+        # Préparer les sections : à la une, nouveaux spectacles (6), puis le reste
+        a_la_une = [s for s in shows_list if s.category and ("à la une" in s.category.lower() or "a la une" in s.category.lower() or "une" in s.category.lower())]
+        nouveaux = [s for s in shows_list if s not in a_la_une][:6]
+        deja_affiches = set(a_la_une + nouveaux)
+        autres = [s for s in shows_list if s not in deja_affiches]
 
         return render_template(
             "home.html",
-            shows=shows_list_sorted,
+            a_la_une=a_la_une,
+            nouveaux=nouveaux,
+            autres=autres,
             pagination=pagination,
             q=q,
             category=category,

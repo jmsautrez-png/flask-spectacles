@@ -44,71 +44,41 @@
   <!-- COLONNE GAUCHE : catalogue -->
   <div class="page-main">
     <h2 id="catalogue-title" style="margin-top:0; margin-bottom:16px; font-size:1.15rem; font-weight:500; color:#fff; line-height:1.4;">Spectacle'ment VØtre la plateforme qui connecte facilement les organisateurs d’événements avec des artistes et compagnies de spectacle vivant.</h2>
-    <div class="cards">
-      {% for show in shows or [] %}
-      <article class="card" style="border:2px solid #222;border-radius:16px;box-shadow:0 2px 12px #0008;padding:0 0 8px 0;transition:box-shadow .2s;color:#fff;">
-        <a href="{{ url_for('show_detail', show_id=show.id) }}" class="media-link">
-          <div class="media">
-            {% if show.has_image() %}
-              <img src="{{ url_for('uploaded_file', filename=show.file_name) }}" alt="{{ show.title }}">
-            {% elif show.is_pdf() %}
-              <div class="pdf-thumb">
-                <a href="{{ url_for('uploaded_file', filename=show.file_name) }}" target="_blank" rel="noopener">PDF</a>
-              </div>
-            {% else %}
-              <div class="placeholder">Aucun fichier</div>
-            {% endif %}
-          </div>
-        </a>
+    <!-- Section 1 : Spectacle à la une -->
+    {% if a_la_une %}
+    <section style="margin-bottom:32px;">
+      <h2 style="color:#ffd700;font-size:1.3em;margin-bottom:18px;">🌟 Spectacle à la une</h2>
+      <div class="cards">
+        {% for show in a_la_une %}
+          {% include 'show_card.html' %}
+        {% endfor %}
+      </div>
+    </section>
+    {% endif %}
 
-        <a href="{{ url_for('show_detail', show_id=show.id) }}" class="content-link">
-          <div class="content">
-            {% if show.raison_sociale %}
-              <p class="meta" style="font-weight:600; margin-bottom:8px; color:var(--primary); font-size:0.85em;">
-                {{ show.raison_sociale }}
-              </p>
-            {% endif %}
-            <h3 style="margin:0 0 6px 0; line-height:1.2;">{{ show.title }}</h3>
-            
-            <div style="display:flex; flex-direction:column; gap:4px; font-size:0.85em; margin-top:-2px;">
+    <!-- Section 2 : Nouveaux spectacles -->
+    {% if nouveaux %}
+    <section style="margin-bottom:32px;">
+      <h2 style="color:#4fc3f7;font-size:1.15em;margin-bottom:18px;">🆕 Nouveaux spectacles</h2>
+      <div class="cards">
+        {% for show in nouveaux %}
+          {% include 'show_card.html' %}
+        {% endfor %}
+      </div>
+    </section>
+    {% endif %}
 
-              
-
-              
-              {% if show.age_range %}
-              <div style="display:flex; align-items:center; gap:6px;">
-                <span style="opacity:0.7; min-width:20px;">👥</span>
-                <span style="color:rgba(255,255,255,0.9);">{{ show.age_range }}</span>
-              </div>
-              {% endif %}
-
-            </div>
-            
-            {% if not show.approved %}
-
-            {% endif %}
-          </div>
-        </a>
-
-        {% if user and user.is_admin %}
-        <div class="actions">
-          <a href="{{ url_for('show_edit', show_id=show.id) }}">Modifier</a>
-
-          <form action="{{ url_for('show_delete', show_id=show.id) }}" method="post"
-                onsubmit="return confirm('Supprimer cette annonce ?');">
-            <button type="submit" class="danger">Supprimer</button>
-          </form>
-
-          {% if not show.approved %}
-          <form action="{{ url_for('show_approve', show_id=show.id) }}" method="post">
-            <button type="submit">✅ Valider</button>
-          </form>
-          {% endif %}
-        </div>
-        {% endif %}
-      </article>
-      {% endfor %}
-    </div>
+    <!-- Section 3 : Liste normale -->
+    {% if autres %}
+    <section>
+      <h2 style="color:#fff;font-size:1.1em;margin-bottom:18px;">Tous les spectacles</h2>
+      <div class="cards">
+        {% for show in autres %}
+          {% include 'show_card.html' %}
+        {% endfor %}
+      </div>
+    </section>
+    {% endif %}
 
     {# PAGINATION #}
     {% if pagination and pagination.pages > 1 %}
