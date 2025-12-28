@@ -729,23 +729,22 @@ def register_routes(app: Flask) -> None:
         # Tri personnalisé : Spectacle enfant d'abord, Atelier en dernier, autres entre les deux
 
         # Préparer les sections : à la une, nouveaux spectacles (7 créés dans les 30 derniers jours), puis le reste
-        from datetime import datetime, timedelta
-        now = datetime.utcnow()
-        last_30_days = now - timedelta(days=30)
-        a_la_une = [s for s in shows_list if s.category and ("à la une" in s.category.lower() or "a la une" in s.category.lower() or "une" in s.category.lower())]
-        nouveaux = [s for s in shows_list if s not in a_la_une and s.created_at and s.created_at >= last_30_days][:7]
-        deja_affiches = set(a_la_une + nouveaux)
-
-        # Pagination pour la liste normale
-        # Suppression de l'import inutile Pagination
-        autres_query = [s for s in shows_list if s not in deja_affiches]
-        per_page = 16
-        autres_page = page
-        total_autres = len(autres_query)
-        start = (autres_page - 1) * per_page
+        # Section "à la une" : 8 cartes max, visible uniquement sur la première page
+        a_la_une = []
+        nouveaute_query = []
+        per_page = 24
+        if page == 1:
+            a_la_une = [s for s in shows_list if s.category and ("à la une" in s.category.lower() or "a la une" in s.category.lower() or "une" in s.category.lower())][:8]
+            nouveaute_query = [s for s in shows_list if s not in a_la_une][:16]
+            # Pour la pagination, on retire les 16 premières cartes déjà affichées
+            paginated_query = [s for s in shows_list if s not in a_la_une][16:]
+        else:
+            paginated_query = [s for s in shows_list if not (s.category and ("à la une" in s.category.lower() or "a la une" in s.category.lower() or "une" in s.category.lower()))]
+        # Pagination : 24 cartes par page (3 rangées de 8)
+        start = (page - 2) * per_page if page > 1 else 0
         end = start + per_page
-        autres = autres_query[start:end]
-        # Création d'un objet de pagination factice
+        nouveaute = paginated_query[start:end] if page > 1 else nouveaute_query
+        # Pagination pour nouveauté
         class SimplePagination:
             def __init__(self, page, per_page, total):
                 self.page = page
@@ -768,13 +767,16 @@ def register_routes(app: Flask) -> None:
                             yield None
                         yield num
                         last = num
-        pagination = SimplePagination(autres_page, per_page, total_autres)
+        if page == 1:
+            total_nouveaute = len([s for s in shows_list if s not in a_la_une])
+        else:
+            total_nouveaute = len(paginated_query)
+        pagination = SimplePagination(page, per_page, total_nouveaute)
 
         return render_template(
             "home.html",
             a_la_une=a_la_une,
-            nouveaux=nouveaux,
-            autres=autres,
+            nouveaute=nouveaute,
             pagination=pagination,
             q=q,
             category=category,

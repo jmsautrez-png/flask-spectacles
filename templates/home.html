@@ -44,11 +44,13 @@
   <!-- COLONNE GAUCHE : catalogue -->
   <div class="page-main">
     <h2 id="catalogue-title" style="margin-top:0; margin-bottom:16px; font-size:1.15rem; font-weight:500; color:#fff; line-height:1.4;">Spectacle'ment VØtre la plateforme qui connecte facilement les organisateurs d’événements avec des artistes et compagnies de spectacle vivant.</h2>
+
+
     <!-- Section 1 : Spectacle à la une -->
     {% if a_la_une %}
     <section style="margin-bottom:32px;">
       <h2 style="color:#ffd700;font-size:1.3em;margin-bottom:18px;">🌟 Spectacle à la une</h2>
-      <div class="cards">
+      <div class="cards" style="display:grid;grid-template-columns:repeat(8,1fr);gap:24px;">
         {% for show in a_la_une %}
           {% include 'show_card.html' %}
         {% endfor %}
@@ -56,24 +58,12 @@
     </section>
     {% endif %}
 
-    <!-- Section 2 : Nouveaux spectacles -->
-    {% if nouveaux %}
+    <!-- Section 2 : Nouveauté -->
+    {% if nouveaute %}
     <section style="margin-bottom:32px;">
-      <h2 style="color:#4fc3f7;font-size:1.15em;margin-bottom:18px;">🆕 Nouveaux spectacles</h2>
-      <div class="cards">
-        {% for show in nouveaux %}
-          {% include 'show_card.html' %}
-        {% endfor %}
-      </div>
-    </section>
-    {% endif %}
-
-    <!-- Section 3 : Liste normale -->
-    {% if autres %}
-    <section>
-      <h2 style="color:#fff;font-size:1.1em;margin-bottom:18px;">Tous les spectacles</h2>
-      <div class="cards">
-        {% for show in autres %}
+      <h2 style="color:#4fc3f7;font-size:1.15em;margin-bottom:18px;">🆕 Nouveauté</h2>
+      <div class="cards" style="display:grid;grid-template-columns:repeat(8,1fr);gap:24px;">
+        {% for show in nouveaute %}
           {% include 'show_card.html' %}
         {% endfor %}
       </div>
