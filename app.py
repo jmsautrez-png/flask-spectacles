@@ -725,9 +725,23 @@ def register_routes(app: Flask) -> None:
         categories = [c[0] for c in db.session.query(Show.category).distinct().all() if c[0]]
         locations = [l[0] for l in db.session.query(Show.location).distinct().all() if l[0]]
 
+        # Tri personnalisé : Spectacle enfant d'abord, Atelier en dernier, autres entre les deux
+
+        def genre_order(show):
+            cat = (show.category or '').strip().lower()
+            if 'à la une' in cat or 'a la une' in cat or 'une' in cat:
+                return 0
+            elif 'enfant' in cat:
+                return 1
+            elif 'atelier' in cat:
+                return 3
+            else:
+                return 2
+        shows_list_sorted = sorted(shows_list, key=genre_order)
+
         return render_template(
             "home.html",
-            shows=shows_list,
+            shows=shows_list_sorted,
             pagination=pagination,
             q=q,
             category=category,
@@ -1234,7 +1248,7 @@ def register_routes(app: Flask) -> None:
                     show_url = url_for("show_detail", show_id=show.id, _external=True)
                     body = (
                         "Bonjour,\n\n"
-                        "Spectacle'ment est la plateforme qui promeut gratuitement vos spectacles auprès des mairies, CSE et écoles.\n\n"
+                        "Spectacle'ment VØtre est la plateforme qui promeut gratuitement vos spectacles auprès des mairies, CSE et écoles.\n\n"
                         f"Le spectacle de votre compagnie ({raison_sociale}) est désormais publié sur notre site.\n\n"
                         f"Titre: {title}\n"
                         f"Lieu: {location}\n"
@@ -1244,9 +1258,11 @@ def register_routes(app: Flask) -> None:
                         "Sauf demande explicite de votre part, cette annonce restera en ligne.\n"
                         "Si vous souhaitez la retirer ou la modifier, merci de nous contacter par simple retour de ce mail.\n\n"
                         "Aussi, vous bénéficiez dès aujourd'hui d'un abonnement gratuit de six mois (voir onglet Abonnement).\n\n"
-                        "Cordialement,\nL'équipe Spectacle'ment"
+                        "N'hésitez pas à vous inscrire et ajouter vos spectacles sur la plateforme (Inscription/Connexion > Ajouter votre spectacle).\n\n"
+                         
+                        "Cordialement,\nL'équipe Spectacle'ment VØtre"
                     )
-                    msg = Message(subject="Votre spectacle est publié sur Spectacle'ment !", recipients=[to_addr])  # type: ignore[arg-type]
+                    msg = Message(subject="Votre spectacle est publié sur Spectacle'ment VØtre !", recipients=[to_addr])  # type: ignore[arg-type]
                     msg.body = body  # type: ignore[assignment]
                     current_app.mail.send(msg)  # type: ignore[attr-defined]
                 except Exception as e:
