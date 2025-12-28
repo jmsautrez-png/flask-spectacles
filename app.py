@@ -728,15 +728,18 @@ def register_routes(app: Flask) -> None:
 
         # Tri personnalisé : Spectacle enfant d'abord, Atelier en dernier, autres entre les deux
 
-        # Préparer les sections : à la une, nouveaux spectacles (6), puis le reste
+        # Préparer les sections : à la une, nouveaux spectacles (7 créés dans les 30 derniers jours), puis le reste
+        from datetime import datetime, timedelta
+        now = datetime.utcnow()
+        last_30_days = now - timedelta(days=30)
         a_la_une = [s for s in shows_list if s.category and ("à la une" in s.category.lower() or "a la une" in s.category.lower() or "une" in s.category.lower())]
-        nouveaux = [s for s in shows_list if s not in a_la_une][:7]
+        nouveaux = [s for s in shows_list if s not in a_la_une and s.created_at and s.created_at >= last_30_days][:7]
         deja_affiches = set(a_la_une + nouveaux)
 
         # Pagination pour la liste normale
         # Suppression de l'import inutile Pagination
         autres_query = [s for s in shows_list if s not in deja_affiches]
-        per_page = 24
+        per_page = 16
         autres_page = page
         total_autres = len(autres_query)
         start = (autres_page - 1) * per_page
