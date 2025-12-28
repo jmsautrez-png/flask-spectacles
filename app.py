@@ -741,9 +741,12 @@ def register_routes(app: Flask) -> None:
         else:
             paginated_query = [s for s in shows_list if not (s.category and ("à la une" in s.category.lower() or "a la une" in s.category.lower() or "une" in s.category.lower()))]
         # Pagination : 24 cartes par page (3 rangées de 8)
-        start = (page - 2) * per_page if page > 1 else 0
-        end = start + per_page
-        nouveaute = paginated_query[start:end] if page > 1 else nouveaute_query
+        if page > 1:
+            start = (page - 2) * per_page
+            end = start + per_page
+            nouveaute = paginated_query[start:end]
+        else:
+            nouveaute = nouveaute_query
         # Pagination pour nouveauté
         class SimplePagination:
             def __init__(self, page, per_page, total):
