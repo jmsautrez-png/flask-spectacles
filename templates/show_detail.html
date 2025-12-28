@@ -123,8 +123,8 @@
       {% endif %}
     </div>
     {% if show.created_at %}
-    <div style="margin:32px 0 0 0; padding:16px; background:#f8f9fa; color:#222; border-radius:10px; text-align:center; font-size:1.05em;">
-      <strong>Date de création de la fiche :</strong> {{ show.created_at.strftime('%d/%m/%Y %H:%M') }}
+    <div style="width:100%; text-align:center; margin-top:18px;">
+      <span style="color:#b0b8d8; font-size:0.95em; font-style:italic;">{{ show.created_at.strftime('%d/%m/%Y %H:%M') }}</span>
     </div>
     {% endif %}
     {% if show.auto_datetime %}
