@@ -713,10 +713,11 @@ def register_routes(app: Flask) -> None:
             shows = shows.order_by(Show.approved.desc(), Show.date.asc().nullsfirst(), Show.created_at.asc())
 
 
-        # Affichage de tous les nouveaux spectacles (les plus récents) sur une seule page, sans pagination
+        # Pagination classique : 24 spectacles par page
+        per_page = 24
         try:
-            shows_list = shows.order_by(Show.created_at.desc()).all()
-            pagination = None
+            pagination = shows.order_by(Show.created_at.desc()).paginate(page=page, per_page=per_page, error_out=False)
+            shows_list = pagination.items
         except Exception as e:
             current_app.logger.exception("Erreur lors de la requête /home: %s", e)
             flash("Une erreur est survenue lors de la recherche.", "danger")
@@ -726,60 +727,9 @@ def register_routes(app: Flask) -> None:
         categories = [c[0] for c in db.session.query(Show.category).distinct().all() if c[0]]
         locations = [l[0] for l in db.session.query(Show.location).distinct().all() if l[0]]
 
-        # Tri personnalisé : Spectacle enfant d'abord, Atelier en dernier, autres entre les deux
-
-        # Préparer les sections : à la une, nouveaux spectacles (7 créés dans les 30 derniers jours), puis le reste
-        # Section "à la une" : 8 cartes max, visible uniquement sur la première page
-        a_la_une = []
-        nouveaute_query = []
-        per_page = 24
-        if page == 1:
-            a_la_une = [s for s in shows_list if s.category and ("à la une" in s.category.lower() or "a la une" in s.category.lower() or "une" in s.category.lower())][:8]
-            nouveaute_query = [s for s in shows_list if s not in a_la_une][:16]
-            # Pour la pagination, on retire les 16 premières cartes déjà affichées
-            paginated_query = [s for s in shows_list if s not in a_la_une][16:]
-        else:
-            paginated_query = [s for s in shows_list if not (s.category and ("à la une" in s.category.lower() or "a la une" in s.category.lower() or "une" in s.category.lower()))]
-        # Pagination : 24 cartes par page (3 rangées de 8)
-        if page > 1:
-            start = (page - 2) * per_page
-            end = start + per_page
-            nouveaute = paginated_query[start:end]
-        else:
-            nouveaute = nouveaute_query
-        # Pagination pour nouveauté
-        class SimplePagination:
-            def __init__(self, page, per_page, total):
-                self.page = page
-                self.per_page = per_page
-                self.total = total
-                self.pages = (total + per_page - 1) // per_page
-                self.has_prev = page > 1
-                self.has_next = page < self.pages
-                self.prev_num = page - 1
-                self.next_num = page + 1
-            def iter_pages(self, left_edge=2, right_edge=2, left_current=2, right_current=2):
-                last = 0
-                for num in range(1, self.pages + 1):
-                    if (
-                        num <= left_edge
-                        or num > self.pages - right_edge
-                        or abs(num - self.page) <= left_current
-                    ):
-                        if last + 1 != num:
-                            yield None
-                        yield num
-                        last = num
-        if page == 1:
-            total_nouveaute = len([s for s in shows_list if s not in a_la_une])
-        else:
-            total_nouveaute = len(paginated_query)
-        pagination = SimplePagination(page, per_page, total_nouveaute)
-
         return render_template(
             "home.html",
-            a_la_une=a_la_une,
-            nouveaute=nouveaute,
+            shows=shows_list,
             pagination=pagination,
             q=q,
             category=category,

@@ -46,29 +46,58 @@
     <h2 id="catalogue-title" style="margin-top:0; margin-bottom:16px; font-size:1.15rem; font-weight:500; color:#fff; line-height:1.4;">Spectacle'ment VØtre la plateforme qui connecte facilement les organisateurs d’événements avec des artistes et compagnies de spectacle vivant.</h2>
 
 
-    <!-- Section 1 : Spectacle à la une -->
-    {% if a_la_une %}
-    <section style="margin-bottom:32px;">
-      <h2 style="color:#ffd700;font-size:1.3em;margin-bottom:18px;">🌟 Spectacle à la une</h2>
-      <div class="cards" style="display:grid;grid-template-columns:repeat(8,1fr);gap:24px;">
-        {% for show in a_la_une %}
-          {% include 'show_card.html' %}
-        {% endfor %}
-      </div>
-    </section>
-    {% endif %}
-
-    <!-- Section 2 : Nouveauté -->
-    {% if nouveaute %}
-    <section style="margin-bottom:32px;">
-      <h2 style="color:#4fc3f7;font-size:1.15em;margin-bottom:18px;">🆕 Nouveauté</h2>
-      <div class="cards" style="display:grid;grid-template-columns:repeat(8,1fr);gap:24px;">
-        {% for show in nouveaute %}
-          {% include 'show_card.html' %}
-        {% endfor %}
-      </div>
-    </section>
-    {% endif %}
+    <div class="cards">
+      {% for show in shows or [] %}
+        <article class="card">
+          <a href="{{ url_for('show_detail', show_id=show.id) }}" class="media-link">
+            <div class="media">
+              {% if show.has_image() %}
+                <img src="{{ url_for('uploaded_file', filename=show.file_name) }}" alt="{{ show.title }}">
+              {% elif show.is_pdf() %}
+                <div class="pdf-thumb">
+                  <a href="{{ url_for('uploaded_file', filename=show.file_name) }}" target="_blank" rel="noopener">PDF</a>
+                </div>
+              {% else %}
+                <div class="placeholder">Aucun fichier</div>
+              {% endif %}
+            </div>
+          </a>
+          <a href="{{ url_for('show_detail', show_id=show.id) }}" class="content-link">
+            <div class="content">
+              {% if show.raison_sociale %}
+                <p class="meta" style="font-weight:600; margin-bottom:8px; color:var(--primary); font-size:0.85em;">
+                  {{ show.raison_sociale }}
+                </p>
+              {% endif %}
+              <h3 style="margin:0 0 6px 0; line-height:1.2;">{{ show.title }}</h3>
+              <div style="display:flex; flex-direction:column; gap:4px; font-size:0.85em; margin-top:-2px;">
+                {% if show.category %}
+                <div style="display:flex; align-items:center; gap:6px;">
+                  <span style="opacity:0.7; min-width:20px;">🎭</span>
+                  <span>{{ show.category }}</span>
+                </div>
+                {% endif %}
+                {% if show.location %}
+                <div style="display:flex; align-items:center; gap:6px;">
+                  <span style="opacity:0.7; min-width:20px;">📍</span>
+                  <span>{{ show.location }}</span>
+                </div>
+                {% endif %}
+                {% if show.age_range %}
+                <div style="display:flex; align-items:center; gap:6px;">
+                  <span style="opacity:0.7; min-width:20px;">👶</span>
+                  <span>{{ show.age_range }}</span>
+                </div>
+                {% endif %}
+              </div>
+              {% if show.description %}
+                <p class="desc">{{ show.description }}</p>
+              {% endif %}
+            </div>
+          </a>
+        </article>
+      {% endfor %}
+    </div>
 
     {# PAGINATION #}
     {% if pagination and pagination.pages > 1 %}
