@@ -159,7 +159,7 @@
               var villes = input.value.split(',').map(function(v) { return v.trim(); }).filter(function(v) { return v.length > 0; });
               if (villes.indexOf(ville) === -1) {
                 villes.push(ville);
-                input.value = villes.join(', ');
+                input.value = villes.join(' | ');
               }
             }
             </script>
@@ -184,7 +184,7 @@
                 var cats = input.value.split(',').map(function(c) { return c.trim(); }).filter(function(c) { return c.length > 0; });
                 if (cats.indexOf(cat) === -1) {
                     cats.push(cat);
-                    input.value = cats.join(', ');
+                    input.value = cats.join(' | ');
                 }
             }
             </script>
@@ -271,7 +271,7 @@
                   var regions = input.value.split(',').map(function(r) { return r.trim(); }).filter(function(r) { return r.length > 0; });
                   if (regions.indexOf(region) === -1) {
                       regions.push(region);
-                      input.value = regions.join(', ');
+                      input.value = regions.join(' | ');
                   }
               }
               </script>

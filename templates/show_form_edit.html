@@ -50,7 +50,7 @@
           var current = input.value.split(',').map(function(s){return s.trim();}).filter(Boolean);
           if (!current.includes(city)) {
             current.push(city);
-            input.value = current.join(', ');
+            input.value = current.join(' | ');
           }
         }
       </script>
@@ -85,7 +85,7 @@
         var current = input.value.split(',').map(function(s){return s.trim();}).filter(Boolean);
         if (!current.includes(region)) {
           current.push(region);
-          input.value = current.join(', ');
+          input.value = current.join(' | ');
         }
       }
     </script>
@@ -116,7 +116,7 @@
       var current = input.value.split(',').map(function(s){return s.trim();}).filter(Boolean);
       if (!current.includes(cat)) {
         current.push(cat);
-        input.value = current.join(', ');
+        input.value = current.join(' | ');
       }
     }
   </script>
