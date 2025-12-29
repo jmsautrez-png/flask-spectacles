@@ -31,9 +31,9 @@
         {% if show.raison_sociale %}<p class="meta" style="font-weight:600; margin-bottom:8px; color:var(--primary);">{{ show.raison_sociale }}</p>{% endif %}
         <h3>{{ show.title }}</h3>
         <p class="meta">
-          {{ show.category }}
+          {% if show.age_range %}<span class="badge-age">{{ show.age_range }}</span>{% endif %}
+          {% if show.category %} • {{ show.category }}{% endif %}
           {% if show.location %} • {{ show.location }}{% endif %}
-          {% if show.age_range %} • {{ show.age_range }}{% endif %}
         </p>
         {% if show.description %}<p class="desc">{{ show.description }}</p>{% endif %}
         {% if show.contact_email %}<p class="meta">Contact : {{ show.contact_email }}</p>{% endif %}

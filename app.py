@@ -1277,7 +1277,6 @@ def register_routes(app: Flask) -> None:
     @admin_required
     def show_edit(show_id: int):
         show = Show.query.get_or_404(show_id)
-
         if request.method == "POST":
             show.raison_sociale = request.form.get("raison_sociale", "").strip() or None
             show.title = request.form.get("title", "").strip()
@@ -1285,6 +1284,7 @@ def register_routes(app: Flask) -> None:
             show.region = request.form.get("region", "").strip() or None
             show.location = request.form.get("location", "").strip()
             show.category = request.form.get("category", "").strip()
+            show.age_range = request.form.get("age_range", "").strip() or None
             show.contact_email = request.form.get("contact_email", "").strip() or None
             show.contact_phone = request.form.get("contact_phone", "").strip() or None
             date_str = request.form.get("date", "").strip()
@@ -1302,7 +1302,7 @@ def register_routes(app: Flask) -> None:
                 if not allowed_file(file.filename):
                     flash("Type de fichier non autorisé (pdf/jpg/jpeg/png/webp/gif).", "danger")
                     return redirect(request.url)
-                
+
                 # Vérifier la taille du fichier
                 is_valid, error_msg = validate_file_size(file)
                 if not is_valid:
