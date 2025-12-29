@@ -1,5 +1,5 @@
-b pandas
-b openpyxl
+pandas
+openpyxl
 rapidfuzz
 Flask>=3.0
 Flask-SQLAlchemy>=3.1
