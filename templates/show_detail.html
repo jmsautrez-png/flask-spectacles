@@ -54,7 +54,11 @@
           <span class="badge badge-category">{{ show.category }}</span>
         {% endif %}
         {% if show.age_range %}
-          <span class="badge">👶 {{ show.age_range }}</span>
+          {% if 'enfant' in show.age_range|lower %}
+            <span class="badge">👶 ({{ show.age_range }}ans)</span>
+          {% else %}
+            <span class="badge">({{ show.age_range }}ans)</span>
+          {% endif %}
         {% endif %}
         {% if show.region %}
           <span class="badge">🗺️ {{ show.region }}</span>
