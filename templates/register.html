@@ -32,10 +32,26 @@
         </label>
       </div>
 
-      <label style="margin-bottom:0;">
+      <label style="margin-bottom:0; position:relative;">
         <span class="label-text">Mot de passe <span class="req">*</span></span>
-        <input type="password" name="password" required placeholder="Choisissez un mot de passe sécurisé">
+        <input type="password" name="password" id="register-password" required placeholder="Choisissez un mot de passe sécurisé" style="padding-right:38px;">
+        <span onclick="togglePasswordRegister()" style="position:absolute; right:10px; top:38px; cursor:pointer; color:#1976d2; font-size:1.2em; user-select:none;" title="Afficher/masquer le mot de passe">
+          <svg id="eye-register" xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2" d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12Z"/><circle id="eye-dot-register" cx="12" cy="12" r="3" fill="currentColor"/></svg>
+        </span>
       </label>
+    <script>
+    function togglePasswordRegister() {
+      const input = document.getElementById('register-password');
+      const eye = document.getElementById('eye-register');
+      if (input.type === 'password') {
+        input.type = 'text';
+        eye.style.opacity = 0.5;
+      } else {
+        input.type = 'password';
+        eye.style.opacity = 1;
+      }
+    }
+    </script>
     </fieldset>
 
     <fieldset class="demande-section">
@@ -66,7 +82,8 @@
         <div style="background:#e3f2fd; color:#1565c0; border:1px solid #90caf9; border-radius:7px; padding:7px 12px; margin:10px 0 8px 0; font-size:0.97em; font-weight:500;">
           Cliquez sur une région pour remplir automatiquement le champ ci-dessus&nbsp;:
         </div>
-        <div class="region-buttons" style="display:flex; flex-wrap:wrap; gap:6px; margin-bottom:14px; position:relative;">
+        <!-- Bandeau supprimé -->
+        <div class="region-buttons" style="display:flex; flex-wrap:wrap; gap:6px; margin-bottom:14px; position:relative; border-radius:8px; border:1px solid #1976d2; background:linear-gradient(135deg,#162447 0%,#283e5e 100%); padding:12px 0 6px 0;">
           <div id="region-hover-banner" style="display:none; position:absolute; left:0; right:0; top:-38px; background:#fffde7; color:#795548; border:1px solid #ffe082; border-radius:7px; padding:7px 12px; font-size:0.97em; font-weight:500; z-index:10; text-align:center; pointer-events:none; transition:opacity 0.2s; opacity:0;">
             Cliquez pour sélectionner cette région
           </div>
@@ -76,8 +93,13 @@
             'Nouvelle-Aquitaine', 'Occitanie', 'Pays de la Loire', 'Provence-Alpes-Côte d\'Azur',
             'Guadeloupe', 'Martinique', 'Guyane', 'La Réunion', 'Mayotte'
           ] %}
+          {% set region_colors = [
+            '#e67e22', '#8e44ad', '#e74c3c', '#2980b9', '#16a085', '#f1c40f', '#2ecc71', '#e84393',
+            '#34495e', '#00b894', '#fdcb6e', '#00bfff', '#636e72', '#ff7675', '#00cec9', '#e17055', '#0984e3', '#b2bec3'
+          ] %}
           {% for reg in regions %}
-            <button type="button" class="btn-region" style="padding:4px 10px; border-radius:5px; border:1px solid var(--border); background:var(--panel); color:var(--text); font-size:0.95em; cursor:pointer;"
+            {% set color = region_colors[loop.index0 % region_colors|length] %}
+            <button type="button" class="btn-region" style="padding:4px 10px; border-radius:5px; border:1px solid {{ color }}; background:linear-gradient(135deg,{{ color }} 0%,#fff 100%); color:#222; font-size:0.95em; cursor:pointer; font-weight:600; box-shadow:0 2px 8px {{ color }}44; transition:all 0.2s;"
               onmouseover="document.getElementById('region-hover-banner').style.display='block'; document.getElementById('region-hover-banner').style.opacity='1';"
               onmouseout="document.getElementById('region-hover-banner').style.opacity='0'; setTimeout(function(){document.getElementById('region-hover-banner').style.display='none';},200);"
               onclick="document.getElementById('region-input').value='{{ reg }}'"

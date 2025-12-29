@@ -1648,7 +1648,34 @@ Accessibilité: {accessibilite}
 # -----------------------------------------------------
 # Entrée
 # -----------------------------------------------------
+
 app = create_app()
+
+# === ROUTE EXPORT UTILISATEURS EXCEL ===
+import pandas as pd
+from flask import send_file
+@app.route("/admin/export-users-xlsx")
+@login_required
+@admin_required
+def export_users_xlsx():
+    users = User.query.all()
+    data = []
+    for u in users:
+        # Prendre le premier spectacle associé (si existant)
+        show = u.shows[0] if hasattr(u, 'shows') and u.shows else None
+        data.append({
+            "ID": u.id,
+            "Nom d'utilisateur": u.username,
+            "Email": show.contact_email if show else "",
+            "Admin": "VRAI" if getattr(u, "is_admin", False) else "FAUX",
+            "Région": show.region if show else "",
+            "Ville": show.location if show else "",
+            "Nom du spectacle": show.title if show else ""
+        })
+    df = pd.DataFrame(data)
+    file_path = "instance/utilisateurs_export.xlsx"
+    df.to_excel(file_path, index=False)
+    return send_file(file_path, as_attachment=True)
 
 if __name__ == "__main__":
     import os

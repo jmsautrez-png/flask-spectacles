@@ -114,17 +114,11 @@
         </div>
       {% endif %}
 
-      <!-- Download File -->
-      {% if show.file_name %}
-        <a href="{{ url_for('uploaded_file', filename=show.file_name) }}" target="_blank" style="display:inline-flex; align-items:center; gap:10px; padding:14px 20px; background:var(--primary); color:white; text-decoration:none; border-radius:10px; font-weight:600; transition:all 0.2s ease; box-shadow:0 2px 8px rgba(220,38,38,0.3);">
-          <span style="font-size:1.2rem;">📎</span>
-          Télécharger le fichier
-        </a>
-      {% endif %}
+      <!-- Download File supprimé -->
     </div>
     {% if show.created_at %}
     <div style="width:100%; text-align:center; margin-top:18px;">
-      <span style="color:#b0b8d8; font-size:0.95em; font-style:italic;">{{ show.created_at.strftime('%d/%m/%Y %H:%M') }}</span>
+      <span style="color:#b0b8d8; font-size:0.95em;">{{ show.created_at.strftime('%d/%m/%Y %H:%M') }}</span>
     </div>
     {% endif %}
     {% if show.auto_datetime %}

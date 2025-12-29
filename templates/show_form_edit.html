@@ -128,24 +128,25 @@
       <option value="">-- Choisir --</option>
       <option value="enfant_2_6" {% if (request.form.get('age_range') if request.method=='POST' else (show.age_range if show else '')) == 'enfant_2_6' %}selected{% endif %}>Enfant (2/6 ans)</option>
       <option value="enfant_6_10" {% if (request.form.get('age_range') if request.method=='POST' else (show.age_range if show else '')) == 'enfant_6_10' %}selected{% endif %}>Enfant (6/10 ans)</option>
-        <option value="adolescent" {% if (request.form.get('age_range') if request.method=='POST' else (show.age_range if show else '')) == 'adolescent' %}selected{% endif %}>Adolescent</option>
+      <option value="enfant_2_10" {% if (request.form.get('age_range') if request.method=='POST' else (show.age_range if show else '')) == 'enfant_2_10' %}selected{% endif %}>Enfant (2/10 ans)</option>
+      <option value="adolescent" {% if (request.form.get('age_range') if request.method=='POST' else (show.age_range if show else '')) == 'adolescent' %}selected{% endif %}>Adolescent</option>
       <option value="adulte" {% if (request.form.get('age_range') if request.method=='POST' else (show.age_range if show else '')) == 'adulte' %}selected{% endif %}>Adulte</option>
       <option value="tout public" {% if (request.form.get('age_range') if request.method=='POST' else (show.age_range if show else '')) == 'tout public' %}selected{% endif %}>Tout public</option>
     </select>
   </label>
 
   <label>Site internet
-    <input type="url" name="site_internet" placeholder="https://www.monsite.fr" value="{{ show.site_internet if show and show.site_internet else '' }}">
+    <input type="url" name="site_internet" placeholder="https://spectacleanimation.fr/" value="{{ request.form.get('site_internet', 'https://spectacleanimation.fr/') }}">
     <span style="font-size:0.95rem;color:#fff;font-weight:bold;display:block;margin-top:2px;">(visible si abonnement)</span>
   </label>
 
   <label>Email de contact <span style="font-size:0.85rem;font-weight:normal;color:var(--muted);">(Modifiable uniquement par l'admin)</span>
-    <input type="email" name="contact_email" value="{{ show.contact_email or 'audition_2020@yahoo.fr' }}">
+    <input type="email" name="contact_email" value="{{ request.form.get('contact_email', 'contact@spectacleanimation.fr') }}">
     <span style="font-size:0.95rem;color:#fff;font-weight:bold;display:block;margin-top:2px;">(visible si abonnement)</span>
   </label>
 
   <label>Téléphone de contact <span style="font-size:0.85rem;font-weight:normal;color:var(--muted);">(visible uniquement par l'administrateur)</span>
-    <input type="tel" name="contact_phone" value="{{ show.contact_phone or '' }}" placeholder="06 12 34 56 78">
+    <input type="tel" name="contact_phone" value="{{ show.contact_phone or '06 76 07 01 79' }}" placeholder="06 76 07 01 79">
   </label>
 
   {% if show.file_name %}

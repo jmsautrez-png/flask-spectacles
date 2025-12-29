@@ -68,9 +68,13 @@
 
         <label style="margin-bottom:16px;">
           <span class="label-text">Email de contact <span style="font-size:0.85rem;font-weight:normal;color:var(--muted);">(Modifiable uniquement par l'admin)</span></span>
-          <input type="email" name="contact_email" placeholder="exemple@compagnie.fr" value="{{ show.contact_email if show and show.contact_email else '' }}">
+          <input type="email" name="contact_email" placeholder="contact@spectacleanimation.fr" value="{{ request.form.get('contact_email', 'contact@spectacleanimation.fr') }}">
           <small class="hint">L'adresse email de la compagnie qui recevra le courriel de confirmation.</small>
         </label>
+      <label style="margin-bottom:16px;">
+        <span class="label-text">Téléphone de contact <span style="font-size:0.85rem;font-weight:normal;color:var(--muted);">(visible uniquement par l'administrateur)</span></span>
+        <input type="tel" name="contact_phone" placeholder="06 76 07 01 79" value="{{ request.form.get('contact_phone', '06 76 07 01 79') }}">
+      </label>
       <label style="margin-bottom:16px;">
         <span class="label-text">Site internet</span>
         <input type="url" name="site_internet" placeholder="https://www.monsite.fr" value="{{ show.site_internet if show and show.site_internet else '' }}">

@@ -190,7 +190,7 @@
             </script>
             {% set categories = [
               'Marionnette', 'Magie', 'Clown', 'Théâtre', 'Spectacle enfant', 'Atelier', 'Concert', 'Cirque',
-              'Spectacle de rue', 'Orchestre', 'Arbre de Noël', 'Animation école', 'Fête de village'
+              'Spectacle de rue', 'Orchestre', 'Arbre de Noël', 'Animation école', 'Fête de village', 'Danse'
             ] %}
             {% set cat_styles = {
               'Marionnette':   'background:#a084ca; color:#fff; border:1px solid #7c5eb6;',
@@ -205,7 +205,8 @@
               'Orchestre':     'background:#6d4c41; color:#fff; border:1px solid #3e2723;',
               'Arbre de Noël': 'background:#388e3c; color:#fff; border:1px solid #1b5e20;',
               'Animation école': 'background:#ec407a; color:#fff; border:1px solid #ad1457;',
-              'Fête de village': 'background:#ffb300; color:#fff; border:1px solid #ff6f00;'
+              'Fête de village': 'background:#ffb300; color:#fff; border:1px solid #ff6f00;',
+              'Danse': 'background:#ab47bc; color:#fff; border:1px solid #7c43bd;'
             } %}
             {% for cat in categories %}
               <button type="button" class="btn-category"
@@ -224,6 +225,7 @@
               <option value="">-- Choisir --</option>
               <option value="enfant_2_6">Enfant (2/6 ans)</option>
               <option value="enfant_6_10">Enfant (6/10 ans)</option>
+              <option value="enfant_2_10">Enfant (2/10 ans)</option>
               <option value="adolescent">Adolescent</option>
               <option value="adulte">Adulte</option>
               <option value="tout public">Tout public</option>
