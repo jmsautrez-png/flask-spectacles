@@ -57,7 +57,7 @@
           {% if 'enfant' in show.age_range|lower %}
             <span class="badge">👶 ({{ show.age_range }}ans)</span>
           {% else %}
-            <span class="badge">({{ show.age_range }}ans)</span>
+            <span class="badge">({{ show.age_range }})</span>
           {% endif %}
         {% endif %}
         {% if show.region %}
@@ -69,6 +69,21 @@
         {% if show.date %}
           <span class="badge">📅 {{ show.date.strftime('%d/%m/%Y') }}</span>
         {% endif %}
+        <!-- Réseaux sociaux -->
+        <div style="display:flex; gap:10px; margin-top:10px;">
+          <a class="mail" href="https://www.youtube.com/channel/UC2rnnkYFYivh59fPhuoBLXg" title="Notre chaine Youtube" target="_blank" style="text-decoration:none; color:#c4302b; font-size:1.3em;">
+            <i class="fa fa-youtube"></i> YouTube
+          </a>
+          <a class="facebook" href="https://www.facebook.com/compagnieartemisia" title="Notre page Facebook" target="_blank" style="text-decoration:none; color:#3b5998; font-size:1.3em;">
+            <i class="fa fa-facebook"></i> Facebook
+          </a>
+          <a class="twitter" href="https://twitter.com/Cieartemisia" title="Artémisia sur Twitter" target="_blank" style="text-decoration:none; color:#1da1f2; font-size:1.3em;">
+            <i class="fa fa-twitter"></i> Twitter
+          </a>
+          <a class="mail" href="mailto:compagnieartemisia@gmail.com?subject=Demande d'information Cie Artémisia" title="Nous contacter par Email" style="text-decoration:none; color:#222; font-size:1.3em;">
+            <i class="fa fa-envelope"></i> Email
+          </a>
+        </div>
       </div>
 
       <!-- Description -->
