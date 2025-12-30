@@ -985,6 +985,9 @@ def register_routes(app: Flask) -> None:
                         + f"Date de création de la fiche : {show.created_at.strftime('%d/%m/%Y %H:%M')}\n\n"
                         + f"📧 Email: {contact_email}\n"
                         + f"📱 Téléphone: {contact_phone}\n"
+                        + "\n\nAussi, vous bénéficiez dès aujourd'hui d'un abonnement gratuit de six mois (voir onglet Abonnement).\n"
+                        + "L'abonnement est optionnel. La plateforme Spectacle'ment Vôtre est avant tout un annuaire du spectacle vivant français.\n"
+                        + "\nCordialement,\nL'équipe Spectacle'ment VØtre"
                     )
                     msg = Message(subject="🎭 Nouvelle annonce à valider", recipients=[to_addr])  # type: ignore[arg-type]
                     msg.body = body  # type: ignore[assignment]
@@ -1254,8 +1257,7 @@ def register_routes(app: Flask) -> None:
                         f"Catégorie: {category}\n"
                         + (f"Date: {date_val}\n\n" if date_val else "")
                         + f"Date de création de la fiche : {show.created_at.strftime('%d/%m/%Y %H:%M')}\n\n"
-                        + f"Lien direct vers l'annonce (public) : {show_url}\n\n"
-                        + "Sauf demande explicite de votre part, cette annonce restera en ligne.\n"
+                        + f"Lien direct vers l'annonce (public) : {show_url}\n\n" 
                         + "Si vous souhaitez la retirer ou la modifier, merci de nous contacter par simple retour de ce mail.\n\n"
                         + "Aussi, vous bénéficiez dès aujourd'hui d'un abonnement gratuit de six mois (voir onglet Abonnement).\n\n"
                         + "N'hésitez pas à vous inscrire et ajouter vos spectacles sur la plateforme (Inscription/Connexion > Ajouter votre spectacle).\n\n"
