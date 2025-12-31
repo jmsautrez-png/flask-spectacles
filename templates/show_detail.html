@@ -69,23 +69,7 @@
         {% if show.date %}
           <span class="badge">📅 {{ show.date.strftime('%d/%m/%Y') }}</span>
         {% endif %}
-        <!-- Réseaux sociaux -->
-        <div style="display:flex; gap:10px; margin-top:10px;">
-          <a class="mail" href="https://www.youtube.com/channel/UC2rnnkYFYivh59fPhuoBLXg" title="Notre chaine Youtube" target="_blank" style="text-decoration:none; color:#c4302b; font-size:1.3em;">
-            <i class="fa fa-youtube"></i> YouTube
-          </a>
-          <a class="facebook" href="https://www.facebook.com/compagnieartemisia" title="Notre page Facebook" target="_blank" style="text-decoration:none; color:#3b5998; font-size:1.3em;">
-            <i class="fa fa-facebook"></i> Facebook
-          </a>
-          <a class="twitter" href="https://twitter.com/Cieartemisia" title="Artémisia sur Twitter" target="_blank" style="text-decoration:none; color:#1da1f2; font-size:1.3em;">
-            <i class="fa fa-twitter"></i> Twitter
-          </a>
-          <a class="mail" href="mailto:compagnieartemisia@gmail.com?subject=Demande d'information Cie Artémisia" title="Nous contacter par Email" style="text-decoration:none; color:#222; font-size:1.3em;">
-            <i class="fa fa-envelope"></i> Email
-          </a>
-        </div>
       </div>
-
       <!-- Description -->
       {% if show.description %}
         <div style="margin-bottom:32px; padding:20px; background:rgba(255,255,255,0.02); border-left:3px solid var(--primary); border-radius:8px;">
@@ -137,7 +121,7 @@
     </div>
     {% if show.created_at %}
     <div style="width:100%; text-align:center; margin-top:18px;">
-      <span style="color:#b0b8d8; font-size:0.95em;">{{ show.created_at.strftime('%d/%m/%Y %H:%M') }}</span>
+      <span style="color:#b0b8d8; font-size:0.95em;">publié le {{ show.created_at.strftime('%d/%m/%Y %H:%M') }}</span>
     </div>
     {% endif %}
     {% if show.auto_datetime %}
@@ -145,10 +129,34 @@
       <strong>Date de création de la demande :</strong> {{ show.auto_datetime }}
     </div>
     {% endif %}
+    <!-- Réseaux sociaux en bas de fiche -->
+    <div style="display:flex; flex-direction:row; align-items:flex-start; gap:12px; margin:32px 0 0 0; flex-wrap:wrap;">
+      <a class="social-bandeau youtube" href="https://www.youtube.com/channel/UC2rnnkYFYivh59fPhuoBLXg" title="Notre chaine Youtube" target="_blank">
+        <i class="fa fa-youtube"></i> <span>YouTube</span>
+      </a>
+      <a class="social-bandeau facebook" href="https://www.facebook.com/compagnieartemisia" title="Notre page Facebook" target="_blank">
+        <i class="fa fa-facebook"></i> <span>Facebook</span>
+      </a>
+      <a class="social-bandeau twitter" href="https://twitter.com/Cieartemisia" title="Artémisia sur Twitter" target="_blank">
+        <i class="fa fa-twitter"></i> <span>Twitter</span>
+      </a>
+      <a class="btn-demande" href="{{ url_for('demande_animation') }}" style="display:flex; align-items:center; gap:8px; padding:10px 22px; border-radius:8px; background:linear-gradient(90deg,#43a047 60%,#388e3c 100%); color:#fff; font-weight:700; font-size:1.08em; text-decoration:none; box-shadow:0 2px 8px rgba(0,0,0,0.08); transition:box-shadow 0.2s,transform 0.2s;">
+        <i class="fa fa-magic"></i> <span>Demande de spectacle</span>
+      </a>
+    </div>
   </article>
 </div>
 
 <style>
+a.btn-demande {
+  border: none;
+  cursor: pointer;
+}
+a.btn-demande:hover {
+  box-shadow: 0 4px 16px rgba(67,160,71,0.18);
+  transform: translateY(-2px) scale(1.03);
+  background: linear-gradient(90deg,#388e3c 60%,#43a047 100%);
+}
 .badge {
   display: inline-flex;
   align-items: center;
@@ -185,6 +193,39 @@ a[href*="uploaded_file"]:hover {
   background: var(--primary-hover) !important;
   transform: translateY(-2px);
   box-shadow: 0 4px 16px rgba(220,38,38,0.4) !important;
+}
+a.social-bandeau {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 18px;
+  border-radius: 8px;
+  font-size: 1.08em;
+  font-weight: 600;
+  text-decoration: none;
+  margin-bottom: 2px;
+  transition: box-shadow 0.2s, transform 0.2s;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+a.social-bandeau.youtube {
+  background: linear-gradient(90deg,#c4302b 60%,#e52d27 100%);
+  color: #fff;
+}
+a.social-bandeau.facebook {
+  background: linear-gradient(90deg,#3b5998 60%,#4267B2 100%);
+  color: #fff;
+}
+a.social-bandeau.twitter {
+  background: linear-gradient(90deg,#1da1f2 60%,#0a95dd 100%);
+  color: #fff;
+}
+a.social-bandeau.email {
+  background: linear-gradient(90deg,#222 60%,#555 100%);
+  color: #fff;
+}
+a.social-bandeau:hover {
+  box-shadow: 0 4px 16px rgba(0,0,0,0.18);
+  transform: translateY(-2px) scale(1.03);
 }
 </style>
 {% endblock %}
