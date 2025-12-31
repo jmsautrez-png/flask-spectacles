@@ -1,3 +1,26 @@
+  <label>Email de contact <span style="font-size:0.85rem;font-weight:normal;color:var(--muted);">(Modifiable uniquement par l'admin)</span>
+    {% if user and user.is_admin %}
+      <input type="email" name="contact_email" value="{{ request.form.get('contact_email', 'contact@spectacleanimation.fr') }}">
+    {% else %}
+      <input type="email" name="contact_email" value="{{ request.form.get('contact_email', 'contact@spectacleanimation.fr') }}" readonly style="background:#eee; color:#888; cursor:not-allowed;">
+    {% endif %}
+  </label>
+
+  <label>Téléphone de contact <span style="font-size:0.85rem;font-weight:normal;color:var(--muted);">(Modifiable uniquement par l'admin)</span>
+    {% if user and user.is_admin %}
+      <input type="tel" name="contact_phone" value="{{ show.contact_phone or '06 76 07 01 79' }}" placeholder="06 76 07 01 79">
+    {% else %}
+      <input type="tel" name="contact_phone" value="{{ show.contact_phone or '06 76 07 01 79' }}" placeholder="06 76 07 01 79" readonly style="background:#eee; color:#888; cursor:not-allowed;">
+    {% endif %}
+  </label>
+
+  <label>Site internet <span style="font-size:0.85rem;font-weight:normal;color:var(--muted);">(Modifiable uniquement par l'admin)</span>
+    {% if user and user.is_admin %}
+      <input type="url" name="site_internet" placeholder="https://spectacleanimation.fr/" value="{{ request.form.get('site_internet', 'https://spectacleanimation.fr/') }}">
+    {% else %}
+      <input type="url" name="site_internet" placeholder="https://spectacleanimation.fr/" value="{{ request.form.get('site_internet', 'https://spectacleanimation.fr/') }}" readonly style="background:#eee; color:#888; cursor:not-allowed;">
+    {% endif %}
+  </label>
 {% extends "base.html" %}
 {% block title %}Compléter le spectacle - AnimatoSpectacle{% endblock %}
 {% block content %}
@@ -137,17 +160,29 @@
   </label>
 
   <label>Site internet
-    <input type="url" name="site_internet" placeholder="https://spectacleanimation.fr/" value="{{ request.form.get('site_internet', 'https://spectacleanimation.fr/') }}">
+    {% if user and user.is_admin %}
+      <input type="url" name="site_internet" placeholder="https://spectacleanimation.fr/" value="{{ request.form.get('site_internet', 'https://spectacleanimation.fr/') }}">
+    {% else %}
+      <input type="url" name="site_internet" placeholder="https://spectacleanimation.fr/" value="{{ request.form.get('site_internet', 'https://spectacleanimation.fr/') }}" readonly style="background:#eee; color:#888; cursor:not-allowed;">
+    {% endif %}
     <span style="font-size:0.95rem;color:#fff;font-weight:bold;display:block;margin-top:2px;">(visible si abonnement)</span>
   </label>
 
   <label>Email de contact <span style="font-size:0.85rem;font-weight:normal;color:var(--muted);">(Modifiable uniquement par l'admin)</span>
-    <input type="email" name="contact_email" value="{{ request.form.get('contact_email', 'contact@spectacleanimation.fr') }}">
+    {% if user and user.is_admin %}
+      <input type="email" name="contact_email" value="{{ request.form.get('contact_email', 'contact@spectacleanimation.fr') }}">
+    {% else %}
+      <input type="email" name="contact_email" value="{{ request.form.get('contact_email', 'contact@spectacleanimation.fr') }}" readonly style="background:#eee; color:#888; cursor:not-allowed;">
+    {% endif %}
     <span style="font-size:0.95rem;color:#fff;font-weight:bold;display:block;margin-top:2px;">(visible si abonnement)</span>
   </label>
 
   <label>Téléphone de contact <span style="font-size:0.85rem;font-weight:normal;color:var(--muted);">(visible uniquement par l'administrateur)</span>
-    <input type="tel" name="contact_phone" value="{{ show.contact_phone or '06 76 07 01 79' }}" placeholder="06 76 07 01 79">
+    {% if user and user.is_admin %}
+      <input type="tel" name="contact_phone" value="{{ show.contact_phone or '06 76 07 01 79' }}" placeholder="06 76 07 01 79">
+    {% else %}
+      <input type="tel" name="contact_phone" value="{{ show.contact_phone or '06 76 07 01 79' }}" placeholder="06 76 07 01 79" readonly style="background:#eee; color:#888; cursor:not-allowed;">
+    {% endif %}
   </label>
 
   {% if show.file_name %}
