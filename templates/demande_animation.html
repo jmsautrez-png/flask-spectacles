@@ -6,9 +6,10 @@
   Spectacle'ment VØtre la plateforme qui connecte facilement les organisateurs d’événements avec des artistes et compagnies de spectacle vivant.
 </div>
 <div class="demande-wrap" style="background:linear-gradient(135deg,#1b2a4e 0%,#355c7d 100%); border:2px solid #355c7d; border-radius:16px; padding:32px; margin-bottom:32px; position:relative; overflow:hidden; box-shadow:0 4px 16px #355c7d22; color:#fff;">
-  <h1 style="margin:0 0 8px 0;">Demande d'Animation ou Spectacle (gratuit)</h1>
-  <p class="text-muted" style="margin:0 0 24px 0;">
-    Remplissez les informations essentielles. Les champs marqués <span style="color:var(--primary); font-weight:700;">*</span> sont obligatoires.
+  <h1 style="margin:0 0 8px 0; text-align:center;">Demande d'Animation ou Spectacle</h1>
+  <p class="text-muted" style="margin:0 0 24px 0; text-align:center;">
+    Remplissez les informations essentielles. Les champs marqués <span style="color:var(--primary); font-weight:700;">*</span> sont obligatoires.<br>
+    <span style="display:block; margin-top:10px; font-size:0.95em; color:hsl(210, 12%, 97%);">Votre demande sera envoyée à tout nos abonnés</span>
   </p>
 
   <form action="{{ url_for('demande_animation') }}" method="POST" class="form demande-form" novalidate>
@@ -85,6 +86,9 @@
           <select id="age_range" name="age_range" required>
             <option value="">-- Choisir --</option>
             <option value="enfant" {% if request.form.get('age_range','') == 'enfant' %}selected{% endif %}>Enfant</option>
+            <option value="enfant_2_6" {% if request.form.get('age_range','') == 'enfant_2_6' %}selected{% endif %}>Enfant (2/6ans)</option>
+            <option value="enfant_5_10" {% if request.form.get('age_range','') == 'enfant_5_10' %}selected{% endif %}>Enfant (5/10ans)</option>
+            <option value="enfants_2_10" {% if request.form.get('age_range','') == 'enfants_2_10' %}selected{% endif %}>Enfants (2/10ans)</option>
             <option value="adulte" {% if request.form.get('age_range','') == 'adulte' %}selected{% endif %}>Adulte</option>
             <option value="tout public" {% if request.form.get('age_range','') == 'tout public' %}selected{% endif %}>Tout public</option>
           </select>
@@ -142,9 +146,7 @@
       <button type="submit" class="publish-btn" style="width:100%; padding:14px; font-size:1rem;">
         Envoyer la demande
       </button>
-      <button type="submit" class="publish-btn" style="width:100%; padding:14px; font-size:1rem; border-radius:10px; background:linear-gradient(135deg,#1976d2 0%,#355c7d 100%); color:#fff; font-weight:700; border:none; box-shadow:0 2px 8px #1976d244; transition:all 0.2s;">
-      </button>
-      <span style="display:block; margin-top:10px; font-size:0.95em; color:var(--muted);">Réponse rapide — vous serez contacté par e-mail / téléphone.</span>
+      <span style="display:block; margin-top:10px; font-size:0.95em; color:#b0b8d8; text-align:center;">Réponse rapide — vous serez contacté par e-mail / téléphone.</span>
     </div>
   </form>
 
