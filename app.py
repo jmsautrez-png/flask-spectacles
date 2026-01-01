@@ -1252,16 +1252,17 @@ def register_routes(app: Flask) -> None:
                         "Bonjour,\n\n"
                         "Spectacle'ment VØtre est la plateforme qui promeut gratuitement vos spectacles auprès des mairies, CSE et écoles.\n\n"
                         f"Le spectacle de votre compagnie ({raison_sociale}) est désormais publié sur notre site.\n\n"
-                        f"Titre: {title}\n"
-                        f"Lieu: {location}\n"
-                        f"Catégorie: {category}\n"
-                        + (f"Date: {date_val}\n\n" if date_val else "")
+                        f"Titre : {title}\n"
+                        f"Lieu : {location}\n"
+                        f"Catégorie : {category}\n"
+                        + (f"Date : {date_val}\n\n" if date_val else "")
                         + f"Date de création de la fiche : {show.created_at.strftime('%d/%m/%Y %H:%M')}\n\n"
-                        + f"Lien direct vers l'annonce (public) : {show_url}\n\n" 
+                        + f"Lien direct vers l'annonce (public) : {show_url}\n\n"
                         + "Si vous souhaitez la retirer ou la modifier, merci de nous contacter par simple retour de ce mail.\n\n"
-                        + "Aussi, vous bénéficiez dès aujourd'hui d'un abonnement gratuit de six mois (voir onglet Abonnement).\n\n"
+                        + "Aussi, vous bénéficiez dès aujourd'hui d'un abonnement gratuit de six mois (voir onglet Abonnement).\n"
+                        + "L’abonnement est totalement optionnel : Spectacle'ment VØtre reste avant tout un annuaire gratuit d’artistes.\n\n"
                         + "N'hésitez pas à vous inscrire et ajouter vos spectacles sur la plateforme (Inscription/Connexion > Ajouter votre spectacle).\n\n"
-                        + "Cordialement,\nL'équipe Spectacle'ment VØtre"
+                        + "Spectaclement vôtre,\nL’équipe Spectacle'ment VØtre"
                     )
                     msg = Message(subject="Votre spectacle est publié sur Spectacle'ment VØtre !", recipients=[to_addr])  # type: ignore[arg-type]
                     msg.body = body  # type: ignore[assignment]
