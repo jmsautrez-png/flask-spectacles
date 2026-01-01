@@ -1,73 +1,3 @@
-import unicodedata
-import re
-
-def slugify_fr(s: str) -> str:
-    s = s.strip().lower()
-    s = s.replace("’", "-").replace("'", "-")
-    s = unicodedata.normalize("NFKD", s)
-    s = "".join(ch for ch in s if not unicodedata.combining(ch))
-    s = re.sub(r"[^a-z0-9]+", "-", s)
-    s = re.sub(r"-{2,}", "-", s).strip("-")
-    return s
-
-TOP_50_CITIES = [
-    "Paris",
-    "Marseille",
-    "Lyon",
-    "Toulouse",
-    "Nice",
-    "Nantes",
-    "Montpellier",
-    "Strasbourg",
-    "Bordeaux",
-    "Lille",
-    "Rennes",
-    "Reims",
-    "Saint-Étienne",
-    "Toulon",
-    "Le Havre",
-    "Grenoble",
-    "Dijon",
-    "Angers",
-    "Nîmes",
-    "Villeurbanne",
-    "Clermont-Ferrand",
-    "Le Mans",
-    "Aix-en-Provence",
-    "Brest",
-    "Tours",
-    "Amiens",
-    "Annecy",
-    "Limoges",
-    "Metz",
-    "Perpignan",
-    "Boulogne-Billancourt",
-    "Besançon",
-    "Orléans",
-    "Rouen",
-    "Montreuil",
-    "Caen",
-    "Argenteuil",
-    "Saint-Paul",
-    "Mulhouse",
-    "Nancy",
-    "Roubaix",
-    "Tourcoing",
-    "Nanterre",
-    "Vitry-sur-Seine",
-    "Créteil",
-    "Avignon",
-    "Asnières-sur-Seine",
-    "Colombes",
-]
-TOP_50_CITY_SLUGS = [slugify_fr(x) for x in TOP_50_CITIES]
-
-# === ROUTE ROBOTS.TXT ===
-# @app.get("/robots.txt")
-# def robots_txt():
-#     sitemap_url = url_for("sitemap_xml", _external=True)
-#     body = f"User-agent: *\nAllow: /\nSitemap: {sitemap_url}\n"
-#     return Response(body, mimetype="text/plain")
 # Import optionnel de Flask-Mail
 try:
     from flask_mail import Mail, Message
@@ -119,8 +49,7 @@ from flask import (
     flash,
     session,
     send_from_directory,
-    current_app,
-    Response
+    current_app
 )
 
 from config import Config
@@ -838,40 +767,55 @@ def register_routes(app: Flask) -> None:
 
     @app.route("/sitemap.xml")
     def sitemap_xml():
-        # 1) URLs de base : homepage + catégories + catégories×villes
-        urls = []
-        today = datetime.utcnow().date().isoformat()
-
-        def add(loc: str):
-            urls.append((loc, today))
-
-        # Homepage
-        add(url_for("home", _external=True))
-
-        # Catégories SEO
-        for cat_slug in SEO_CATEGORIES.keys():
-            add(url_for("seo_category", category_slug=cat_slug, _external=True))
-
-        # Catégories × 50 villes
-        for cat_slug in SEO_CATEGORIES.keys():
-            for city_slug in TOP_50_CITY_SLUGS:
-                add(url_for("seo_category_city", category_slug=cat_slug, city_slug=city_slug, _external=True))
-
-        # 2) XML
-        xml_lines = [
-            '<?xml version="1.0" encoding="UTF-8"?>',
-            '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">'
-        ]
-        for loc, lastmod in urls:
-            clean_loc = str(loc).replace("\n", "").replace(" ", "")
-            xml_lines.append("  <url>")
-            xml_lines.append(f"    <loc>{clean_loc}</loc>")
-            xml_lines.append(f"    <lastmod>{lastmod}</lastmod>")
-            xml_lines.append("  </url>")
-        xml_lines.append("</urlset>")
-
-        xml = "\n".join(xml_lines)
-        return Response(xml, mimetype="application/xml")
+        """Génère dynamiquement un sitemap XML"""
+        from flask import make_response
+        
+        pages = []
+        # Page d'accueil
+        pages.append({
+            'loc': url_for('home', _external=True),
+            'lastmod': datetime.utcnow().strftime('%Y-%m-%d'),
+            'changefreq': 'daily',
+            'priority': '1.0'
+        })
+        
+        # Page demande d'animation
+        pages.append({
+            'loc': url_for('demande_animation', _external=True),
+            'changefreq': 'monthly',
+            'priority': '0.8'
+        })
+        
+        # Tous les spectacles approuvés
+        shows = Show.query.filter(Show.approved.is_(True)).all()
+        for show in shows:
+            pages.append({
+                'loc': url_for('show_detail', show_id=show.id, _external=True),
+                'lastmod': show.created_at.strftime('%Y-%m-%d') if show.created_at else datetime.utcnow().strftime('%Y-%m-%d'),
+                'changefreq': 'weekly',
+                'priority': '0.7'
+            })
+        
+        # Générer le XML
+        sitemap_xml = '<?xml version="1.0" encoding="UTF-8"?>\n'
+        sitemap_xml += '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
+        
+        for page in pages:
+            sitemap_xml += '  <url>\n'
+            sitemap_xml += f'    <loc>{page["loc"]}</loc>\n'
+            if 'lastmod' in page:
+                sitemap_xml += f'    <lastmod>{page["lastmod"]}</lastmod>\n'
+            if 'changefreq' in page:
+                sitemap_xml += f'    <changefreq>{page["changefreq"]}</changefreq>\n'
+            if 'priority' in page:
+                sitemap_xml += f'    <priority>{page["priority"]}</priority>\n'
+            sitemap_xml += '  </url>\n'
+        
+        sitemap_xml += '</urlset>'
+        
+        response = make_response(sitemap_xml)
+        response.headers["Content-Type"] = "application/xml"
+        return response
 
     # ---------------------------
     # Monitoring et Health Check
