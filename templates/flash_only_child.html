@@ -2,6 +2,9 @@
 
 {% block content %}
   {# On masque tout le contenu, seul le bloc flash sera affiché via base.html #}
+  <div style="text-align:center; margin-top:32px;">
+    <a href="{{ url_for('company_dashboard') }}" class="btn-secondary" style="display:inline-block; margin-top:12px; padding:10px 24px; background:#eee; color:#222; border-radius:6px; font-weight:600; text-decoration:none; font-size:1.1rem;">← Retour au tableau de bord</a>
+  </div>
 {% endblock %}
 
 {% block seo_block %}{% endblock %}
