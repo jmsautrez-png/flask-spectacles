@@ -188,7 +188,7 @@
         Retrouvez rapidement un spectacle par thème&nbsp;:
       </p>
         <div style="margin: 12px 0 18px 0; text-align:center;">
-          <a href="#" class="btn btn-featured theme-btn" data-theme="une" style="display:inline-block; background:linear-gradient(90deg,#e67e22 0%,#f6e58d 100%); color:#222; font-weight:700; border-radius:8px; padding:12px 28px; font-size:1.08em; box-shadow:0 2px 8px #e67e2244; text-decoration:none; transition:background 0.2s;">Spectacle à la une</a>
+          <a href="{{ url_for('seo_category', category_slug='une') }}" class="btn btn-featured theme-btn" data-theme="une" style="display:inline-block; background:linear-gradient(90deg,#e67e22 0%,#f6e58d 100%); color:#222; font-weight:700; border-radius:8px; padding:12px 28px; font-size:1.08em; box-shadow:0 2px 8px #e67e2244; text-decoration:none; transition:background 0.2s;">Spectacle à la une</a>
         </div>
       <ul style="list-style:none; padding:0; margin:0 0 12px 0;">
         <li><a href="{{ url_for('home') }}" style="color:#fff;font-weight:bold;">Tout</a></li>

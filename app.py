@@ -1702,7 +1702,7 @@ SEO_CATEGORIES = {
     "arbre-de-noel": "arbre de noël",
     "animation-ecole": "animation école",
     "fete-de-village": "fête de village",
-    "une": "à la une",
+    "une": "Spectacle à la une",
 }
 
 @app.get("/<category_slug>/")
