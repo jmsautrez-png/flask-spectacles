@@ -1,3 +1,9 @@
+# === ROUTE ROBOTS.TXT ===
+# @app.get("/robots.txt")
+# def robots_txt():
+#     sitemap_url = url_for("sitemap_xml", _external=True)
+#     body = f"User-agent: *\nAllow: /\nSitemap: {sitemap_url}\n"
+#     return Response(body, mimetype="text/plain")
 # Import optionnel de Flask-Mail
 try:
     from flask_mail import Mail, Message
@@ -1647,6 +1653,7 @@ Accessibilité: {accessibilite}
             return render_template("contact.html")
         return render_template("contact.html")
 
+
 # -----------------------------------------------------
 # Entrée
 # -----------------------------------------------------
@@ -1678,6 +1685,46 @@ def export_users_xlsx():
     file_path = "instance/utilisateurs_export.xlsx"
     df.to_excel(file_path, index=False)
     return send_file(file_path, as_attachment=True)
+
+# ---------------------------
+# Routes SEO
+# ---------------------------
+from flask import redirect, url_for, abort
+
+SEO_CATEGORIES = {
+    "marionnette": "marionnette",
+    "magie": "magie",
+    "clown": "clown",
+    "theatre": "théâtre",
+    "danse": "danse",
+    "spectacle-enfant": "enfant",
+    "enfant": "enfant",
+    "atelier": "atelier",
+    "concert": "concert",
+    "cirque": "cirque",
+    "spectacle-de-rue": "rue",
+    "rue": "rue",
+    "orchestre": "orchestre",
+    "arbre-de-noel": "arbre de noël",
+    "animation-ecole": "animation école",
+    "fete-de-village": "fête de village",
+    "une": "à la une",
+}
+
+@app.get("/<category_slug>/")
+def seo_category(category_slug):
+    if category_slug not in SEO_CATEGORIES:
+        abort(404)
+    return redirect(url_for("home", category=SEO_CATEGORIES[category_slug]), code=301)
+
+@app.get("/<category_slug>/<city_slug>/")
+def seo_category_city(category_slug, city_slug):
+    if category_slug not in SEO_CATEGORIES:
+        abort(404)
+    return redirect(
+        url_for("home", category=SEO_CATEGORIES[category_slug], location=city_slug),
+        code=301
+    )
 
 if __name__ == "__main__":
     import os

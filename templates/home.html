@@ -1,4 +1,17 @@
 {% extends "base.html" %}
+{# Bloc robots : noindex si filtres ou pagination #}
+{% block robots %}
+  {% if q or location or pagination and pagination.pages > 1 %}
+    <meta name="robots" content="noindex,follow">
+  {% else %}
+    <meta name="robots" content="index,follow">
+  {% endif %}
+{% endblock %}
+
+
+
+{# OG URL sans params aussi #}
+{% block og_url %}{{ request.base_url }}{% endblock %}
 {% block title %}Spectacle'ment VØtre - Spectacles et animations pour enfants, entreprises, anniversaires | Artistes professionnels{% endblock %}
 {% block description %}Découvrez des spectacles pour enfants, animations d'entreprise et d'anniversaire. Magie, théâtre, cirque, clowns, marionnettes. Réservez directement avec des artistes professionnels en France.{% endblock %}
 {% block content %}
@@ -178,60 +191,26 @@
           <a href="#" class="btn btn-featured theme-btn" data-theme="une" style="display:inline-block; background:linear-gradient(90deg,#e67e22 0%,#f6e58d 100%); color:#222; font-weight:700; border-radius:8px; padding:12px 28px; font-size:1.08em; box-shadow:0 2px 8px #e67e2244; text-decoration:none; transition:background 0.2s;">Spectacle à la une</a>
         </div>
       <ul style="list-style:none; padding:0; margin:0 0 12px 0;">
-        <li><a href="#" class="theme-btn" data-theme="marionnette" style="color:#fff;">Marionnette</a></li>
-        <li><a href="#" class="theme-btn" data-theme="magie" style="color:#fff;">Magie</a></li>
-        <li><a href="#" class="theme-btn" data-theme="clown" style="color:#fff;">Clown</a></li>
-        <li><a href="#" class="theme-btn" data-theme="théâtre" style="color:#fff;">Théâtre</a></li>
-        <li><a href="#" class="theme-btn" data-theme="danse" style="color:#fff;">Danse</a></li>
-        <li><a href="#" class="theme-btn" data-theme="enfant" style="color:#fff;">Spectacle enfant</a></li>
-        <li><a href="#" class="theme-btn" data-theme="atelier" style="color:#fff;">Atelier</a></li>
-        <li><a href="#" class="theme-btn" data-theme="concert" style="color:#fff;">Concert</a></li>
-        <li><a href="#" class="theme-btn" data-theme="cirque" style="color:#fff;">Cirque</a></li>
-        <li><a href="#" class="theme-btn" data-theme="rue" style="color:#fff;">Spectacle de rue</a></li>
-        <li><a href="#" class="theme-btn" data-theme="orchestre" style="color:#fff;">Orchestre</a></li>
-        <li><a href="#" class="theme-btn" data-theme="Arbre de Noël" style="color:#fff;font-weight:600;">Arbre de Noël</a></li>
-        <li><a href="#" class="theme-btn" data-theme="Animation école" style="color:#fff;font-weight:600;">Animation école</a></li>
-        <li><a href="#" class="theme-btn" data-theme="Fête de village" style="color:#fff;font-weight:600;">Fête de village</a></li>
+        <li><a href="{{ url_for('home') }}" style="color:#fff;font-weight:bold;">Tout</a></li>
+        <li><a href="{{ url_for('seo_category', category_slug='marionnette') }}" style="color:#fff;">Marionnette</a></li>
+        <li><a href="{{ url_for('seo_category', category_slug='magie') }}" style="color:#fff;">Magie</a></li>
+        <li><a href="{{ url_for('seo_category', category_slug='clown') }}" style="color:#fff;">Clown</a></li>
+        <li><a href="{{ url_for('seo_category', category_slug='theatre') }}" style="color:#fff;">Théâtre</a></li>
+        <li><a href="{{ url_for('seo_category', category_slug='danse') }}" style="color:#fff;">Danse</a></li>
+        <li><a href="{{ url_for('seo_category', category_slug='enfant') }}" style="color:#fff;">Spectacle enfant</a></li>
+        <li><a href="{{ url_for('seo_category', category_slug='atelier') }}" style="color:#fff;">Atelier</a></li>
+        <li><a href="{{ url_for('seo_category', category_slug='concert') }}" style="color:#fff;">Concert</a></li>
+        <li><a href="{{ url_for('seo_category', category_slug='cirque') }}" style="color:#fff;">Cirque</a></li>
+        <li><a href="{{ url_for('seo_category', category_slug='rue') }}" style="color:#fff;">Spectacle de rue</a></li>
+        <li><a href="{{ url_for('seo_category', category_slug='orchestre') }}" style="color:#fff;">Orchestre</a></li>
+        <li><a href="{{ url_for('seo_category', category_slug='arbre-de-noel') }}" style="color:#fff;font-weight:600;">Arbre de Noël</a></li>
+        <li><a href="{{ url_for('seo_category', category_slug='animation-ecole') }}" style="color:#fff;font-weight:600;">Animation école</a></li>
+        <li><a href="{{ url_for('seo_category', category_slug='fete-de-village') }}" style="color:#fff;font-weight:600;">Fête de village</a></li>
       </ul>
     </section>
   </aside>
 </div>
-<script>
-document.addEventListener('DOMContentLoaded', function() {
 
-  const themeBtns = document.querySelectorAll('.theme-btn');
-  function resetAll() {
-    window.location.href = window.location.pathname;
-    localStorage.removeItem('selectedTheme');
-  }
-  themeBtns.forEach(btn => {
-    btn.setAttribute('data-original', btn.textContent);
-    btn.addEventListener('click', function(e) {
-      // N'empêche le comportement par défaut QUE pour les boutons de thème
-      e.preventDefault();
-      let theme = btn.getAttribute('data-theme');
-      // Pour les 3 boutons spéciaux, garder accents pour la recherche
-      if (["Arbre de Noël", "Animation école", "Fête de village"].includes(theme)) {
-        // rien, garder theme tel quel
-      } else {
-        theme = theme.toLowerCase();
-      }
-      const url = new URL(window.location.href);
-      url.searchParams.set('category', theme);
-      url.searchParams.delete('page');
-      window.location.href = url.pathname + url.search;
-      localStorage.setItem('selectedTheme', theme);
-    });
-  });
-  // Bouton pour réinitialiser le filtre
-  const resetBtn = document.createElement('li');
-  resetBtn.innerHTML = '<a href="#" style="color:#fff;font-weight:bold;">Tout</a>';
-  resetBtn.addEventListener('click', function(e) {
-    e.preventDefault();
-    resetAll();
-  });
-  document.querySelector('.seo-block ul').insertBefore(resetBtn, document.querySelector('.seo-block ul').firstChild);
-});
-</script>
+
 
 {% endblock %}

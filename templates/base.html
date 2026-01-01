@@ -20,15 +20,18 @@
   <meta name="google-site-verification" content="El4lpt0naRzFdXqihVvr6K27e1FFc7TTsXFMCq-VybE" />
   <title>{% block title %}Spectacle'ment VØtre - Artistes, spectacles, animations la plateforme qui met en scène vos animations{% endblock %}</title>
   <meta name="description" content="{% block description %}Trouvez des spectacles et animations pour enfants, entreprises, anniversaires. Théâtre, magie, cirque, clowns, marionnettes. Mise en relation directe avec des compagnies professionnelles.{% endblock %}">
-  <meta name="keywords" content="spectacle enfants, animation entreprise, animation anniversaire, magie, théâtre jeune public, cirque, clowns, marionnettes, conteurs, spectacle école, animation événementielle, artistes professionnels">
   <meta name="author" content="Spectacle'ment VØtre">
-  <meta name="robots" content="index, follow">
+  {# Robots: surchargeable par page (noindex si filtres secondaires) #}
+  {% block robots %}
+  <meta name="robots" content="index,follow">
+  {% endblock %}
   
   <!-- Open Graph / Facebook -->
   <meta property="og:type" content="website">
   <meta property="og:title" content="{% block og_title %}Spectacle'ment VØtre - Spectacles et animations professionnels{% endblock %}">
   <meta property="og:description" content="{% block og_description %}Plateforme de mise en relation entre artistes professionnels et organisateurs d'événements. Spectacles pour enfants, animations entreprise, anniversaires et plus.{% endblock %}">
-  <meta property="og:url" content="{{ request.url }}">
+  {# OG URL sans params aussi (plus propre) #}
+  <meta property="og:url" content="{% block og_url %}{{ request.base_url }}{% endblock %}">
   <meta property="og:site_name" content="Spectacle'ment VØtre">
   <meta property="og:image" content="{% block og_image %}{{ url_for('static', filename='img/default-og.svg', _external=True) }}{% endblock %}">
   <meta property="og:image:width" content="1200">
@@ -41,7 +44,8 @@
   <meta name="twitter:image" content="{% block twitter_image %}{{ url_for('static', filename='img/default-og.svg', _external=True) }}{% endblock %}">
   
   <!-- Canonical URL -->
-  <link rel="canonical" href="{{ request.url }}">
+  {# Canonical sans paramètres (évite ?page= ?q= etc.) #}
+  <link rel="canonical" href="{% block canonical %}{{ request.base_url }}{% endblock %}">
   
   <!-- Favicon (SVG) -->
   <link rel="icon" href="{{ url_for('static', filename='img/favicon.svg') }}" type="image/svg+xml">
@@ -226,31 +230,8 @@
 </main>
 
 
-<script>
-// Pagination automatique toutes les 30 secondes sur toutes les pages
-document.addEventListener('DOMContentLoaded', function() {
-  function autoPaginate() {
-    // Cherche le bouton/lien "page suivante"
-    const next = document.querySelector('a[rel="next"]');
-    if (next) {
-      window.location.href = next.href;
-    } else {
-      // Si pas de page suivante, cherche la première page (numéro 1 ou rel="first")
-      const first = document.querySelector('a[rel="first"]');
-      if (first) {
-        window.location.href = first.href;
-      } else {
-        // Sinon, essaie de trouver un lien vers la page 1 dans la pagination
-        const pageOne = Array.from(document.querySelectorAll('a')).find(a => a.textContent.trim() === '1');
-        if (pageOne) {
-          window.location.href = pageOne.href;
-        }
-      }
-    }
-  }
-  setInterval(autoPaginate, 30000); // toutes les 30 secondes
-});
-</script>
+
+
 
 </body>
 </html>
