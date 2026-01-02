@@ -20,7 +20,7 @@
 
 <div style="display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:16px;">
   <h1 style="font-size:1.25rem;margin:0 0 8px 0;font-weight:700;color:#fff;line-height:1.3;">Spectacles et animations pour mairies, écoles et CSE partout en France</h1>
-  <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+  <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;justify-content:flex-end;width:100%;">
     <a href="{{ url_for('demande_animation') }}" style="background:linear-gradient(135deg,#162447 0%,#283e5e 100%);color:#fff;padding:8px 18px;border-radius:22px;font-weight:600;font-size:0.95rem;text-decoration:none;box-shadow:0 2px 8px #16244744;transition:background .2s;white-space:nowrap;display:inline-block;letter-spacing:0.5px;">
         Je cherche un spectacle
       </a>
@@ -30,24 +30,26 @@
       <a href="{{ url_for('abonnement_compagnie') }}" style="background:linear-gradient(135deg,#283e5e 0%,#1976d2 100%);color:#fff;padding:8px 18px;border-radius:22px;font-weight:600;font-size:0.95rem;text-decoration:none;box-shadow:0 2px 8px #1976d244;transition:background .2s;white-space:nowrap;display:inline-block;letter-spacing:0.5px;">
         Abonnement Compagnie
       </a>
+    <a href="{{ url_for('demandes_animation') }}" style="background:linear-gradient(135deg,#1976d2 0%,#43cea2 100%);color:#fff;padding:8px 18px;border-radius:22px;font-weight:600;font-size:0.95rem;text-decoration:none;box-shadow:0 2px 8px #1976d244;transition:background .2s;white-space:nowrap;display:inline-block;letter-spacing:0.5px;">
+      Voir les appels d'offres
+    </a>
   </div>
 </div>
 
 
 <form action="" method="get"
-      style="display:flex; align-items:center; gap:12px; background:linear-gradient(135deg,#162447 0%,#283e5e 100%); border:2px solid #283e5e; padding:10px 16px; border-radius:14px; margin:0 0 20px; box-shadow:0 2px 8px #16244722; color:#fff;"
+      style="display:flex; align-items:center; gap:12px; background:#f8f9fa; border:2px solid #283e5e; padding:10px 16px; border-radius:14px; margin:0 0 20px; box-shadow:0 2px 8px #16244722; color:#888;"
       role="search"
       aria-label="Rechercher un spectacle">
-  <span aria-hidden="true" style="color:var(--muted);">🔍</span>
+  <span aria-hidden="true" style="color:#888;">🔍</span>
   <input name="q" value="{{ q or '' }}"
     placeholder="Recherche catégorie, spectacle, âge..."
     aria-label="Recherche générale"
-    style="flex:2; border:none; background:transparent; outline:none; font-size:15px; color:var(--text);">
-  <span style="color:var(--border);">|</span>
+    style="flex:2; border:none; background:transparent; outline:none; font-size:15px; color:#888;">
+  <span style="color:#ccc;">|</span>
   <input name="location" value="{{ location or '' }}"
     placeholder="Ville ou région..."
-            
-    style="flex:1; border:none; background:transparent; outline:none; font-size:15px; color:var(--text);">
+    style="flex:1; border:none; background:transparent; outline:none; font-size:15px; color:#888;">
   <button type="submit"
      style="border:none; background:var(--primary); color:white; font-weight:600; cursor:pointer; padding:6px 14px; border-radius:8px;">Rechercher</button>
 </form>

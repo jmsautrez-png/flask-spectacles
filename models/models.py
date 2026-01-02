@@ -3,6 +3,28 @@ from datetime import datetime
 from werkzeug.security import generate_password_hash, check_password_hash
 from . import db
 
+# Modèle pour les demandes d'animation
+class DemandeAnimation(db.Model):
+    __tablename__ = "demande_animation"
+
+    id = db.Column(db.Integer, primary_key=True)
+    auto_datetime = db.Column(db.String(50), nullable=True)
+    structure = db.Column(db.String(200), nullable=False)
+    telephone = db.Column(db.String(50), nullable=False)
+    lieu_ville = db.Column(db.String(200), nullable=False)
+    nom = db.Column(db.String(150), nullable=False)
+    dates_horaires = db.Column(db.String(200), nullable=False)
+    type_espace = db.Column(db.String(100), nullable=False)
+    genre_recherche = db.Column(db.String(100), nullable=False)
+    age_range = db.Column(db.String(50), nullable=False)
+    jauge = db.Column(db.String(50), nullable=False)
+    budget = db.Column(db.String(100), nullable=False)
+    contraintes = db.Column(db.Text, nullable=True)
+    accessibilite = db.Column(db.String(100), nullable=True)
+    contact_email = db.Column(db.String(255), nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+
 class User(db.Model):
     __tablename__ = "users"
 

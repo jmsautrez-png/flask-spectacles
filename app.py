@@ -865,7 +865,7 @@ def register_routes(app: Flask) -> None:
             return jsonify({
                 "status": "error",
                 "message": "boto3 not installed"
-            }), 500
+            }, 500)
         
         try:
             import botocore
@@ -1421,6 +1421,27 @@ Accessibilité: {accessibilite}
                 except Exception as e:  # pragma: no cover
                     print("[MAIL] envoi impossible:", e)
 
+            # Enregistrement de la demande en base
+            from models.models import DemandeAnimation
+            demande = DemandeAnimation(
+                auto_datetime=auto_datetime,
+                structure=structure,
+                telephone=telephone,
+                lieu_ville=lieu_ville,
+                nom=nom,
+                dates_horaires=dates_horaires,
+                type_espace=type_espace,
+                genre_recherche=genre_recherche,
+                age_range=age_range,
+                jauge=jauge,
+                budget=budget,
+                contraintes=contraintes,
+                accessibilite=accessibilite,
+                contact_email=contact_email
+            )
+            db.session.add(demande)
+            db.session.commit()
+
             flash("Votre demande d'animation a bien été envoyée ! Nous vous répondrons rapidement.", "success")
             return redirect(url_for("home"))
 
@@ -1647,6 +1668,66 @@ Accessibilité: {accessibilite}
                 flash(f"Erreur lors de l'envoi du message: {e}", "danger")
             return render_template("contact.html")
         return render_template("contact.html")
+
+    @app.route("/demandes-animation")
+    def demandes_animation():
+        from models.models import DemandeAnimation
+        page = request.args.get('page', 1, type=int)
+        per_page = 9
+        categorie = request.args.get('categorie', '').strip()
+        region = request.args.get('region', '').strip()
+        demandes_query = DemandeAnimation.query.order_by(DemandeAnimation.created_at.desc())
+        if categorie:
+            demandes_query = demandes_query.filter(DemandeAnimation.genre_recherche.ilike(f"%{categorie}%"))
+        if region:
+            demandes_query = demandes_query.filter(DemandeAnimation.lieu_ville.ilike(f"%{region}%"))
+        total = demandes_query.count()
+        demandes = demandes_query.offset((page-1)*per_page).limit(per_page).all()
+        nb_pages = (total // per_page) + (1 if total % per_page > 0 else 0)
+        # Pour le moteur de recherche : liste unique des catégories et régions existantes
+        categories = [c[0] for c in db.session.query(DemandeAnimation.genre_recherche).distinct().all() if c[0]]
+        regions = [r[0] for r in db.session.query(DemandeAnimation.lieu_ville).distinct().all() if r[0]]
+        return render_template("demandes_animation.html", demandes=demandes, page=page, nb_pages=nb_pages, total=total, per_page=per_page, user=current_user(), categories=categories, regions=regions, categorie=categorie, region=region)
+
+    @app.route("/test-demandes")
+    def test_demandes():
+        return render_template("test_demandes.html")
+
+    @app.route("/demandes-animation/delete/<int:demande_id>", methods=["POST"])
+    @login_required
+    @admin_required
+    def delete_demande_animation(demande_id):
+        from models.models import DemandeAnimation
+        demande = DemandeAnimation.query.get_or_404(demande_id)
+        db.session.delete(demande)
+        db.session.commit()
+        flash("Appel d'offre supprimé.", "success")
+        return redirect(url_for("demandes_animation"))
+
+    @app.route("/demandes-animation/edit/<int:demande_id>", methods=["GET", "POST"])
+    @login_required
+    @admin_required
+    def edit_demande_animation(demande_id):
+        from models.models import DemandeAnimation
+        demande = DemandeAnimation.query.get_or_404(demande_id)
+        if request.method == "POST":
+            demande.structure = request.form.get("structure", demande.structure)
+            demande.telephone = request.form.get("telephone", demande.telephone)
+            demande.lieu_ville = request.form.get("lieu_ville", demande.lieu_ville)
+            demande.nom = request.form.get("nom", demande.nom)
+            demande.dates_horaires = request.form.get("dates_horaires", demande.dates_horaires)
+            demande.type_espace = request.form.get("type_espace", demande.type_espace)
+            demande.genre_recherche = request.form.get("genre_recherche", demande.genre_recherche)
+            demande.age_range = request.form.get("age_range", demande.age_range)
+            demande.jauge = request.form.get("jauge", demande.jauge)
+            demande.budget = request.form.get("budget", demande.budget)
+            demande.contraintes = request.form.get("contraintes", demande.contraintes)
+            demande.accessibilite = request.form.get("accessibilite", demande.accessibilite)
+            demande.contact_email = request.form.get("contact_email", demande.contact_email)
+            db.session.commit()
+            flash("Appel d'offre modifié.", "success")
+            return redirect(url_for("demandes_animation"))
+        return render_template("edit_demande_animation.html", demande=demande, user=current_user())
 
 
 # -----------------------------------------------------

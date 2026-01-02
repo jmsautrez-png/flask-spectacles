@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>Modifier l'appel d'offre</h2>
+<form method="post" style="max-width:500px;margin:auto;">
+  <label>Structure<br><input type="text" name="structure" value="{{ demande.structure }}" required></label><br>
+  <label>Contact<br><input type="text" name="nom" value="{{ demande.nom }}" required></label><br>
+  <label>Téléphone<br><input type="text" name="telephone" value="{{ demande.telephone }}" required></label><br>
+  <label>Email<br><input type="email" name="contact_email" value="{{ demande.contact_email }}" required></label><br>
+  <label>Lieu/Ville<br><input type="text" name="lieu_ville" value="{{ demande.lieu_ville }}" required></label><br>
+  <label>Date(s) & horaires<br><input type="text" name="dates_horaires" value="{{ demande.dates_horaires }}" required></label><br>
+  <label>Type d'espace<br><input type="text" name="type_espace" value="{{ demande.type_espace }}" required></label><br>
+  <label>Genre recherché<br><input type="text" name="genre_recherche" value="{{ demande.genre_recherche }}" required></label><br>
+  <label>Tranche d'âge<br><input type="text" name="age_range" value="{{ demande.age_range }}" required></label><br>
+  <label>Jauge<br><input type="text" name="jauge" value="{{ demande.jauge }}" required></label><br>
+  <label>Budget<br><input type="text" name="budget" value="{{ demande.budget }}" required></label><br>
+  <label>Contraintes<br><input type="text" name="contraintes" value="{{ demande.contraintes }}"></label><br>
+  <label>Accessibilité<br><input type="text" name="accessibilite" value="{{ demande.accessibilite }}"></label><br>
+  <button type="submit" style="background:#1976d2;color:#fff;padding:8px 18px;border-radius:8px;font-weight:600;">Enregistrer</button>
+</form>
+{% endblock %}
