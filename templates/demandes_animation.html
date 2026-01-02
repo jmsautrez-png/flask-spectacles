@@ -16,8 +16,11 @@
   {% for demande in demandes %}
     <div class="carte-demande" style="background: #fff; border-radius: 16px; box-shadow: 0 4px 16px #0002; padding: 2rem; width: 400px; color: #222; display: flex; flex-direction: column; justify-content: space-between;">
       <p style="font-size:0.95em;color:#888; margin-bottom:0.3rem;">🕒 Demande créée le {{ demande.created_at.strftime('%d/%m/%Y %H:%M') }}</p>
-      <p style="font-size:0.95em;color:#444; margin-bottom:0.3rem;">bonjour nous somes un (e)</p>
-      <h3 style="color:#1976d2; margin-bottom:0.3rem;">{{ demande.structure }}</h3>
+      <p style="font-size:0.95em;color:#444; margin-bottom:0.3rem;">bonjour nous sommes un(e)</p>
+      <div style="display:flex; align-items:center; gap:0.7rem; margin-bottom:0.3rem;">
+        <h3 style="color:#1976d2; margin:0;">{{ demande.structure }}</h3>
+        <span style="font-size:1em; color:#1976d2; font-weight:700;">{{ demande.nom }}</span>
+      </div>
       <hr style="margin:0.3rem 0 0.7rem 0;">
       <p style="margin:0.2rem 0 0.2rem 0; color:#444; font-size:1em;">et nous recherchons pour notre manifestation</p>
       <p style="margin:0.2rem 0;"><strong>🎭 Genre recherché :</strong> <span style="color:#222;">{{ demande.genre_recherche }}</span></p>
@@ -36,9 +39,9 @@
       </div>
       <p style="margin:0.2rem 0;"><strong>📅 Date(s) & horaires :</strong> <span style="color:#222;">{{ demande.dates_horaires }}</span></p>
       <p style="margin:0.2rem 0;"><strong>🏢 Type d'espace :</strong> <span style="color:#222;">{{ demande.type_espace }}</span></p>
-      <p style="margin:0.2rem 0;"><strong>👶 Tranche d'âge :</strong> <span style="color:#222;">{{ demande.age_range }}</span></p>
-      <p style="margin:0.2rem 0;"><strong>👥 Jauge :</strong> <span style="color:#222;">{{ demande.jauge }}</span></p>
-      <p style="margin:0.2rem 0;"><strong>💶 Budget :</strong> <span style="color:#222;">{{ demande.budget }}</span></p>
+      <p style="margin:0.2rem 0;"><strong>👶 Tranche d'âge :</strong> <span style="color:#222;">{{ demande.age_range }} ans</span></p>
+      <p style="margin:0.2rem 0;"><strong>👥 Jauge :</strong> <span style="color:#222;">{{ demande.jauge }} personnes</span></p>
+      <p style="margin:0.2rem 0;"><strong>💶 Budget :</strong> <span style="color:#222;">{{ demande.budget }} €</span></p>
       {% if demande.contraintes %}<p style="margin:0.2rem 0;"><strong>⚠️ Contraintes :</strong> <span style="color:#222;">{{ demande.contraintes }}</span></p>{% endif %}
       {% if demande.accessibilite %}<p style="margin:0.2rem 0;"><strong>♿ Accessibilité :</strong> <span style="color:#222;">{{ demande.accessibilite }}</span></p>{% endif %}
       <hr style="margin:0.5rem 0;">
