@@ -9,6 +9,7 @@
   <p style="color:var(--muted); margin-bottom:24px;">Remplissez le formulaire ci-dessous. Votre annonce sera examinée avant publication.</p>
 
   <form method="post" enctype="multipart/form-data" class="demande-form">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
 
     <!-- SECTION: Informations de la compagnie -->
     <fieldset class="demande-section">

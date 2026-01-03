@@ -14,6 +14,7 @@
   </div>
 
   <form method="post" class="form demande-form" novalidate>
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
     
     <fieldset class="demande-section">
       <legend>Identifiants</legend>

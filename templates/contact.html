@@ -20,6 +20,7 @@
   <!-- Contact Form Card -->
   <div style="background:linear-gradient(135deg,#162447 0%,#283e5e 100%); border:2px solid #283e5e; border-radius:16px; padding:32px; margin-bottom:32px; position:relative; overflow:hidden; box-shadow:0 4px 16px #16244722; color:#fff;">
     <form method="post" class="contact-form">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
       
       <!-- Name Field -->
       <div style="margin-bottom:20px;">

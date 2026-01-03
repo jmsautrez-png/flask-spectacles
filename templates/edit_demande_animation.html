@@ -2,6 +2,7 @@
 {% block content %}
 <h2>Modifier l'appel d'offre</h2>
 <form method="post" style="max-width:500px;margin:auto;">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
   <label>Structure<br><input type="text" name="structure" value="{{ demande.structure }}" required></label><br>
   <label>Contact<br><input type="text" name="nom" value="{{ demande.nom }}" required></label><br>
   <label>Téléphone<br><input type="text" name="telephone" value="{{ demande.telephone }}" required></label><br>

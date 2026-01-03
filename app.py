@@ -104,26 +104,36 @@ def configure_logging(app: Flask) -> None:
 def _validate_production_config(app: Flask) -> None:
     """Validate critical environment variables in production."""
     import os
-    if os.environ.get("FLASK_ENV") != "production":
-        return  # Skip validation in development
+    is_production = os.environ.get("FLASK_ENV") == "production"
     
     warnings = []
     errors = []
     
-    # Critical: SECRET_KEY must not be the default
-    if app.config.get("SECRET_KEY") == "dev-secret-key":
-        errors.append("SECRET_KEY is using default value. Set it in Render environment variables!")
+    # Critical: SECRET_KEY must not be the default (TOUJOURS)
+    secret_key = app.config.get("SECRET_KEY")
+    if not secret_key or secret_key == "dev-secret-key":
+        if is_production:
+            errors.append("SECRET_KEY is not set or using default value. Set it in environment variables!")
+        else:
+            warnings.append("SECRET_KEY using default value. Set SECRET_KEY in .env for security.")
+    
+    # Critical: ADMIN_PASSWORD must be set
+    admin_pwd = app.config.get("ADMIN_PASSWORD")
+    if not admin_pwd:
+        if is_production:
+            errors.append("ADMIN_PASSWORD is not set. Set it in environment variables!")
+        else:
+            warnings.append("ADMIN_PASSWORD not set. Define ADMIN_PASSWORD in .env file.")
     
     # Critical: Database should be PostgreSQL in production
-    db_uri = app.config.get("SQLALCHEMY_DATABASE_URI", "")
-    if "sqlite" in db_uri.lower():
-        errors.append("DATABASE_URL not set. Using ephemeral SQLite! Set DATABASE_URL in Render.")
+    if is_production:
+        db_uri = app.config.get("SQLALCHEMY_DATABASE_URI", "")
+        if "sqlite" in db_uri.lower():
+            errors.append("DATABASE_URL not set. Using ephemeral SQLite! Set DATABASE_URL in Render.")
     
     # Warning: Admin credentials using defaults
     if app.config.get("ADMIN_USERNAME") == "admin":
         warnings.append("ADMIN_USERNAME using default 'admin'. Consider setting a custom value.")
-    if app.config.get("ADMIN_PASSWORD") == "admin":
-        warnings.append("ADMIN_PASSWORD using default 'admin'. Set a strong password in Render!")
     
     # Warning: S3 not fully configured
     s3_vars = ["S3_BUCKET", "S3_KEY", "S3_SECRET", "S3_REGION"]
@@ -174,10 +184,35 @@ def create_app() -> Flask:
 
     # === SÉCURITÉ ===
     
-    # 1. Rate Limiting (protection contre attaques brute force) -- DÉSACTIVÉ POUR TESTS
-    app.limiter = None  # type: ignore
+    # 1. Protection CSRF (Flask-WTF)
+    try:
+        from flask_wtf.csrf import CSRFProtect
+        csrf = CSRFProtect(app)
+        app.csrf = csrf  # type: ignore
+        app.logger.info("Protection CSRF activée")
+    except Exception as e:
+        app.logger.warning(f"Protection CSRF non activée: {e}")
+        app.csrf = None  # type: ignore
     
-    # 2. Headers de sécurité (HTTPS, XSS, etc.)
+    # 2. Rate Limiting (protection contre attaques brute force)
+    try:
+        from flask_limiter import Limiter
+        from flask_limiter.util import get_remote_address
+        
+        limiter = Limiter(
+            app=app,
+            key_func=get_remote_address,
+            default_limits=["200 per day", "50 per hour"],
+            storage_uri="memory://",
+            strategy="fixed-window"
+        )
+        app.limiter = limiter  # type: ignore
+        app.logger.info("Rate limiting activé")
+    except Exception as e:
+        app.logger.warning(f"Rate limiting non activé: {e}")
+        app.limiter = None  # type: ignore
+    
+    # 3. Headers de sécurité (HTTPS, XSS, etc.)
     if Talisman and os.environ.get("FLASK_ENV") == "production":
         Talisman(
             app,
@@ -191,13 +226,13 @@ def create_app() -> Flask:
             },
         )
     
-    # 3. Protection CSRF via session
+    # 4. Configuration cookies de session (sécurité)
     app.config["SESSION_COOKIE_HTTPONLY"] = True
     app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
     if os.environ.get("FLASK_ENV") == "production":
         app.config["SESSION_COOKIE_SECURE"] = True  # HTTPS uniquement
     
-    # 4. Headers de sécurité additionnels
+    # 5. Headers de sécurité additionnels
     @app.after_request
     def set_security_headers(response):
         """Ajoute des headers de sécurité à toutes les réponses"""
@@ -257,9 +292,38 @@ def create_app() -> Flask:
 # Utilitaires
 # -----------------------------------------------------
 ALLOWED_EXTENSIONS = {"png", "jpg", "jpeg", "gif", "webp", "pdf"}
+ALLOWED_MIMETYPES = {"image/jpeg", "image/png", "image/gif", "image/webp", "application/pdf"}
 
 def allowed_file(filename: str) -> bool:
-    return "." in filename and filename.rsplit(".", 1)[1].lower() in ALLOWED_EXTENSIONS
+    """Vérifie si l'extension du fichier est autorisée"""
+    if not filename or "." not in filename:
+        return False
+    ext = filename.rsplit(".", 1)[1].lower()
+    return ext in ALLOWED_EXTENSIONS
+
+def secure_upload_filename(file) -> Tuple[bool, Optional[str], Optional[str]]:
+    """
+    Valide et sécurise un fichier uploadé.
+    Retourne: (success: bool, error_message: Optional[str], secure_filename: Optional[str])
+    """
+    from werkzeug.utils import secure_filename as werkzeug_secure_filename
+    
+    if not file or not file.filename:
+        return False, "Aucun fichier fourni", None
+    
+    # 1. Vérifier l'extension
+    if not allowed_file(file.filename):
+        return False, f"Type de fichier non autorisé. Extensions acceptées : {', '.join(ALLOWED_EXTENSIONS)}", None
+    
+    # 2. Sécuriser le nom de fichier (éviter path traversal)
+    safe_name = werkzeug_secure_filename(file.filename)
+    if not safe_name or safe_name == '':
+        return False, "Nom de fichier invalide", None
+    
+    # 3. Vérifier le MIME type (optionnel, nécessite python-magic)
+    # Pour l'instant, on fait confiance à l'extension après werkzeug
+    
+    return True, None, safe_name
 
 def validate_file_size(file) -> Tuple[bool, Optional[str]]:
     """Valide la taille d'un fichier. Retourne (True, None) si valide, (False, message d'erreur) sinon."""
@@ -565,9 +629,17 @@ def register_routes(app: Flask) -> None:
             if user and user.check_password(password):
                 session["username"] = user.username
                 flash("Connecté.", "success")
+                
+                # Sécuriser la redirection (open redirect fix)
                 next_url = request.args.get("next")
                 if next_url:
-                    return redirect(next_url)
+                    # Valider que l'URL est relative (même domaine)
+                    from urllib.parse import urlparse
+                    parsed = urlparse(next_url)
+                    # Accepter uniquement les URLs relatives sans domaine
+                    if not parsed.netloc and next_url.startswith('/') and '//' not in next_url:
+                        return redirect(next_url)
+                
                 return redirect(url_for("admin_dashboard" if user.is_admin else "company_dashboard"))
 
             flash("Identifiants invalides.", "danger")
@@ -594,16 +666,35 @@ def register_routes(app: Flask) -> None:
                 flash("Si l’utilisateur existe, un nouveau mot de passe a été généré.", "info")
                 return redirect(url_for("login"))
 
-            new_pwd = _generate_password(10)
+            new_pwd = _generate_password(12)
             user.set_password(new_pwd)
             db.session.commit()
-
-            return render_template(
-                "forgot_password.html",
-                user=current_user(),
-                new_password=new_pwd,
-                reset_user=user.username,
-            )
+            
+            # Essayer d'envoyer par email
+            if getattr(current_app, "mail", None):
+                to_email = None
+                if hasattr(user, 'shows') and user.shows:
+                    for show in user.shows:
+                        if show.contact_email:
+                            to_email = show.contact_email
+                            break
+                
+                if to_email:
+                    try:
+                        msg = Message(
+                            "Réinitialisation de votre mot de passe",
+                            sender=current_app.config.get("MAIL_DEFAULT_SENDER"),
+                            recipients=[to_email]
+                        )
+                        msg.body = f"Bonjour {user.username},\\n\\nVotre nouveau mot de passe : {new_pwd}\\n\\nCordialement"
+                        current_app.mail.send(msg)
+                        current_app.logger.info(f"Email envoyé à {to_email}")
+                    except Exception as e:
+                        current_app.logger.error(f"Erreur email: {e}")
+                else:
+                    current_app.logger.warning(f"Pas d'email - MDP {username}: {new_pwd}")
+            
+            return redirect(url_for("login"))
 
         return render_template("forgot_password.html", user=current_user())
 
@@ -1751,16 +1842,59 @@ def export_users_xlsx():
         data.append({
             "ID": u.id,
             "Nom d'utilisateur": u.username,
-            "Email": show.contact_email if show else "",
+            "Email utilisateur": u.email if hasattr(u, 'email') else "",
+            "Date création utilisateur": u.created_at.strftime("%Y-%m-%d %H:%M") if hasattr(u, 'created_at') and u.created_at else "",
             "Admin": "VRAI" if getattr(u, "is_admin", False) else "FAUX",
-            "Région": show.region if show else "",
+            "Raison sociale": show.raison_sociale if show and show.raison_sociale else "",
+            "Nom du spectacle": show.title if show else "",
+            "Catégorie": show.category if show else "",
+            "Âge": show.age_range if show and show.age_range else "",
+            "Région": show.region if show and show.region else "",
             "Ville": show.location if show else "",
-            "Nom du spectacle": show.title if show else ""
+            "Email spectacle": show.contact_email if show and show.contact_email else "",
+            "Téléphone": show.contact_phone if show and show.contact_phone else "",
+            "Site Internet": show.site_internet if show and show.site_internet else "",
+            "Date spectacle": show.date.strftime("%Y-%m-%d") if show and show.date else "",
+            "Date création spectacle": show.created_at.strftime("%Y-%m-%d %H:%M") if show and show.created_at else "",
+            "Spectacle approuvé": "OUI" if show and show.approved else "NON" if show else "",
+            "Nombre de spectacles": len(u.shows) if hasattr(u, 'shows') and u.shows else 0
         })
+    print(f"[EXPORT XLSX] {len(data)} utilisateurs exportés")
     df = pd.DataFrame(data)
     file_path = "instance/utilisateurs_export.xlsx"
     df.to_excel(file_path, index=False)
-    return send_file(file_path, as_attachment=True)
+    return send_file(file_path, as_attachment=True, download_name="utilisateurs_export.xlsx")
+
+# === ROUTE EXPORT SPECTACLES EXCEL ===
+@app.route("/admin/export-shows-xlsx")
+@login_required
+@admin_required
+def export_shows_xlsx():
+    shows = Show.query.order_by(Show.created_at.desc()).all()
+    data = []
+    for show in shows:
+        data.append({
+            "ID": show.id,
+            "Raison sociale": show.raison_sociale or "",
+            "Titre": show.title,
+            "Description": show.description,
+            "Catégorie": show.category,
+            "Âge": show.age_range or "",
+            "Région": show.region or "",
+            "Ville": show.location,
+            "Email": show.contact_email or "",
+            "Site Internet": show.site_internet or "",
+            "Téléphone": show.contact_phone or "",
+            "Date": show.date.strftime("%Y-%m-%d") if show.date else "",
+            "Approuvé": "OUI" if show.approved else "NON",
+            "Date création": show.created_at.strftime("%Y-%m-%d %H:%M") if show.created_at else "",
+            "Fichier": show.file_name or ""
+        })
+    print(f"[EXPORT SPECTACLES XLSX] {len(data)} spectacles exportés")
+    df = pd.DataFrame(data)
+    file_path = "instance/spectacles_export.xlsx"
+    df.to_excel(file_path, index=False)
+    return send_file(file_path, as_attachment=True, download_name="spectacles_export.xlsx")
 
 # ---------------------------
 # Routes SEO

@@ -16,7 +16,8 @@ class Config:
     )
 
     ADMIN_USERNAME = os.environ.get("ADMIN_USERNAME", "admin")
-    ADMIN_PASSWORD = os.environ.get("ADMIN_PASSWORD", "admin")
+    # SÉCURITÉ : Obligatoire - doit être défini dans .env ou variables d'environnement
+    ADMIN_PASSWORD = os.environ.get("ADMIN_PASSWORD")
 
     BASE_DIR = Path(__file__).resolve().parent
     
@@ -42,7 +43,8 @@ class Config:
     MAIL_USE_TLS = os.environ.get("MAIL_USE_TLS", "True") == "True"
     MAIL_USE_SSL = os.environ.get("MAIL_USE_SSL", "False") == "True"
     MAIL_USERNAME = os.environ.get("MAIL_USERNAME", "contact@spectacleanimation.fr")
-    MAIL_PASSWORD = os.environ.get("MAIL_PASSWORD", "Lemoutonvert,1968")
+    # SÉCURITÉ : Ne JAMAIS mettre de mot de passe par défaut
+    MAIL_PASSWORD = os.environ.get("MAIL_PASSWORD")
     MAIL_DEFAULT_SENDER = os.environ.get("MAIL_DEFAULT_SENDER", "contact@spectacleanimation.fr")
     # Affichage de l'adresse email utilisée pour l'envoi des mails
     print(f"[CONFIG] MAIL_DEFAULT_SENDER utilisé : {MAIL_DEFAULT_SENDER}")

@@ -26,6 +26,7 @@
 {% block content %}
 <h2>Compléter le spectacle</h2>
 <form method="post" enctype="multipart/form-data" class="form">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
   <label>Raison sociale
     <input type="text" name="raison_sociale" value="{{ show.raison_sociale or '' }}">
   </label>
