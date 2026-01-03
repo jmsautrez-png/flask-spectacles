@@ -42,7 +42,7 @@
     <div class="content" style="padding:32px;">
       <!-- Company Name -->
       {% if show.raison_sociale %}
-        <p style="font-size:1.15rem; font-weight:700; color:var(--primary); margin:0 0 12px 0; text-transform:uppercase; letter-spacing:0.5px;">{{ show.raison_sociale }}</p>
+        <p style="font-size:1.15rem; font-weight:700; color:var(--primary); margin:0 0 12px 0; text-transform:uppercase; letter-spacing:0.5px;">{{ show.raison_sociale|title }}</p>
       {% endif %}
       
       <!-- Title -->
@@ -51,7 +51,7 @@
       <!-- Badges -->
       <div style="display:flex; gap:10px; flex-wrap:wrap; margin-bottom:32px;">
         {% if show.category %}
-          <span class="badge badge-category">{{ show.category }}</span>
+          <span class="badge badge-category">{{ show.category|title }}</span>
         {% endif %}
         {% if show.age_range %}
           {% if 'enfant' in show.age_range|lower %}

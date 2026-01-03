@@ -32,7 +32,7 @@
         <h3>{{ show.title }}</h3>
         <p class="meta">
           {% if show.age_range %}<span class="badge-age">{{ show.age_range }}</span>{% endif %}
-          {% if show.category %} • {{ show.category }}{% endif %}
+          {% if show.category %} • {{ show.category|title }}{% endif %}
           {% if show.location %} • {{ show.location }}{% endif %}
         </p>
         {% if show.description %}<p class="desc">{{ show.description }}</p>{% endif %}

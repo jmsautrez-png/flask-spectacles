@@ -2,7 +2,7 @@
 {% block title %}Demander une animation pour anniversaire, entreprise, école - Spectacle'ment VØtre{% endblock %}
 
 {% block content %}
-<div style="margin-bottom:18px; font-size:1.15em; color:#f0f1f2; font-weight:600; text-align:center;">
+<div style="margin-bottom:18px; font-size:1.15em; color:#fff; font-weight:600; text-align:center;">
   Spectacle'ment VØtre la plateforme qui connecte facilement les organisateurs d’événements avec des artistes et compagnies de spectacle vivant.
 </div>
 <div class="demande-wrap" style="background:linear-gradient(135deg,#1b2a4e 0%,#355c7d 100%); border:2px solid #355c7d; border-radius:16px; padding:32px; margin-bottom:32px; position:relative; overflow:hidden; box-shadow:0 4px 16px #355c7d22; color:#fff;">
@@ -15,7 +15,7 @@
   </p>
 
   <form action="{{ url_for('demande_animation') }}" method="POST" class="form demande-form" novalidate>
-
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
       <input type="hidden" name="auto_datetime" id="auto_datetime" value="">
     
     <fieldset class="demande-section">

@@ -11,7 +11,7 @@
     {% for show in pending %}
         <article class="card">
             <h3>{{ show.title }}</h3>
-            <p>{{ show.category }} • {{ show.location }}</p>
+            <p>{{ show.category|title }} • {{ show.location|title }}</p>
             <p>{{ show.age_range }}</p>
 
             <form action="{{ url_for('show_approve', show_id=show.id) }}" method="post">
