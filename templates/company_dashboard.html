@@ -39,6 +39,7 @@
       <a href="{{ url_for('show_edit_self', show_id=s.id) }}">Modifier</a>
       
       <form action="{{ url_for('show_delete_self', show_id=s.id) }}" method="post" style="margin:0;">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
         <button type="submit" class="danger" onclick="return confirm('Supprimer ce spectacle ?')">
           Supprimer
         </button>

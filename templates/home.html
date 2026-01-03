@@ -114,11 +114,13 @@
 
           <form action="{{ url_for('show_delete', show_id=show.id) }}" method="post"
                 onsubmit="return confirm('Supprimer cette annonce ?');">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
             <button type="submit" class="danger">Supprimer</button>
           </form>
 
           {% if not show.approved %}
           <form action="{{ url_for('show_approve', show_id=show.id) }}" method="post">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
             <button type="submit">✅ Valider</button>
           </form>
           {% endif %}
