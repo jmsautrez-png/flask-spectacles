@@ -19,18 +19,18 @@
 
 
 <div style="display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:16px;">
-  <h1 style="font-size:1.25rem;margin:0 0 8px 0;font-weight:700;color:#fff;line-height:1.3;">Spectacles et animations pour mairies, écoles et CSE partout en France</h1>
+  <h1 style="font-size:1.25rem;margin:0 0 8px 0;font-weight:700;color:#FFDEDE;line-height:1.3;">Spectacles et animations pour mairies, écoles et CSE partout en France</h1>
   <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;justify-content:flex-end;width:100%;">
     <a href="{{ url_for('demande_animation') }}" style="background:linear-gradient(135deg,#43a047 0%,#66bb6a 100%);color:#fff;padding:8px 18px;border-radius:22px;font-weight:600;font-size:0.95rem;text-decoration:none;box-shadow:0 2px 8px #43a04744;transition:background .2s;white-space:nowrap;display:inline-block;letter-spacing:0.5px;">
         Mairie, CSE, Ecole, asso etc — Je publie mon appel d'offre
       </a>
-      <a href="{{ url_for('publish') }}" style="background:linear-gradient(135deg,#1976d2 0%,#43cea2 100%);color:#fff;padding:8px 18px;border-radius:22px;font-weight:600;font-size:0.95rem;text-decoration:none;box-shadow:0 2px 8px #1976d244;transition:background .2s;white-space:nowrap;display:inline-block;letter-spacing:0.5px;">
+      <a href="{{ url_for('publish') }}" style="background:linear-gradient(135deg,#1976d2 0%,#43cea2 100%);color:#FFDEDE;padding:8px 18px;border-radius:22px;font-weight:600;font-size:0.95rem;text-decoration:none;box-shadow:0 2px 8px #1976d244;transition:background .2s;white-space:nowrap;display:inline-block;letter-spacing:0.5px;">
         Je suis artiste / compagnie — Je publie mon spectacle
       </a>
-      <a href="{{ url_for('abonnement_compagnie') }}" style="background:linear-gradient(135deg,#283e5e 0%,#1976d2 100%);color:#fff;padding:8px 18px;border-radius:22px;font-weight:600;font-size:0.95rem;text-decoration:none;box-shadow:0 2px 8px #1976d244;transition:background .2s;white-space:nowrap;display:inline-block;letter-spacing:0.5px;">
+      <a href="{{ url_for('abonnement_compagnie') }}" style="background:linear-gradient(135deg,#283e5e 0%,#1976d2 100%);color:#FFDEDE;padding:8px 18px;border-radius:22px;font-weight:600;font-size:0.95rem;text-decoration:none;box-shadow:0 2px 8px #1976d244;transition:background .2s;white-space:nowrap;display:inline-block;letter-spacing:0.5px;">
         Abonnement Compagnie
       </a>
-    <a href="{{ url_for('demandes_animation') }}" style="background:linear-gradient(135deg,#1976d2 0%,#43cea2 100%);color:#fff;padding:8px 18px;border-radius:22px;font-weight:600;font-size:0.95rem;text-decoration:none;box-shadow:0 2px 8px #1976d244;transition:background .2s;white-space:nowrap;display:inline-block;letter-spacing:0.5px;">
+    <a href="{{ url_for('demandes_animation') }}" style="background:linear-gradient(135deg,#1976d2 0%,#43cea2 100%);color:#FFDEDE;padding:8px 18px;border-radius:22px;font-weight:600;font-size:0.95rem;text-decoration:none;box-shadow:0 2px 8px #1976d244;transition:background .2s;white-space:nowrap;display:inline-block;letter-spacing:0.5px;">
       Voir les appels d'offres
     </a>
   </div>
@@ -186,30 +186,30 @@
 
   <!-- COLONNE DROITE : ton nouveau bloc -->
   <aside class="page-sidebar">
-    <section class="seo-block" style="background:linear-gradient(135deg,#162447 0%,#283e5e 100%); border:2px solid #283e5e; border-radius:16px; padding:24px; margin-bottom:24px; box-shadow:0 2px 12px #16244722; color:#fff;">
-      <h2>Mairie, CSE, Ecole etc. — Besoin d'un spectacle, une animation, un atelier, un concert, un DJ etc..?</h2>
-      <p>
+    <section class="seo-block" style="background:linear-gradient(135deg,#162447 0%,#283e5e 100%); border:2px solid #283e5e; border-radius:16px; padding:24px; margin-bottom:24px; box-shadow:0 2px 12px #16244722; color:#FFDEDE;">
+      <h2 style="color:#fff;">Mairie, CSE, Ecole etc. — Besoin d'un spectacle, une animation, un atelier, un concert, un DJ etc..?</h2>
+      <p style="color:#FFDEDE;">
         Retrouvez rapidement un spectacle par thème&nbsp;:
       </p>
         <div style="margin: 12px 0 18px 0; text-align:center;">
           <a href="{{ url_for('seo_category', category_slug='une') }}" class="btn btn-featured theme-btn" data-theme="une" style="display:inline-block; background:linear-gradient(90deg,#e67e22 0%,#f6e58d 100%); color:#222; font-weight:700; border-radius:8px; padding:12px 28px; font-size:1.08em; box-shadow:0 2px 8px #e67e2244; text-decoration:none; transition:background 0.2s;">Spectacle à la une</a>
         </div>
       <ul style="list-style:none; padding:0; margin:0 0 12px 0;">
-        <li><a href="{{ url_for('home') }}" style="color:#fff;font-weight:bold;">Tout</a></li>
-        <li><a href="{{ url_for('seo_category', category_slug='marionnette') }}" style="color:#fff;">Marionnette</a></li>
-        <li><a href="{{ url_for('seo_category', category_slug='magie') }}" style="color:#fff;">Magie</a></li>
-        <li><a href="{{ url_for('seo_category', category_slug='clown') }}" style="color:#fff;">Clown</a></li>
-        <li><a href="{{ url_for('seo_category', category_slug='theatre') }}" style="color:#fff;">Théâtre</a></li>
-        <li><a href="{{ url_for('seo_category', category_slug='danse') }}" style="color:#fff;">Danse</a></li>
-        <li><a href="{{ url_for('seo_category', category_slug='enfant') }}" style="color:#fff;">Spectacle enfant</a></li>
-        <li><a href="{{ url_for('seo_category', category_slug='atelier') }}" style="color:#fff;">Atelier</a></li>
-        <li><a href="{{ url_for('seo_category', category_slug='concert') }}" style="color:#fff;">Concert</a></li>
-        <li><a href="{{ url_for('seo_category', category_slug='cirque') }}" style="color:#fff;">Cirque</a></li>
-        <li><a href="{{ url_for('seo_category', category_slug='rue') }}" style="color:#fff;">Spectacle de rue</a></li>
-        <li><a href="{{ url_for('seo_category', category_slug='orchestre') }}" style="color:#fff;">Orchestre</a></li>
-        <li><a href="{{ url_for('seo_category', category_slug='arbre-de-noel') }}" style="color:#fff;font-weight:600;">Arbre de Noël</a></li>
-        <li><a href="{{ url_for('seo_category', category_slug='animation-ecole') }}" style="color:#fff;font-weight:600;">Animation école</a></li>
-        <li><a href="{{ url_for('seo_category', category_slug='fete-de-village') }}" style="color:#fff;font-weight:600;">Fête de village</a></li>
+        <li><a href="{{ url_for('home') }}" style="color:#FFDEDE;font-weight:bold;">Tout</a></li>
+        <li><a href="{{ url_for('seo_category', category_slug='marionnette') }}" style="color:#FFDEDE;">Marionnette</a></li>
+        <li><a href="{{ url_for('seo_category', category_slug='magie') }}" style="color:#FFDEDE;">Magie</a></li>
+        <li><a href="{{ url_for('seo_category', category_slug='clown') }}" style="color:#FFDEDE;">Clown</a></li>
+        <li><a href="{{ url_for('seo_category', category_slug='theatre') }}" style="color:#FFDEDE;">Théâtre</a></li>
+        <li><a href="{{ url_for('seo_category', category_slug='danse') }}" style="color:#FFDEDE;">Danse</a></li>
+        <li><a href="{{ url_for('seo_category', category_slug='enfant') }}" style="color:#FFDEDE;">Spectacle enfant</a></li>
+        <li><a href="{{ url_for('seo_category', category_slug='atelier') }}" style="color:#FFDEDE;">Atelier</a></li>
+        <li><a href="{{ url_for('seo_category', category_slug='concert') }}" style="color:#FFDEDE;">Concert</a></li>
+        <li><a href="{{ url_for('seo_category', category_slug='cirque') }}" style="color:#FFDEDE;">Cirque</a></li>
+        <li><a href="{{ url_for('seo_category', category_slug='rue') }}" style="color:#FFDEDE;">Spectacle de rue</a></li>
+        <li><a href="{{ url_for('seo_category', category_slug='orchestre') }}" style="color:#FFDEDE;">Orchestre</a></li>
+        <li><a href="{{ url_for('seo_category', category_slug='arbre-de-noel') }}" style="color:#FFDEDE;font-weight:600;">Arbre de Noël</a></li>
+        <li><a href="{{ url_for('seo_category', category_slug='animation-ecole') }}" style="color:#FFDEDE;font-weight:600;">Animation école</a></li>
+        <li><a href="{{ url_for('seo_category', category_slug='fete-de-village') }}" style="color:#FFDEDE;font-weight:600;">Fête de village</a></li>
       </ul>
     </section>
   </aside>

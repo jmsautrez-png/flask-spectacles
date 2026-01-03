@@ -95,15 +95,15 @@
 </head>
 <body>
 
-<header class="site-header" style="background:linear-gradient(90deg,#c4302b 60%,#e52d27 100%);">
+<header class="site-header" style="background:linear-gradient(90deg,#7a1e1e 0%,#a52a2a 100%);">
   <div class="container header-grid">
     <a href="{{ url_for('home') }}" class="brand" id="brand-logo">
       <div style="display:flex; align-items:center; gap:14px;">
         <img src="{{ url_for('static', filename='img/logo_spectaclement_votre.jpg') }}" alt="Logo Spectacle'ment Vôtre" style="height:67.6px; width:auto; border-radius:6px; box-shadow:0 2px 8px #0002; background:#fff;" />
-        <div style="width:4px; height:40px; background:var(--primary); border-radius:2px;"></div>
+        <div style="width:4px; height:40px; background:#fff; border-radius:2px;"></div>
         <div>
-          <div style="font-weight:700; font-size:1.95rem; color:#fff; letter-spacing:-0.5px;">Spectacle'ment VØtre</div>
-          <div style="font-size:0.975rem; color:#fff; line-height:1.3; margin-top:2px;">la plateforme qui connecte facilement les organisateurs d’événements avec des artistes et compagnies de spectacle vivant.</div>
+          <div style="font-weight:700; font-size:1.95rem; color:#FFDEDE; letter-spacing:-0.5px;">Spectacle'ment VØtre</div>
+          <div style="font-size:0.975rem; color:#FFDEDE; line-height:1.3; margin-top:2px;">la plateforme qui connecte facilement les organisateurs d'événements avec des artistes et compagnies de spectacle vivant.</div>
         </div>
       </div>
     </a>
@@ -114,13 +114,13 @@
         {# ----- ADMIN CONNECTÉ ----- #}
         {% if user and user.is_admin %}
           <li>
-            <a href="{{ url_for('show_new') }}" style="padding:8px 14px; background:var(--primary); color:white; border-radius:6px; font-weight:600; font-size:0.85rem; text-decoration:none; display:inline-block; transition:opacity 0.2s;">
+            <a href="{{ url_for('show_new') }}" style="padding:8px 14px; background:var(--primary); color:#FFDEDE; border-radius:6px; font-weight:600; font-size:0.85rem; text-decoration:none; display:inline-block; transition:opacity 0.2s;">
               + Ajouter
             </a>
           </li>
           {# Bouton Demandes supprimé #}
           <li>
-            <a href="{{ url_for('logout') }}" style="padding:8px 14px; background:transparent; color:#fff; font-weight:500; font-size:0.85rem; text-decoration:none; display:inline-block; transition:color 0.2s;">
+            <a href="{{ url_for('logout') }}" style="padding:8px 14px; background:transparent; color:#FFDEDE; font-weight:500; font-size:0.85rem; text-decoration:none; display:inline-block; transition:color 0.2s;">
               Déconnexion ({{ user.username }})
             </a>
           </li>
@@ -129,7 +129,7 @@
         {% elif user %}
           {# Bouton Demande d'animation supprimé #}
           <li>
-            <a href="{{ url_for('logout') }}" style="padding:8px 14px; background:transparent; color:#fff; font-weight:500; font-size:0.85rem; text-decoration:none; display:inline-block; transition:color 0.2s;">
+            <a href="{{ url_for('logout') }}" style="padding:8px 14px; background:transparent; color:#FFDEDE; font-weight:500; font-size:0.85rem; text-decoration:none; display:inline-block; transition:color 0.2s;">
               Déconnexion
             </a>
           </li>
@@ -137,12 +137,12 @@
         {# ----- VISITEUR ----- #}
         {% else %}
           <li>
-            <a href="{{ url_for('login') }}" style="padding:8px 14px; background:transparent; color:var(--text); border:1px solid var(--border); border-radius:6px; font-weight:500; font-size:0.85rem; text-decoration:none; display:inline-block; transition:background 0.2s;">
+            <a href="{{ url_for('login') }}" style="padding:8px 14px; background:transparent; color:#FFDEDE; border:1px solid #FFDEDE; border-radius:6px; font-weight:500; font-size:0.85rem; text-decoration:none; display:inline-block; transition:background 0.2s;">
               Se connecter
             </a>
           </li>
           <li>
-            <a href="{{ url_for('register') }}" style="padding:8px 14px; background:var(--primary); color:white; border-radius:6px; font-weight:600; font-size:0.85rem; text-decoration:none; display:inline-block; transition:opacity 0.2s;">
+            <a href="{{ url_for('register') }}" style="padding:8px 14px; background:var(--primary); color:#FFDEDE; border-radius:6px; font-weight:600; font-size:0.85rem; text-decoration:none; display:inline-block; transition:opacity 0.2s;">
               S'inscrire
             </a>
           </li>
