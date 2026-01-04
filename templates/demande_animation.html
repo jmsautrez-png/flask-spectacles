@@ -81,22 +81,36 @@
           <select id="genre_recherche" name="genre_recherche" required>
             <option value="">-- Choisir --</option>
             <optgroup label="Spectacle et Animation Artistique">
+              <option value="Spectacle Maternelle">Spectacle Maternelle</option>
+              <option value="Spectacle Élémentaire">Spectacle Élémentaire</option>
+              <option value="Spectacle École">Spectacle École</option>
+              <option value="Spectacle CSE">Spectacle CSE</option>
+              <option value="Festival">Festival</option>
+              <option value="Fêtes Foraine">Fête Foraine</option>
+              <option value="Sculpteur de ballons">Sculpteur de ballons</option>
               <option value="Animation et Atelier Artistique">Animation et Atelier Artistique</option>
+              <option value="Atelier divers">Atelier divers</option>
+              <option value="Atelier maquillage">Atelier maquillage</option>
               <option value="Caricaturistes et Silhouettiste">Caricaturistes et Silhouettiste</option>
               <option value="Cirque">Cirque</option>
               <option value="Clown">Clown</option>
               <option value="Conte et Théâtre">Conte et Théâtre</option>
+              <option value="Fête de village">Fête de village</option>
               <option value="Humoriste et Imitateur">Humoriste et Imitateur</option>
+              <option value="Location de stand">Location de stand</option>
               <option value="Magie et Magicien">Magie et Magicien</option>
+              <option value="Manège">Manège</option>
               <option value="Marionnettes">Marionnettes</option>
+              <option value="Père Noël">Père Noël</option>
               <option value="Revue Cabaret et Danse">Revue Cabaret et Danse</option>
               <option value="Sosie">Sosie</option>
               <option value="Spectacle à Thèmes">Spectacle à Thèmes</option>
               <option value="Spectacle Animalier">Spectacle Animalier</option>
               <option value="Spectacle Arbre de Noël">Spectacle Arbre de Noël</option>
+              <option value="Spectacle de danse">Spectacle de danse</option>
+              <option value="Spectacle de Rue">Spectacle de Rue</option>
               <option value="Spectacle Enfants">Spectacle Enfants</option>
               <option value="Spectacle Evénementiel">Spectacle Evénementiel</option>
-              <option value="Spectacle de Rue">Spectacle de Rue</option>
               <option value="Spectacle Musical">Spectacle Musical</option>
               <option value="Ventriloque">Ventriloque</option>
             </optgroup>
@@ -113,7 +127,14 @@
               <option value="Pianiste">Pianiste</option>
               <option value="Rock et Country">Rock et Country</option>
             </optgroup>
+            <option value="Autre">Autre (précisez ci-dessous)</option>
           </select>
+        </label>
+
+        <label id="autre_genre_container" style="display:none;">
+          <span class="label-text">Précisez votre demande</span>
+          <input type="text" id="autre_genre" name="autre_genre" placeholder="Décrivez le type de spectacle ou animation recherché">
+          <small class="hint">Ce champ sera utilisé si vous sélectionnez "Autre" ci-dessus.</small>
         </label>
 
         <label>
@@ -193,6 +214,24 @@
     var input = document.getElementById('auto_datetime');
     if (input) {
       input.value = formatted;
+    }
+
+    // Gestion de l'affichage du champ "Autre genre"
+    var genreSelect = document.getElementById('genre_recherche');
+    var autreContainer = document.getElementById('autre_genre_container');
+    var autreInput = document.getElementById('autre_genre');
+    
+    if (genreSelect && autreContainer) {
+      genreSelect.addEventListener('change', function() {
+        if (this.value === 'Autre') {
+          autreContainer.style.display = 'block';
+          autreInput.setAttribute('required', 'required');
+        } else {
+          autreContainer.style.display = 'none';
+          autreInput.removeAttribute('required');
+          autreInput.value = '';
+        }
+      });
     }
   });
   </script>

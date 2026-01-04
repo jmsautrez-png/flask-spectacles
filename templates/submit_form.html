@@ -28,7 +28,7 @@
           <label>
             <span class="label-text">Votre e-mail</span>
             <span class="hint">Pour mettre votre adresse courriel <a href="{{ url_for('legal') }}" style="color:var(--primary);text-decoration:underline;">nous contacter</a></span>
-            <input type="email" name="contact_email" value="audition_2020@yahoo.fr" readonly style="background-color: #1a1a1f; cursor: not-allowed; opacity: 0.6;">
+            <input type="email" name="contact_email" value="contact@spectacleanimation.fr" readonly style="background-color: #1a1a1f; cursor: not-allowed; opacity: 0.6;">
           </label>
         </div>
 
@@ -172,12 +172,66 @@
         <div>
           <label>
             <span class="label-text">Catégorie</span>
-            <input type="text" name="category" id="category-input" placeholder="Ex: Magie, Théâtre, Clown">
+            <select name="category">
+              <option value="">-- Choisir --</option>
+              <optgroup label="Spectacle et Animation Artistique">
+                <option value="Spectacle Maternelle">Spectacle Maternelle</option>
+                <option value="Spectacle Élémentaire">Spectacle Élémentaire</option>
+                <option value="Spectacle École">Spectacle École</option>
+                <option value="Spectacle CSE">Spectacle CSE</option>
+                <option value="Festival">Festival</option>
+                <option value="Fête Foraine">Fête Foraine</option>
+                <option value="Sculpteur de ballons">Sculpteur de ballons</option>
+                <option value="Animation et Atelier Artistique">Animation et Atelier Artistique</option>
+                <option value="Atelier divers">Atelier divers</option>
+                <option value="Atelier maquillage">Atelier maquillage</option>
+                <option value="Caricaturistes et Silhouettiste">Caricaturistes et Silhouettiste</option>
+                <option value="Cirque">Cirque</option>
+                <option value="Clown">Clown</option>
+                <option value="Conte et Théâtre">Conte et Théâtre</option>
+                <option value="Fête de village">Fête de village</option>
+                <option value="Humoriste et Imitateur">Humoriste et Imitateur</option>
+                <option value="Location de stand">Location de stand</option>
+                <option value="Magie et Magicien">Magie et Magicien</option>
+                <option value="Manège">Manège</option>
+                <option value="Marionnettes">Marionnettes</option>
+                <option value="Père Noël">Père Noël</option>
+                <option value="Revue Cabaret et Danse">Revue Cabaret et Danse</option>
+                <option value="Sosie">Sosie</option>
+                <option value="Spectacle à Thèmes">Spectacle à Thèmes</option>
+                <option value="Spectacle Animalier">Spectacle Animalier</option>
+                <option value="Spectacle Arbre de Noël">Spectacle Arbre de Noël</option>
+                <option value="Spectacle de danse">Spectacle de danse</option>
+                <option value="Spectacle de Rue">Spectacle de Rue</option>
+                <option value="Spectacle Enfants">Spectacle Enfants</option>
+                <option value="Spectacle Evénementiel">Spectacle Evénementiel</option>
+                <option value="Spectacle Musical">Spectacle Musical</option>
+                <option value="Ventriloque">Ventriloque</option>
+              </optgroup>
+              <optgroup label="Groupe de Musique et Musicien">
+                <option value="Accordéoniste">Accordéoniste</option>
+                <option value="Animation Musicale">Animation Musicale</option>
+                <option value="Chorale et Gospel">Chorale et Gospel</option>
+                <option value="D.J. et Orchestre">D.J. et Orchestre</option>
+                <option value="Fanfare et Batucada">Fanfare et Batucada</option>
+                <option value="Groupe folklorique">Groupe folklorique</option>
+                <option value="Jazz">Jazz</option>
+                <option value="Musique Classique">Musique Classique</option>
+                <option value="Orgue de Barbarie">Orgue de Barbarie</option>
+                <option value="Pianiste">Pianiste</option>
+                <option value="Rock et Country">Rock et Country</option>
+              </optgroup>
+              <option value="Autre">Autre (précisez ci-dessous)</option>
+            </select>
           </label>
-          <div style="background:#e3f2fd; color:#1565c0; border:1px solid #90caf9; border-radius:7px; padding:7px 12px; margin:10px 0 8px 0; font-size:0.97em; font-weight:500;">
+          <label id="autre_category_container" style="display:none; margin-top:10px;">
+            <span class="label-text">Précisez votre catégorie</span>
+            <input type="text" id="autre_category" name="autre_category" placeholder="Décrivez votre type de spectacle">
+          </label>
+          <div style="display:none; background:#e3f2fd; color:#1565c0; border:1px solid #90caf9; border-radius:7px; padding:7px 12px; margin:10px 0 8px 0; font-size:0.97em; font-weight:500;">
             Cliquez sur une catégorie pour remplir automatiquement le champ ci-dessus&nbsp;:
           </div>
-          <div class="category-buttons" style="display:flex; flex-wrap:wrap; gap:6px; margin-bottom:14px; position:relative;">
+          <div class="category-buttons" style="display:none; flex-wrap:wrap; gap:6px; margin-bottom:14px; position:relative;">
             <div id="category-hover-banner" style="display:none; position:absolute; left:0; right:0; top:-38px; background:#fffde7; color:#795548; border:1px solid #ffe082; border-radius:7px; padding:7px 12px; font-size:0.97em; font-weight:500; z-index:10; text-align:center; pointer-events:none; transition:opacity 0.2s; opacity:0;">
               Cliquez pour sélectionner cette catégorie
             </div>
@@ -226,6 +280,7 @@
             <span class="label-text">Âge / Public</span>
             <select name="age_range" required>
               <option value="">-- Choisir --</option>
+              <option value="enfant">Enfant</option>
               <option value="enfant_2_6">Enfant (2/6 ans)</option>
               <option value="enfant_6_10">Enfant (6/10 ans)</option>
               <option value="enfant_2_10">Enfant (2/10 ans)</option>
@@ -299,6 +354,22 @@
 
   ta.addEventListener('input', update);
   update();
+
+  // Gestion de l'affichage du champ "Autre catégorie"
+  var categorySelect = document.querySelector('select[name="category"]');
+  var autreContainer = document.getElementById('autre_category_container');
+  var autreInput = document.getElementById('autre_category');
+  
+  if (categorySelect && autreContainer) {
+    categorySelect.addEventListener('change', function() {
+      if (this.value === 'Autre') {
+        autreContainer.style.display = 'block';
+      } else {
+        autreContainer.style.display = 'none';
+        if (autreInput) autreInput.value = '';
+      }
+    });
+  }
 
   // Sécurité supplémentaire à la soumission
   document.querySelectorAll('form').forEach(form => {
