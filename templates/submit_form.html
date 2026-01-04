@@ -26,9 +26,9 @@
       <div class="grid-2">
         <div>
           <label>
-            <span class="label-text">Votre e-mail</span>
-            <span class="hint">Pour mettre votre adresse courriel <a href="{{ url_for('legal') }}" style="color:var(--primary);text-decoration:underline;">nous contacter</a></span>
-            <input type="email" name="contact_email" value="contact@spectacleanimation.fr" readonly style="background-color: #1a1a1f; cursor: not-allowed; opacity: 0.6;">
+            <span class="label-text">Votre e-mail <span class="req">*</span></span>
+            <span class="hint">Votre adresse e-mail de contact pour les organisateurs d'événements</span>
+            <input type="email" name="contact_email" placeholder="votre@email.fr" value="{{ request.form.get('contact_email', '') }}" required>
           </label>
         </div>
 
