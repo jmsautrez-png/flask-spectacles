@@ -215,6 +215,33 @@
   </aside>
 </div>
 
-
+<script>
+(function() {
+  // Rotation automatique des pages/catégories toutes les 45 secondes
+  const categories = [
+    '{{ url_for("home") }}',
+    '{{ url_for("seo_category", category_slug="marionnette") }}',
+    '{{ url_for("seo_category", category_slug="magie") }}',
+    '{{ url_for("seo_category", category_slug="clown") }}',
+    '{{ url_for("seo_category", category_slug="theatre") }}',
+    '{{ url_for("seo_category", category_slug="danse") }}',
+    '{{ url_for("seo_category", category_slug="enfant") }}',
+    '{{ url_for("seo_category", category_slug="cirque") }}',
+    '{{ url_for("seo_category", category_slug="arbre-de-noel") }}'
+  ];
+  
+  let currentCategoryIndex = 0;
+  
+  function rotateCategory() {
+    currentCategoryIndex = (currentCategoryIndex + 1) % categories.length;
+    window.location.href = categories[currentCategoryIndex];
+  }
+  
+  // Démarrer la rotation après 45 secondes
+  setTimeout(function() {
+    setInterval(rotateCategory, 45000);
+  }, 45000);
+})();
+</script>
 
 {% endblock %}
