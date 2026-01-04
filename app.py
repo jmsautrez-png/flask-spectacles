@@ -199,15 +199,25 @@ def create_app() -> Flask:
         from flask_limiter import Limiter
         from flask_limiter.util import get_remote_address
         
+        # Limites plus raisonnables et différentes selon l'environnement
+        is_production = os.environ.get("FLASK_ENV") == "production"
+        
+        if is_production:
+            # En production : limites strictes
+            default_limits = ["10000 per day", "500 per hour", "100 per minute"]
+        else:
+            # En développement : limites très souples
+            default_limits = ["100000 per day", "10000 per hour", "1000 per minute"]
+        
         limiter = Limiter(
             app=app,
             key_func=get_remote_address,
-            default_limits=["200 per day", "50 per hour"],
+            default_limits=default_limits,
             storage_uri="memory://",
-            strategy="fixed-window"
+            strategy="moving-window"  # Plus précis que fixed-window
         )
         app.limiter = limiter  # type: ignore
-        app.logger.info("Rate limiting activé")
+        app.logger.info(f"Rate limiting activé: {', '.join(default_limits)}")
     except Exception as e:
         app.logger.warning(f"Rate limiting non activé: {e}")
         app.limiter = None  # type: ignore
@@ -671,6 +681,7 @@ def register_routes(app: Flask) -> None:
             db.session.commit()
             
             # Essayer d'envoyer par email
+            email_sent = False
             if getattr(current_app, "mail", None):
                 to_email = None
                 if hasattr(user, 'shows') and user.shows:
@@ -689,10 +700,22 @@ def register_routes(app: Flask) -> None:
                         msg.body = f"Bonjour {user.username},\\n\\nVotre nouveau mot de passe : {new_pwd}\\n\\nCordialement"
                         current_app.mail.send(msg)
                         current_app.logger.info(f"Email envoyé à {to_email}")
+                        email_sent = True
+                        flash(f"Un email a été envoyé à {to_email}", "success")
                     except Exception as e:
                         current_app.logger.error(f"Erreur email: {e}")
                 else:
                     current_app.logger.warning(f"Pas d'email - MDP {username}: {new_pwd}")
+            
+            # Afficher le mot de passe sur la page si pas d'email envoyé
+            # (ou toujours l'afficher en développement)
+            if not email_sent or current_app.config.get("FLASK_ENV") != "production":
+                return render_template(
+                    "forgot_password.html", 
+                    user=current_user(),
+                    new_password=new_pwd,
+                    reset_user=username
+                )
             
             return redirect(url_for("login"))
 
@@ -1077,7 +1100,8 @@ def register_routes(app: Flask) -> None:
                         + f"📧 Email: {contact_email}\n"
                         + f"📱 Téléphone: {contact_phone}\n"
                         + "\n\nAussi, vous bénéficiez dès aujourd'hui d'un abonnement gratuit de six mois (voir onglet Abonnement).\n"
-                        + "L'abonnement est optionnel. La plateforme Spectacle'ment Vôtre est avant tout un annuaire du spectacle vivant français.\n"
+                        + "L'abonnement est optionnel. La plateforme Spectacle'ment Vôtre est avant tout un annuaire du spectacle vivant français.\n\n"
+                        + "N'hésitez pas à vous inscrire \"gratuitement\" et ajouter vos spectacles.\n"
                         + "\nCordialement,\nL'équipe Spectacle'ment VØtre"
                     )
                     msg = Message(subject="🎭 Nouvelle annonce à valider", recipients=[to_addr])  # type: ignore[arg-type]
@@ -1178,6 +1202,8 @@ def register_routes(app: Flask) -> None:
             s.category = request.form.get("category","").strip()
             s.age_range = (request.form.get("age_range","") or None)
             s.site_internet = request.form.get("site_internet","").strip() or None
+            s.contact_email = request.form.get("contact_email","").strip() or None
+            s.contact_phone = request.form.get("contact_phone","").strip() or None
 
             date_str = request.form.get("date","").strip()
             if date_str:
@@ -1341,18 +1367,18 @@ def register_routes(app: Flask) -> None:
                     show_url = url_for("show_detail", show_id=show.id, _external=True)
                     body = (
                         "Bonjour,\n\n"
-                        "Spectacle'ment VØtre est la plateforme qui promeut gratuitement vos spectacles auprès des mairies, CSE et écoles.\n\n"
-                        f"Le spectacle de votre compagnie ({raison_sociale}) est désormais publié sur notre site.\n\n"
+                        "Votre spectacle vient d'être publié sur Spectacle'ment VØtre.\n\n"
+                        f"Compagnie : {raison_sociale}\n"
                         f"Titre : {title}\n"
                         f"Lieu : {location}\n"
                         f"Catégorie : {category}\n"
-                        + (f"Date : {date_val}\n\n" if date_val else "")
-                        + f"Date de création de la fiche : {show.created_at.strftime('%d/%m/%Y %H:%M')}\n\n"
+                        + (f"Date : {date_val}\n" if date_val else "")
+                        + f"Date de publication : {show.created_at.strftime('%d/%m/%Y %H:%M')}\n\n"
                         + f"Lien direct vers l'annonce (public) : {show_url}\n\n"
                         + "Si vous souhaitez la retirer ou la modifier, merci de nous contacter par simple retour de ce mail.\n\n"
                         + "Aussi, vous bénéficiez dès aujourd'hui d'un abonnement gratuit de six mois (voir onglet Abonnement).\n"
                         + "L’abonnement est totalement optionnel : Spectacle'ment VØtre reste avant tout un annuaire gratuit d’artistes.\n\n"
-                        + "N'hésitez pas à vous inscrire et ajouter vos spectacles sur la plateforme (Inscription/Connexion > Ajouter votre spectacle).\n\n"
+                        + "N'hésitez pas à vous inscrire \"gratuitement\" et ajouter vos spectacles sur la plateforme (Inscription/Connexion > Ajouter votre spectacle).\n\n"
                         + "Spectaclement vôtre,\nL’équipe Spectacle'ment VØtre"
                     )
                     msg = Message(subject="Votre spectacle est publié sur Spectacle'ment VØtre !", recipients=[to_addr])  # type: ignore[arg-type]
@@ -1451,6 +1477,49 @@ def register_routes(app: Flask) -> None:
         show = Show.query.get_or_404(show_id)
         show.approved = True
         db.session.commit()
+        
+        # Envoi d'email de validation à l'utilisateur et à l'admin
+        if getattr(current_app, "mail", None) and current_app.config.get("MAIL_USERNAME"):
+            try:
+                # Récupérer l'utilisateur propriétaire du spectacle
+                user = User.query.get(show.user_id) if show.user_id else None
+                user_name = user.pseudo if user and user.pseudo else (user.raison_sociale if user and user.raison_sociale else "Utilisateur")
+                user_email = show.contact_email or (user.email if user else None)
+                
+                # Préparer le contenu de l'email
+                show_url = url_for('show_detail', show_id=show.id, _external=True)
+                body = (
+                    f"Bonjour {user_name},\n\n"
+                    "Votre spectacle est désormais en ligne et validé.\n\n"
+                    f"{show_url}\n\n"
+                    "Nous vous remercions pour votre attention et votre confiance.\n\n"
+                    "Nous espérons pouvoir prochainement vous envoyer des appels d'offres.\n"
+                    "Le site étant récent, c'est grâce aux artistes inscrits qu'il pourra se développer, "
+                    "gagner en visibilité et vous aider à faire connaître votre spectacle afin d'obtenir des dates.\n\n"
+                    "Nous vous souhaitons une belle réussite dans vos projets.\n"
+                    "À vous,\n"
+                    "Cordialement,\n"
+                    "Spectacle'ment VØtre / Jean"
+                )
+                
+                # Envoyer à l'utilisateur si email disponible
+                recipients = []
+                if user_email:
+                    recipients.append(user_email)
+                
+                # Ajouter l'admin dans les destinataires
+                admin_email = current_app.config.get("MAIL_DEFAULT_SENDER") or current_app.config.get("MAIL_USERNAME")
+                if admin_email and admin_email not in recipients:
+                    recipients.append(admin_email)
+                
+                if recipients:
+                    msg = Message(subject="✅ Votre spectacle est validé !", recipients=recipients)  # type: ignore[arg-type]
+                    msg.body = body  # type: ignore[assignment]
+                    current_app.mail.send(msg)  # type: ignore[attr-defined]
+                    
+            except Exception as e:  # pragma: no cover
+                app.logger.error(f"[MAIL] Erreur lors de l'envoi de l'email de validation: {e}")
+        
         flash("Annonce validée ✅", "success")
         return redirect(url_for("admin_dashboard"))
 
