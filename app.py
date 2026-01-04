@@ -801,9 +801,9 @@ def register_routes(app: Flask) -> None:
         # Toujours trier du plus récent au plus ancien pour l'affichage
         shows = shows.order_by(Show.created_at.desc())
 
-        # Pagination : 30 résultats par page
+        # Pagination : 16 résultats par page
         try:
-            pagination = shows.paginate(page=page, per_page=24, error_out=False)
+            pagination = shows.paginate(page=page, per_page=16, error_out=False)
             shows_list = pagination.items
         except Exception as e:
             current_app.logger.exception("Erreur lors de la requête /home: %s", e)

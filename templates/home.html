@@ -217,30 +217,67 @@
 
 <script>
 (function() {
-  // Rotation automatique des pages/catégories toutes les 45 secondes
-  const categories = [
-    '{{ url_for("home") }}',
-    '{{ url_for("seo_category", category_slug="marionnette") }}',
-    '{{ url_for("seo_category", category_slug="magie") }}',
-    '{{ url_for("seo_category", category_slug="clown") }}',
-    '{{ url_for("seo_category", category_slug="theatre") }}',
-    '{{ url_for("seo_category", category_slug="danse") }}',
-    '{{ url_for("seo_category", category_slug="enfant") }}',
-    '{{ url_for("seo_category", category_slug="cirque") }}',
-    '{{ url_for("seo_category", category_slug="arbre-de-noel") }}'
-  ];
+  // Rotation automatique des pages de pagination toutes les 45 secondes
+  let currentPage = 1;
+  const cardsContainer = document.querySelector('.cards');
   
-  let currentCategoryIndex = 0;
+  if (!cardsContainer) return;
   
-  function rotateCategory() {
-    currentCategoryIndex = (currentCategoryIndex + 1) % categories.length;
-    window.location.href = categories[currentCategoryIndex];
+  // Détecter le nombre total de pages
+  const paginationLinks = document.querySelectorAll('.pagination a');
+  let maxPages = 1;
+  paginationLinks.forEach(link => {
+    const match = link.href.match(/[?&]page=(\d+)/);
+    if (match) {
+      const pageNum = parseInt(match[1]);
+      if (pageNum > maxPages) maxPages = pageNum;
+    }
+  });
+  
+  // Si pas de pagination détectée, chercher dans le texte
+  const paginationText = document.querySelector('.pagination p');
+  if (paginationText && maxPages === 1) {
+    const match = paginationText.textContent.match(/sur (\d+)/);
+    if (match) maxPages = parseInt(match[1]);
   }
   
-  // Démarrer la rotation après 45 secondes
-  setTimeout(function() {
-    setInterval(rotateCategory, 45000);
-  }, 45000);
+  function loadNextPage() {
+    currentPage++;
+    if (currentPage > maxPages) {
+      currentPage = 1;
+    }
+    
+    // Animation de sortie
+    cardsContainer.style.opacity = '0.3';
+    cardsContainer.style.transition = 'opacity 0.5s ease';
+    
+    // Construire l'URL avec le paramètre page
+    const url = new URL(window.location.href);
+    url.searchParams.set('page', currentPage);
+    
+    // Charger le contenu via fetch
+    fetch(url)
+      .then(response => response.text())
+      .then(html => {
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(html, 'text/html');
+        const newCards = doc.querySelector('.cards');
+        
+        if (newCards) {
+          setTimeout(() => {
+            cardsContainer.innerHTML = newCards.innerHTML;
+            cardsContainer.style.opacity = '1';
+          }, 500);
+        }
+      })
+      .catch(error => {
+        console.log('Rotation des pages:', error);
+        cardsContainer.style.opacity = '1';
+      });
+  }
+  
+  // Lancer la rotation toutes les 45 secondes (ou 10 secondes pour les tests)
+  setInterval(loadNextPage, 10000); // 10 secondes pour test, changez à 45000 pour 45 sec
 })();
 </script>
 
