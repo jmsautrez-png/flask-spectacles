@@ -33,7 +33,7 @@
         <p class="meta">
           {{ show.category|title }}
           {% if show.location %} • {{ show.location }}{% endif %}
-          {% if show.age_range %} • {{ show.age_range }}{% endif %}
+          {% if show.age_range %} • {{ show.age_range|format_age }}{% endif %}
         </p>
         {% if show.description %}<p class="desc">{{ show.description }}</p>{% endif %}
         {% if show.contact_email %}<p class="meta">Contact : {{ show.contact_email }}</p>{% endif %}

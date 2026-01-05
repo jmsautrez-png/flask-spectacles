@@ -294,6 +294,24 @@ def create_app() -> Flask:
         db.create_all()
         _bootstrap_admin(app)
 
+    # Filtre Jinja2 pour formater les âges
+    @app.template_filter('format_age')
+    def format_age(value):
+        """Formate les valeurs d'âge : enfant_2_10 → enfant 2/10ans"""
+        if not value:
+            return value
+        import re
+        # Remplacer enfant_X_Y(ans optionnel) par enfant X/Y
+        value = re.sub(r'_(\d+)_(\d+)(ans)?', r' \1/\2', value)
+        # Remplacer enfants_X_Y(ans optionnel) par enfants X/Y  
+        value = re.sub(r's_(\d+)_(\d+)(ans)?', r's \1/\2', value)
+        # Supprimer les underscores restants
+        value = value.replace('_', ' ')
+        # Ajouter "ans" à la fin si la valeur contient des chiffres et ne se termine pas déjà par "ans"
+        if re.search(r'\d', value) and not value.endswith('ans'):
+            value += 'ans'
+        return value
+
     register_routes(app)
     register_error_handlers(app)
     return app

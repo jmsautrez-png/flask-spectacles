@@ -106,7 +106,7 @@
               {% if show.age_range %}
               <div style="display:flex; align-items:center; gap:6px;">
                 <span style="opacity:0.7; min-width:20px;">👥</span>
-                <span style="color:rgba(255,255,255,0.9);">{{ show.age_range }}</span>
+                <span style="color:rgba(255,255,255,0.9);">{{ show.age_range|format_age }}</span>
               </div>
               {% endif %}
 

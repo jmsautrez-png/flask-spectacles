@@ -39,7 +39,7 @@
       </div>
       <p style="margin:0.2rem 0;"><strong>📅 Date(s) & horaires :</strong> <span style="color:#222;">{{ demande.dates_horaires }}</span></p>
       <p style="margin:0.2rem 0;"><strong>🏢 Type d'espace :</strong> <span style="color:#222;">{{ demande.type_espace }}</span></p>
-      <p style="margin:0.2rem 0;"><strong>👶 Tranche d'âge :</strong> <span style="color:#222;">{{ demande.age_range }} ans</span></p>
+      <p style="margin:0.2rem 0;"><strong>👶 Tranche d'âge :</strong> <span style="color:#222;">{{ demande.age_range|format_age }}</span></p>
       <p style="margin:0.2rem 0;"><strong>👥 Jauge :</strong> <span style="color:#222;">{{ demande.jauge }} personnes</span></p>
       <p style="margin:0.2rem 0;"><strong>💶 Budget :</strong> <span style="color:#222;">{{ demande.budget }} €</span></p>
       {% if demande.contraintes %}<p style="margin:0.2rem 0;"><strong>⚠️ Contraintes :</strong> <span style="color:#222;">{{ demande.contraintes }}</span></p>{% endif %}
@@ -126,7 +126,7 @@
           {% endif %}
           {% if spectacle.age_range %}
             <span style="color:var(--muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
-              <i class="fa fa-child" style="color:var(--primary);"></i> {{ spectacle.age_range }}
+              <i class="fa fa-child" style="color:var(--primary);"></i> {{ spectacle.age_range|format_age }}
             </span>
           {% endif %}
         </div>

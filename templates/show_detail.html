@@ -87,9 +87,9 @@
         {% endif %}
         {% if show.age_range %}
           {% if 'enfant' in show.age_range|lower %}
-            <span class="badge">👶 ({{ show.age_range }}ans)</span>
+            <span class="badge">👶 ({{ show.age_range|format_age }})</span>
           {% else %}
-            <span class="badge">({{ show.age_range }})</span>
+            <span class="badge">({{ show.age_range|format_age }})</span>
           {% endif %}
         {% endif %}
         {% if show.region %}
@@ -328,7 +328,7 @@ a.social-bandeau:hover {
           {% endif %}
           {% if spectacle.age_range %}
             <span style="color:var(--muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
-              <i class="fa fa-child" style="color:var(--primary);"></i> {{ spectacle.age_range }}
+              <i class="fa fa-child" style="color:var(--primary);"></i> {{ spectacle.age_range|format_age }}
             </span>
           {% endif %}
         </div>

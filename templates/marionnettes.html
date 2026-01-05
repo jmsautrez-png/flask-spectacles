@@ -31,7 +31,7 @@
         {% if show.raison_sociale %}<p class="meta" style="font-weight:600; margin-bottom:8px; color:var(--primary);">{{ show.raison_sociale|title }}</p>{% endif %}
         <h3>{{ show.title }}</h3>
         <p class="meta">
-          {% if show.age_range %}<span class="badge-age">{{ show.age_range }}</span>{% endif %}
+          {% if show.age_range %}<span class="badge-age">{{ show.age_range|format_age }}</span>{% endif %}
           {% if show.category %} • {{ show.category|title }}{% endif %}
           {% if show.location %} • {{ show.location }}{% endif %}
         </p>

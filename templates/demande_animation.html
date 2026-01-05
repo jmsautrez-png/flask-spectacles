@@ -334,7 +334,7 @@
           {% endif %}
           {% if spectacle.age_range %}
             <span style="color:var(--muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
-              <i class="fa fa-child" style="color:var(--primary);"></i> {{ spectacle.age_range }}
+              <i class="fa fa-child" style="color:var(--primary);"></i> {{ spectacle.age_range|format_age }}
             </span>
           {% endif %}
         </div>

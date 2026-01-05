@@ -178,7 +178,7 @@ main.container {
   margin-top: 8px;
 }
 
-/* Responsive: stack on mobile */
+/* Responsive: stack on mobile avec meilleure UX */
 @media (max-width: 700px) {
   .demande-form .grid-2 {
     grid-template-columns: 1fr !important;
@@ -187,6 +187,28 @@ main.container {
   
   .demande-section {
     padding: 16px;
+  }
+  
+  .demande-form input,
+  .demande-form select,
+  .demande-form textarea {
+    font-size: 16px; /* Évite zoom automatique sur iOS */
+    padding: 12px;
+  }
+  
+  .demande-form textarea {
+    min-height: 120px;
+  }
+  
+  .demande-form button[type="submit"] {
+    width: 100%;
+    padding: 14px;
+    font-size: 1.05rem;
+    min-height: 48px;
+  }
+  
+  .demande-wrap {
+    width: 98%;
   }
 }
 .brand{ color:var(--text); text-decoration:none; font-weight:700; font-size:1.15rem; display:flex; align-items:center; gap:8px; transition:opacity 0.2s; }
@@ -669,8 +691,10 @@ a[href*="edit"]:hover {
 
 
 /* ============================================
-   RESPONSIVE BREAKPOINTS
+   RESPONSIVE BREAKPOINTS - MOBILE OPTIMIZED
    ============================================ */
+
+/* Tablettes et petits écrans (< 960px) */
 @media (max-width: 960px) {
   .page-layout {
     flex-direction: column;
@@ -685,8 +709,86 @@ a[href*="edit"]:hover {
   .cards {
     grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
   }
+  
+  .container {
+    width: 96%;
+  }
 }
 
+/* Mobile (< 768px) */
+@media (max-width: 768px) {
+  /* Header mobile */
+  .header-grid {
+    flex-direction: column;
+    gap: 12px;
+    padding: 12px 0;
+  }
+  
+  .brand {
+    font-size: 1rem;
+  }
+  
+  .nav {
+    flex-direction: column;
+    width: 100%;
+    gap: 8px;
+  }
+  
+  .nav a {
+    padding: 10px 16px;
+    text-align: center;
+    border: 1px solid var(--border);
+  }
+  
+  /* Boutons CTA plus grands pour le tactile */
+  a[style*="background:linear-gradient"],
+  button[type="submit"],
+  .btn {
+    padding: 12px 20px !important;
+    font-size: 1rem !important;
+    min-height: 44px; /* Taille recommandée pour le tactile */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  /* Formulaire de recherche responsive */
+  form[role="search"] {
+    flex-direction: column !important;
+    padding: 12px !important;
+  }
+  
+  form[role="search"] input {
+    width: 100%;
+    padding: 12px;
+    font-size: 16px; /* Évite le zoom automatique sur iOS */
+  }
+  
+  form[role="search"] button {
+    width: 100%;
+    padding: 12px;
+  }
+  
+  /* H1 plus petit sur mobile */
+  h1 {
+    font-size: 1.1rem !important;
+    line-height: 1.4 !important;
+  }
+  
+  /* Pagination mobile */
+  .pagination {
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  
+  .pagination a,
+  .pagination span {
+    min-width: 40px;
+    padding: 8px;
+  }
+}
+
+/* Petits mobiles (< 600px) */
 @media (max-width: 600px) {
   .cards {
     grid-template-columns: 1fr;
@@ -700,9 +802,85 @@ a[href*="edit"]:hover {
     grid-template-columns: 1fr;
   }
   
+  /* Images responsive */
+  .card .media img {
+    max-height: 300px;
+    object-fit: cover;
+  }
+  
+  /* Espacement réduit */
+  main.container {
+    padding-top: 16px;
+    padding-bottom: 24px;
+  }
+  
+  .demande-section {
+    padding: 14px !important;
+  }
+  
+  /* Boutons empilés verticalement */
+  div[style*="display:flex"] > a {
+    flex: 1 1 100%;
+    min-width: 100% !important;
+  }
+}
+
+/* Très petits écrans (< 400px) */
+@media (max-width: 400px) {
+  .container {
+    width: 98%;
+  }
+  
+  .brand {
+    font-size: 0.95rem;
+  }
+  
+  /* Texte plus petit pour éviter le débordement */
+  body {
+    font-size: 14px;
+  }
+  
+  h1 {
+    font-size: 1rem !important;
+  }
+  
+  .badge {
+    font-size: 0.7rem;
+    padding: 3px 8px;
+  }
+}
+
+/* Optimisations tactiles générales */
+@media (hover: none) and (pointer: coarse) {
+  /* Appareil tactile détecté */
+  
+  /* Augmenter la zone de touch */
+  a, button, input[type="submit"], input[type="button"] {
+    min-height: 44px;
+    min-width: 44px;
+  }
+  
+  /* Supprimer les effets hover sur tactile */
+  .card:hover {
+    transform: none;
+  }
+  
+  /* Feedback tactile */
+  a:active, button:active {
+    opacity: 0.7;
+    transform: scale(0.98);
+  }
+}
+
+/* Mode paysage mobile */
+@media (max-width: 900px) and (orientation: landscape) {
   .header-grid {
-    flex-direction: column;
-    gap: 12px;
+    flex-direction: row;
+    justify-content: space-between;
+  }
+  
+  .nav {
+    flex-direction: row;
   }
 }
 
