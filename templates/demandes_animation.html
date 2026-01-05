@@ -68,4 +68,87 @@
     {% endfor %}
   {% endif %}
 </div>
+
+<!-- Section Spectacles à la Une -->
+{% if spectacles_une %}
+<div style="max-width:100%; margin:48px auto 0 auto; padding:0 20px;">
+  <div style="text-align:center; margin-bottom:32px;">
+    <h2 style="font-size:2rem; margin:0 0 8px 0; color:var(--text);">✨ Spectacles à la Une</h2>
+    <p style="color:var(--muted); font-size:1rem;">Découvrez notre sélection de spectacles exceptionnels</p>
+  </div>
+  
+  <div style="display:grid; grid-template-columns:repeat(8, 1fr); gap:16px;">
+    {% for spectacle in spectacles_une %}
+    <article class="card" style="overflow:hidden; box-shadow:0 4px 16px rgba(0,0,0,0.2); transition: transform 0.3s ease, box-shadow 0.3s ease; height: 100%;">
+      {% if spectacle.has_image() %}
+        <a href="{{ url_for('show_detail', show_id=spectacle.id) }}" style="display:block;">
+          <div style="aspect-ratio:1/1; overflow:hidden; background:var(--panel);">
+            <img src="{{ url_for('uploaded_file', filename=spectacle.file_name) }}" 
+                 alt="{{ spectacle.title }}"
+                 style="width:100%; height:100%; object-fit:cover; transition:transform 0.3s ease;">
+          </div>
+        </a>
+      {% else %}
+        <div style="aspect-ratio:1/1; display:flex; align-items:center; justify-content:center; background:var(--panel);">
+          <span style="font-size:2rem; opacity:0.3;">🎭</span>
+        </div>
+      {% endif %}
+      
+      <div style="padding:12px;">
+        <div style="margin-bottom:8px;">
+          <span class="badge" style="background:linear-gradient(135deg, #ffd700 0%, #ffed4e 100%); color:#222; font-weight:700; border:none; font-size:0.7rem; padding:4px 8px;">
+            ⭐
+          </span>
+        </div>
+        
+        {% if spectacle.raison_sociale %}
+          <p style="font-size:0.7rem; font-weight:600; color:var(--primary); margin:0 0 6px 0; text-transform:uppercase; letter-spacing:0.3px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
+            {{ spectacle.raison_sociale }}
+          </p>
+        {% endif %}
+        
+        <h3 style="margin:0 0 8px 0; font-size:0.9rem; line-height:1.2; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;">
+          <a href="{{ url_for('show_detail', show_id=spectacle.id) }}" 
+             style="color:var(--text); text-decoration:none; transition:color 0.2s;">
+            {{ spectacle.title }}
+          </a>
+        </h3>
+        
+        <p style="color:var(--muted); font-size:0.75rem; line-height:1.4; margin:0 0 10px 0; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;">
+          {{ spectacle.description[:80] }}{% if spectacle.description|length > 80 %}...{% endif %}
+        </p>
+        
+        <div style="display:flex; flex-direction:column; gap:4px; margin-bottom:10px; font-size:0.7rem;">
+          {% if spectacle.region %}
+            <span style="color:var(--muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
+              <i class="fa fa-map-marker-alt" style="color:var(--primary);"></i> {{ spectacle.region }}
+            </span>
+          {% endif %}
+          {% if spectacle.age_range %}
+            <span style="color:var(--muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
+              <i class="fa fa-child" style="color:var(--primary);"></i> {{ spectacle.age_range }}
+            </span>
+          {% endif %}
+        </div>
+        
+        <a href="{{ url_for('show_detail', show_id=spectacle.id) }}" 
+           style="display:inline-flex; align-items:center; justify-content:center; gap:6px; padding:8px 12px; background:var(--primary); color:white; text-decoration:none; border-radius:6px; font-weight:600; font-size:0.75rem; transition:all 0.2s ease; width:100%;">
+          <i class="fa fa-eye"></i> Voir
+        </a>
+      </div>
+    </article>
+    {% endfor %}
+  </div>
+</div>
+
+<style>
+  .card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.3) !important;
+  }
+  .card:hover img {
+    transform: scale(1.05);
+  }
+</style>
+{% endif %}
 {% endblock %}

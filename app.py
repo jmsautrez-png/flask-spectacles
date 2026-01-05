@@ -837,6 +837,15 @@ def register_routes(app: Flask) -> None:
         categories = [c[0] for c in db.session.query(Show.category).distinct().all() if c[0]]
         locations = [l[0] for l in db.session.query(Show.location).distinct().all() if l[0]]
 
+        # Générer un H1 SEO dynamique selon les filtres
+        h1_title = "Spectacles et animations pour mairies, écoles et CSE partout en France"
+        if category and location:
+            h1_title = f"Spectacles {category} à {location} - Artistes professionnels"
+        elif category:
+            h1_title = f"Spectacles {category} pour enfants, mairies et entreprises en France"
+        elif location:
+            h1_title = f"Spectacles et animations à {location} - Artistes professionnels"
+
         # Tri personnalisé : Spectacle enfant d'abord, Atelier en dernier, autres entre les deux
 
         def genre_order(show):
@@ -864,6 +873,7 @@ def register_routes(app: Flask) -> None:
             sort=sort,
             date_from=date_from,
             date_to=date_to,
+            h1_title=h1_title,
             user=current_user(),
         )
 
@@ -899,6 +909,30 @@ def register_routes(app: Flask) -> None:
             'changefreq': 'monthly',
             'priority': '0.8'
         })
+        
+        # Pages thématiques SEO (haute priorité)
+        seo_pages = [
+            ('spectacles_enfants', '0.9'),
+            ('animations_enfants', '0.9'),
+            ('spectacles_noel', '0.85'),
+            ('animations_entreprises', '0.9'),
+            ('marionnettes', '0.85'),
+            ('magiciens', '0.85'),
+            ('clowns', '0.85'),
+            ('animations_anniversaire', '0.85'),
+            ('booker_artiste', '0.8'),
+            ('demandes_animation', '0.8'),
+        ]
+        
+        for endpoint, priority in seo_pages:
+            try:
+                pages.append({
+                    'loc': url_for(endpoint, _external=True),
+                    'changefreq': 'weekly',
+                    'priority': priority
+                })
+            except Exception:
+                pass  # Si la route n'existe pas, on ignore
         
         # Tous les spectacles approuvés
         shows = Show.query.filter(Show.approved.is_(True)).all()
@@ -1170,7 +1204,15 @@ def register_routes(app: Flask) -> None:
             return redirect(url_for("home"))
         # On ne transmet l'email de contact que si l'admin l'a renseigné (contact_email non vide)
         admin_email = show.contact_email.strip() if show.contact_email and show.contact_email.strip() else None
-        return render_template("show_detail.html", show=show, user=u, admin_email=admin_email)
+        
+        # Récupérer les spectacles "à la une" pour les afficher en dessous
+        spectacles_une = Show.query.filter(
+            Show.approved.is_(True),
+            Show.category.ilike('%Spectacle à la une%'),
+            Show.id != show_id  # Exclure le spectacle actuel
+        ).order_by(Show.created_at.desc()).limit(8).all()
+        
+        return render_template("show_detail.html", show=show, user=u, admin_email=admin_email, spectacles_une=spectacles_une)
 
     # ---------------------------
     # Espace Compagnie
@@ -1563,7 +1605,13 @@ Accessibilité: {accessibilite}
             flash("Votre demande d'animation a bien été envoyée ! Nous vous répondrons rapidement.", "success")
             return redirect(url_for("home"))
 
-        return render_template("demande_animation.html", user=current_user())
+        # Récupérer les spectacles "à la une" pour affichage
+        spectacles_une = Show.query.filter(
+            Show.approved.is_(True),
+            Show.category.ilike('%Spectacle à la une%')
+        ).order_by(Show.created_at.desc()).limit(8).all()
+
+        return render_template("demande_animation.html", user=current_user(), spectacles_une=spectacles_une)
 
     @app.route("/informations-legales")
     def legal():
@@ -1805,7 +1853,14 @@ Accessibilité: {accessibilite}
         # Pour le moteur de recherche : liste unique des catégories et régions existantes
         categories = [c[0] for c in db.session.query(DemandeAnimation.genre_recherche).distinct().all() if c[0]]
         regions = [r[0] for r in db.session.query(DemandeAnimation.lieu_ville).distinct().all() if r[0]]
-        return render_template("demandes_animation.html", demandes=demandes, page=page, nb_pages=nb_pages, total=total, per_page=per_page, user=current_user(), categories=categories, regions=regions, categorie=categorie, region=region)
+        
+        # Récupérer les spectacles "à la une" pour affichage
+        spectacles_une = Show.query.filter(
+            Show.approved.is_(True),
+            Show.category.ilike('%Spectacle à la une%')
+        ).order_by(Show.created_at.desc()).limit(8).all()
+        
+        return render_template("demandes_animation.html", demandes=demandes, page=page, nb_pages=nb_pages, total=total, per_page=per_page, user=current_user(), categories=categories, regions=regions, categorie=categorie, region=region, spectacles_une=spectacles_une)
 
     @app.route("/test-demandes")
     def test_demandes():
