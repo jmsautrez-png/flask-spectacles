@@ -1478,48 +1478,6 @@ def register_routes(app: Flask) -> None:
         show.approved = True
         db.session.commit()
         
-        # Envoi d'email de validation à l'utilisateur et à l'admin
-        if getattr(current_app, "mail", None) and current_app.config.get("MAIL_USERNAME"):
-            try:
-                # Récupérer l'utilisateur propriétaire du spectacle
-                user = User.query.get(show.user_id) if show.user_id else None
-                user_name = user.pseudo if user and user.pseudo else (user.raison_sociale if user and user.raison_sociale else "Utilisateur")
-                user_email = show.contact_email or (user.email if user else None)
-                
-                # Préparer le contenu de l'email
-                show_url = url_for('show_detail', show_id=show.id, _external=True)
-                body = (
-                    f"Bonjour {user_name},\n\n"
-                    "Votre spectacle est désormais en ligne et validé.\n\n"
-                    f"{show_url}\n\n"
-                    "Nous vous remercions pour votre attention et votre confiance.\n\n"
-                    "Nous espérons pouvoir prochainement vous envoyer des appels d'offres.\n"
-                    "Le site étant récent, c'est grâce aux artistes inscrits qu'il pourra se développer, "
-                    "gagner en visibilité et vous aider à faire connaître votre spectacle afin d'obtenir des dates.\n\n"
-                    "Nous vous souhaitons une belle réussite dans vos projets.\n"
-                    "À vous,\n"
-                    "Cordialement,\n"
-                    "Spectacle'ment VØtre / Jean"
-                )
-                
-                # Envoyer à l'utilisateur si email disponible
-                recipients = []
-                if user_email:
-                    recipients.append(user_email)
-                
-                # Ajouter l'admin dans les destinataires
-                admin_email = current_app.config.get("MAIL_DEFAULT_SENDER") or current_app.config.get("MAIL_USERNAME")
-                if admin_email and admin_email not in recipients:
-                    recipients.append(admin_email)
-                
-                if recipients:
-                    msg = Message(subject="✅ Votre spectacle est validé !", recipients=recipients)  # type: ignore[arg-type]
-                    msg.body = body  # type: ignore[assignment]
-                    current_app.mail.send(msg)  # type: ignore[attr-defined]
-                    
-            except Exception as e:  # pragma: no cover
-                app.logger.error(f"[MAIL] Erreur lors de l'envoi de l'email de validation: {e}")
-        
         flash("Annonce validée ✅", "success")
         return redirect(url_for("admin_dashboard"))
 
