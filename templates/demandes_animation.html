@@ -1,5 +1,12 @@
 {% extends "base.html" %}
 {% block content %}
+<style>
+@media (max-width: 768px) {
+  .spectacles-une-grid {
+    grid-template-columns: 1fr !important;
+  }
+}
+</style>
 <h2>Appels d'offres</h2>
 
 <div class="search-bar d-flex justify-content-center align-items-center mb-4" style="gap: 1rem; flex-wrap: wrap;">
@@ -77,7 +84,7 @@
     <p style="color:var(--muted); font-size:1rem;">Découvrez notre sélection de spectacles exceptionnels</p>
   </div>
   
-  <div style="display:grid; grid-template-columns:repeat(8, 1fr); gap:16px;">
+  <div class="spectacles-une-grid" style="display:grid; grid-template-columns:repeat(8, 1fr); gap:16px;">
     {% for spectacle in spectacles_une %}
     <article class="card" style="overflow:hidden; box-shadow:0 4px 16px rgba(0,0,0,0.2); transition: transform 0.3s ease, box-shadow 0.3s ease; height: 100%;">
       {% if spectacle.has_image() %}

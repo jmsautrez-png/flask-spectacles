@@ -275,6 +275,12 @@
     transform: translateY(-5px);
     box-shadow: 0 8px 24px rgba(0,0,0,0.3) !important;
   }
+
+  @media (max-width: 768px) {
+    .spectacles-une-grid {
+      grid-template-columns: 1fr !important;
+    }
+  }
 </style>
 
 <!-- Section Spectacles à la Une -->
@@ -285,7 +291,7 @@
     <p style="color:var(--muted); font-size:1rem;">Découvrez notre sélection de spectacles exceptionnels</p>
   </div>
   
-  <div style="display:grid; grid-template-columns:repeat(8, 1fr); gap:16px;">
+  <div class="spectacles-une-grid" style="display:grid; grid-template-columns:repeat(8, 1fr); gap:16px;">
     {% for spectacle in spectacles_une %}
     <article class="card une-card" style="overflow:hidden; box-shadow:0 4px 16px rgba(0,0,0,0.2);">
       {% if spectacle.has_image() %}
