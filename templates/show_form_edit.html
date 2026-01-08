@@ -44,7 +44,7 @@
 
       <label>Ville
         <input type="text" name="location" id="location-input" value="{{ show.location }}">
-        <span style="font-size:0.95rem;color:#fff;display:block;margin-top:2px;margin-bottom:4px;">Cliquez sur un bouton pour ajouter une ville rapidement (vous pouvez ajouter jusqu'à six villes).</span>
+        <span style="font-size:0.95rem;color:#fff;display:block;margin-top:2px;margin-bottom:4px;">Cliquez sur un bouton pour ajouter une ville rapidement (vous pouvez ajouter jusqu'à 10 villes).</span>
         <div style="display:flex; flex-wrap:wrap; gap:8px; margin-bottom:16px; margin-top:6px;">
           <button type="button" style="min-width:120px;flex:1 1 120px;padding:8px 6px;border-radius:8px;background:linear-gradient(135deg,#e67e22 0%,#f6e58d 100%);color:#222;font-weight:600;border:none;box-shadow:0 2px 8px #e67e2244;transition:all 0.2s;" onclick="addLocation('Paris')">Paris</button>
           <button type="button" style="min-width:120px;flex:1 1 120px;padding:8px 6px;border-radius:8px;background:linear-gradient(135deg,#8e44ad 0%,#6c3483 100%);color:#fff;font-weight:600;border:none;box-shadow:0 2px 8px #8e44ad44;transition:all 0.2s;" onclick="addLocation('Marseille')">Marseille</button>
@@ -71,7 +71,11 @@
       <script>
         function addLocation(city) {
           var input = document.getElementById('location-input');
-          var current = input.value.split(',').map(function(s){return s.trim();}).filter(Boolean);
+          var current = input.value.split('|').map(function(s){return s.trim();}).filter(Boolean);
+          if (current.length >= 10) {
+            alert('⚠️ Vous ne pouvez pas ajouter plus de 10 villes (limite technique de 500 caractères).');
+            return;
+          }
           if (!current.includes(city)) {
             current.push(city);
             input.value = current.join(' | ');
@@ -81,7 +85,7 @@
 
       <label>Région
         <input type="text" name="region" id="region-input" value="{{ show.region or '' }}" placeholder="Ex: Île-de-France, Bretagne...">
-        <span style="font-size:0.95rem;color:#fff;display:block;margin-top:2px;margin-bottom:4px;">Cliquez sur un bouton pour ajouter une région rapidement (vous pouvez ajouter jusqu'à six régions).</span>
+        <span style="font-size:0.95rem;color:#fff;display:block;margin-top:2px;margin-bottom:4px;">Cliquez sur un bouton pour ajouter une région rapidement (vous pouvez ajouter jusqu'à 10 régions).</span>
       </label>
       <div style="display:flex; flex-wrap:wrap; gap:8px; margin-bottom:16px;">
         <button type="button" style="min-width:120px;flex:1 1 120px;padding:8px 6px;border-radius:8px;background:linear-gradient(135deg,#e67e22 0%,#f6e58d 100%);color:#222;font-weight:600;border:none;box-shadow:0 2px 8px #e67e2244;transition:all 0.2s;" onclick="addRegion('Auvergne-Rhône-Alpes')">Auvergne-Rhône-Alpes</button>
@@ -106,7 +110,11 @@
     <script>
       function addRegion(region) {
         var input = document.getElementById('region-input');
-        var current = input.value.split(',').map(function(s){return s.trim();}).filter(Boolean);
+        var current = input.value.split('|').map(function(s){return s.trim();}).filter(Boolean);
+        if (current.length >= 10) {
+          alert('⚠️ Vous ne pouvez pas ajouter plus de 10 régions (limite technique de 500 caractères).');
+          return;
+        }
         if (!current.includes(region)) {
           current.push(region);
           input.value = current.join(' | ');
@@ -117,7 +125,7 @@
 
   <label>Catégorie
     <input type="text" name="category" id="category-input" value="{{ show.category }}">
-    <span style="font-size:0.95rem;color:#fff;display:block;margin-top:2px;margin-bottom:4px;">Cliquez sur un bouton pour ajouter une catégorie rapidement (vous pouvez ajouter jusqu'à six catégories).</span>
+    <span style="font-size:0.95rem;color:#fff;display:block;margin-top:2px;margin-bottom:4px;">Cliquez sur un bouton pour ajouter une catégorie rapidement (vous pouvez ajouter jusqu'à 10 catégories).</span>
   </label>
   <div style="background:linear-gradient(135deg,#1b2a4e 0%,#355c7d 100%);border:2px solid #355c7d;border-radius:12px;padding:16px;margin-bottom:12px;box-shadow:0 4px 12px rgba(53,92,125,0.3);">
     <div style="font-weight:700;color:#fff;margin-bottom:10px;font-size:1rem;text-align:center;background:linear-gradient(90deg,#1b2a4e 0%,#355c7d 100%);padding:8px;border-radius:8px;box-shadow:0 2px 6px rgba(27,42,78,0.3);">Spectacle et Animation Artistique</div>
@@ -173,7 +181,11 @@
   <script>
     function addCategory(cat) {
       var input = document.getElementById('category-input');
-      var current = input.value.split(',').map(function(s){return s.trim();}).filter(Boolean);
+      var current = input.value.split('|').map(function(s){return s.trim();}).filter(Boolean);
+      if (current.length >= 10) {
+        alert('⚠️ Vous ne pouvez pas ajouter plus de 10 catégories (limite technique de 500 caractères).');
+        return;
+      }
       if (!current.includes(cat)) {
         current.push(cat);
         input.value = current.join(' | ');

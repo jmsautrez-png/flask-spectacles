@@ -1860,14 +1860,19 @@ Accessibilité: {accessibilite}
         per_page = 9
         categorie = request.args.get('categorie', '').strip()
         region = request.args.get('region', '').strip()
-        demandes_query = DemandeAnimation.query.order_by(DemandeAnimation.created_at.desc())
+        
+        # Base de la requête - TOUJOURS filtrer les demandes privées sur la page publique
+        demandes_query = DemandeAnimation.query.filter(DemandeAnimation.is_private.is_(False)).order_by(DemandeAnimation.created_at.desc())
+        
         if categorie:
             demandes_query = demandes_query.filter(DemandeAnimation.genre_recherche.ilike(f"%{categorie}%"))
         if region:
             demandes_query = demandes_query.filter(DemandeAnimation.lieu_ville.ilike(f"%{region}%"))
+        
         total = demandes_query.count()
         demandes = demandes_query.offset((page-1)*per_page).limit(per_page).all()
         nb_pages = (total // per_page) + (1 if total % per_page > 0 else 0)
+        
         # Pour le moteur de recherche : liste unique des catégories et régions existantes
         categories = [c[0] for c in db.session.query(DemandeAnimation.genre_recherche).distinct().all() if c[0]]
         regions = [r[0] for r in db.session.query(DemandeAnimation.lieu_ville).distinct().all() if r[0]]
@@ -1915,10 +1920,288 @@ Accessibilité: {accessibilite}
             demande.contraintes = request.form.get("contraintes", demande.contraintes)
             demande.accessibilite = request.form.get("accessibilite", demande.accessibilite)
             demande.contact_email = request.form.get("contact_email", demande.contact_email)
+            demande.is_private = request.form.get("is_private") == "on"
             db.session.commit()
-            flash("Appel d'offre modifié.", "success")
-            return redirect(url_for("demandes_animation"))
+            flash("✅ Demande modifiée avec succès !", "success")
+            # Rediriger vers la page admin pour voir toutes les demandes et avoir accès au bouton d'envoi
+            return redirect(url_for("admin_demandes_animation"))
         return render_template("edit_demande_animation.html", demande=demande, user=current_user())
+
+    @app.route("/admin/demandes-animation")
+    @login_required
+    @admin_required
+    def admin_demandes_animation():
+        """Page admin pour gérer toutes les demandes d'animation (publiques et privées)"""
+        from models.models import DemandeAnimation
+        page = request.args.get('page', 1, type=int)
+        per_page = 15
+        categorie = request.args.get('categorie', '').strip()
+        region = request.args.get('region', '').strip()
+        filtre = request.args.get('filtre', '').strip()  # 'privees', 'publiques', ou '' (toutes)
+        
+        # Base de la requête - l'admin voit TOUTES les demandes
+        demandes_query = DemandeAnimation.query.order_by(DemandeAnimation.created_at.desc())
+        
+        # Filtrer par type (privé/public)
+        if filtre == 'privees':
+            demandes_query = demandes_query.filter(DemandeAnimation.is_private.is_(True))
+        elif filtre == 'publiques':
+            demandes_query = demandes_query.filter(DemandeAnimation.is_private.is_(False))
+        
+        if categorie:
+            demandes_query = demandes_query.filter(DemandeAnimation.genre_recherche.ilike(f"%{categorie}%"))
+        if region:
+            demandes_query = demandes_query.filter(DemandeAnimation.lieu_ville.ilike(f"%{region}%"))
+        
+        total = demandes_query.count()
+        demandes = demandes_query.offset((page-1)*per_page).limit(per_page).all()
+        nb_pages = (total // per_page) + (1 if total % per_page > 0 else 0)
+        
+        # Compter les demandes privées et publiques
+        nb_privees = DemandeAnimation.query.filter(DemandeAnimation.is_private.is_(True)).count()
+        nb_publiques = DemandeAnimation.query.filter(DemandeAnimation.is_private.is_(False)).count()
+        
+        return render_template(
+            "admin_demandes_animation.html", 
+            demandes=demandes, 
+            page=page, 
+            nb_pages=nb_pages, 
+            total=total, 
+            per_page=per_page,
+            nb_privees=nb_privees,
+            nb_publiques=nb_publiques,
+            filtre=filtre,
+            categorie=categorie,
+            region=region,
+            user=current_user()
+        )
+
+    @app.route("/admin/demande-animation/new", methods=["GET", "POST"])
+    @login_required
+    @admin_required
+    def admin_create_demande_animation():
+        """Créer une demande d'animation privée (admin uniquement)"""
+        from models.models import DemandeAnimation
+        from datetime import datetime
+        
+        if request.method == "POST":
+            structure = request.form.get("structure", "").strip()
+            telephone = request.form.get("telephone", "").strip()
+            lieu_ville = request.form.get("lieu_ville", "").strip()
+            nom = request.form.get("nom", "").strip()
+            dates_horaires = request.form.get("dates_horaires", "").strip()
+            type_espace = request.form.get("type_espace", "").strip()
+            genre_recherche = request.form.get("genre_recherche", "").strip()
+            age_range = request.form.get("age_range", "").strip()
+            jauge = request.form.get("jauge", "").strip()
+            budget = request.form.get("budget", "").strip()
+            contraintes = request.form.get("contraintes", "").strip()
+            accessibilite = request.form.get("accessibilite", "").strip()
+            contact_email = request.form.get("contact_email", "").strip()
+            is_private = request.form.get("is_private") == "on"
+
+            # Validation basique
+            if not all([structure, telephone, lieu_ville, nom, dates_horaires, 
+                       type_espace, genre_recherche, age_range, jauge, budget, contact_email]):
+                flash("Veuillez remplir tous les champs obligatoires.", "danger")
+                return render_template("admin_create_demande.html", user=current_user()), 400
+
+            # Créer la demande
+            demande = DemandeAnimation(
+                auto_datetime=datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                structure=structure,
+                telephone=telephone,
+                lieu_ville=lieu_ville,
+                nom=nom,
+                dates_horaires=dates_horaires,
+                type_espace=type_espace,
+                genre_recherche=genre_recherche,
+                age_range=age_range,
+                jauge=jauge,
+                budget=budget,
+                contraintes=contraintes,
+                accessibilite=accessibilite,
+                contact_email=contact_email,
+                is_private=is_private
+            )
+            db.session.add(demande)
+            db.session.commit()
+
+            if is_private:
+                flash("🔒 Demande privée créée ! Sélectionnez maintenant les catégories pour l'envoi.", "success")
+            else:
+                flash("✅ Demande publique créée ! Sélectionnez maintenant les catégories pour l'envoi.", "success")
+            
+            # Rediriger directement vers la page d'envoi
+            return redirect(url_for("envoyer_demande_animation", demande_id=demande.id))
+
+        return render_template("admin_create_demande.html", user=current_user())
+
+    @app.route("/admin/envoyer-demande/<int:demande_id>", methods=["GET", "POST"])
+    @login_required
+    @admin_required
+    def envoyer_demande_animation(demande_id):
+        """Interface pour envoyer une demande d'animation aux utilisateurs par catégorie"""
+        from models.models import DemandeAnimation
+        demande = DemandeAnimation.query.get_or_404(demande_id)
+        
+        if request.method == "POST":
+            print(f"[DEBUG] POST reçu pour demande_id={demande_id}")
+            categories = request.form.getlist("categories")
+            print(f"[DEBUG] Catégories sélectionnées: {categories}")
+            
+            if not categories:
+                print("[DEBUG] Aucune catégorie sélectionnée")
+                flash("Veuillez sélectionner au moins une catégorie.", "warning")
+                return redirect(request.url)
+            
+            print(f"[DEBUG] Recherche des spectacles pour {len(categories)} catégories")
+            # Récupérer tous les spectacles correspondants
+            query = Show.query.filter(Show.approved.is_(True))
+            
+            if categories:
+                category_filters = [Show.category.ilike(f"%{cat}%") for cat in categories]
+                query = query.filter(or_(*category_filters))
+            
+            shows = query.all()
+            
+            print(f"[DEBUG] {len(shows)} spectacles trouvés")
+            # Récupérer les emails uniques des utilisateurs
+            emails_sent = set()
+            success_count = 0
+            error_count = 0
+            
+            # Vérifier si mail est configuré
+            if not getattr(current_app, "mail", None):
+                print("[DEBUG ERREUR] Flask-Mail n'est pas configuré !")
+                flash("❌ Erreur : le service email n'est pas configuré.", "danger")
+                return redirect(url_for("admin_demandes_animation"))
+            
+            print(f"[DEBUG] Flask-Mail configuré, début de l'envoi...")
+            for show in shows:
+                # Utiliser l'email du spectacle en priorité, sinon l'email de l'utilisateur
+                email = show.contact_email
+                if not email and show.user:
+                    email = show.user.email if hasattr(show.user, 'email') else None
+                
+                if email and email not in emails_sent:
+                    emails_sent.add(email)
+                    
+                    # Envoyer l'email à l'adresse réelle
+                    if getattr(current_app, "mail", None):
+                        try:
+                            body = f"""Bonjour,
+
+Nous avons une nouvelle demande d'animation qui pourrait vous intéresser :
+
+📍 Lieu : {demande.lieu_ville}
+📅 Date(s) : {demande.dates_horaires}
+🎭 Type recherché : {demande.genre_recherche}
+👥 Jauge : {demande.jauge}
+💰 Budget : {demande.budget}
+👶 Âge : {demande.age_range}
+🏢 Type d'espace : {demande.type_espace}
+
+Structure : {demande.structure}
+Contact : {demande.nom}
+Email : {demande.contact_email}
+Téléphone : {demande.telephone}
+
+Contraintes techniques : {demande.contraintes or 'Aucune'}
+Accessibilité : {demande.accessibilite or 'Non précisée'}
+
+Si vous êtes intéressé(e), vous pouvez contacter directement le demandeur.
+
+Cordialement,
+L'équipe Spectacle'ment VØtre
+
+---
+Votre spectacle concerné: {show.title}
+Catégorie: {show.category}
+"""
+                            msg = Message(
+                                subject=f"Nouvelle opportunité : {demande.genre_recherche} à {demande.lieu_ville}",
+                                recipients=[email]
+                            )
+                            msg.body = body
+                            current_app.mail.send(msg)
+                            print(f"[DEBUG] ✅ Email envoyé à {email}")
+                            success_count += 1
+                        except Exception as e:
+                            print(f"[MAIL] ❌ Erreur envoi à {email}: {e}")
+                            error_count += 1
+            
+            print(f"[DEBUG] Envoi terminé - Succès: {success_count}, Erreurs: {error_count}")
+            if success_count > 0:
+                flash(f"✅ Demande envoyée à {success_count} utilisateur(s) !", "success")
+            if error_count > 0:
+                flash(f"⚠️ {error_count} email(s) n'ont pas pu être envoyé(s).", "warning")
+            
+            if success_count == 0 and error_count == 0:
+                flash("⚠️ Aucun email n'a été envoyé. Aucun spectacle correspondant trouvé.", "warning")
+            
+            # Retourner à la page admin des demandes
+            return redirect(url_for("admin_demandes_animation"))
+        
+        # GET : afficher le formulaire de sélection
+        # Liste des catégories prédéfinies du site
+        predefined_categories = [
+            "Magie",
+            "Marionnette", 
+            "Clown",
+            "Théâtre",
+            "Danse",
+            "Spectacle de danse",
+            "Spectacle enfant",
+            "Spectacle maternelle",
+            "Spectacle primaire",
+            "Spectacle collège",
+            "Spectacle lycée",
+            "Jeune public",
+            "Atelier",
+            "Atelier sculpteur ballon",
+            "Concert",
+            "Cirque",
+            "Spectacle de rue",
+            "Orchestre",
+            "Fanfare",
+            "Banda",
+            "Cinéma plein air",
+            "Arbre de Noël",
+            "Père Noël",
+            "Animation école",
+            "Animation entreprise",
+            "Comité d'entreprise",
+            "CSE",
+            "Fête de village",
+            "Spectacle à la une",
+            "Animation anniversaire",
+            "Anniversaire",
+            "Animation familiale",
+            "Conte",
+            "Musique",
+            "Chanson",
+            "Flamenco",
+            "Tango",
+            "Bal",
+            "DJ",
+            "Boum pour enfant"
+        ]
+        
+        # Récupérer les catégories des spectacles existants
+        existing_categories = db.session.query(Show.category).filter(Show.approved.is_(True)).distinct().all()
+        existing_categories_list = [c[0] for c in existing_categories if c[0]]
+        
+        # Combiner et trier (prédéfinies + existantes, sans doublons)
+        all_categories_set = set(predefined_categories + existing_categories_list)
+        categories_list = sorted(all_categories_set, key=lambda x: x.lower())
+        
+        return render_template(
+            "admin_envoyer_demande.html", 
+            demande=demande, 
+            categories=categories_list,
+            user=current_user()
+        )
 
 
 # -----------------------------------------------------

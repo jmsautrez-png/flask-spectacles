@@ -123,7 +123,11 @@
               + Ajouter
             </a>
           </li>
-          {# Bouton Demandes supprimé #}
+          <li>
+            <a href="{{ url_for('admin_create_demande_animation') }}" style="padding:8px 14px; background:#28a745; color:white; border-radius:6px; font-weight:600; font-size:0.85rem; text-decoration:none; display:inline-block; transition:opacity 0.2s;">
+              ➕ Créer une demande
+            </a>
+          </li>
           <li>
             <a href="{{ url_for('logout') }}" style="padding:8px 14px; background:transparent; color:#fff; font-weight:500; font-size:0.85rem; text-decoration:none; display:inline-block; transition:color 0.2s;">
               Déconnexion ({{ user.username }})

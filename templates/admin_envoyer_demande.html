@@ -1,0 +1,130 @@
+{% extends "base.html" %}
+
+{% block title %}Envoyer la demande d'animation{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h3 class="mb-0">📧 Envoyer la demande d'animation aux utilisateurs</h3>
+                </div>
+                <div class="card-body">
+                    <!-- Détails de la demande -->
+                    <div class="alert alert-info">
+                        <h5>📋 Demande à envoyer :</h5>
+                        <ul class="mb-0">
+                            <li><strong>Structure :</strong> {{ demande.structure }}</li>
+                            <li><strong>Lieu :</strong> {{ demande.lieu_ville }}</li>
+                            <li><strong>Type recherché :</strong> {{ demande.genre_recherche }}</li>
+                            <li><strong>Date(s) :</strong> {{ demande.dates_horaires }}</li>
+                            <li><strong>Budget :</strong> {{ demande.budget }}</li>
+                            <li><strong>Jauge :</strong> {{ demande.jauge }}</li>
+                        </ul>
+                    </div>
+
+                    <form method="post" class="mt-4">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                        <h5 class="mb-3">🎯 Sélectionner les catégories de spectacles :</h5>
+                        <p class="text-muted">Cochez les catégories pour envoyer cette demande aux utilisateurs concernés.</p>
+                        
+                        <div class="row">
+                            <div class="col-md-12">
+                                <div class="card mb-4">
+                                    <div class="card-header">
+                                        <strong>📂 Catégories</strong>
+                                        <button type="button" class="btn btn-sm btn-outline-primary float-end" onclick="selectAllCategories()">
+                                            Tout sélectionner
+                                        </button>
+                                    </div>
+                                    <div class="card-body" style="max-height: 400px; overflow-y: auto;">
+                                        {% if categories %}
+                                            {% for category in categories %}
+                                            <div class="form-check mb-2">
+                                                <input class="form-check-input category-checkbox" type="checkbox" 
+                                                       name="categories" value="{{ category }}" id="cat_{{ loop.index }}">
+                                                <label class="form-check-label" for="cat_{{ loop.index }}">
+                                                    {{ category }}
+                                                </label>
+                                            </div>
+                                            {% endfor %}
+                                        {% else %}
+                                            <p class="text-muted">Aucune catégorie disponible</p>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="alert alert-warning mt-3">
+                            <strong>⚠️ Attention :</strong> Les emails seront envoyés immédiatement après validation.
+                            Vérifiez bien votre sélection avant de continuer.
+                        </div>
+
+                        <div class="d-flex justify-content-between mt-4">
+                            <a href="{{ url_for('admin_dashboard') }}" class="btn btn-secondary">
+                                ← Retour
+                            </a>
+                            <button type="submit" class="btn btn-success btn-lg" id="btn-envoyer">
+                                📧 Envoyer maintenant
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    console.log('✅ Script chargé');
+    
+    // Fonction pour sélectionner/désélectionner toutes les catégories
+    function selectAllCategories() {
+        console.log('Toggle toutes les catégories');
+        const checkboxes = document.querySelectorAll('.category-checkbox');
+        const allChecked = Array.from(checkboxes).every(cb => cb.checked);
+        checkboxes.forEach(cb => cb.checked = !allChecked);
+    }
+    
+    // Validation avant soumission
+    document.addEventListener('DOMContentLoaded', function() {
+        console.log('✅ DOM chargé');
+        
+        const form = document.querySelector('form');
+        if (!form) {
+            console.error('❌ Formulaire non trouvé');
+            return;
+        }
+        
+        console.log('✅ Formulaire trouvé, ajout du listener');
+        
+        form.addEventListener('submit', function(e) {
+            console.log('📤 Événement submit déclenché');
+            
+            const checkboxes = document.querySelectorAll('.category-checkbox:checked');
+            console.log(`📊 ${checkboxes.length} catégorie(s) sélectionnée(s)`);
+            
+            if (checkboxes.length === 0) {
+                e.preventDefault();
+                alert('⚠️ Veuillez sélectionner au moins une catégorie');
+                console.log('❌ Soumission annulée: aucune catégorie');
+                return false;
+            }
+            
+            const confirmed = confirm(`Envoyer cette demande à ${checkboxes.length} catégorie(s) ?\n\n✉️ Les emails seront envoyés aux adresses réelles des utilisateurs.`);
+            console.log('Confirmation:', confirmed ? '✅ OUI' : '❌ NON');
+            
+            if (!confirmed) {
+                e.preventDefault();
+                console.log('❌ Soumission annulée par utilisateur');
+                return false;
+            }
+            
+            console.log('✅ Soumission du formulaire en cours...');
+            return true;
+        });
+    });
+</script>
+{% endblock %}

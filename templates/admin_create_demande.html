@@ -1,0 +1,154 @@
+{% extends "base.html" %}
+
+{% block title %}Créer une demande d'animation - Admin{% endblock %}
+
+{% block content %}
+<div class="container-fluid my-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-11">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h3 class="mb-0">📝 Créer une demande d'animation</h3>
+                    <p class="mb-0 small">Interface administrateur</p>
+                </div>
+                <div class="card-body">
+                    <form method="post">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                        
+                        <!-- Option privée/publique -->
+                        <div class="alert alert-info mb-4">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="is_private" id="is_private" checked>
+                                <label class="form-check-label" for="is_private">
+                                    <strong>🔒 Demande privée</strong> (visible uniquement par vous)
+                                    <br>
+                                    <small class="text-muted">Si décoché, la demande sera publique et visible par tous les visiteurs</small>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="structure" class="form-label">Structure *</label>
+                                <input type="text" class="form-control" id="structure" name="structure" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="nom" class="form-label">Nom du contact *</label>
+                                <input type="text" class="form-control" id="nom" name="nom" required>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="telephone" class="form-label">Téléphone *</label>
+                                <input type="tel" class="form-control" id="telephone" name="telephone" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="contact_email" class="form-label">Email *</label>
+                                <input type="email" class="form-control" id="contact_email" name="contact_email" required>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="lieu_ville" class="form-label">Lieu/Ville *</label>
+                                <input type="text" class="form-control" id="lieu_ville" name="lieu_ville" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="dates_horaires" class="form-label">Date(s) et horaires *</label>
+                                <input type="text" class="form-control" id="dates_horaires" name="dates_horaires" required>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="genre_recherche" class="form-label">Genre recherché *</label>
+                                <select class="form-select" id="genre_recherche" name="genre_recherche" required>
+                                    <option value="">-- Sélectionner --</option>
+                                    <option value="Marionnettes">Marionnettes</option>
+                                    <option value="Magie">Magie</option>
+                                    <option value="Clown">Clown</option>
+                                    <option value="Théâtre">Théâtre</option>
+                                    <option value="Danse">Danse</option>
+                                    <option value="Musique">Musique</option>
+                                    <option value="Cirque">Cirque</option>
+                                    <option value="Conte">Conte</option>
+                                    <option value="Animation">Animation</option>
+                                    <option value="Autre">Autre</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="age_range" class="form-label">Tranche d'âge *</label>
+                                <input type="text" class="form-control" id="age_range" name="age_range" placeholder="Ex: 3-6 ans" required>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                <label for="type_espace" class="form-label">Type d'espace *</label>
+                                <select class="form-select" id="type_espace" name="type_espace" required>
+                                    <option value="">-- Sélectionner --</option>
+                                    <option value="Salle">Salle</option>
+                                    <option value="Extérieur">Extérieur</option>
+                                    <option value="École">École</option>
+                                    <option value="Médiathèque">Médiathèque</option>
+                                    <option value="Entreprise">Entreprise</option>
+                                    <option value="Domicile">Domicile</option>
+                                    <option value="Autre">Autre</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label for="jauge" class="form-label">Jauge (personnes) *</label>
+                                <input type="text" class="form-control" id="jauge" name="jauge" placeholder="Ex: 50" required>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label for="budget" class="form-label">Budget (€) *</label>
+                                <input type="text" class="form-control" id="budget" name="budget" placeholder="Ex: 500" required>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="contraintes" class="form-label">Contraintes techniques</label>
+                            <textarea class="form-control" id="contraintes" name="contraintes" rows="3" placeholder="Précisions sur le matériel, l'espace disponible..."></textarea>
+                        </div>
+
+                        <div class="mb-4">
+                            <label for="accessibilite" class="form-label">Accessibilité</label>
+                            <input type="text" class="form-control" id="accessibilite" name="accessibilite" placeholder="PMR, parking...">
+                        </div>
+
+                        <div class="d-flex justify-content-between">
+                            <a href="{{ url_for('demandes_animation') }}" class="btn btn-secondary">
+                                ← Retour
+                            </a>
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                💾 Créer la demande
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Augmenter la taille des champs de 40% */
+    .form-control,
+    .form-select {
+        font-size: 1.2rem !important;
+        padding: 0.7rem 1rem !important;
+        min-height: 3rem !important;
+    }
+    
+    textarea.form-control {
+        min-height: 8rem !important;
+    }
+    
+    .form-label {
+        font-size: 1.1rem !important;
+        font-weight: 500;
+    }
+</style>
+
+{% endblock %}

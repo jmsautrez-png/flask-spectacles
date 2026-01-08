@@ -1,0 +1,166 @@
+{% extends "base.html" %}
+
+{% block title %}Gestion des demandes d'animation - Admin{% endblock %}
+
+{% block content %}
+<div class="container-fluid my-4">
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <h2>📋 Gestion des demandes d'animation</h2>
+                <a href="{{ url_for('admin_create_demande_animation') }}" class="btn btn-success btn-lg">
+                    ➕ Créer une demande
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Statistiques -->
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="card text-white bg-primary">
+                <div class="card-body">
+                    <h5 class="card-title">📊 Total</h5>
+                    <h2 class="mb-0">{{ nb_privees + nb_publiques }}</h2>
+                    <small>demandes au total</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card text-white bg-danger">
+                <div class="card-body">
+                    <h5 class="card-title">🔒 Privées</h5>
+                    <h2 class="mb-0">{{ nb_privees }}</h2>
+                    <small>visibles uniquement par vous</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card text-white bg-success">
+                <div class="card-body">
+                    <h5 class="card-title">🌐 Publiques</h5>
+                    <h2 class="mb-0">{{ nb_publiques }}</h2>
+                    <small>visibles par tous</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filtres -->
+    <div class="card mb-4">
+        <div class="card-header bg-light">
+            <h5 class="mb-0">🔍 Filtres</h5>
+        </div>
+        <div class="card-body">
+            <form method="get" class="row g-3">
+                <div class="col-md-3">
+                    <label for="filtre" class="form-label">Type</label>
+                    <select class="form-select" name="filtre" id="filtre">
+                        <option value="">Toutes les demandes</option>
+                        <option value="privees" {% if filtre == 'privees' %}selected{% endif %}>🔒 Demandes privées</option>
+                        <option value="publiques" {% if filtre == 'publiques' %}selected{% endif %}>🌐 Demandes publiques</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label for="categorie" class="form-label">Catégorie</label>
+                    <input type="text" class="form-control" name="categorie" id="categorie" value="{{ categorie }}" placeholder="Ex: Magie, Clown...">
+                </div>
+                <div class="col-md-3">
+                    <label for="region" class="form-label">Région</label>
+                    <input type="text" class="form-control" name="region" id="region" value="{{ region }}" placeholder="Ex: Paris, Lyon...">
+                </div>
+                <div class="col-md-3 d-flex align-items-end">
+                    <button type="submit" class="btn btn-primary w-100">Filtrer</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Liste des demandes -->
+    {% if demandes %}
+    <div class="table-responsive">
+        <table class="table table-hover table-striped">
+            <thead class="table-dark">
+                <tr>
+                    <th width="5%">Type</th>
+                    <th width="15%">Structure</th>
+                    <th width="10%">Genre</th>
+                    <th width="10%">Lieu</th>
+                    <th width="10%">Date(s)</th>
+                    <th width="8%">Budget</th>
+                    <th width="8%">Jauge</th>
+                    <th width="12%">Contact</th>
+                    <th width="10%">Créée le</th>
+                    <th width="12%">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for demande in demandes %}
+                <tr {% if demande.is_private %}class="table-danger"{% endif %}>
+                    <td>
+                        {% if demande.is_private %}
+                            <span class="badge bg-danger">🔒 Privée</span>
+                        {% else %}
+                            <span class="badge bg-success">🌐 Public</span>
+                        {% endif %}
+                    </td>
+                    <td><strong>{{ demande.structure }}</strong></td>
+                    <td>{{ demande.genre_recherche }}</td>
+                    <td>{{ demande.lieu_ville }}</td>
+                    <td><small>{{ demande.dates_horaires }}</small></td>
+                    <td>{{ demande.budget }} €</td>
+                    <td>{{ demande.jauge }}</td>
+                    <td>
+                        <small>
+                            {{ demande.nom }}<br>
+                            {{ demande.telephone }}<br>
+                            <a href="mailto:{{ demande.contact_email }}">{{ demande.contact_email }}</a>
+                        </small>
+                    </td>
+                    <td><small>{{ demande.created_at.strftime('%d/%m/%Y %H:%M') }}</small></td>
+                    <td>
+                        <div class="btn-group-vertical btn-group-sm" role="group">
+                            <a href="{{ url_for('envoyer_demande_animation', demande_id=demande.id) }}" class="btn btn-success btn-sm">
+                                📧 Envoyer
+                            </a>
+                            <a href="{{ url_for('edit_demande_animation', demande_id=demande.id) }}" class="btn btn-primary btn-sm">
+                                ✏️ Modifier
+                            </a>
+                            <form method="post" action="{{ url_for('delete_demande_animation', demande_id=demande.id) }}" style="display:inline;" onsubmit="return confirm('Supprimer cette demande ?')">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                                <button type="submit" class="btn btn-danger btn-sm w-100">
+                                    🗑️ Supprimer
+                                </button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Pagination -->
+    {% if nb_pages > 1 %}
+    <nav aria-label="Pagination">
+        <ul class="pagination justify-content-center">
+            {% for p in range(1, nb_pages + 1) %}
+                <li class="page-item {% if p == page %}active{% endif %}">
+                    <a class="page-link" href="?page={{ p }}&filtre={{ filtre }}&categorie={{ categorie }}&region={{ region }}">{{ p }}</a>
+                </li>
+            {% endfor %}
+        </ul>
+        <p class="text-center text-muted">
+            Page {{ page }} sur {{ nb_pages }} ({{ total }} demande{{ 's' if total > 1 else '' }})
+        </p>
+    </nav>
+    {% endif %}
+
+    {% else %}
+    <div class="alert alert-info text-center">
+        <h4>Aucune demande d'animation</h4>
+        <p>Créez votre première demande en cliquant sur le bouton "➕ Créer une demande" ci-dessus.</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

@@ -22,6 +22,7 @@ class DemandeAnimation(db.Model):
     contraintes = db.Column(db.Text, nullable=True)
     accessibilite = db.Column(db.String(100), nullable=True)
     contact_email = db.Column(db.String(255), nullable=False)
+    is_private = db.Column(db.Boolean, default=False)  # True = visible admin uniquement
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
 
@@ -49,8 +50,8 @@ class Show(db.Model):
     title = db.Column(db.String(150), nullable=False)
     description = db.Column(db.Text, nullable=True)
     region = db.Column(db.String(200), nullable=True)
-    location = db.Column(db.String(200), nullable=True)
-    category = db.Column(db.String(80), nullable=True)
+    location = db.Column(db.String(500), nullable=True)  # Augmenté à 500 pour plusieurs villes
+    category = db.Column(db.String(500), nullable=True)  # Augmenté à 500 pour plusieurs catégories
     date = db.Column(db.Date, nullable=True)
     age_range = db.Column(db.String(50), nullable=True)
     file_name = db.Column(db.String(255), nullable=True)

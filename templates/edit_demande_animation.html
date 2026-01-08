@@ -3,6 +3,14 @@
 <h2>Modifier l'appel d'offre</h2>
 <form method="post" style="max-width:500px;margin:auto;">
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+  
+  <div style="background:#f0f0f0;padding:12px;border-radius:8px;margin-bottom:1rem;">
+    <label style="display:flex;align-items:center;gap:8px;cursor:pointer;">
+      <input type="checkbox" name="is_private" {% if demande.is_private %}checked{% endif %}>
+      <strong>🔒 Demande privée</strong> (visible uniquement par l'admin)
+    </label>
+  </div>
+  
   <label>Structure<br><input type="text" name="structure" value="{{ demande.structure }}" required></label><br>
   <label>Contact<br><input type="text" name="nom" value="{{ demande.nom }}" required></label><br>
   <label>Téléphone<br><input type="text" name="telephone" value="{{ demande.telephone }}" required></label><br>
