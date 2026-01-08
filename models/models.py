@@ -31,9 +31,11 @@ class User(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(80), unique=True, nullable=False)
+    email = db.Column(db.String(255), nullable=True)  # Email de l'utilisateur
     password_hash = db.Column(db.String(255), nullable=False)
     raison_sociale = db.Column(db.String(200), nullable=True)  # Nom de la compagnie/structure
     is_admin = db.Column(db.Boolean, default=False)  # par défaut: utilisateur normal
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)  # Date de création
 
     def set_password(self, password: str):
         self.password_hash = generate_password_hash(password)
