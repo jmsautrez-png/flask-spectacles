@@ -745,10 +745,13 @@ def register_routes(app: Flask) -> None:
     @app.route("/evenements", endpoint="evenements")
     def evenements():
         """Affiche les événements annoncés (is_event=True)"""
-        shows = Show.query.filter(
-            Show.approved.is_(True),
-            Show.is_event.is_(True)
-        ).order_by(Show.created_at.desc()).all()
+        try:
+            shows = Show.query.filter(
+                Show.approved.is_(True),
+                Show.is_event.is_(True)
+            ).order_by(Show.created_at.desc()).all()
+        except Exception:
+            shows = []  # Colonne is_event pas encore créée
         
         return render_template(
             "evenements.html",
@@ -778,7 +781,10 @@ def register_routes(app: Flask) -> None:
             shows = shows.filter(Show.approved.is_(True))
 
         # Exclure les événements (is_event=True) de la page d'accueil
-        shows = shows.filter(or_(Show.is_event.is_(False), Show.is_event.is_(None)))
+        try:
+            shows = shows.filter(or_(Show.is_event.is_(False), Show.is_event.is_(None)))
+        except Exception:
+            pass  # Colonne is_event pas encore créée
 
         # Recherche texte + âges (6, 6 ans, 6-10, 6/10, 6 à 10, etc.)
         if q:

@@ -18,6 +18,9 @@ ALTER TABLE shows ALTER COLUMN location TYPE VARCHAR(500);
 -- Migration 5: Etendre colonne category a 500 caracteres
 ALTER TABLE shows ALTER COLUMN category TYPE VARCHAR(500);
 
+-- Migration 6: Ajouter colonne is_event pour distinguer catalogue/evenements
+ALTER TABLE shows ADD COLUMN IF NOT EXISTS is_event BOOLEAN DEFAULT FALSE;
+
 -- ======================================================
 -- VERIFICATION (optionnel)
 -- ======================================================
