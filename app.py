@@ -740,6 +740,23 @@ def register_routes(app: Flask) -> None:
         return render_template("forgot_password.html", user=current_user())
 
     # ---------------------------
+    # Page des événements annoncés
+    # ---------------------------
+    @app.route("/evenements", endpoint="evenements")
+    def evenements():
+        """Affiche les événements annoncés (is_event=True)"""
+        shows = Show.query.filter(
+            Show.approved.is_(True),
+            Show.is_event.is_(True)
+        ).order_by(Show.created_at.desc()).all()
+        
+        return render_template(
+            "evenements.html",
+            shows=shows,
+            user=current_user()
+        )
+
+    # ---------------------------
     # Accueil & listing (recherche)
     # ---------------------------
     @app.route("/", endpoint="home")
@@ -759,6 +776,9 @@ def register_routes(app: Flask) -> None:
         u = current_user()
         if not u or not u.is_admin:
             shows = shows.filter(Show.approved.is_(True))
+
+        # Exclure les événements (is_event=True) de la page d'accueil
+        shows = shows.filter(or_(Show.is_event.is_(False), Show.is_event.is_(None)))
 
         # Recherche texte + âges (6, 6 ans, 6-10, 6/10, 6 à 10, etc.)
         if q:
@@ -1091,6 +1111,7 @@ def register_routes(app: Flask) -> None:
             contact_email = request.form.get("contact_email", "").strip()
             contact_phone = request.form.get("contact_phone", "").strip()
             site_internet = request.form.get("site_internet", "").strip()
+            is_event = request.form.get("is_event", "0") == "1"
 
             date_val = None
             if date_str:
@@ -1131,7 +1152,8 @@ def register_routes(app: Flask) -> None:
                 file_mimetype=file_mimetype,
                 contact_email=contact_email or None,
                 contact_phone=contact_phone or None,
-                    site_internet=site_internet or None,
+                site_internet=site_internet or None,
+                is_event=is_event,
                 approved=False,
                 user_id=current_user().id if current_user() else None,   # associer l'auteur
             )
@@ -1141,12 +1163,14 @@ def register_routes(app: Flask) -> None:
             if getattr(current_app, "mail", None) and current_app.config.get("MAIL_USERNAME"):
                 try:
                     to_addr = current_app.config.get("MAIL_DEFAULT_SENDER") or current_app.config.get("MAIL_USERNAME")
+                    type_annonce = "📅 ÉVÉNEMENT" if is_event else "🎭 CATALOGUE"
                     body = (
-                        "🎭 Nouvelle annonce à valider\n\n"
+                        f"🎭 Nouvelle annonce à valider [{type_annonce}]\n\n"
                         f"👤 Compagnie: {raison_sociale}\n"
                         f"📌 Titre: {title}\n"
                         f"📍 Lieu: {location}\n"
                         f"🎪 Catégorie: {category}\n"
+                        f"📋 Type: {type_annonce}\n"
                         + (f"📅 Date: {date_val}\n\n" if date_val else "")
                         + f"Date de création de la fiche : {show.created_at.strftime('%d/%m/%Y %H:%M')}\n\n"
                         + f"📧 Email: {contact_email}\n"

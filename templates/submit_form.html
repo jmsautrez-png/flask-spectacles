@@ -11,6 +11,48 @@
   <form method="post" enctype="multipart/form-data" class="demande-form">
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
 
+    <!-- SECTION: Type d'annonce -->
+    <fieldset class="demande-section" style="background: linear-gradient(135deg, rgba(233,30,99,0.1) 0%, rgba(156,39,176,0.1) 100%); border: 2px solid #e91e63;">
+      <legend style="color: #e91e63;">📌 Type d'annonce</legend>
+      
+      <div style="display:flex; gap:16px; flex-wrap:wrap;">
+        <label style="flex:1; min-width:200px; cursor:pointer;">
+          <div style="background:#1a1a2e; border:2px solid #283e5e; border-radius:12px; padding:16px; transition:all 0.2s;" id="option-catalogue">
+            <input type="radio" name="is_event" value="0" checked style="margin-right:8px;" onchange="updateTypeSelection()">
+            <span style="font-weight:600; color:#fff;">🎭 Ajouter au catalogue</span>
+            <p style="color:var(--muted); font-size:0.85em; margin:8px 0 0 24px;">
+              Votre spectacle sera visible sur la page d'accueil
+            </p>
+          </div>
+        </label>
+        
+        <label style="flex:1; min-width:200px; cursor:pointer;">
+          <div style="background:#1a1a2e; border:2px solid #283e5e; border-radius:12px; padding:16px; transition:all 0.2s;" id="option-event">
+            <input type="radio" name="is_event" value="1" style="margin-right:8px;" onchange="updateTypeSelection()">
+            <span style="font-weight:600; color:#fff;">📅 Annoncer un événement</span>
+            <p style="color:var(--muted); font-size:0.85em; margin:8px 0 0 24px;">
+              Visible uniquement sur la page "Événements annoncés"
+            </p>
+          </div>
+        </label>
+      </div>
+      
+      <script>
+      function updateTypeSelection() {
+        var catalogue = document.getElementById('option-catalogue');
+        var event = document.getElementById('option-event');
+        var isCatalogue = document.querySelector('input[name="is_event"][value="0"]').checked;
+        
+        catalogue.style.borderColor = isCatalogue ? '#43cea2' : '#283e5e';
+        catalogue.style.background = isCatalogue ? 'rgba(67,206,162,0.1)' : '#1a1a2e';
+        
+        event.style.borderColor = !isCatalogue ? '#e91e63' : '#283e5e';
+        event.style.background = !isCatalogue ? 'rgba(233,30,99,0.1)' : '#1a1a2e';
+      }
+      document.addEventListener('DOMContentLoaded', updateTypeSelection);
+      </script>
+    </fieldset>
+
     <!-- SECTION: Informations de la compagnie -->
     <fieldset class="demande-section">
       <legend>Informations de la compagnie</legend>
