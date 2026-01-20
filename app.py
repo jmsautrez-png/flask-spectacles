@@ -312,6 +312,36 @@ def create_app() -> Flask:
             value += 'ans'
         return value
 
+    # Context processor pour les spectacles à la une (diaporama header)
+    @app.context_processor
+    def inject_featured_shows():
+        """Injecte les spectacles à la une avec images pour le diaporama header"""
+        try:
+            featured = Show.query.filter(
+                Show.approved.is_(True),
+                Show.file_mimetype.ilike("image/%"),
+                or_(
+                    Show.category.ilike('%à la une%'),
+                    Show.category.ilike('%a la une%')
+                )
+            ).order_by(Show.created_at.desc()).limit(6).all()
+            
+            # Si pas assez de spectacles "à la une", compléter avec les plus récents
+            if len(featured) < 4:
+                recent = Show.query.filter(
+                    Show.approved.is_(True),
+                    Show.file_mimetype.ilike("image/%")
+                ).order_by(Show.created_at.desc()).limit(6).all()
+                # Fusionner sans doublons
+                featured_ids = {s.id for s in featured}
+                for s in recent:
+                    if s.id not in featured_ids and len(featured) < 6:
+                        featured.append(s)
+            
+            return {'header_featured_shows': featured}
+        except Exception:
+            return {'header_featured_shows': []}
+
     register_routes(app)
     register_error_handlers(app)
     return app

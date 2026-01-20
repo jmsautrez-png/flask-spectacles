@@ -100,7 +100,335 @@
 </head>
 <body>
 
-<header class="site-header" style="background:linear-gradient(90deg,#6d1313 0%,#8b1e1e 100%);">
+<header class="site-header">
+  <!-- Rideau de théâtre gauche -->
+  <div class="curtain curtain-left">
+    <svg viewBox="0 0 120 100" preserveAspectRatio="none">
+      <defs>
+        <linearGradient id="curtainGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+          <stop offset="0%" style="stop-color:#8b0000;stop-opacity:1" />
+          <stop offset="50%" style="stop-color:#dc143c;stop-opacity:1" />
+          <stop offset="100%" style="stop-color:#6d1313;stop-opacity:1" />
+        </linearGradient>
+      </defs>
+      <path d="M0,0 Q30,20 20,50 Q10,80 30,100 L0,100 Z" fill="url(#curtainGrad)"/>
+      <path d="M20,0 Q50,25 40,55 Q30,85 50,100 L20,100 L20,0 Z" fill="url(#curtainGrad)" opacity="0.7"/>
+    </svg>
+  </div>
+  
+  <!-- Rideau de théâtre droit -->
+  <div class="curtain curtain-right">
+    <svg viewBox="0 0 120 100" preserveAspectRatio="none">
+      <path d="M120,0 Q90,20 100,50 Q110,80 90,100 L120,100 Z" fill="url(#curtainGrad)"/>
+      <path d="M100,0 Q70,25 80,55 Q90,85 70,100 L100,100 L100,0 Z" fill="url(#curtainGrad)" opacity="0.7"/>
+    </svg>
+  </div>
+  
+  <!-- Projecteurs -->
+  <div class="spotlights">
+    <div class="spotlight spotlight-1"></div>
+    <div class="spotlight spotlight-2"></div>
+    <div class="spotlight spotlight-3"></div>
+  </div>
+  
+  <!-- Étoiles décoratives -->
+  <div class="header-stars">
+    <svg class="star star-1" viewBox="0 0 24 24"><path fill="#ffc107" d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+    <svg class="star star-2" viewBox="0 0 24 24"><path fill="#ffd54f" d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+    <svg class="star star-3" viewBox="0 0 24 24"><path fill="#ffeb3b" d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+    <svg class="star star-4" viewBox="0 0 24 24"><path fill="#ffc107" d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+    <svg class="star star-5" viewBox="0 0 24 24"><path fill="#fff176" d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+  </div>
+  
+  <!-- Masques de théâtre -->
+  <div class="theater-masks">
+    <svg class="mask mask-happy" viewBox="0 0 24 24">
+      <circle cx="12" cy="12" r="10" fill="#ffd700" opacity="0.9"/>
+      <circle cx="8" cy="10" r="1.5" fill="#333"/>
+      <circle cx="16" cy="10" r="1.5" fill="#333"/>
+      <path d="M8 15 Q12 19 16 15" stroke="#333" stroke-width="1.5" fill="none"/>
+    </svg>
+    <svg class="mask mask-sad" viewBox="0 0 24 24">
+      <circle cx="12" cy="12" r="10" fill="#87ceeb" opacity="0.9"/>
+      <circle cx="8" cy="10" r="1.5" fill="#333"/>
+      <circle cx="16" cy="10" r="1.5" fill="#333"/>
+      <path d="M8 17 Q12 13 16 17" stroke="#333" stroke-width="1.5" fill="none"/>
+    </svg>
+  </div>
+  
+  <style>
+    .site-header {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      background: linear-gradient(135deg, #0a0a1a 0%, #1a0a0a 20%, #6d1313 50%, #1a0a0a 80%, #0a0a1a 100%);
+      background-size: 300% 300%;
+      animation: header-gradient 15s ease infinite;
+      border-bottom: 3px solid;
+      border-image: linear-gradient(90deg, #ffc107, #ff5722, #e91e63, #9c27b0, #ffc107) 1;
+      box-shadow: 0 4px 30px rgba(109, 19, 19, 0.7), 0 0 60px rgba(255, 193, 7, 0.15);
+      overflow: hidden;
+      min-height: 90px;
+    }
+    
+    @keyframes header-gradient {
+      0%, 100% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+    }
+    
+    /* Rideaux de théâtre */
+    .curtain {
+      position: absolute;
+      top: 0;
+      height: 100%;
+      width: 80px;
+      pointer-events: none;
+      opacity: 0.6;
+    }
+    .curtain-left { left: 0; }
+    .curtain-right { right: 0; }
+    .curtain svg { width: 100%; height: 100%; }
+    .curtain-left { animation: curtain-sway-left 8s ease-in-out infinite; }
+    .curtain-right { animation: curtain-sway-right 8s ease-in-out infinite; }
+    
+    @keyframes curtain-sway-left {
+      0%, 100% { transform: skewY(0deg); }
+      50% { transform: skewY(2deg); }
+    }
+    @keyframes curtain-sway-right {
+      0%, 100% { transform: skewY(0deg); }
+      50% { transform: skewY(-2deg); }
+    }
+    
+    /* Projecteurs */
+    .spotlights {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      overflow: hidden;
+    }
+    .spotlight {
+      position: absolute;
+      top: -50%;
+      width: 150px;
+      height: 200%;
+      background: linear-gradient(180deg, rgba(255,215,0,0.3) 0%, transparent 60%);
+      transform-origin: top center;
+      opacity: 0.4;
+    }
+    .spotlight-1 { left: 15%; animation: spotlight-sweep 6s ease-in-out infinite; }
+    .spotlight-2 { left: 50%; animation: spotlight-sweep 6s ease-in-out infinite 2s; }
+    .spotlight-3 { left: 80%; animation: spotlight-sweep 6s ease-in-out infinite 4s; }
+    
+    @keyframes spotlight-sweep {
+      0%, 100% { transform: rotate(-15deg); opacity: 0.2; }
+      50% { transform: rotate(15deg); opacity: 0.5; }
+    }
+    
+    /* Étoiles */
+    .header-stars {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+    }
+    .star {
+      position: absolute;
+      width: 20px;
+      height: 20px;
+      animation: star-twinkle 2s ease-in-out infinite;
+    }
+    .star-1 { top: 15%; left: 10%; animation-delay: 0s; }
+    .star-2 { top: 60%; left: 25%; animation-delay: 0.4s; width: 15px; height: 15px; }
+    .star-3 { top: 25%; left: 75%; animation-delay: 0.8s; }
+    .star-4 { top: 70%; left: 88%; animation-delay: 1.2s; width: 12px; height: 12px; }
+    .star-5 { top: 40%; left: 60%; animation-delay: 1.6s; width: 16px; height: 16px; }
+    
+    @keyframes star-twinkle {
+      0%, 100% { opacity: 0.3; transform: scale(0.8) rotate(0deg); }
+      50% { opacity: 1; transform: scale(1.2) rotate(20deg); }
+    }
+    
+    /* Masques de théâtre */
+    .theater-masks {
+      position: absolute;
+      top: 50%;
+      right: 100px;
+      transform: translateY(-50%);
+      display: flex;
+      gap: 8px;
+      pointer-events: none;
+      opacity: 0.5;
+    }
+    .mask {
+      width: 28px;
+      height: 28px;
+      animation: mask-float 4s ease-in-out infinite;
+    }
+    .mask-happy { animation-delay: 0s; }
+    .mask-sad { animation-delay: 2s; }
+    
+    @keyframes mask-float {
+      0%, 100% { transform: translateY(0) rotate(-5deg); }
+      50% { transform: translateY(-5px) rotate(5deg); }
+    }
+    
+    /* Effet de brillance */
+    .site-header::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 50%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+      animation: header-shine 8s ease-in-out infinite;
+    }
+    
+    @keyframes header-shine {
+      0% { left: -50%; }
+      50%, 100% { left: 150%; }
+    }
+    
+    .site-header .brand:hover {
+      transform: scale(1.01);
+      transition: transform 0.3s ease;
+    }
+    
+    /* Responsive: cacher certains éléments sur mobile */
+    @media (max-width: 768px) {
+      .curtain { width: 40px; opacity: 0.4; }
+      .theater-masks { display: none; }
+      .spotlight { width: 80px; }
+      .header-slideshow { display: none; }
+    }
+    
+    /* Diaporama header */
+    .header-slideshow {
+      position: absolute;
+      left: 90px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 140px;
+      height: 75px;
+      border-radius: 10px;
+      overflow: hidden;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.5), 0 0 20px rgba(255,193,7,0.3);
+      border: 2px solid rgba(255,193,7,0.6);
+      z-index: 5;
+    }
+    
+    .slideshow-container {
+      position: relative;
+      width: 100%;
+      height: 100%;
+    }
+    
+    .slideshow-slide {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      opacity: 0;
+      transition: opacity 1s ease-in-out;
+    }
+    
+    .slideshow-slide.active {
+      opacity: 1;
+    }
+    
+    .slideshow-slide img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    
+    .slideshow-label {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: linear-gradient(transparent, rgba(0,0,0,0.8));
+      color: #ffc107;
+      font-size: 0.65rem;
+      padding: 12px 6px 4px;
+      text-align: center;
+      font-weight: 600;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    
+    .slideshow-badge {
+      position: absolute;
+      top: 4px;
+      right: 4px;
+      background: linear-gradient(135deg, #ffc107, #ff9800);
+      color: #000;
+      font-size: 0.5rem;
+      padding: 2px 5px;
+      border-radius: 8px;
+      font-weight: 700;
+      text-transform: uppercase;
+      animation: badge-pulse 2s ease-in-out infinite;
+    }
+    
+    @keyframes badge-pulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.05); }
+    }
+  </style>
+  
+  <!-- Diaporama des spectacles à la une -->
+  <div class="header-slideshow">
+    <div class="slideshow-container">
+      {% if header_featured_shows and header_featured_shows|length > 0 %}
+        {% for show in header_featured_shows %}
+        <div class="slideshow-slide {% if loop.first %}active{% endif %}">
+          <a href="{{ url_for('show_detail', show_id=show.id) }}">
+            <img src="{{ url_for('uploaded_file', filename=show.file_name) }}" alt="{{ show.title }}">
+            <span class="slideshow-label">{{ show.title[:20] }}{% if show.title|length > 20 %}...{% endif %}</span>
+            <span class="slideshow-badge">⭐ À la une</span>
+          </a>
+        </div>
+        {% endfor %}
+      {% else %}
+        <!-- Placeholder quand pas de spectacles -->
+        <div class="slideshow-slide active">
+          <a href="{{ url_for('home') }}">
+            <div style="width:100%;height:100%;background:linear-gradient(135deg,#6d1313,#ffc107);display:flex;align-items:center;justify-content:center;">
+              <span style="font-size:2rem;">🎭</span>
+            </div>
+            <span class="slideshow-label">Découvrir les spectacles</span>
+            <span class="slideshow-badge">⭐ À la une</span>
+          </a>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+  {% if header_featured_shows and header_featured_shows|length > 1 %}
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      var slides = document.querySelectorAll('.header-slideshow .slideshow-slide');
+      console.log('Diaporama: ' + slides.length + ' slides trouvées');
+      if (slides.length <= 1) return;
+      var current = 0;
+      window.setInterval(function() {
+        slides[current].classList.remove('active');
+        current = (current + 1) % slides.length;
+        slides[current].classList.add('active');
+        console.log('Slide active: ' + current);
+      }, 5000);
+    });
+  </script>
+  {% endif %}
+  
   <div class="container header-grid">
     <a href="{{ url_for('home') }}" class="brand" id="brand-logo">
       <div style="display:flex; align-items:center; gap:14px;">
