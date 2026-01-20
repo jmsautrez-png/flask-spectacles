@@ -193,7 +193,27 @@
       <article class="card" style="border:2px solid #222;border-radius:16px;box-shadow:0 2px 12px #0008;padding:0 0 8px 0;transition:box-shadow .2s;color:#fff;">
         <a href="{{ url_for('show_detail', show_id=show.id) }}" class="media-link">
           <div class="media">
-            {% if show.has_image() %}
+            {% set images = show.get_all_images() %}
+            {% if images|length > 1 %}
+              <!-- Diaporama avec plusieurs photos -->
+              <div class="card-carousel" data-carousel>
+                <div class="carousel-slides">
+                  {% for img in images %}
+                  <div class="carousel-slide">
+                    <img src="{{ url_for('uploaded_file', filename=img) }}" alt="{{ show.title }}{% if loop.index > 1 %} - Photo {{ loop.index }}{% endif %}">
+                  </div>
+                  {% endfor %}
+                </div>
+                <span class="photo-count">{{ images|length }} 📷</span>
+                <div class="carousel-indicators">
+                  {% for img in images %}
+                  <span class="carousel-indicator{% if loop.first %} active{% endif %}" data-slide="{{ loop.index0 }}"></span>
+                  {% endfor %}
+                </div>
+                <button class="carousel-nav carousel-prev" aria-label="Photo précédente">‹</button>
+                <button class="carousel-nav carousel-next" aria-label="Photo suivante">›</button>
+              </div>
+            {% elif show.has_image() %}
               <img src="{{ url_for('uploaded_file', filename=show.file_name) }}" alt="{{ show.title }}">
             {% elif show.is_pdf() %}
               <div class="pdf-thumb">
@@ -486,6 +506,92 @@
   
   // Lancer la rotation toutes les 45 secondes
   setInterval(loadNextPage, 45000);
+})();
+</script>
+
+<!-- Script pour les carousels de photos sur les cartes -->
+<script>
+(function() {
+  // Initialiser tous les carousels
+  document.querySelectorAll('[data-carousel]').forEach(function(carousel) {
+    const slides = carousel.querySelector('.carousel-slides');
+    const indicators = carousel.querySelectorAll('.carousel-indicator');
+    const prevBtn = carousel.querySelector('.carousel-prev');
+    const nextBtn = carousel.querySelector('.carousel-next');
+    const totalSlides = carousel.querySelectorAll('.carousel-slide').length;
+    let currentSlide = 0;
+    let autoPlayInterval = null;
+
+    function goToSlide(index) {
+      if (index < 0) index = totalSlides - 1;
+      if (index >= totalSlides) index = 0;
+      currentSlide = index;
+      slides.style.transform = 'translateX(-' + (currentSlide * 100) + '%)';
+      
+      // Mettre à jour les indicateurs
+      indicators.forEach(function(ind, i) {
+        ind.classList.toggle('active', i === currentSlide);
+      });
+    }
+
+    function nextSlide() {
+      goToSlide(currentSlide + 1);
+    }
+
+    function prevSlide() {
+      goToSlide(currentSlide - 1);
+    }
+
+    // Démarrer l'auto-play
+    function startAutoPlay() {
+      if (autoPlayInterval) clearInterval(autoPlayInterval);
+      autoPlayInterval = setInterval(nextSlide, 4000); // Change toutes les 4 secondes
+    }
+
+    // Arrêter l'auto-play au hover
+    function stopAutoPlay() {
+      if (autoPlayInterval) {
+        clearInterval(autoPlayInterval);
+        autoPlayInterval = null;
+      }
+    }
+
+    // Événements boutons
+    if (prevBtn) {
+      prevBtn.addEventListener('click', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        prevSlide();
+        startAutoPlay(); // Redémarrer l'auto-play après interaction
+      });
+    }
+
+    if (nextBtn) {
+      nextBtn.addEventListener('click', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        nextSlide();
+        startAutoPlay();
+      });
+    }
+
+    // Événements indicateurs
+    indicators.forEach(function(indicator, i) {
+      indicator.addEventListener('click', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        goToSlide(i);
+        startAutoPlay();
+      });
+    });
+
+    // Auto-play au chargement
+    startAutoPlay();
+
+    // Pause au hover (optionnel)
+    carousel.addEventListener('mouseenter', stopAutoPlay);
+    carousel.addEventListener('mouseleave', startAutoPlay);
+  });
 })();
 </script>
 

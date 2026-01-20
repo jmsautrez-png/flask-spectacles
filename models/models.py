@@ -64,6 +64,11 @@ class Show(db.Model):
     age_range = db.Column(db.String(50), nullable=True)
     file_name = db.Column(db.String(255), nullable=True)
     file_mimetype = db.Column(db.String(120), nullable=True)
+    # Photos supplémentaires pour le diaporama (jusqu'à 3 photos)
+    file_name2 = db.Column(db.String(255), nullable=True)
+    file_mimetype2 = db.Column(db.String(120), nullable=True)
+    file_name3 = db.Column(db.String(255), nullable=True)
+    file_mimetype3 = db.Column(db.String(120), nullable=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
     approved = db.Column(db.Boolean, default=False)
@@ -84,3 +89,32 @@ class Show(db.Model):
             ext = self.file_name.rsplit(".", 1)[-1].lower()
             return ext in {"jpg", "jpeg", "png", "gif", "webp"}
         return False
+
+    def has_image2(self):
+        """Vérifie si la deuxième photo existe et est une image."""
+        if self.file_name2:
+            ext = self.file_name2.rsplit(".", 1)[-1].lower()
+            return ext in {"jpg", "jpeg", "png", "gif", "webp"}
+        return False
+
+    def has_image3(self):
+        """Vérifie si la troisième photo existe et est une image."""
+        if self.file_name3:
+            ext = self.file_name3.rsplit(".", 1)[-1].lower()
+            return ext in {"jpg", "jpeg", "png", "gif", "webp"}
+        return False
+
+    def get_all_images(self):
+        """Retourne la liste de tous les noms de fichiers images (pour le diaporama)."""
+        images = []
+        if self.has_image():
+            images.append(self.file_name)
+        if self.has_image2():
+            images.append(self.file_name2)
+        if self.has_image3():
+            images.append(self.file_name3)
+        return images
+
+    def image_count(self):
+        """Retourne le nombre d'images disponibles."""
+        return len(self.get_all_images())

@@ -317,6 +317,7 @@ def create_app() -> Flask:
     def inject_featured_shows():
         """Injecte les spectacles à la une avec images pour le diaporama header"""
         try:
+            # Uniquement les spectacles de la catégorie "à la une"
             featured = Show.query.filter(
                 Show.approved.is_(True),
                 Show.file_mimetype.ilike("image/%"),
@@ -324,19 +325,7 @@ def create_app() -> Flask:
                     Show.category.ilike('%à la une%'),
                     Show.category.ilike('%a la une%')
                 )
-            ).order_by(Show.created_at.desc()).limit(6).all()
-            
-            # Si pas assez de spectacles "à la une", compléter avec les plus récents
-            if len(featured) < 4:
-                recent = Show.query.filter(
-                    Show.approved.is_(True),
-                    Show.file_mimetype.ilike("image/%")
-                ).order_by(Show.created_at.desc()).limit(6).all()
-                # Fusionner sans doublons
-                featured_ids = {s.id for s in featured}
-                for s in recent:
-                    if s.id not in featured_ids and len(featured) < 6:
-                        featured.append(s)
+            ).order_by(Show.created_at.desc()).all()
             
             return {'header_featured_shows': featured}
         except Exception:
@@ -1369,6 +1358,48 @@ def register_routes(app: Flask) -> None:
                 s.file_name = new_name
                 s.file_mimetype = file.mimetype
 
+            # Gestion de la photo 2 pour le diaporama
+            file2 = request.files.get("file2")
+            if file2 and file2.filename:
+                if not allowed_file(file2.filename):
+                    flash("Photo 2 : Type de fichier non autorisé.", "danger")
+                    return redirect(request.url)
+                is_valid, error_msg = validate_file_size(file2)
+                if not is_valid:
+                    flash(f"Photo 2 : {error_msg}", "danger")
+                    return redirect(request.url)
+                if s.file_name2:
+                    delete_file_s3(s.file_name2)
+                    try:
+                        old_local = Path(current_app.config["UPLOAD_FOLDER"]) / s.file_name2
+                        if old_local.exists():
+                            old_local.unlink()
+                    except Exception:
+                        pass
+                s.file_name2 = upload_file_local(file2)
+                s.file_mimetype2 = file2.mimetype
+
+            # Gestion de la photo 3 pour le diaporama
+            file3 = request.files.get("file3")
+            if file3 and file3.filename:
+                if not allowed_file(file3.filename):
+                    flash("Photo 3 : Type de fichier non autorisé.", "danger")
+                    return redirect(request.url)
+                is_valid, error_msg = validate_file_size(file3)
+                if not is_valid:
+                    flash(f"Photo 3 : {error_msg}", "danger")
+                    return redirect(request.url)
+                if s.file_name3:
+                    delete_file_s3(s.file_name3)
+                    try:
+                        old_local = Path(current_app.config["UPLOAD_FOLDER"]) / s.file_name3
+                        if old_local.exists():
+                            old_local.unlink()
+                    except Exception:
+                        pass
+                s.file_name3 = upload_file_local(file3)
+                s.file_mimetype3 = file3.mimetype
+
             db.session.commit()
             flash("Spectacle mis à jour.", "success")
             return render_template("flash_only_child.html", user=u)
@@ -1385,14 +1416,16 @@ def register_routes(app: Flask) -> None:
             flash("Accès refusé.", "danger")
             return redirect(url_for("company_dashboard"))
 
-        if s.file_name:
-            delete_file_s3(s.file_name)
-            p = Path(current_app.config["UPLOAD_FOLDER"]) / s.file_name
-            if p.exists():
-                try:
-                    p.unlink()
-                except Exception:
-                    pass
+        # Supprimer tous les fichiers (photo 1, 2 et 3)
+        for fname in [s.file_name, s.file_name2, s.file_name3]:
+            if fname:
+                delete_file_s3(fname)
+                p = Path(current_app.config["UPLOAD_FOLDER"]) / fname
+                if p.exists():
+                    try:
+                        p.unlink()
+                    except Exception:
+                        pass
 
         db.session.delete(s)
         db.session.commit()
@@ -1469,6 +1502,37 @@ def register_routes(app: Flask) -> None:
                 file_name = upload_file_local(file)
                 file_mimetype = file.mimetype
 
+            # Gestion des photos 2 et 3 pour le diaporama
+            file2 = request.files.get("file2")
+            file_name2 = None
+            file_mimetype2 = None
+
+            if file2 and file2.filename:
+                if not allowed_file(file2.filename):
+                    flash("Photo 2 : Type de fichier non autorisé.", "danger")
+                    return redirect(request.url)
+                is_valid, error_msg = validate_file_size(file2)
+                if not is_valid:
+                    flash(f"Photo 2 : {error_msg}", "danger")
+                    return redirect(request.url)
+                file_name2 = upload_file_local(file2)
+                file_mimetype2 = file2.mimetype
+
+            file3 = request.files.get("file3")
+            file_name3 = None
+            file_mimetype3 = None
+
+            if file3 and file3.filename:
+                if not allowed_file(file3.filename):
+                    flash("Photo 3 : Type de fichier non autorisé.", "danger")
+                    return redirect(request.url)
+                is_valid, error_msg = validate_file_size(file3)
+                if not is_valid:
+                    flash(f"Photo 3 : {error_msg}", "danger")
+                    return redirect(request.url)
+                file_name3 = upload_file_local(file3)
+                file_mimetype3 = file3.mimetype
+
             show = Show(
                 raison_sociale=raison_sociale or None,
                 title=title,
@@ -1480,6 +1544,10 @@ def register_routes(app: Flask) -> None:
                 date=date_val,
                 file_name=file_name,
                 file_mimetype=file_mimetype,
+                file_name2=file_name2,
+                file_mimetype2=file_mimetype2,
+                file_name3=file_name3,
+                file_mimetype3=file_mimetype3,
                 site_internet=site_internet or None,
                 contact_email=contact_email or None,
                 approved=False,
@@ -1548,6 +1616,50 @@ def register_routes(app: Flask) -> None:
                 show.file_name = new_name
                 show.file_mimetype = file.mimetype
 
+            # Gestion de la photo 2 pour le diaporama
+            file2 = request.files.get("file2")
+            if file2 and file2.filename:
+                if not allowed_file(file2.filename):
+                    flash("Photo 2 : Type de fichier non autorisé.", "danger")
+                    return redirect(request.url)
+                is_valid, error_msg = validate_file_size(file2)
+                if not is_valid:
+                    flash(f"Photo 2 : {error_msg}", "danger")
+                    return redirect(request.url)
+                # Supprimer l'ancienne photo 2
+                if show.file_name2:
+                    delete_file_s3(show.file_name2)
+                    try:
+                        old_local = Path(current_app.config["UPLOAD_FOLDER"]) / show.file_name2
+                        if old_local.exists():
+                            old_local.unlink()
+                    except Exception:
+                        pass
+                show.file_name2 = upload_file_local(file2)
+                show.file_mimetype2 = file2.mimetype
+
+            # Gestion de la photo 3 pour le diaporama
+            file3 = request.files.get("file3")
+            if file3 and file3.filename:
+                if not allowed_file(file3.filename):
+                    flash("Photo 3 : Type de fichier non autorisé.", "danger")
+                    return redirect(request.url)
+                is_valid, error_msg = validate_file_size(file3)
+                if not is_valid:
+                    flash(f"Photo 3 : {error_msg}", "danger")
+                    return redirect(request.url)
+                # Supprimer l'ancienne photo 3
+                if show.file_name3:
+                    delete_file_s3(show.file_name3)
+                    try:
+                        old_local = Path(current_app.config["UPLOAD_FOLDER"]) / show.file_name3
+                        if old_local.exists():
+                            old_local.unlink()
+                    except Exception:
+                        pass
+                show.file_name3 = upload_file_local(file3)
+                show.file_mimetype3 = file3.mimetype
+
             db.session.commit()
             flash("Annonce mise à jour.", "success")
             return redirect(url_for("admin_dashboard"))
@@ -1560,14 +1672,16 @@ def register_routes(app: Flask) -> None:
     def show_delete(show_id: int):
         show = Show.query.get_or_404(show_id)
 
-        if show.file_name:
-            delete_file_s3(show.file_name)
-            p = Path(current_app.config["UPLOAD_FOLDER"]) / show.file_name
-            if p.exists():
-                try:
-                    p.unlink()
-                except Exception:
-                    pass
+        # Supprimer tous les fichiers (photo 1, 2 et 3)
+        for fname in [show.file_name, show.file_name2, show.file_name3]:
+            if fname:
+                delete_file_s3(fname)
+                p = Path(current_app.config["UPLOAD_FOLDER"]) / fname
+                if p.exists():
+                    try:
+                        p.unlink()
+                    except Exception:
+                        pass
 
         db.session.delete(show)
         db.session.commit()

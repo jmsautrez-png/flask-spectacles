@@ -16,10 +16,31 @@
   <article class="card">
     <a href="{{ url_for('demande_animation') }}" class="media-link">
       <div class="media">
-        {% if show.has_image() %}
+        {% set images = show.get_all_images() %}
+        {% if images|length > 1 %}
+          <div class="card-carousel" data-carousel>
+            <div class="carousel-slides">
+              {% for img in images %}
+              <div class="carousel-slide">
+                <img src="{{ url_for('uploaded_file', filename=img) }}" alt="{{ show.title }}{% if loop.index > 1 %} - Photo {{ loop.index }}{% endif %}">
+              </div>
+              {% endfor %}
+            </div>
+            <span class="photo-count">{{ images|length }} 📷</span>
+            <div class="carousel-indicators">
+              {% for img in images %}
+              <span class="carousel-indicator{% if loop.first %} active{% endif %}" data-slide="{{ loop.index0 }}"></span>
+              {% endfor %}
+            </div>
+            <button class="carousel-nav carousel-prev" aria-label="Photo précédente">‹</button>
+            <button class="carousel-nav carousel-next" aria-label="Photo suivante">›</button>
+          </div>
+        {% elif show.has_image() %}
           <img src="{{ url_for('uploaded_file', filename=show.file_name) }}" alt="{{ show.title }}">
         {% elif show.is_pdf() %}
-          <a class="pdf-thumb" href="{{ url_for('uploaded_file', filename=show.file_name) }}" target="_blank">PDF</a>
+          <div class="pdf-thumb">
+            <a href="{{ url_for('uploaded_file', filename=show.file_name) }}" target="_blank" rel="noopener">PDF</a>
+          </div>
         {% else %}
           <div class="placeholder">Aucun fichier</div>
         {% endif %}
@@ -47,6 +68,49 @@
   <p style="margin:0; font-size:16px;">Aucun spectacle de clown n'est disponible pour le moment.</p>
   <p style="margin:12px 0 0 0;">N'hésitez pas à <a href="{{ url_for('demande_animation') }}" style="color:var(--primary); font-weight:600;">nous contacter</a> pour vos besoins spécifiques ou consultez nos <a href="{{ url_for('home') }}" style="color:var(--primary); font-weight:600;">autres spectacles</a>.</p>
 </div>
+
+<script>
+(function() {
+  document.querySelectorAll('[data-carousel]').forEach(function(carousel) {
+    const slides = carousel.querySelector('.carousel-slides');
+    const indicators = carousel.querySelectorAll('.carousel-indicator');
+    const prevBtn = carousel.querySelector('.carousel-prev');
+    const nextBtn = carousel.querySelector('.carousel-next');
+    const totalSlides = carousel.querySelectorAll('.carousel-slide').length;
+    let currentSlide = 0;
+    let autoPlayInterval = null;
+
+    function goToSlide(index) {
+      if (index < 0) index = totalSlides - 1;
+      if (index >= totalSlides) index = 0;
+      currentSlide = index;
+      slides.style.transform = 'translateX(-' + (currentSlide * 100) + '%)';
+      indicators.forEach(function(ind, i) {
+        ind.classList.toggle('active', i === currentSlide);
+      });
+    }
+
+    function nextSlide() { goToSlide(currentSlide + 1); }
+    function prevSlide() { goToSlide(currentSlide - 1); }
+    function startAutoPlay() {
+      if (autoPlayInterval) clearInterval(autoPlayInterval);
+      autoPlayInterval = setInterval(nextSlide, 4000);
+    }
+    function stopAutoPlay() {
+      if (autoPlayInterval) { clearInterval(autoPlayInterval); autoPlayInterval = null; }
+    }
+
+    if (prevBtn) prevBtn.addEventListener('click', function(e) { e.preventDefault(); e.stopPropagation(); prevSlide(); startAutoPlay(); });
+    if (nextBtn) nextBtn.addEventListener('click', function(e) { e.preventDefault(); e.stopPropagation(); nextSlide(); startAutoPlay(); });
+    indicators.forEach(function(indicator, i) {
+      indicator.addEventListener('click', function(e) { e.preventDefault(); e.stopPropagation(); goToSlide(i); startAutoPlay(); });
+    });
+    startAutoPlay();
+    carousel.addEventListener('mouseenter', stopAutoPlay);
+    carousel.addEventListener('mouseleave', startAutoPlay);
+  });
+})();
+</script>
 {% endif %}
 
 {% endblock %}

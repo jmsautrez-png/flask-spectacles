@@ -433,12 +433,29 @@
     </div>
     <div class="slideshow-container">
       {% if header_featured_shows and header_featured_shows|length > 0 %}
+        {% set ns = namespace(first_slide=true) %}
         {% for show in header_featured_shows %}
-        <div class="slideshow-slide {% if loop.first %}active{% endif %}">
-          <img src="{{ url_for('uploaded_file', filename=show.file_name) }}" alt="{{ show.title }}">
-          <span class="slideshow-label">{{ show.title[:20] }}{% if show.title|length > 20 %}...{% endif %}</span>
-          <span class="slideshow-badge">⭐ À la une</span>
-        </div>
+          {% set all_images = show.get_all_images() %}
+          {% if all_images|length > 0 %}
+            {% for img in all_images %}
+            <div class="slideshow-slide {% if ns.first_slide %}active{% endif %}">
+              <img src="{{ url_for('uploaded_file', filename=img) }}" alt="{{ show.title }}{% if loop.index > 1 %} - Photo {{ loop.index }}{% endif %}">
+              <span class="slideshow-label">{{ show.title[:20] }}{% if show.title|length > 20 %}...{% endif %}</span>
+              <span class="slideshow-badge">⭐ À la une</span>
+            </div>
+            {% set ns.first_slide = false %}
+            {% endfor %}
+          {% else %}
+            {# Fallback si show.file_name existe mais pas dans get_all_images (ex: PDF) #}
+            {% if show.file_name %}
+            <div class="slideshow-slide {% if ns.first_slide %}active{% endif %}">
+              <img src="{{ url_for('uploaded_file', filename=show.file_name) }}" alt="{{ show.title }}">
+              <span class="slideshow-label">{{ show.title[:20] }}{% if show.title|length > 20 %}...{% endif %}</span>
+              <span class="slideshow-badge">⭐ À la une</span>
+            </div>
+            {% set ns.first_slide = false %}
+            {% endif %}
+          {% endif %}
         {% endfor %}
       {% else %}
         <!-- Placeholder quand pas de spectacles -->
@@ -452,7 +469,7 @@
       {% endif %}
     </div>
   </a>
-  {% if header_featured_shows and header_featured_shows|length > 1 %}
+  {% if header_featured_shows and header_featured_shows|length >= 1 %}
   <script>
     document.addEventListener('DOMContentLoaded', function() {
       var slides = document.querySelectorAll('.header-slideshow .slideshow-slide');

@@ -330,6 +330,119 @@ main.container {
   display: block;
 }
 
+/* ============================================
+   DIAPORAMA / CAROUSEL pour les cartes
+   ============================================ */
+.card-carousel {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+.card-carousel .carousel-slides {
+  display: flex;
+  width: 100%;
+  height: 100%;
+  transition: transform 0.5s ease-in-out;
+}
+
+.card-carousel .carousel-slide {
+  flex: 0 0 100%;
+  width: 100%;
+  height: 100%;
+}
+
+.card-carousel .carousel-slide img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center center;
+  display: block;
+}
+
+/* Indicateurs (points) du carousel */
+.card-carousel .carousel-indicators {
+  position: absolute;
+  bottom: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 6px;
+  z-index: 5;
+}
+
+.card-carousel .carousel-indicator {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.8);
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.card-carousel .carousel-indicator.active {
+  background: var(--primary);
+  border-color: var(--primary);
+  transform: scale(1.2);
+}
+
+.card-carousel .carousel-indicator:hover {
+  background: rgba(255, 255, 255, 0.8);
+}
+
+/* Boutons de navigation du carousel (optionnel, au hover) */
+.card-carousel .carousel-nav {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.5);
+  color: white;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  z-index: 5;
+  font-size: 14px;
+}
+
+.card-carousel:hover .carousel-nav {
+  opacity: 1;
+}
+
+.card-carousel .carousel-nav:hover {
+  background: rgba(0, 0, 0, 0.8);
+}
+
+.card-carousel .carousel-prev {
+  left: 8px;
+}
+
+.card-carousel .carousel-next {
+  right: 8px;
+}
+
+/* Badge nombre de photos */
+.card-carousel .photo-count {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background: rgba(0, 0, 0, 0.6);
+  color: white;
+  padding: 3px 8px;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  z-index: 5;
+}
+
 .media-link {
   display: block;
   text-decoration: none;

@@ -247,10 +247,41 @@
             </a>
         </p>
     {% else %}
-        <p>Image actuelle :</p>
-        <img src="{{ url_for('uploaded_file', filename=show.file_name) }}"
-             alt="{{ show.title }}"
-             class="show-image">
+        <p>Photos actuelles :</p>
+        <div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:12px; margin-bottom:16px;">
+          <div style="text-align:center;">
+            <span style="font-size:0.85rem; color:var(--muted); display:block; margin-bottom:6px;">Photo 1 (principale)</span>
+            <img src="{{ url_for('uploaded_file', filename=show.file_name) }}"
+                 alt="{{ show.title }}"
+                 style="max-width:100%; max-height:150px; border-radius:8px; border:1px solid var(--border);">
+          </div>
+          {% if show.has_image2() %}
+          <div style="text-align:center;">
+            <span style="font-size:0.85rem; color:var(--muted); display:block; margin-bottom:6px;">Photo 2</span>
+            <img src="{{ url_for('uploaded_file', filename=show.file_name2) }}"
+                 alt="{{ show.title }} - Photo 2"
+                 style="max-width:100%; max-height:150px; border-radius:8px; border:1px solid var(--border);">
+          </div>
+          {% else %}
+          <div style="text-align:center; opacity:0.5;">
+            <span style="font-size:0.85rem; color:var(--muted); display:block; margin-bottom:6px;">Photo 2</span>
+            <div style="height:100px; background:var(--bg); border-radius:8px; border:1px dashed var(--border); display:flex; align-items:center; justify-content:center; color:var(--muted);">Non définie</div>
+          </div>
+          {% endif %}
+          {% if show.has_image3() %}
+          <div style="text-align:center;">
+            <span style="font-size:0.85rem; color:var(--muted); display:block; margin-bottom:6px;">Photo 3</span>
+            <img src="{{ url_for('uploaded_file', filename=show.file_name3) }}"
+                 alt="{{ show.title }} - Photo 3"
+                 style="max-width:100%; max-height:150px; border-radius:8px; border:1px solid var(--border);">
+          </div>
+          {% else %}
+          <div style="text-align:center; opacity:0.5;">
+            <span style="font-size:0.85rem; color:var(--muted); display:block; margin-bottom:6px;">Photo 3</span>
+            <div style="height:100px; background:var(--bg); border-radius:8px; border:1px dashed var(--border); display:flex; align-items:center; justify-content:center; color:var(--muted);">Non définie</div>
+          </div>
+          {% endif %}
+        </div>
     {% endif %}
 {% else %}
     <p><em>Aucun fichier associé pour l’instant.</em></p>
@@ -258,9 +289,26 @@
 
 
 
-  <label>Remplacer l'image ou le PDF <span style="font-size:0.85rem;font-weight:normal;color:var(--muted);">(Taille max : 5 MB)</span>
-    <input type="file" name="file" accept=".png,.jpg,.jpeg,.gif,.webp,.pdf">
-  </label>
+  <!-- Upload de 3 photos pour le diaporama -->
+  <div style="margin-bottom:16px;">
+    <span style="font-weight:600; display:block; margin-bottom:12px;">Remplacer ou ajouter des photos <span style="font-size:0.85rem;font-weight:normal;color:var(--muted);">(jusqu'à 3 photos - Taille max : 5 MB chacune)</span></span>
+    <small style="display:block; margin-bottom:12px; color:var(--muted);">Les photos s'afficheront en diaporama sur votre carte. Formats acceptés : PNG, JPG, GIF, WEBP ou PDF.</small>
+    
+    <div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:12px;">
+      <label style="display:flex; flex-direction:column; gap:6px;">
+        <span style="font-size:0.85rem; color:var(--muted);">Photo 1 (principale)</span>
+        <input type="file" name="file" accept=".png,.jpg,.jpeg,.gif,.webp,.pdf" style="padding:8px; background:var(--bg); border:1px solid var(--border); border-radius:8px;">
+      </label>
+      <label style="display:flex; flex-direction:column; gap:6px;">
+        <span style="font-size:0.85rem; color:var(--muted);">Photo 2</span>
+        <input type="file" name="file2" accept=".png,.jpg,.jpeg,.gif,.webp" style="padding:8px; background:var(--bg); border:1px solid var(--border); border-radius:8px;">
+      </label>
+      <label style="display:flex; flex-direction:column; gap:6px;">
+        <span style="font-size:0.85rem; color:var(--muted);">Photo 3</span>
+        <input type="file" name="file3" accept=".png,.jpg,.jpeg,.gif,.webp" style="padding:8px; background:var(--bg); border:1px solid var(--border); border-radius:8px;">
+      </label>
+    </div>
+  </div>
 
   <div class="actions">
     <button type="submit">Mettre à jour</button>

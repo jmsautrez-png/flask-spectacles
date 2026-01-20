@@ -82,10 +82,26 @@
         <small class="hint">Indiquez l'adresse complète du site (ex : https://www.monsite.fr). Laissez vide si pas de site.</small>
       </label>
 
-      <label style="margin-bottom:0;">
-        <span class="label-text">Image ou PDF <span style="font-size:0.85rem;font-weight:normal;color:var(--muted);">(Taille max : 5 MB)</span></span>
-        <input type="file" name="file" accept=".png,.jpg,.jpeg,.gif,.webp,.pdf">
-      </label>
+      <!-- Upload de 3 photos pour le diaporama -->
+      <div style="margin-bottom:16px;">
+        <span class="label-text" style="display:block; margin-bottom:12px;">Photos du spectacle <span style="font-size:0.85rem;font-weight:normal;color:var(--muted);">(jusqu'à 3 photos - Taille max : 5 MB chacune)</span></span>
+        <small class="hint" style="display:block; margin-bottom:12px;">Les photos s'afficheront en diaporama sur votre carte. Formats acceptés : PNG, JPG, GIF, WEBP ou PDF.</small>
+        
+        <div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:12px;">
+          <label style="display:flex; flex-direction:column; gap:6px;">
+            <span style="font-size:0.85rem; color:var(--muted);">Photo 1 (principale)</span>
+            <input type="file" name="file" accept=".png,.jpg,.jpeg,.gif,.webp,.pdf" style="padding:8px; background:var(--bg); border:1px solid var(--border); border-radius:8px;">
+          </label>
+          <label style="display:flex; flex-direction:column; gap:6px;">
+            <span style="font-size:0.85rem; color:var(--muted);">Photo 2</span>
+            <input type="file" name="file2" accept=".png,.jpg,.jpeg,.gif,.webp" style="padding:8px; background:var(--bg); border:1px solid var(--border); border-radius:8px;">
+          </label>
+          <label style="display:flex; flex-direction:column; gap:6px;">
+            <span style="font-size:0.85rem; color:var(--muted);">Photo 3</span>
+            <input type="file" name="file3" accept=".png,.jpg,.jpeg,.gif,.webp" style="padding:8px; background:var(--bg); border:1px solid var(--border); border-radius:8px;">
+          </label>
+        </div>
+      </div>
     </fieldset>
 
     <div class="demande-actions">
