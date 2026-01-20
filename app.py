@@ -182,6 +182,34 @@ def create_app() -> Flask:
     # DB
     db.init_app(app)
 
+    # === MIGRATION AUTOMATIQUE DES COLONNES MANQUANTES ===
+    with app.app_context():
+        try:
+            # Vérifier et ajouter les colonnes manquantes pour les photos multiples
+            columns_to_add = [
+                ("file_name2", "VARCHAR(255)"),
+                ("file_mimetype2", "VARCHAR(100)"),
+                ("file_name3", "VARCHAR(255)"),
+                ("file_mimetype3", "VARCHAR(100)"),
+            ]
+            
+            for col_name, col_type in columns_to_add:
+                try:
+                    # Vérifier si la colonne existe
+                    db.session.execute(db.text(f"SELECT {col_name} FROM shows LIMIT 1"))
+                except Exception:
+                    # La colonne n'existe pas, l'ajouter
+                    try:
+                        db.session.rollback()
+                        db.session.execute(db.text(f"ALTER TABLE shows ADD COLUMN {col_name} {col_type}"))
+                        db.session.commit()
+                        app.logger.info(f"Colonne {col_name} ajoutée à la table shows")
+                    except Exception as e:
+                        db.session.rollback()
+                        app.logger.warning(f"Impossible d'ajouter la colonne {col_name}: {e}")
+        except Exception as e:
+            app.logger.warning(f"Migration automatique échouée: {e}")
+
     # === SÉCURITÉ ===
     
     # 1. Protection CSRF (Flask-WTF)
