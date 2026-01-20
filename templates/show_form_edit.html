@@ -222,6 +222,23 @@
     <input type="tel" name="contact_phone" value="{{ show.contact_phone if show and show.contact_phone else '' }}" placeholder="06 12 34 56 78">
   </label>
 
+  {% if user and user.is_admin %}
+  <div style="background:linear-gradient(135deg,#e91e63 0%,#9c27b0 100%);border-radius:12px;padding:16px;margin:16px 0;box-shadow:0 4px 15px rgba(233,30,99,0.3);">
+    <label style="display:flex;align-items:center;gap:12px;cursor:pointer;color:#fff;font-weight:600;">
+      <input type="checkbox" name="is_event" value="1" {% if show and show.is_event %}checked{% endif %} style="width:20px;height:20px;cursor:pointer;">
+      <span>📅 Marquer comme événement annoncé</span>
+    </label>
+    <p style="margin:8px 0 0 32px;font-size:0.9rem;color:rgba(255,255,255,0.8);">
+      Les événements sont affichés dans la section "Événements annoncés" et non dans le catalogue principal.
+    </p>
+    
+    <label style="display:block;margin-top:16px;color:#fff;font-weight:600;">
+      📆 Date de l'événement
+      <input type="date" name="date" value="{{ show.date.strftime('%Y-%m-%d') if show and show.date else '' }}" style="display:block;margin-top:8px;padding:10px 14px;border-radius:8px;border:none;font-size:1rem;width:100%;max-width:250px;">
+    </label>
+  </div>
+  {% endif %}
+
   {% if show.file_name %}
     {% if show.is_pdf() %}
         <p>Fichier actuel :

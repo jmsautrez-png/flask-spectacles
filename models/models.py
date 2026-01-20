@@ -23,6 +23,8 @@ class DemandeAnimation(db.Model):
     accessibilite = db.Column(db.String(100), nullable=True)
     contact_email = db.Column(db.String(255), nullable=False)
     intitule = db.Column(db.String(1000), nullable=True)  # Intitulé de la demande (150 mots max)
+    code_postal = db.Column(db.String(10), nullable=True)  # Code postal
+    region = db.Column(db.String(100), nullable=True)  # Région (déduite du code postal)
     is_private = db.Column(db.Boolean, default=False)  # True = visible admin uniquement
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 

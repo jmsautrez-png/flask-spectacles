@@ -33,6 +33,12 @@ ALTER TABLE users ADD COLUMN IF NOT EXISTS region VARCHAR(200);
 -- Migration 10: Ajouter colonne intitule a demande_animation
 ALTER TABLE demande_animation ADD COLUMN IF NOT EXISTS intitule TEXT;
 
+-- Migration 11: Ajouter colonne code_postal a demande_animation
+ALTER TABLE demande_animation ADD COLUMN IF NOT EXISTS code_postal VARCHAR(10);
+
+-- Migration 12: Ajouter colonne region a demande_animation
+ALTER TABLE demande_animation ADD COLUMN IF NOT EXISTS region VARCHAR(100);
+
 -- ======================================================
 -- VERIFICATION (optionnel)
 -- ======================================================

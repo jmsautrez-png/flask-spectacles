@@ -1487,35 +1487,9 @@ def register_routes(app: Flask) -> None:
             db.session.add(show)
             db.session.commit()
 
-            # Envoi automatique d'un email avec le lien du spectacle à la compagnie
-            if getattr(current_app, "mail", None) and current_app.config.get("MAIL_USERNAME"):
-                try:
-                    # On privilégie l'email de la compagnie si présent, sinon fallback admin
-                    to_addr = contact_email if contact_email else (current_app.config.get("MAIL_DEFAULT_SENDER") or current_app.config.get("MAIL_USERNAME"))
-                    show_url = url_for("show_detail", show_id=show.id, _external=True)
-                    body = (
-                        "Bonjour,\n\n"
-                        "Votre spectacle vient d'être publié sur Spectacle'ment VØtre.\n\n"
-                        f"Compagnie : {raison_sociale}\n"
-                        f"Titre : {title}\n"
-                        f"Lieu : {location}\n"
-                        f"Catégorie : {category}\n"
-                        + (f"Date : {date_val}\n" if date_val else "")
-                        + f"Date de publication : {show.created_at.strftime('%d/%m/%Y %H:%M')}\n\n"
-                        + f"Lien direct vers l'annonce (public) : {show_url}\n\n"
-                        + "Si vous souhaitez la retirer ou la modifier, merci de nous contacter par simple retour de ce mail.\n\n"
-                        + "Aussi, vous bénéficiez dès aujourd'hui d'un abonnement gratuit de six mois (voir onglet Abonnement).\n"
-                        + "L’abonnement est totalement optionnel : Spectacle'ment VØtre reste avant tout un annuaire gratuit d’artistes.\n\n"
-                        + "N'hésitez pas à vous inscrire \"gratuitement\" et ajouter vos spectacles sur la plateforme (Inscription/Connexion > Ajouter votre spectacle).\n\n"
-                        + "Spectaclement vôtre,\nL’équipe Spectacle'ment VØtre"
-                    )
-                    msg = Message(subject="Votre spectacle est publié sur Spectacle'ment VØtre !", recipients=[to_addr])  # type: ignore[arg-type]
-                    msg.body = body  # type: ignore[assignment]
-                    current_app.mail.send(msg)  # type: ignore[attr-defined]
-                except Exception as e:
-                    print("[MAIL] envoi automatique impossible:", e)
+            # L'email de notification sera envoyé lors de la validation par l'admin
 
-            flash("Annonce créée (en attente).", "success")
+            flash("Annonce créée (en attente de validation).", "success")
             return redirect(url_for("admin_dashboard"))
 
         return render_template("show_form_new.html", user=current_user())
@@ -1537,6 +1511,8 @@ def register_routes(app: Flask) -> None:
             show.contact_phone = request.form.get("contact_phone", "").strip() or None
             date_str = request.form.get("date", "").strip()
             show.site_internet = request.form.get("site_internet", "").strip() or None
+            # Gérer le champ is_event (admin seulement)
+            show.is_event = request.form.get("is_event", "0") == "1"
             if date_str:
                 try:
                     show.date = datetime.strptime(date_str, "%Y-%m-%d").date()
@@ -1606,6 +1582,34 @@ def register_routes(app: Flask) -> None:
         show.approved = True
         db.session.commit()
         
+        # Envoi automatique d'un email avec le lien du spectacle à la compagnie après validation
+        if getattr(current_app, "mail", None) and current_app.config.get("MAIL_USERNAME"):
+            try:
+                # On privilégie l'email de la compagnie si présent, sinon fallback admin
+                to_addr = show.contact_email if show.contact_email else (current_app.config.get("MAIL_DEFAULT_SENDER") or current_app.config.get("MAIL_USERNAME"))
+                show_url = url_for("show_detail", show_id=show.id, _external=True)
+                body = (
+                    "Bonjour,\n\n"
+                    "Votre spectacle vient d'être validé et publié sur Spectacle'ment VØtre.\n\n"
+                    f"Compagnie : {show.raison_sociale or 'Non renseignée'}\n"
+                    f"Titre : {show.title}\n"
+                    f"Lieu : {show.location}\n"
+                    f"Catégorie : {show.category}\n"
+                    + (f"Date : {show.date}\n" if show.date else "")
+                    + f"Date de publication : {show.created_at.strftime('%d/%m/%Y %H:%M') if show.created_at else 'N/A'}\n\n"
+                    + f"Lien direct vers l'annonce (public) : {show_url}\n\n"
+                    + "Si vous souhaitez la retirer ou la modifier, merci de nous contacter par simple retour de ce mail.\n\n"
+                    + "Aussi, vous bénéficiez dès aujourd'hui d'un abonnement gratuit de six mois (voir onglet Abonnement).\n"
+                    + "L'abonnement est totalement optionnel : Spectacle'ment VØtre reste avant tout un annuaire gratuit d'artistes.\n\n"
+                    + "N'hésitez pas à vous inscrire \"gratuitement\" et ajouter vos spectacles sur la plateforme (Inscription/Connexion > Ajouter votre spectacle).\n\n"
+                    + "Spectaclement vôtre,\nL'équipe Spectacle'ment VØtre"
+                )
+                msg = Message(subject="Votre spectacle est validé sur Spectacle'ment VØtre !", recipients=[to_addr])  # type: ignore[arg-type]
+                msg.body = body  # type: ignore[assignment]
+                current_app.mail.send(msg)  # type: ignore[attr-defined]
+            except Exception as e:
+                print("[MAIL] envoi automatique impossible:", e)
+        
         flash("Annonce validée ✅", "success")
         return redirect(url_for("admin_dashboard"))
 
@@ -1621,6 +1625,8 @@ def register_routes(app: Flask) -> None:
             structure = request.form.get("structure", "").strip()
             telephone = request.form.get("telephone", "").strip()
             lieu_ville = request.form.get("lieu_ville", "").strip()
+            code_postal = request.form.get("code_postal", "").strip()
+            region = request.form.get("region", "").strip()
             nom = request.form.get("nom", "").strip()
             dates_horaires = request.form.get("dates_horaires", "").strip()
             type_espace = request.form.get("type_espace", "").strip()
@@ -1634,7 +1640,7 @@ def register_routes(app: Flask) -> None:
             intitule = request.form.get("intitule", "").strip()
 
             # Validation basique
-            if not all([structure, telephone, lieu_ville, nom, dates_horaires, 
+            if not all([structure, telephone, lieu_ville, code_postal, nom, dates_horaires, 
                        type_espace, genre_recherche, age_range, jauge, budget, contact_email, intitule]):
                 flash("Veuillez remplir tous les champs obligatoires.", "danger")
                 # UX: keep user on page and preserve entered values (no redirect)
@@ -1654,6 +1660,8 @@ Téléphone: {telephone}
 Email: {contact_email}
 Intitulé de la demande: {intitule}
 Lieu/Ville: {lieu_ville}
+Code postal: {code_postal}
+Région: {region}
 Date(s) et horaires: {dates_horaires}
 Type d'espace: {type_espace}
 Genre recherché: {genre_recherche}
@@ -1676,6 +1684,8 @@ Accessibilité: {accessibilite}
                 structure=structure,
                 telephone=telephone,
                 lieu_ville=lieu_ville,
+                code_postal=code_postal,
+                region=region,
                 nom=nom,
                 dates_horaires=dates_horaires,
                 type_espace=type_espace,
