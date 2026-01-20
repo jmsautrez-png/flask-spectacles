@@ -332,14 +332,6 @@ def create_app() -> Flask:
             db.session.rollback()
             return {'header_featured_shows': []}
 
-    # Teardown pour nettoyer les sessions DB à la fin de chaque requête
-    @app.teardown_appcontext
-    def shutdown_session(exception=None):
-        """Rollback et ferme la session en cas d'erreur"""
-        if exception:
-            db.session.rollback()
-        db.session.remove()
-
     register_routes(app)
     register_error_handlers(app)
     return app
@@ -828,14 +820,8 @@ def register_routes(app: Flask) -> None:
         if not u or not u.is_admin:
             shows = shows.filter(Show.approved.is_(True))
 
-        # Exclure les événements (is_event=True) de la page d'accueil
-        # Utiliser SQL brut pour compatibilité PostgreSQL
-        try:
-            shows = shows.filter(
-                db.text("(is_event = FALSE OR is_event IS NULL)")
-            )
-        except Exception:
-            pass  # Si erreur, continuer sans filtre
+        # Note: Le filtre is_event a été temporairement désactivé
+        # Les événements apparaîtront aussi sur la page d'accueil
 
         # Recherche texte + âges (6, 6 ans, 6-10, 6/10, 6 à 10, etc.)
         if q:
