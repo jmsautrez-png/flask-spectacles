@@ -829,13 +829,10 @@ def register_routes(app: Flask) -> None:
             shows = shows.filter(Show.approved.is_(True))
 
         # Exclure les événements (is_event=True) de la page d'accueil
-        # La colonne is_event existe, filtrer les non-événements (False ou NULL)
+        # Utiliser SQL brut pour compatibilité PostgreSQL
         try:
             shows = shows.filter(
-                db.or_(
-                    Show.is_event.is_(False),
-                    Show.is_event.is_(None)
-                )
+                db.text("(is_event = FALSE OR is_event IS NULL)")
             )
         except Exception:
             pass  # Si erreur, continuer sans filtre
