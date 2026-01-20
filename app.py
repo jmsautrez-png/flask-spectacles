@@ -329,7 +329,16 @@ def create_app() -> Flask:
             
             return {'header_featured_shows': featured}
         except Exception:
+            db.session.rollback()
             return {'header_featured_shows': []}
+
+    # Teardown pour nettoyer les sessions DB à la fin de chaque requête
+    @app.teardown_appcontext
+    def shutdown_session(exception=None):
+        """Rollback et ferme la session en cas d'erreur"""
+        if exception:
+            db.session.rollback()
+        db.session.remove()
 
     register_routes(app)
     register_error_handlers(app)
@@ -549,6 +558,21 @@ def register_error_handlers(app: Flask) -> None:
     
     @app.errorhandler(500)
     def internal_server_error(e):
+        # Rollback en cas d'erreur pour libérer la transaction PostgreSQL
+        try:
+            db.session.rollback()
+        except Exception:
+            pass
+        return render_template("500.html", user=current_user()), 500
+    
+    @app.errorhandler(Exception)
+    def handle_exception(e):
+        # Rollback global pour toute exception non gérée
+        try:
+            db.session.rollback()
+        except Exception:
+            pass
+        app.logger.exception("Erreur non gérée: %s", e)
         return render_template("500.html", user=current_user()), 500
 
 # -----------------------------------------------------
@@ -900,13 +924,19 @@ def register_routes(app: Flask) -> None:
             pagination = shows.paginate(page=page, per_page=16, error_out=False)
             shows_list = pagination.items
         except Exception as e:
+            db.session.rollback()
             current_app.logger.exception("Erreur lors de la requête /home: %s", e)
             flash("Une erreur est survenue lors de la recherche.", "danger")
             pagination = None
             shows_list = []
 
-        categories = [c[0] for c in db.session.query(Show.category).distinct().all() if c[0]]
-        locations = [l[0] for l in db.session.query(Show.location).distinct().all() if l[0]]
+        try:
+            categories = [c[0] for c in db.session.query(Show.category).distinct().all() if c[0]]
+            locations = [l[0] for l in db.session.query(Show.location).distinct().all() if l[0]]
+        except Exception:
+            db.session.rollback()
+            categories = []
+            locations = []
 
         # Générer un H1 SEO dynamique selon les filtres
         h1_title = "Spectacles et animations pour mairies, écoles et CSE partout en France"
@@ -2457,8 +2487,12 @@ L'équipe Spectacle'ment VØtre
         ]
         
         # Récupérer les catégories des spectacles existants
-        existing_categories = db.session.query(Show.category).filter(Show.approved.is_(True)).distinct().all()
-        existing_categories_list = [c[0] for c in existing_categories if c[0]]
+        try:
+            existing_categories = db.session.query(Show.category).filter(Show.approved.is_(True)).distinct().all()
+            existing_categories_list = [c[0] for c in existing_categories if c[0]]
+        except Exception:
+            db.session.rollback()
+            existing_categories_list = []
         
         # Combiner et trier (prédéfinies + existantes, sans doublons)
         all_categories_set = set(predefined_categories + existing_categories_list)
