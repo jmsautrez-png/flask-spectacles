@@ -102,6 +102,42 @@
 .btn-artiste:hover {
   transform: scale(1.02);
 }
+
+.btn-evenement-wrapper {
+  position: relative;
+  display: inline-block;
+  padding: 3px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #0a0a1a 0%, #6d1313 25%, #e91e63 50%, #9c27b0 75%, #0a0a1a 100%);
+  background-size: 300% 300%;
+  animation: header-gradient-btn 8s ease infinite;
+}
+
+@keyframes header-gradient-btn {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+
+.btn-evenement {
+  display: block;
+  background: linear-gradient(135deg, #1a0a0a 0%, #6d1313 30%, #8b1e1e 50%, #6d1313 70%, #1a0a0a 100%);
+  background-size: 300% 300%;
+  animation: header-gradient-btn 8s ease infinite;
+  color: #fff;
+  padding: 12px 28px;
+  border-radius: 10px;
+  font-weight: 700;
+  font-size: 1.08em;
+  text-decoration: none;
+  white-space: nowrap;
+  box-shadow: 0 4px 15px rgba(109, 19, 19, 0.5);
+  transition: all 0.3s;
+}
+
+.btn-evenement:hover {
+  transform: scale(1.03);
+  box-shadow: 0 6px 20px rgba(233, 30, 99, 0.6);
+}
 </style>
 
 <div style="display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:16px;">
@@ -283,7 +319,7 @@
       </p>
         <div style="margin: 12px 0 18px 0; text-align:center; display:flex; flex-direction:column; gap:10px; align-items:center;">
           <a href="{{ url_for('seo_category', category_slug='une') }}" class="btn btn-featured theme-btn" data-theme="une" style="display:inline-block; background:#ffc107; color:#000; font-weight:700; border-radius:25px; padding:12px 28px; font-size:1.08em; box-shadow:0 4px 15px rgba(255,193,7,0.5); text-decoration:none; transition:all 0.3s; border:3px solid #000;">⭐ Spectacle à la une</a>
-          <a href="{{ url_for('evenements') }}" style="display:inline-block; background:linear-gradient(135deg, #e91e63 0%, #9c27b0 100%); color:#fff; font-weight:700; border-radius:8px; padding:12px 28px; font-size:1.08em; box-shadow:0 2px 8px rgba(233,30,99,0.4); text-decoration:none; transition:all 0.3s;">📅 Événements annoncés</a>
+          <span class="btn-evenement-wrapper"><a href="{{ url_for('evenements') }}" class="btn-evenement">📅 Événements annoncés</a></span>
         </div>
       <ul style="list-style:none; padding:0; margin:0 0 12px 0;">
         <li><a href="{{ url_for('home') }}" style="color:#FFDEDE;font-weight:bold;">Tout</a></li>

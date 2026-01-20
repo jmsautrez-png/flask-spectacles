@@ -168,7 +168,7 @@
       border-image: linear-gradient(90deg, #ffc107, #ff5722, #e91e63, #9c27b0, #ffc107) 1;
       box-shadow: 0 4px 30px rgba(109, 19, 19, 0.7), 0 0 60px rgba(255, 193, 7, 0.15);
       overflow: hidden;
-      min-height: 90px;
+      min-height: 126px;
     }
     
     @keyframes header-gradient {
@@ -314,8 +314,8 @@
       left: 90px;
       top: 50%;
       transform: translateY(-50%);
-      width: 140px;
-      height: 75px;
+      width: 196px;
+      height: 105px;
       border-radius: 10px;
       overflow: hidden;
       box-shadow: 0 4px 15px rgba(0,0,0,0.5), 0 0 20px rgba(255,193,7,0.3);
@@ -383,35 +383,75 @@
       0%, 100% { transform: scale(1); }
       50% { transform: scale(1.05); }
     }
+    
+    /* Effet survol diaporama */
+    .header-slideshow:hover {
+      transform: translateY(-50%) scale(1.05);
+      box-shadow: 0 6px 25px rgba(0,0,0,0.6), 0 0 35px rgba(255,193,7,0.5);
+      border-color: rgba(255,193,7,1);
+    }
+    
+    .header-slideshow {
+      transition: all 0.3s ease;
+      cursor: pointer;
+    }
+    
+    .slideshow-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0,0,0,0.7);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+      z-index: 10;
+    }
+    
+    .header-slideshow:hover .slideshow-overlay {
+      opacity: 1;
+    }
+    
+    .slideshow-overlay-text {
+      color: #ffc107;
+      font-weight: 700;
+      font-size: 0.75rem;
+      text-align: center;
+      text-shadow: 0 2px 4px rgba(0,0,0,0.8);
+      padding: 8px;
+      line-height: 1.3;
+    }
   </style>
   
   <!-- Diaporama des spectacles à la une -->
-  <div class="header-slideshow">
+  <a href="{{ url_for('seo_category', category_slug='une') }}" class="header-slideshow" title="Voir tous les spectacles à la une">
+    <div class="slideshow-overlay">
+      <span class="slideshow-overlay-text">⭐ Voir tous les<br>spectacles à la une</span>
+    </div>
     <div class="slideshow-container">
       {% if header_featured_shows and header_featured_shows|length > 0 %}
         {% for show in header_featured_shows %}
         <div class="slideshow-slide {% if loop.first %}active{% endif %}">
-          <a href="{{ url_for('show_detail', show_id=show.id) }}">
-            <img src="{{ url_for('uploaded_file', filename=show.file_name) }}" alt="{{ show.title }}">
-            <span class="slideshow-label">{{ show.title[:20] }}{% if show.title|length > 20 %}...{% endif %}</span>
-            <span class="slideshow-badge">⭐ À la une</span>
-          </a>
+          <img src="{{ url_for('uploaded_file', filename=show.file_name) }}" alt="{{ show.title }}">
+          <span class="slideshow-label">{{ show.title[:20] }}{% if show.title|length > 20 %}...{% endif %}</span>
+          <span class="slideshow-badge">⭐ À la une</span>
         </div>
         {% endfor %}
       {% else %}
         <!-- Placeholder quand pas de spectacles -->
         <div class="slideshow-slide active">
-          <a href="{{ url_for('home') }}">
-            <div style="width:100%;height:100%;background:linear-gradient(135deg,#6d1313,#ffc107);display:flex;align-items:center;justify-content:center;">
-              <span style="font-size:2rem;">🎭</span>
-            </div>
-            <span class="slideshow-label">Découvrir les spectacles</span>
-            <span class="slideshow-badge">⭐ À la une</span>
-          </a>
+          <div style="width:100%;height:100%;background:linear-gradient(135deg,#6d1313,#ffc107);display:flex;align-items:center;justify-content:center;">
+            <span style="font-size:2rem;">🎭</span>
+          </div>
+          <span class="slideshow-label">Découvrir les spectacles</span>
+          <span class="slideshow-badge">⭐ À la une</span>
         </div>
       {% endif %}
     </div>
-  </div>
+  </a>
   {% if header_featured_shows and header_featured_shows|length > 1 %}
   <script>
     document.addEventListener('DOMContentLoaded', function() {
@@ -430,7 +470,7 @@
   {% endif %}
   
   <div class="container header-grid">
-    <a href="{{ url_for('home') }}" class="brand" id="brand-logo">
+    <a href="{{ url_for('home') }}" class="brand" id="brand-logo" style="margin-left: 60px;">
       <div style="display:flex; align-items:center; gap:14px;">
         <img src="{{ url_for('static', filename='img/logo_spectaclement_votre.jpg') }}" alt="Logo Spectacle'ment Vôtre" style="height:67.6px; width:auto; border-radius:6px; box-shadow:0 2px 8px #0002; background:#fff;" />
         <div style="width:4px; height:40px; background:var(--primary); border-radius:2px;"></div>
