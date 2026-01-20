@@ -829,21 +829,16 @@ def register_routes(app: Flask) -> None:
             shows = shows.filter(Show.approved.is_(True))
 
         # Exclure les événements (is_event=True) de la page d'accueil
-        # Utiliser une sous-requête sécurisée pour éviter les erreurs PostgreSQL
+        # La colonne is_event existe, filtrer les non-événements (False ou NULL)
         try:
-            # Vérifier si la colonne existe et est accessible
-            db.session.execute(db.text("SELECT is_event FROM shows LIMIT 1"))
-            db.session.commit()  # Valider la transaction de test
-            # Filtrer les non-événements (False ou NULL)
             shows = shows.filter(
                 db.or_(
-                    Show.is_event == False,
-                    Show.is_event == None
+                    Show.is_event.is_(False),
+                    Show.is_event.is_(None)
                 )
             )
         except Exception:
-            db.session.rollback()  # Libérer la transaction en échec
-            # Si la colonne n'existe pas ou autre erreur, continuer sans filtre
+            pass  # Si erreur, continuer sans filtre
 
         # Recherche texte + âges (6, 6 ans, 6-10, 6/10, 6 à 10, etc.)
         if q:
