@@ -94,7 +94,7 @@
     function prevSlide() { goToSlide(currentSlide - 1); }
     function startAutoPlay() {
       if (autoPlayInterval) clearInterval(autoPlayInterval);
-      autoPlayInterval = setInterval(nextSlide, 4500);
+      autoPlayInterval = setInterval(nextSlide, 45000);
     }
     function stopAutoPlay() {
       if (autoPlayInterval) { clearInterval(autoPlayInterval); autoPlayInterval = null; }
