@@ -505,7 +505,7 @@
   }
   
   // Lancer la rotation toutes les 45 secondes
-  setInterval(loadNextPage, 45000);
+  setInterval(loadNextPage, 30000);
 })();
 </script>
 
@@ -545,7 +545,7 @@
     // Démarrer l'auto-play
     function startAutoPlay() {
       if (autoPlayInterval) clearInterval(autoPlayInterval);
-      autoPlayInterval = setInterval(nextSlide, 45000); // Change toutes les 4 secondes
+      autoPlayInterval = setInterval(nextSlide, 8000); // Change toutes les 8 secondes
     }
 
     // Arrêter l'auto-play au hover

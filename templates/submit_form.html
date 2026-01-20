@@ -104,52 +104,26 @@
       <div class="grid-2">
         <div>
           <label>
-            <span class="label-text">Région</span>
-            <input type="text" name="region" id="region-input" placeholder="Ex: Île-de-France, Bretagne">
+            <span class="label-text">Code postal <span class="req">*</span></span>
+            <input type="text" name="code_postal" id="code_postal" required autocomplete="postal-code"
+                   inputmode="numeric" pattern="[0-9]{5}" maxlength="5"
+                   placeholder="Ex : 75001"
+                   value="{{ request.form.get('code_postal','') }}">
+            <span class="hint">Entrez le code postal pour déterminer automatiquement la région.</span>
           </label>
-          <div style="background:#e3f2fd; color:#1565c0; border:1px solid #90caf9; border-radius:7px; padding:7px 12px; margin:10px 0 8px 0; font-size:0.97em; font-weight:500;">
-            Cliquez sur une région pour remplir automatiquement le champ ci-dessus&nbsp;:
-          </div>
-          <div class="region-buttons" style="display:flex; flex-wrap:wrap; gap:6px; margin-bottom:14px; position:relative;">
-            <div id="region-hover-banner" style="display:none; position:absolute; left:0; right:0; top:-38px; background:#fffde7; color:#795548; border:1px solid #ffe082; border-radius:7px; padding:7px 12px; font-size:0.97em; font-weight:500; z-index:10; text-align:center; pointer-events:none; transition:opacity 0.2s; opacity:0;">
-              Cliquez pour sélectionner cette région
-            </div>
-            {% set regions = [
-              'Auvergne-Rhône-Alpes', 'Bourgogne-Franche-Comté', 'Bretagne', 'Centre-Val de Loire', 'Corse',
-              'Grand Est', 'Hauts-de-France', 'Île-de-France', 'Normandie', 'Nouvelle-Aquitaine', 'Occitanie',
-              'Pays de la Loire', 'Provence-Alpes-Côte d\'Azur', 'Guadeloupe', 'Martinique', 'Guyane',
-              'La Réunion', 'Mayotte'
-            ] %}
-            {% set region_styles = {
-              'Auvergne-Rhône-Alpes':      'background:#a5d6a7; color:#1b5e20; border:1px solid #388e3c;',
-              'Bourgogne-Franche-Comté':   'background:#ffe082; color:#6d4c41; border:1px solid #ffb300;',
-              'Bretagne':                  'background:#90caf9; color:#0d47a1; border:1px solid #1976d2;',
-              'Centre-Val de Loire':       'background:#f8bbd0; color:#ad1457; border:1px solid #ec407a;',
-              'Corse':                     'background:#fff9c4; color:#795548; border:1px solid #fbc02d;',
-              'Grand Est':                 'background:#b0bec5; color:#263238; border:1px solid #607d8b;',
-              'Hauts-de-France':           'background:#b3e5fc; color:#01579b; border:1px solid #0288d1;',
-              'Île-de-France':             'background:#d1c4e9; color:#4527a0; border:1px solid #7e57c2;',
-              'Normandie':                 'background:#ffe0b2; color:#e65100; border:1px solid #ff9800;',
-              'Nouvelle-Aquitaine':        'background:#c8e6c9; color:#2e7d32; border:1px solid #43a047;',
-              'Occitanie':                 'background:#ffccbc; color:#bf360c; border:1px solid #ff7043;',
-              'Pays de la Loire':          'background:#f0f4c3; color:#827717; border:1px solid #cddc39;',
-              'Provence-Alpes-Côte d\'Azur': 'background:#ffe082; color:#e65100; border:1px solid #ffb300;',
-              'Guadeloupe':                'background:#b2ebf2; color:#006064; border:1px solid #00bcd4;',
-              'Martinique':                'background:#f48fb1; color:#ad1457; border:1px solid #ec407a;',
-              'Guyane':                    'background:#c5e1a5; color:#33691e; border:1px solid #8bc34a;',
-              'La Réunion':                'background:#ffe0b2; color:#e65100; border:1px solid #ff9800;',
-              'Mayotte':                   'background:#b3e5fc; color:#01579b; border:1px solid #0288d1;'
-            } %}
-            {% for reg in regions %}
-                <button type="button" class="btn-region"
-                  style="padding:4px 10px; border-radius:5px; font-size:0.95em; cursor:pointer; margin-bottom:2px; {{ region_styles[reg]|default('background:#eee; color:#333; border:1px solid #bbb;') }}"
-                  onmouseover="document.getElementById('region-hover-banner').style.display='block'; document.getElementById('region-hover-banner').style.opacity='1';"
-                  onmouseout="document.getElementById('region-hover-banner').style.opacity='0'; setTimeout(function(){document.getElementById('region-hover-banner').style.display='none';},200);"
-                  onclick="ajouterRegion('{{ reg }}')"
-                >{{ reg }}</button>
-            {% endfor %}
-          </div>
         </div>
+        <div>
+          <label>
+            <span class="label-text">Région</span>
+            <input type="text" name="region" id="region-input" readonly
+                   placeholder="Déterminée automatiquement"
+                   value="{{ request.form.get('region','') }}"
+                   style="background:#1a1a2e; cursor:not-allowed;">
+            <span class="hint">La région est remplie automatiquement selon le code postal.</span>
+          </label>
+        </div>
+      </div>
+      <div class="grid-2">
         <div>
           <label>
             <span class="label-text">Lieu</span>
@@ -335,16 +309,33 @@
       </div>
     </fieldset>
 
-    <!-- SECTION: Fichier -->
+    <!-- SECTION: Photos -->
     <fieldset class="demande-section">
-      <legend>Affiche ou document</legend>
+      <legend>📷 Photos du spectacle (jusqu'à 3)</legend>
+      <p style="color:var(--muted); font-size:0.9em; margin-bottom:16px;">Ajoutez jusqu'à 3 photos pour créer un diaporama attractif sur votre fiche.</p>
       
-      <div>
-        <label>
-          <span class="label-text">Image ou PDF</span>
-          <span class="hint">Taille max : 5 MB - Formats acceptés : PNG, JPG, JPEG, GIF, WEBP, PDF</span>
-          <input type="file" name="file" accept=".png,.jpg,.jpeg,.gif,.webp,.pdf">
-        </label>
+      <div class="grid-3" style="display:grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap:16px;">
+        <div>
+          <label>
+            <span class="label-text">Photo 1 (principale)</span>
+            <span class="hint">Max 5 MB - PNG, JPG, JPEG, GIF, WEBP, PDF</span>
+            <input type="file" name="file" accept=".png,.jpg,.jpeg,.gif,.webp,.pdf">
+          </label>
+        </div>
+        <div>
+          <label>
+            <span class="label-text">Photo 2 (optionnelle)</span>
+            <span class="hint">Max 5 MB - PNG, JPG, JPEG, GIF, WEBP</span>
+            <input type="file" name="file2" accept=".png,.jpg,.jpeg,.gif,.webp">
+          </label>
+        </div>
+        <div>
+          <label>
+            <span class="label-text">Photo 3 (optionnelle)</span>
+            <span class="hint">Max 5 MB - PNG, JPG, JPEG, GIF, WEBP</span>
+            <input type="file" name="file3" accept=".png,.jpg,.jpeg,.gif,.webp">
+          </label>
+        </div>
       </div>
     </fieldset>
 
@@ -366,14 +357,109 @@
 </div>
 
               <script>
-              function ajouterRegion(region) {
-                  var input = document.getElementById('region-input');
-                  var regions = input.value.split(',').map(function(r) { return r.trim(); }).filter(function(r) { return r.length > 0; });
-                  if (regions.indexOf(region) === -1) {
-                      regions.push(region);
-                      input.value = regions.join(' | ');
-                  }
+              // Fonction pour déterminer la région à partir du code postal français
+              function getRegionFromCodePostal(codePostal) {
+                if (!codePostal || codePostal.length < 2) return '';
+                
+                var dept = codePostal.substring(0, 2);
+                var deptNum = parseInt(dept, 10);
+                
+                // Cas particulier pour la Corse (2A, 2B)
+                if (codePostal.startsWith('20')) {
+                  return 'Corse';
+                }
+                
+                // DOM-TOM
+                if (codePostal.startsWith('971')) return 'Guadeloupe';
+                if (codePostal.startsWith('972')) return 'Martinique';
+                if (codePostal.startsWith('973')) return 'Guyane';
+                if (codePostal.startsWith('974')) return 'La Réunion';
+                if (codePostal.startsWith('976')) return 'Mayotte';
+                
+                // Régions métropolitaines
+                var regions = {
+                  // Auvergne-Rhône-Alpes
+                  '01': 'Auvergne-Rhône-Alpes', '03': 'Auvergne-Rhône-Alpes', '07': 'Auvergne-Rhône-Alpes',
+                  '15': 'Auvergne-Rhône-Alpes', '26': 'Auvergne-Rhône-Alpes', '38': 'Auvergne-Rhône-Alpes',
+                  '42': 'Auvergne-Rhône-Alpes', '43': 'Auvergne-Rhône-Alpes', '63': 'Auvergne-Rhône-Alpes',
+                  '69': 'Auvergne-Rhône-Alpes', '73': 'Auvergne-Rhône-Alpes', '74': 'Auvergne-Rhône-Alpes',
+                  
+                  // Bourgogne-Franche-Comté
+                  '21': 'Bourgogne-Franche-Comté', '25': 'Bourgogne-Franche-Comté', '39': 'Bourgogne-Franche-Comté',
+                  '58': 'Bourgogne-Franche-Comté', '70': 'Bourgogne-Franche-Comté', '71': 'Bourgogne-Franche-Comté',
+                  '89': 'Bourgogne-Franche-Comté', '90': 'Bourgogne-Franche-Comté',
+                  
+                  // Bretagne
+                  '22': 'Bretagne', '29': 'Bretagne', '35': 'Bretagne', '56': 'Bretagne',
+                  
+                  // Centre-Val de Loire
+                  '18': 'Centre-Val de Loire', '28': 'Centre-Val de Loire', '36': 'Centre-Val de Loire',
+                  '37': 'Centre-Val de Loire', '41': 'Centre-Val de Loire', '45': 'Centre-Val de Loire',
+                  
+                  // Grand Est
+                  '08': 'Grand Est', '10': 'Grand Est', '51': 'Grand Est', '52': 'Grand Est',
+                  '54': 'Grand Est', '55': 'Grand Est', '57': 'Grand Est', '67': 'Grand Est',
+                  '68': 'Grand Est', '88': 'Grand Est',
+                  
+                  // Hauts-de-France
+                  '02': 'Hauts-de-France', '59': 'Hauts-de-France', '60': 'Hauts-de-France',
+                  '62': 'Hauts-de-France', '80': 'Hauts-de-France',
+                  
+                  // Île-de-France
+                  '75': 'Île-de-France', '77': 'Île-de-France', '78': 'Île-de-France',
+                  '91': 'Île-de-France', '92': 'Île-de-France', '93': 'Île-de-France',
+                  '94': 'Île-de-France', '95': 'Île-de-France',
+                  
+                  // Normandie
+                  '14': 'Normandie', '27': 'Normandie', '50': 'Normandie', '61': 'Normandie', '76': 'Normandie',
+                  
+                  // Nouvelle-Aquitaine
+                  '16': 'Nouvelle-Aquitaine', '17': 'Nouvelle-Aquitaine', '19': 'Nouvelle-Aquitaine',
+                  '23': 'Nouvelle-Aquitaine', '24': 'Nouvelle-Aquitaine', '33': 'Nouvelle-Aquitaine',
+                  '40': 'Nouvelle-Aquitaine', '47': 'Nouvelle-Aquitaine', '64': 'Nouvelle-Aquitaine',
+                  '79': 'Nouvelle-Aquitaine', '86': 'Nouvelle-Aquitaine', '87': 'Nouvelle-Aquitaine',
+                  
+                  // Occitanie
+                  '09': 'Occitanie', '11': 'Occitanie', '12': 'Occitanie', '30': 'Occitanie',
+                  '31': 'Occitanie', '32': 'Occitanie', '34': 'Occitanie', '46': 'Occitanie',
+                  '48': 'Occitanie', '65': 'Occitanie', '66': 'Occitanie', '81': 'Occitanie', '82': 'Occitanie',
+                  
+                  // Pays de la Loire
+                  '44': 'Pays de la Loire', '49': 'Pays de la Loire', '53': 'Pays de la Loire',
+                  '72': 'Pays de la Loire', '85': 'Pays de la Loire',
+                  
+                  // Provence-Alpes-Côte d'Azur
+                  '04': 'Provence-Alpes-Côte d\'Azur', '05': 'Provence-Alpes-Côte d\'Azur',
+                  '06': 'Provence-Alpes-Côte d\'Azur', '13': 'Provence-Alpes-Côte d\'Azur',
+                  '83': 'Provence-Alpes-Côte d\'Azur', '84': 'Provence-Alpes-Côte d\'Azur'
+                };
+                
+                return regions[dept] || '';
               }
+
+              // Détection automatique de la région en fonction du code postal
+              document.addEventListener('DOMContentLoaded', function() {
+                var codePostalInput = document.getElementById('code_postal');
+                var regionInput = document.getElementById('region-input');
+                
+                if (codePostalInput && regionInput) {
+                  codePostalInput.addEventListener('input', function() {
+                    var codePostal = this.value.trim();
+                    if (codePostal.length >= 2) {
+                      var region = getRegionFromCodePostal(codePostal);
+                      regionInput.value = region;
+                    } else {
+                      regionInput.value = '';
+                    }
+                  });
+                  
+                  // Déclencher la détection au chargement si un code postal est déjà présent
+                  if (codePostalInput.value) {
+                    var region = getRegionFromCodePostal(codePostalInput.value.trim());
+                    regionInput.value = region;
+                  }
+                }
+              });
               </script>
 <!-- Limiteur 200 mots (front) -->
 <script>

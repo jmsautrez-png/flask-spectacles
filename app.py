@@ -1216,6 +1216,32 @@ def register_routes(app: Flask) -> None:
                 file_name = upload_file_local(file)
                 file_mimetype = file.mimetype
 
+            # Gestion de la photo 2 pour le diaporama
+            file2 = request.files.get("file2")
+            file_name2 = None
+            if file2 and file2.filename:
+                if not allowed_file(file2.filename):
+                    flash("Photo 2 : Type de fichier non autorisé.", "danger")
+                    return redirect(request.url)
+                is_valid2, error_msg2 = validate_file_size(file2)
+                if not is_valid2:
+                    flash(f"Photo 2 : {error_msg2}", "danger")
+                    return redirect(request.url)
+                file_name2 = upload_file_local(file2)
+
+            # Gestion de la photo 3 pour le diaporama
+            file3 = request.files.get("file3")
+            file_name3 = None
+            if file3 and file3.filename:
+                if not allowed_file(file3.filename):
+                    flash("Photo 3 : Type de fichier non autorisé.", "danger")
+                    return redirect(request.url)
+                is_valid3, error_msg3 = validate_file_size(file3)
+                if not is_valid3:
+                    flash(f"Photo 3 : {error_msg3}", "danger")
+                    return redirect(request.url)
+                file_name3 = upload_file_local(file3)
+
             show = Show(
                 raison_sociale=raison_sociale or None,
                 title=title,
@@ -1227,6 +1253,8 @@ def register_routes(app: Flask) -> None:
                 date=date_val,
                 file_name=file_name,
                 file_mimetype=file_mimetype,
+                file_name2=file_name2,
+                file_name3=file_name3,
                 contact_email=contact_email or None,
                 contact_phone=contact_phone or None,
                 site_internet=site_internet or None,
