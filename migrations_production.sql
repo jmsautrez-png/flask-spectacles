@@ -21,6 +21,18 @@ ALTER TABLE shows ALTER COLUMN category TYPE VARCHAR(500);
 -- Migration 6: Ajouter colonne is_event pour distinguer catalogue/evenements
 ALTER TABLE shows ADD COLUMN IF NOT EXISTS is_event BOOLEAN DEFAULT FALSE;
 
+-- Migration 7: Ajouter colonne is_subscribed a users
+ALTER TABLE users ADD COLUMN IF NOT EXISTS is_subscribed BOOLEAN DEFAULT FALSE;
+
+-- Migration 8: Ajouter colonne telephone a users
+ALTER TABLE users ADD COLUMN IF NOT EXISTS telephone VARCHAR(50);
+
+-- Migration 9: Ajouter colonne region a users
+ALTER TABLE users ADD COLUMN IF NOT EXISTS region VARCHAR(200);
+
+-- Migration 10: Ajouter colonne intitule a demande_animation
+ALTER TABLE demande_animation ADD COLUMN IF NOT EXISTS intitule TEXT;
+
 -- ======================================================
 -- VERIFICATION (optionnel)
 -- ======================================================

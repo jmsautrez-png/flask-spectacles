@@ -74,14 +74,44 @@
 .btn-mairie:hover {
   transform: scale(1.02);
 }
+
+.btn-artiste-wrapper {
+  position: relative;
+  display: inline-block;
+  padding: 3px;
+  border-radius: 28px;
+  background: linear-gradient(90deg, #ffc107, #ffeb3b, #ff9800, #ffd54f, #ffca28, #fff176, #ffc107);
+  background-size: 200% 100%;
+  animation: border-spin 2s linear infinite;
+}
+
+.btn-artiste {
+  display: block;
+  background: linear-gradient(135deg, #ffc107 0%, #ffeb3b 50%, #ffd54f 100%);
+  color: #000;
+  padding: 8px 18px;
+  border-radius: 25px;
+  font-weight: 600;
+  font-size: 0.95rem;
+  text-decoration: none;
+  white-space: nowrap;
+  letter-spacing: 0.5px;
+  transition: all 0.3s;
+}
+
+.btn-artiste:hover {
+  transform: scale(1.02);
+}
 </style>
 
 <div style="display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:16px;">
   <h1 style="font-size:1.25rem;margin:0 0 8px 0;font-weight:700;color:#FFDEDE;line-height:1.3;">{{ h1_title|default('Spectacles et animations pour mairies, écoles et CSE partout en France') }}</h1>
   <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;justify-content:flex-end;width:100%;">
-      <a href="{{ url_for('publish') }}" style="background:linear-gradient(135deg,#0d47a1 0%,#1976d2 50%,#43cea2 100%);color:#fff;padding:8px 18px;border-radius:22px;font-weight:600;font-size:0.95rem;text-decoration:none;box-shadow:0 2px 8px #1976d244;transition:background .2s;white-space:nowrap;display:inline-block;letter-spacing:0.5px;">
-        Je suis artiste / compagnie — Je publie mon spectacle
-      </a>
+      <span class="btn-artiste-wrapper">
+        <a href="{{ url_for('publish') }}" class="btn-artiste">
+          Je suis artiste / compagnie — Je publie mon spectacle
+        </a>
+      </span>
       <a href="{{ url_for('abonnement_compagnie') }}" style="background:linear-gradient(135deg,#1a237e 0%,#283e5e 50%,#1976d2 100%);color:#fff;padding:8px 18px;border-radius:22px;font-weight:600;font-size:0.95rem;text-decoration:none;box-shadow:0 2px 8px #1976d244;transition:background .2s;white-space:nowrap;display:inline-block;letter-spacing:0.5px;">
         Abonnement Compagnie
       </a>
