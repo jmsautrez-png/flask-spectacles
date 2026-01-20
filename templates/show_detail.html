@@ -61,10 +61,35 @@
   </a>
   
   <article class="card" style="max-width:none; box-shadow:0 4px 16px rgba(0,0,0,0.2);">
-    {% if show.has_image() or show.is_pdf() %}
-      <div class="media" style="aspect-ratio:16/9; max-height:450px;">
-        {% if show.has_image() %}
-          <img src="{{ url_for('uploaded_file', filename=show.file_name) }}" alt="{{ show.title }}" style="width:100%; height:100%; object-fit:contain; background:#162447;">
+    {% set all_images = show.get_all_images() %}
+    {% if all_images|length > 0 or show.is_pdf() %}
+      <div class="media" style="aspect-ratio:16/9; max-height:450px; position:relative;">
+        {% if all_images|length > 0 %}
+          <!-- Diaporama des photos -->
+          <div class="detail-carousel" data-carousel>
+            <div class="carousel-slides">
+              {% for img in all_images %}
+              <div class="carousel-slide {% if loop.first %}active{% endif %}">
+                <img src="{{ url_for('uploaded_file', filename=img) }}" alt="{{ show.title }} - Photo {{ loop.index }}" style="width:100%; height:100%; object-fit:contain; background:#162447;">
+              </div>
+              {% endfor %}
+            </div>
+            {% if all_images|length > 1 %}
+            <!-- Indicateurs -->
+            <div class="carousel-indicators" style="position:absolute; bottom:15px; left:50%; transform:translateX(-50%); display:flex; gap:8px; z-index:10;">
+              {% for img in all_images %}
+              <button class="carousel-dot {% if loop.first %}active{% endif %}" data-index="{{ loop.index0 }}" style="width:12px; height:12px; border-radius:50%; border:2px solid white; background:{% if loop.first %}white{% else %}transparent{% endif %}; cursor:pointer; transition:all 0.3s;"></button>
+              {% endfor %}
+            </div>
+            <!-- Navigation -->
+            <button class="carousel-prev" style="position:absolute; left:15px; top:50%; transform:translateY(-50%); background:rgba(0,0,0,0.5); color:white; border:none; width:40px; height:40px; border-radius:50%; cursor:pointer; font-size:1.2rem; z-index:10;">❮</button>
+            <button class="carousel-next" style="position:absolute; right:15px; top:50%; transform:translateY(-50%); background:rgba(0,0,0,0.5); color:white; border:none; width:40px; height:40px; border-radius:50%; cursor:pointer; font-size:1.2rem; z-index:10;">❯</button>
+            <!-- Compteur -->
+            <div class="photo-count" style="position:absolute; top:15px; right:15px; background:rgba(0,0,0,0.6); color:white; padding:5px 12px; border-radius:15px; font-size:0.85rem; z-index:10;">
+              <span class="current-photo">1</span>/{{ all_images|length }}
+            </div>
+            {% endif %}
+          </div>
         {% elif show.is_pdf() %}
           <a class="pdf-thumb" href="{{ url_for('uploaded_file', filename=show.file_name) }}" target="_blank" style="font-size:2rem;">📄 Voir le PDF</a>
         {% endif %}
@@ -347,5 +372,75 @@ a.social-bandeau:hover {
   </div>
 </div>
 {% endif %}
+
+<!-- JavaScript pour le diaporama de la page détail -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const carousel = document.querySelector('.detail-carousel');
+  if (!carousel) return;
+  
+  const slides = carousel.querySelectorAll('.carousel-slide');
+  const dots = carousel.querySelectorAll('.carousel-dot');
+  const prevBtn = carousel.querySelector('.carousel-prev');
+  const nextBtn = carousel.querySelector('.carousel-next');
+  const counter = carousel.querySelector('.current-photo');
+  
+  if (slides.length <= 1) return;
+  
+  let currentIndex = 0;
+  let autoPlayInterval;
+  
+  function showSlide(index) {
+    slides.forEach((slide, i) => {
+      slide.classList.toggle('active', i === index);
+    });
+    dots.forEach((dot, i) => {
+      dot.classList.toggle('active', i === index);
+      dot.style.background = i === index ? 'white' : 'transparent';
+    });
+    if (counter) counter.textContent = index + 1;
+    currentIndex = index;
+  }
+  
+  function nextSlide() {
+    showSlide((currentIndex + 1) % slides.length);
+  }
+  
+  function prevSlide() {
+    showSlide((currentIndex - 1 + slides.length) % slides.length);
+  }
+  
+  function startAutoPlay() {
+    stopAutoPlay();
+    autoPlayInterval = setInterval(nextSlide, 10000); // Toutes les 10 secondes
+  }
+  
+  function stopAutoPlay() {
+    if (autoPlayInterval) clearInterval(autoPlayInterval);
+  }
+  
+  // Navigation
+  if (nextBtn) nextBtn.addEventListener('click', function() { nextSlide(); startAutoPlay(); });
+  if (prevBtn) prevBtn.addEventListener('click', function() { prevSlide(); startAutoPlay(); });
+  
+  // Indicateurs
+  dots.forEach((dot, i) => {
+    dot.addEventListener('click', function() { showSlide(i); startAutoPlay(); });
+  });
+  
+  // Démarrer l'auto-play
+  startAutoPlay();
+});
+</script>
+
+<style>
+.detail-carousel { position: relative; width: 100%; height: 100%; }
+.detail-carousel .carousel-slides { position: relative; width: 100%; height: 100%; }
+.detail-carousel .carousel-slide { position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: 0; transition: opacity 0.5s ease; }
+.detail-carousel .carousel-slide.active { opacity: 1; z-index: 1; }
+.detail-carousel .carousel-prev:hover,
+.detail-carousel .carousel-next:hover { background: rgba(0,0,0,0.8); }
+.detail-carousel .carousel-dot:hover { background: rgba(255,255,255,0.5) !important; }
+</style>
 
 {% endblock %}
