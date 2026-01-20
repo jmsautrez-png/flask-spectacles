@@ -54,6 +54,13 @@
                  value="{{ request.form.get('telephone','') }}">
         </label>
       </div>
+
+      <label style="margin-top: 16px;">
+        <span class="label-text">Intitulé de votre demande <span class="req">*</span></span>
+        <textarea id="intitule" name="intitule" rows="4" required maxlength="1000"
+                  placeholder="Décrivez brièvement votre demande (150 mots maximum)...">{{ request.form.get('intitule','') }}</textarea>
+        <small class="hint">Résumez votre demande en quelques phrases (150 mots max).</small>
+      </label>
     </fieldset>
 
     <fieldset class="demande-section">

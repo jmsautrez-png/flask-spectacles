@@ -140,4 +140,273 @@
   main.container .seo-block { display: none; }
   .site-footer { display: none; }
 </style>
+
+<script>
+// Mapping des grandes villes françaises vers leurs régions
+const villeVersRegion = {
+    // Île-de-France
+    'paris': 'Île-de-France',
+    'boulogne-billancourt': 'Île-de-France',
+    'saint-denis': 'Île-de-France',
+    'argenteuil': 'Île-de-France',
+    'montreuil': 'Île-de-France',
+    'nanterre': 'Île-de-France',
+    'créteil': 'Île-de-France',
+    'versailles': 'Île-de-France',
+    'vitry-sur-seine': 'Île-de-France',
+    'colombes': 'Île-de-France',
+    'asnières-sur-seine': 'Île-de-France',
+    'courbevoie': 'Île-de-France',
+    'aulnay-sous-bois': 'Île-de-France',
+    'rueil-malmaison': 'Île-de-France',
+    'champigny-sur-marne': 'Île-de-France',
+    'aubervilliers': 'Île-de-France',
+    'drancy': 'Île-de-France',
+    'noisy-le-grand': 'Île-de-France',
+    'levallois-perret': 'Île-de-France',
+    'issy-les-moulineaux': 'Île-de-France',
+    'cergy': 'Île-de-France',
+    'evry': 'Île-de-France',
+    'meaux': 'Île-de-France',
+    'melun': 'Île-de-France',
+    
+    // Auvergne-Rhône-Alpes
+    'lyon': 'Auvergne-Rhône-Alpes',
+    'villeurbanne': 'Auvergne-Rhône-Alpes',
+    'saint-etienne': 'Auvergne-Rhône-Alpes',
+    'grenoble': 'Auvergne-Rhône-Alpes',
+    'clermont-ferrand': 'Auvergne-Rhône-Alpes',
+    'annecy': 'Auvergne-Rhône-Alpes',
+    'valence': 'Auvergne-Rhône-Alpes',
+    'chambery': 'Auvergne-Rhône-Alpes',
+    'bourg-en-bresse': 'Auvergne-Rhône-Alpes',
+    'roanne': 'Auvergne-Rhône-Alpes',
+    'vienne': 'Auvergne-Rhône-Alpes',
+    'annemasse': 'Auvergne-Rhône-Alpes',
+    'thonon-les-bains': 'Auvergne-Rhône-Alpes',
+    'aurillac': 'Auvergne-Rhône-Alpes',
+    'le puy-en-velay': 'Auvergne-Rhône-Alpes',
+    
+    // Provence-Alpes-Côte d'Azur
+    'marseille': "Provence-Alpes-Côte d'Azur",
+    'nice': "Provence-Alpes-Côte d'Azur",
+    'toulon': "Provence-Alpes-Côte d'Azur",
+    'aix-en-provence': "Provence-Alpes-Côte d'Azur",
+    'avignon': "Provence-Alpes-Côte d'Azur",
+    'antibes': "Provence-Alpes-Côte d'Azur",
+    'cannes': "Provence-Alpes-Côte d'Azur",
+    'la seyne-sur-mer': "Provence-Alpes-Côte d'Azur",
+    'hyeres': "Provence-Alpes-Côte d'Azur",
+    'frejus': "Provence-Alpes-Côte d'Azur",
+    'arles': "Provence-Alpes-Côte d'Azur",
+    'grasse': "Provence-Alpes-Côte d'Azur",
+    'martigues': "Provence-Alpes-Côte d'Azur",
+    'aubagne': "Provence-Alpes-Côte d'Azur",
+    'gap': "Provence-Alpes-Côte d'Azur",
+    'digne-les-bains': "Provence-Alpes-Côte d'Azur",
+    
+    // Nouvelle-Aquitaine
+    'bordeaux': 'Nouvelle-Aquitaine',
+    'limoges': 'Nouvelle-Aquitaine',
+    'poitiers': 'Nouvelle-Aquitaine',
+    'merignac': 'Nouvelle-Aquitaine',
+    'pessac': 'Nouvelle-Aquitaine',
+    'pau': 'Nouvelle-Aquitaine',
+    'la rochelle': 'Nouvelle-Aquitaine',
+    'angouleme': 'Nouvelle-Aquitaine',
+    'bayonne': 'Nouvelle-Aquitaine',
+    'brive-la-gaillarde': 'Nouvelle-Aquitaine',
+    'niort': 'Nouvelle-Aquitaine',
+    'perigueux': 'Nouvelle-Aquitaine',
+    'agen': 'Nouvelle-Aquitaine',
+    'mont-de-marsan': 'Nouvelle-Aquitaine',
+    'biarritz': 'Nouvelle-Aquitaine',
+    'arcachon': 'Nouvelle-Aquitaine',
+    
+    // Occitanie
+    'toulouse': 'Occitanie',
+    'montpellier': 'Occitanie',
+    'nimes': 'Occitanie',
+    'perpignan': 'Occitanie',
+    'beziers': 'Occitanie',
+    'narbonne': 'Occitanie',
+    'carcassonne': 'Occitanie',
+    'albi': 'Occitanie',
+    'tarbes': 'Occitanie',
+    'castres': 'Occitanie',
+    'sete': 'Occitanie',
+    'montauban': 'Occitanie',
+    'ales': 'Occitanie',
+    'rodez': 'Occitanie',
+    'cahors': 'Occitanie',
+    'auch': 'Occitanie',
+    'mende': 'Occitanie',
+    'foix': 'Occitanie',
+    
+    // Grand Est
+    'strasbourg': 'Grand Est',
+    'reims': 'Grand Est',
+    'metz': 'Grand Est',
+    'mulhouse': 'Grand Est',
+    'nancy': 'Grand Est',
+    'colmar': 'Grand Est',
+    'troyes': 'Grand Est',
+    'charleville-mezieres': 'Grand Est',
+    'chalons-en-champagne': 'Grand Est',
+    'epinal': 'Grand Est',
+    'thionville': 'Grand Est',
+    'haguenau': 'Grand Est',
+    'saint-dizier': 'Grand Est',
+    'bar-le-duc': 'Grand Est',
+    'verdun': 'Grand Est',
+    
+    // Hauts-de-France
+    'lille': 'Hauts-de-France',
+    'amiens': 'Hauts-de-France',
+    'roubaix': 'Hauts-de-France',
+    'dunkerque': 'Hauts-de-France',
+    'tourcoing': 'Hauts-de-France',
+    'calais': 'Hauts-de-France',
+    'douai': 'Hauts-de-France',
+    'lens': 'Hauts-de-France',
+    'valenciennes': 'Hauts-de-France',
+    'beauvais': 'Hauts-de-France',
+    'arras': 'Hauts-de-France',
+    'saint-quentin': 'Hauts-de-France',
+    'compiegne': 'Hauts-de-France',
+    'boulogne-sur-mer': 'Hauts-de-France',
+    'laon': 'Hauts-de-France',
+    'soissons': 'Hauts-de-France',
+    
+    // Pays de la Loire
+    'nantes': 'Pays de la Loire',
+    'angers': 'Pays de la Loire',
+    'le mans': 'Pays de la Loire',
+    'saint-nazaire': 'Pays de la Loire',
+    'la roche-sur-yon': 'Pays de la Loire',
+    'cholet': 'Pays de la Loire',
+    'laval': 'Pays de la Loire',
+    'saumur': 'Pays de la Loire',
+    'les sables-d\'olonne': 'Pays de la Loire',
+    
+    // Bretagne
+    'rennes': 'Bretagne',
+    'brest': 'Bretagne',
+    'quimper': 'Bretagne',
+    'lorient': 'Bretagne',
+    'vannes': 'Bretagne',
+    'saint-brieuc': 'Bretagne',
+    'saint-malo': 'Bretagne',
+    'lanester': 'Bretagne',
+    'fougeres': 'Bretagne',
+    'concarneau': 'Bretagne',
+    'morlaix': 'Bretagne',
+    
+    // Normandie
+    'le havre': 'Normandie',
+    'rouen': 'Normandie',
+    'caen': 'Normandie',
+    'cherbourg': 'Normandie',
+    'evreux': 'Normandie',
+    'dieppe': 'Normandie',
+    'alencon': 'Normandie',
+    'lisieux': 'Normandie',
+    'saint-lo': 'Normandie',
+    'argentan': 'Normandie',
+    'granville': 'Normandie',
+    'honfleur': 'Normandie',
+    'deauville': 'Normandie',
+    
+    // Centre-Val de Loire
+    'tours': 'Centre-Val de Loire',
+    'orleans': 'Centre-Val de Loire',
+    'bourges': 'Centre-Val de Loire',
+    'blois': 'Centre-Val de Loire',
+    'chartres': 'Centre-Val de Loire',
+    'chateauroux': 'Centre-Val de Loire',
+    'joue-les-tours': 'Centre-Val de Loire',
+    'dreux': 'Centre-Val de Loire',
+    'vierzon': 'Centre-Val de Loire',
+    'montargis': 'Centre-Val de Loire',
+    'amboise': 'Centre-Val de Loire',
+    'chinon': 'Centre-Val de Loire',
+    
+    // Bourgogne-Franche-Comté
+    'dijon': 'Bourgogne-Franche-Comté',
+    'besancon': 'Bourgogne-Franche-Comté',
+    'belfort': 'Bourgogne-Franche-Comté',
+    'chalon-sur-saone': 'Bourgogne-Franche-Comté',
+    'auxerre': 'Bourgogne-Franche-Comté',
+    'nevers': 'Bourgogne-Franche-Comté',
+    'macon': 'Bourgogne-Franche-Comté',
+    'montbeliard': 'Bourgogne-Franche-Comté',
+    'sens': 'Bourgogne-Franche-Comté',
+    'le creusot': 'Bourgogne-Franche-Comté',
+    'dole': 'Bourgogne-Franche-Comté',
+    'lons-le-saunier': 'Bourgogne-Franche-Comté',
+    'vesoul': 'Bourgogne-Franche-Comté',
+    
+    // Corse
+    'ajaccio': 'Corse',
+    'bastia': 'Corse',
+    'porto-vecchio': 'Corse',
+    'corte': 'Corse',
+    'calvi': 'Corse',
+    'bonifacio': 'Corse',
+    
+    // DOM-TOM
+    'fort-de-france': 'Martinique',
+    'le lamentin': 'Martinique',
+    'pointe-a-pitre': 'Guadeloupe',
+    'les abymes': 'Guadeloupe',
+    'cayenne': 'Guyane',
+    'saint-denis': 'La Réunion',
+    'saint-pierre': 'La Réunion',
+    'le port': 'La Réunion',
+    'mamoudzou': 'Mayotte'
+};
+
+// Fonction de normalisation des villes
+function normaliserVille(ville) {
+    return ville.toLowerCase()
+        .normalize('NFD').replace(/[\u0300-\u036f]/g, '')  // Retire les accents
+        .replace(/[^a-z\s-]/g, '')  // Garde lettres, espaces et tirets
+        .trim();
+}
+
+// Auto-complétion de la région quand on entre une ville
+document.addEventListener('DOMContentLoaded', function() {
+    // Chercher tous les champs qui pourraient contenir une ville
+    const villeInputs = document.querySelectorAll('input[name="location"], input[name="lieu"], input[name="ville"]');
+    const regionInput = document.getElementById('region-input');
+    
+    if (regionInput) {
+        villeInputs.forEach(function(input) {
+            input.addEventListener('blur', function() {
+                const ville = normaliserVille(this.value);
+                if (ville && villeVersRegion[ville]) {
+                    // Proposer d'auto-remplir la région si elle est vide
+                    if (!regionInput.value) {
+                        regionInput.value = villeVersRegion[ville];
+                        regionInput.style.transition = 'background 0.3s';
+                        regionInput.style.background = '#d4edda';
+                        setTimeout(() => { regionInput.style.background = ''; }, 1500);
+                    }
+                }
+            });
+        });
+        
+        // Aussi écouter le champ région lui-même pour proposer des régions si l'utilisateur tape une ville
+        regionInput.addEventListener('input', function() {
+            const val = normaliserVille(this.value);
+            if (val.length >= 3 && villeVersRegion[val]) {
+                // L'utilisateur a tapé le nom d'une ville, proposer la région
+                this.value = villeVersRegion[val];
+                this.style.background = '#d4edda';
+                setTimeout(() => { this.style.background = ''; }, 1500);
+            }
+        });
+    }
+});
+</script>
 {% endblock %}

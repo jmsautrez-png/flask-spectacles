@@ -600,7 +600,9 @@ def register_routes(app: Flask) -> None:
             try:
                 user = User(
                     username=username,
+                    email=email or None,
                     raison_sociale=raison_sociale or None,
+                    region=region or None,
                 )
                 user.set_password(password)
                 db.session.add(user)
@@ -746,11 +748,14 @@ def register_routes(app: Flask) -> None:
     def evenements():
         """Affiche les événements annoncés (is_event=True)"""
         try:
+            # Tester si la colonne existe
+            db.session.execute(db.text("SELECT is_event FROM shows LIMIT 1"))
             shows = Show.query.filter(
                 Show.approved.is_(True),
                 Show.is_event.is_(True)
             ).order_by(Show.created_at.desc()).all()
         except Exception:
+            db.session.rollback()  # Libérer la transaction en échec
             shows = []  # Colonne is_event pas encore créée
         
         return render_template(
@@ -781,10 +786,13 @@ def register_routes(app: Flask) -> None:
             shows = shows.filter(Show.approved.is_(True))
 
         # Exclure les événements (is_event=True) de la page d'accueil
+        # Vérifier si la colonne existe avant de filtrer
         try:
+            # Tester si la colonne existe avec une requête simple
+            db.session.execute(db.text("SELECT is_event FROM shows LIMIT 1"))
             shows = shows.filter(or_(Show.is_event.is_(False), Show.is_event.is_(None)))
         except Exception:
-            pass  # Colonne is_event pas encore créée
+            db.session.rollback()  # Libérer la transaction en échec
 
         # Recherche texte + âges (6, 6 ans, 6-10, 6/10, 6 à 10, etc.)
         if q:
@@ -1593,10 +1601,11 @@ def register_routes(app: Flask) -> None:
             contraintes = request.form.get("contraintes", "").strip()
             accessibilite = request.form.get("accessibilite", "").strip()
             contact_email = request.form.get("contact_email", "").strip()
+            intitule = request.form.get("intitule", "").strip()
 
             # Validation basique
             if not all([structure, telephone, lieu_ville, nom, dates_horaires, 
-                       type_espace, genre_recherche, age_range, jauge, budget, contact_email]):
+                       type_espace, genre_recherche, age_range, jauge, budget, contact_email, intitule]):
                 flash("Veuillez remplir tous les champs obligatoires.", "danger")
                 # UX: keep user on page and preserve entered values (no redirect)
                 return render_template("demande_animation.html", user=current_user()), 400
@@ -1613,6 +1622,7 @@ Structure: {structure}
 Contact: {nom}
 Téléphone: {telephone}
 Email: {contact_email}
+Intitulé de la demande: {intitule}
 Lieu/Ville: {lieu_ville}
 Date(s) et horaires: {dates_horaires}
 Type d'espace: {type_espace}
@@ -1645,7 +1655,8 @@ Accessibilité: {accessibilite}
                 budget=budget,
                 contraintes=contraintes,
                 accessibilite=accessibilite,
-                contact_email=contact_email
+                contact_email=contact_email,
+                intitule=intitule
             )
             db.session.add(demande)
             db.session.commit()
@@ -2078,20 +2089,30 @@ Accessibilité: {accessibilite}
         if request.method == "POST":
             print(f"[DEBUG] POST reçu pour demande_id={demande_id}")
             categories = request.form.getlist("categories")
+            regions = request.form.getlist("regions")
             print(f"[DEBUG] Catégories sélectionnées: {categories}")
+            print(f"[DEBUG] Régions sélectionnées: {regions}")
             
             if not categories:
                 print("[DEBUG] Aucune catégorie sélectionnée")
                 flash("Veuillez sélectionner au moins une catégorie.", "warning")
                 return redirect(request.url)
             
-            print(f"[DEBUG] Recherche des spectacles pour {len(categories)} catégories")
+            print(f"[DEBUG] Recherche des spectacles pour {len(categories)} catégories et {len(regions)} régions")
             # Récupérer tous les spectacles correspondants
             query = Show.query.filter(Show.approved.is_(True))
             
             if categories:
                 category_filters = [Show.category.ilike(f"%{cat}%") for cat in categories]
                 query = query.filter(or_(*category_filters))
+            
+            # Filtrer par région si des régions sont sélectionnées
+            if regions:
+                # Filtrer sur la région du spectacle OU la région de l'utilisateur propriétaire
+                region_filters = []
+                for reg in regions:
+                    region_filters.append(Show.region.ilike(f"%{reg}%"))
+                query = query.filter(or_(*region_filters))
             
             shows = query.all()
             
@@ -2107,8 +2128,29 @@ Accessibilité: {accessibilite}
                 flash("❌ Erreur : le service email n'est pas configuré.", "danger")
                 return redirect(url_for("admin_demandes_animation"))
             
+            # Si des régions sont sélectionnées, ajouter aussi les utilisateurs directement
+            # (ceux qui ont une région correspondante mais dont le spectacle n'a pas de région définie)
+            additional_users = []
+            if regions:
+                from models.models import User as UserModel
+                user_region_filters = []
+                for reg in regions:
+                    user_region_filters.append(UserModel.region.ilike(f"%{reg}%"))
+                additional_users = UserModel.query.filter(
+                    UserModel.email.isnot(None),
+                    or_(*user_region_filters)
+                ).all()
+                print(f"[DEBUG] {len(additional_users)} utilisateurs supplémentaires avec région correspondante")
+            
             print(f"[DEBUG] Flask-Mail configuré, début de l'envoi...")
             for show in shows:
+                # Vérifier si l'utilisateur correspond aux régions sélectionnées (si applicable)
+                if regions and show.user and show.user.region:
+                    user_region_match = any(reg.lower() in show.user.region.lower() for reg in regions)
+                    show_region_match = show.region and any(reg.lower() in show.region.lower() for reg in regions)
+                    if not user_region_match and not show_region_match:
+                        continue  # Skip si ni le spectacle ni l'utilisateur ne correspondent à une région sélectionnée
+                
                 # Utiliser l'email du spectacle en priorité, sinon l'email de l'utilisateur
                 email = show.contact_email
                 if not email and show.user:
@@ -2160,6 +2202,48 @@ Catégorie: {show.category}
                         except Exception as e:
                             print(f"[MAIL] ❌ Erreur envoi à {email}: {e}")
                             error_count += 1
+            
+            # Envoyer aussi aux utilisateurs additionnels par région (qui n'ont pas de spectacle correspondant aux catégories mais sont dans la région)
+            for user in additional_users:
+                if user.email and user.email not in emails_sent:
+                    emails_sent.add(user.email)
+                    try:
+                        body = f"""Bonjour,
+
+Nous avons une nouvelle demande d'animation dans votre région qui pourrait vous intéresser :
+
+📍 Lieu : {demande.lieu_ville}
+📅 Date(s) : {demande.dates_horaires}
+🎭 Type recherché : {demande.genre_recherche}
+👥 Jauge : {demande.jauge}
+💰 Budget : {demande.budget}
+👶 Âge : {demande.age_range}
+🏢 Type d'espace : {demande.type_espace}
+
+Structure : {demande.structure}
+Contact : {demande.nom}
+Email : {demande.contact_email}
+Téléphone : {demande.telephone}
+
+Contraintes techniques : {demande.contraintes or 'Aucune'}
+Accessibilité : {demande.accessibilite or 'Non précisée'}
+
+Si vous êtes intéressé(e), vous pouvez contacter directement le demandeur.
+
+Cordialement,
+L'équipe Spectacle'ment VØtre
+"""
+                        msg = Message(
+                            subject=f"Nouvelle opportunité dans votre région : {demande.genre_recherche} à {demande.lieu_ville}",
+                            recipients=[user.email]
+                        )
+                        msg.body = body
+                        current_app.mail.send(msg)
+                        print(f"[DEBUG] ✅ Email envoyé à {user.email} (utilisateur région)")
+                        success_count += 1
+                    except Exception as e:
+                        print(f"[MAIL] ❌ Erreur envoi à {user.email}: {e}")
+                        error_count += 1
             
             print(f"[DEBUG] Envoi terminé - Succès: {success_count}, Erreurs: {error_count}")
             if success_count > 0:

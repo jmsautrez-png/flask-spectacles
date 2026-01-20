@@ -276,6 +276,87 @@
   </aside>
 </div>
 
+<!-- Section Chiffres Clés avec animation -->
+<section class="stats-section" style="background:linear-gradient(135deg,#162447 0%,#283e5e 100%); border-radius:12px; padding:20px 15px; margin:25px 0; box-shadow:0 2px 12px rgba(22,36,71,0.3);">
+  <h2 style="text-align:center; color:#fff; margin-bottom:15px; font-size:1.1rem;">Nos chiffres clés</h2>
+  <div style="display:flex; flex-wrap:wrap; justify-content:center; gap:15px; max-width:800px; margin:0 auto;">
+    
+    <div style="text-align:center; flex:1; min-width:140px; padding:10px;">
+      <p style="color:#FFDEDE; font-size:0.75rem; margin:0 0 4px 0; line-height:1.3;">d'expérience dans<br>le spectacle</p>
+      <div style="font-size:1.8rem; font-weight:800; color:#ffc107;">
+        <span class="counter" data-target="30">0</span> <span style="font-size:1rem;">ans</span>
+      </div>
+    </div>
+    
+    <div style="text-align:center; flex:1; min-width:140px; padding:10px;">
+      <p style="color:#FFDEDE; font-size:0.75rem; margin:0 0 4px 0; line-height:1.3;">Spectacles<br>programmés/an</p>
+      <div style="font-size:1.8rem; font-weight:800; color:#ffc107;">
+        <span style="font-size:1.2rem;">+</span><span class="counter" data-target="180">0</span>
+      </div>
+    </div>
+    
+    <div style="text-align:center; flex:1; min-width:140px; padding:10px;">
+      <p style="color:#FFDEDE; font-size:0.75rem; margin:0 0 4px 0; line-height:1.3;">Artistes<br>référencés</p>
+      <div style="font-size:1.8rem; font-weight:800; color:#ffc107;">
+        <span style="font-size:1.2rem;">+</span><span class="counter" data-target="200">0</span>
+      </div>
+    </div>
+    
+    <div style="text-align:center; flex:1; min-width:140px; padding:10px;">
+      <p style="color:#FFDEDE; font-size:0.75rem; margin:0 0 4px 0; line-height:1.3;">Réponse moyenne<br>devis</p>
+      <div style="font-size:1.8rem; font-weight:800; color:#ffc107;">
+        <span class="counter" data-target="3">0</span><span style="font-size:1rem;">h</span>
+      </div>
+    </div>
+    
+  </div>
+</section>
+
+<script>
+// Animation des compteurs
+(function() {
+  const counters = document.querySelectorAll('.counter');
+  const speed = 50; // Plus petit = plus rapide
+  
+  const animateCounter = (counter) => {
+    const target = +counter.getAttribute('data-target');
+    const increment = target / 100;
+    let current = 1;
+    
+    const updateCount = () => {
+      if (current < target) {
+        current += increment;
+        if (current > target) current = target;
+        counter.innerText = Math.ceil(current);
+        setTimeout(updateCount, speed);
+      } else {
+        counter.innerText = target;
+      }
+    };
+    
+    updateCount();
+  };
+  
+  // Observer pour déclencher l'animation quand la section est visible
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        counters.forEach(counter => {
+          counter.innerText = '1';
+          animateCounter(counter);
+        });
+        observer.disconnect();
+      }
+    });
+  }, { threshold: 0.3 });
+  
+  const statsSection = document.querySelector('.stats-section');
+  if (statsSection) {
+    observer.observe(statsSection);
+  }
+})();
+</script>
+
 <script>
 (function() {
   // Rotation automatique des pages de pagination toutes les 45 secondes

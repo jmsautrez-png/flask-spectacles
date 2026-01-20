@@ -22,6 +22,7 @@ class DemandeAnimation(db.Model):
     contraintes = db.Column(db.Text, nullable=True)
     accessibilite = db.Column(db.String(100), nullable=True)
     contact_email = db.Column(db.String(255), nullable=False)
+    intitule = db.Column(db.String(1000), nullable=True)  # Intitulé de la demande (150 mots max)
     is_private = db.Column(db.Boolean, default=False)  # True = visible admin uniquement
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
@@ -31,11 +32,14 @@ class User(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(80), unique=True, nullable=False)
-    email = db.Column(db.String(255), nullable=True)  # Email de l'utilisateur
     password_hash = db.Column(db.String(255), nullable=False)
     raison_sociale = db.Column(db.String(200), nullable=True)  # Nom de la compagnie/structure
     is_admin = db.Column(db.Boolean, default=False)  # par défaut: utilisateur normal
+    is_subscribed = db.Column(db.Boolean, default=False)  # abonné ou non
+    email = db.Column(db.String(255), nullable=True)  # Email de l'utilisateur
+    telephone = db.Column(db.String(50), nullable=True)  # Téléphone de l'utilisateur
     created_at = db.Column(db.DateTime, default=datetime.utcnow)  # Date de création
+    region = db.Column(db.String(200), nullable=True)  # Région de l'utilisateur
 
     def set_password(self, password: str):
         self.password_hash = generate_password_hash(password)
