@@ -495,6 +495,10 @@
           setTimeout(() => {
             cardsContainer.innerHTML = newCards.innerHTML;
             cardsContainer.style.opacity = '1';
+            // Réinitialiser les carousels après le chargement
+            if (typeof initCarousels === 'function') {
+              initCarousels();
+            }
           }, 500);
         }
       })
@@ -511,37 +515,57 @@
 
 <!-- Script pour les carousels de photos sur les cartes -->
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-  // Initialiser tous les carousels
-  document.querySelectorAll('[data-carousel]').forEach(function(carousel) {
-    const slides = carousel.querySelector('.carousel-slides');
-    const indicators = carousel.querySelectorAll('.carousel-indicator');
-    const prevBtn = carousel.querySelector('.carousel-prev');
-    const nextBtn = carousel.querySelector('.carousel-next');
-    const totalSlides = carousel.querySelectorAll('.carousel-slide').length;
-    let currentSlide = 0;
-    let autoPlayInterval = null;
-    let isPaused = false;
+// Fonction globale pour initialiser les carousels
+function initCarousels() {
+  console.log('Initialisation des carousels...');
+  
+  var carousels = document.querySelectorAll('[data-carousel]');
+  console.log('Nombre de carousels trouvés:', carousels.length);
+  
+  carousels.forEach(function(carousel, carouselIndex) {
+    // Éviter de réinitialiser un carousel déjà initialisé
+    if (carousel.dataset.initialized === 'true') return;
+    carousel.dataset.initialized = 'true';
+    
+    var slidesContainer = carousel.querySelector('.carousel-slides');
+    var allSlides = carousel.querySelectorAll('.carousel-slide');
+    var indicators = carousel.querySelectorAll('.carousel-indicator');
+    var prevBtn = carousel.querySelector('.carousel-prev');
+    var nextBtn = carousel.querySelector('.carousel-next');
+    var totalSlides = allSlides.length;
+    var currentSlide = 0;
+    var isPaused = false;
+    var lastChangeTime = Date.now();
+    var INTERVAL = 8000; // 8 secondes
+
+    console.log('Carousel', carouselIndex, ':', totalSlides, 'slides');
 
     // Ne pas initialiser si une seule slide
-    if (totalSlides <= 1) return;
+    if (totalSlides <= 1) {
+      console.log('Carousel', carouselIndex, ': une seule slide, skip');
+      return;
+    }
 
     function goToSlide(index) {
-      // Boucle infinie
       if (index < 0) {
         index = totalSlides - 1;
       } else if (index >= totalSlides) {
         index = 0;
       }
       currentSlide = index;
-      if (slides) {
-        slides.style.transform = 'translateX(-' + (currentSlide * 100) + '%)';
+      if (slidesContainer) {
+        slidesContainer.style.transform = 'translateX(-' + (currentSlide * 100) + '%)';
       }
       
-      // Mettre à jour les indicateurs
       indicators.forEach(function(ind, i) {
-        ind.classList.toggle('active', i === currentSlide);
+        if (i === currentSlide) {
+          ind.classList.add('active');
+        } else {
+          ind.classList.remove('active');
+        }
       });
+      
+      lastChangeTime = Date.now();
     }
 
     function nextSlide() {
@@ -552,36 +576,17 @@ document.addEventListener('DOMContentLoaded', function() {
       goToSlide(currentSlide - 1);
     }
 
-    // Démarrer l'auto-play - cycle infini
-    function startAutoPlay() {
-      stopAutoPlay(); // Nettoyer d'abord
-      isPaused = false;
-      autoPlayInterval = setInterval(function() {
-        if (!isPaused) {
+    // Boucle d'animation continue
+    function tick() {
+      if (!isPaused && document.body.contains(carousel)) {
+        var now = Date.now();
+        if (now - lastChangeTime >= INTERVAL) {
           nextSlide();
         }
-      }, 8000); // Change toutes les 8 secondes
-    }
-
-    // Arrêter l'auto-play
-    function stopAutoPlay() {
-      if (autoPlayInterval) {
-        clearInterval(autoPlayInterval);
-        autoPlayInterval = null;
+        requestAnimationFrame(tick);
       }
     }
 
-    // Pause temporaire
-    function pauseAutoPlay() {
-      isPaused = true;
-    }
-
-    // Reprendre
-    function resumeAutoPlay() {
-      isPaused = false;
-    }
-
-    // Événements boutons
     if (prevBtn) {
       prevBtn.addEventListener('click', function(e) {
         e.preventDefault();
@@ -598,7 +603,6 @@ document.addEventListener('DOMContentLoaded', function() {
       });
     }
 
-    // Événements indicateurs
     indicators.forEach(function(indicator, i) {
       indicator.addEventListener('click', function(e) {
         e.preventDefault();
@@ -607,14 +611,21 @@ document.addEventListener('DOMContentLoaded', function() {
       });
     });
 
-    // Démarrer l'auto-play au chargement
-    startAutoPlay();
+    carousel.addEventListener('mouseenter', function() {
+      isPaused = true;
+    });
+    carousel.addEventListener('mouseleave', function() {
+      isPaused = false;
+      lastChangeTime = Date.now();
+    });
 
-    // Pause au hover, reprise au mouseleave
-    carousel.addEventListener('mouseenter', pauseAutoPlay);
-    carousel.addEventListener('mouseleave', resumeAutoPlay);
+    requestAnimationFrame(tick);
+    console.log('Carousel', carouselIndex, ': démarré');
   });
-});
+}
+
+// Initialiser au chargement
+document.addEventListener('DOMContentLoaded', initCarousels);
 </script>
 
 {% endblock %}
