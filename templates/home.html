@@ -511,7 +511,7 @@
 
 <!-- Script pour les carousels de photos sur les cartes -->
 <script>
-(function() {
+document.addEventListener('DOMContentLoaded', function() {
   // Initialiser tous les carousels
   document.querySelectorAll('[data-carousel]').forEach(function(carousel) {
     const slides = carousel.querySelector('.carousel-slides');
@@ -521,6 +521,9 @@
     const totalSlides = carousel.querySelectorAll('.carousel-slide').length;
     let currentSlide = 0;
     let autoPlayInterval = null;
+
+    // Ne pas initialiser si une seule slide
+    if (totalSlides <= 1) return;
 
     function goToSlide(index) {
       if (index < 0) index = totalSlides - 1;
@@ -592,7 +595,7 @@
     carousel.addEventListener('mouseenter', stopAutoPlay);
     carousel.addEventListener('mouseleave', startAutoPlay);
   });
-})();
+});
 </script>
 
 {% endblock %}
