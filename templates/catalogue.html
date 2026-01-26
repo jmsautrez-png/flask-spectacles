@@ -180,6 +180,20 @@
      style="border:none; background:var(--primary); color:white; font-weight:600; cursor:pointer; padding:6px 14px; border-radius:8px;">Rechercher</button>
 </form>
 
+{% if q or category or location or type_filter or sort or date_from or date_to %}
+<div style="display:flex; align-items:center; gap:12px; margin-bottom:16px; flex-wrap:wrap;">
+  <a href="{{ url_for('catalogue') }}" 
+     style="display:inline-flex; align-items:center; gap:6px; padding:10px 20px; background:linear-gradient(135deg, #e74c3c 0%, #c0392b 100%); color:#fff; text-decoration:none; border-radius:20px; font-weight:600; font-size:0.95rem; transition:all 0.3s ease; box-shadow:0 2px 8px rgba(231,76,60,0.4);">
+    ✖ Effacer les filtres
+  </a>
+  <span style="color:rgba(255,255,255,0.7); font-size:0.9rem;">
+    {% if q %}Recherche : "{{ q }}" {% endif %}
+    {% if category %}| Catégorie : {{ category }} {% endif %}
+    {% if location %}| Lieu : {{ location }} {% endif %}
+  </span>
+</div>
+{% endif %}
+
 <div class="page-layout">
   <!-- COLONNE GAUCHE : catalogue -->
   <div class="page-main">

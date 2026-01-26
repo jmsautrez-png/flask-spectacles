@@ -3006,14 +3006,14 @@ SEO_CATEGORIES = {
 def seo_category(category_slug):
     if category_slug not in SEO_CATEGORIES:
         abort(404)
-    return redirect(url_for("home", category=SEO_CATEGORIES[category_slug]), code=301)
+    return redirect(url_for("catalogue", category=SEO_CATEGORIES[category_slug]), code=301)
 
 @app.get("/<category_slug>/<city_slug>/")
 def seo_category_city(category_slug, city_slug):
     if category_slug not in SEO_CATEGORIES:
         abort(404)
     return redirect(
-        url_for("home", category=SEO_CATEGORIES[category_slug], location=city_slug),
+        url_for("catalogue", category=SEO_CATEGORIES[category_slug], location=city_slug),
         code=301
     )
 
