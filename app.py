@@ -929,9 +929,8 @@ def register_routes(app: Flask) -> None:
             if d2:
                 shows = shows.filter(Show.date <= d2)
 
-        # Tri : annonces validées d'abord, puis par date
-        # Toujours trier du plus récent au plus ancien pour l'affichage
-        shows = shows.order_by(Show.created_at.desc())
+        # Tri : par display_order d'abord (plus petit = plus haut), puis par date de création
+        shows = shows.order_by(Show.display_order.asc(), Show.created_at.desc())
 
         # Pagination : 16 résultats par page
         try:
@@ -1774,23 +1773,51 @@ def register_routes(app: Flask) -> None:
                 # On privilégie l'email de la compagnie si présent, sinon fallback admin
                 to_addr = show.contact_email if show.contact_email else (current_app.config.get("MAIL_DEFAULT_SENDER") or current_app.config.get("MAIL_USERNAME"))
                 show_url = url_for("show_detail", show_id=show.id, _external=True)
-                body = (
-                    "Bonjour,\n\n"
-                    "Votre spectacle vient d'être validé et publié sur Spectacle'ment VØtre.\n\n"
-                    f"Compagnie : {show.raison_sociale or 'Non renseignée'}\n"
-                    f"Titre : {show.title}\n"
-                    f"Lieu : {show.location}\n"
-                    f"Catégorie : {show.category}\n"
-                    + (f"Date : {show.date}\n" if show.date else "")
-                    + f"Date de publication : {show.created_at.strftime('%d/%m/%Y %H:%M') if show.created_at else 'N/A'}\n\n"
-                    + f"Lien direct vers l'annonce (public) : {show_url}\n\n"
-                    + "Si vous souhaitez la retirer ou la modifier, merci de nous contacter par simple retour de ce mail.\n\n"
-                    + "Aussi, vous bénéficiez dès aujourd'hui d'un abonnement gratuit de six mois (voir onglet Abonnement).\n"
-                    + "L'abonnement est totalement optionnel : Spectacle'ment VØtre reste avant tout un annuaire gratuit d'artistes.\n\n"
-                    + "N'hésitez pas à vous inscrire \"gratuitement\" et ajouter vos spectacles sur la plateforme (Inscription/Connexion > Ajouter votre spectacle).\n\n"
-                    + "Spectaclement vôtre,\nL'équipe Spectacle'ment VØtre"
-                )
-                msg = Message(subject="Votre spectacle est validé sur Spectacle'ment VØtre !", recipients=[to_addr])  # type: ignore[arg-type]
+                
+                # Déterminer si c'est une carte créée par l'admin (pas de user_id) ou par l'utilisateur
+                if show.user_id:
+                    # Carte créée par l'utilisateur lui-même → Email de validation classique
+                    subject = "Votre spectacle est validé sur Spectacle'ment VØtre !"
+                    body = (
+                        "Bonjour,\n\n"
+                        "Votre spectacle vient d'être validé et publié sur Spectacle'ment VØtre.\n\n"
+                        f"Compagnie : {show.raison_sociale or 'Non renseignée'}\n"
+                        f"Titre : {show.title}\n"
+                        f"Lieu : {show.location}\n"
+                        f"Catégorie : {show.category}\n"
+                        + (f"Date : {show.date}\n" if show.date else "")
+                        + f"Date de publication : {show.created_at.strftime('%d/%m/%Y %H:%M') if show.created_at else 'N/A'}\n\n"
+                        + f"Lien direct vers l'annonce (public) : {show_url}\n\n"
+                        + "Si vous souhaitez la retirer ou la modifier, merci de nous contacter par simple retour de ce mail.\n\n"
+                        + "Aussi, vous bénéficiez dès aujourd'hui d'un abonnement gratuit de six mois (voir onglet Abonnement).\n"
+                        + "L'abonnement est totalement optionnel : Spectacle'ment VØtre reste avant tout un annuaire gratuit d'artistes.\n\n"
+                        + "N'hésitez pas à vous inscrire \"gratuitement\" et ajouter vos spectacles sur la plateforme (Inscription/Connexion > Ajouter votre spectacle).\n\n"
+                        + "Spectaclement vôtre,\nL'équipe Spectacle'ment VØtre"
+                    )
+                else:
+                    # Carte créée par l'admin → Email de découverte
+                    subject = "Nous serions honorés de votre apparition gratuite sur notre annuaire Spectacle'ment VØtre !"
+                    body = (
+                        "Bonjour,\n\n"
+                        "Spectacle'ment VØtre diffuse, crée et produit auprès des acteurs culturels français (Centres Culturels, C.Com, Mairies, CSE, Écoles, MJC, etc.), depuis plus de trente ans, des spectacles de qualité. "
+                        "Notre créneau : proposer des spectacles haut de gamme avec des artistes expérimentés, évitant l'écueil de l'amateurisme aux acheteurs en quête de professionnalisme. "
+                        "_Nous aimerions alors leur garantir ainsi la qualité car ils n'ont pas facilement la possibilité de se déplacer._\n\n"
+                        "Votre spectacle a été repéré et nous avons créé une fiche pour vous :\n\n"
+                        f"Compagnie : {show.raison_sociale or 'Non renseignée'}\n"
+                        f"Titre : {show.title}\n"
+                        f"Lieu : {show.location}\n"
+                        f"Catégorie : {show.category}\n"
+                        + (f"Date : {show.date}\n" if show.date else "")
+                        + f"Date de publication : {show.created_at.strftime('%d/%m/%Y %H:%M') if show.created_at else 'N/A'}\n\n"
+                        + f"Lien direct vers l'annonce (public) : {show_url}\n\n"
+                        + "Si vous souhaitez la retirer ou la modifier, merci de nous contacter par simple retour de ce mail.\n\n"
+                        + "Aussi, vous bénéficiez dès aujourd'hui d'un abonnement gratuit de six mois (voir onglet Abonnement).\n"
+                        + "L'abonnement est totalement optionnel : Spectacle'ment VØtre reste avant tout un annuaire gratuit d'artistes.\n\n"
+                        + "N'hésitez pas à vous inscrire \"gratuitement\" et ajouter vos spectacles sur la plateforme (Inscription/Connexion > Ajouter votre spectacle).\n\n"
+                        + "Spectaclement vôtre,\nL'équipe Spectacle'ment VØtre"
+                    )
+                
+                msg = Message(subject=subject, recipients=[to_addr])  # type: ignore[arg-type]
                 msg.body = body  # type: ignore[assignment]
                 current_app.mail.send(msg)  # type: ignore[attr-defined]
             except Exception as e:
@@ -1798,6 +1825,67 @@ def register_routes(app: Flask) -> None:
         
         flash("Annonce validée ✅", "success")
         return redirect(url_for("admin_dashboard"))
+
+    # ---------------------------
+    # Gestion de l'ordre d'affichage des cartes
+    # ---------------------------
+    @app.route("/admin/ordre-affichage", methods=["GET"])
+    @login_required
+    @admin_required
+    def admin_ordre_affichage():
+        """Page admin pour réorganiser l'ordre d'affichage des cartes."""
+        page = request.args.get("page", 1, type=int)
+        per_page = 50  # Plus de cartes par page pour faciliter la gestion
+        
+        pagination = Show.query.filter_by(approved=True).order_by(
+            Show.display_order.asc(), Show.created_at.desc()
+        ).paginate(page=page, per_page=per_page, error_out=False)
+        
+        shows = pagination.items
+        
+        return render_template(
+            "admin_ordre_affichage.html",
+            user=current_user(),
+            shows=shows,
+            pagination=pagination
+        )
+
+    @app.route("/admin/shows/<int:show_id>/update-order", methods=["POST"])
+    @login_required
+    @admin_required
+    def update_show_order(show_id: int):
+        """Met à jour l'ordre d'affichage d'un spectacle."""
+        show = Show.query.get_or_404(show_id)
+        new_order = request.form.get("display_order", type=int)
+        
+        if new_order is not None:
+            show.display_order = new_order
+            db.session.commit()
+            flash(f"Position de « {show.title} » mise à jour : {new_order}", "success")
+        else:
+            flash("Erreur : ordre non valide", "danger")
+        
+        return redirect(request.referrer or url_for("admin_ordre_affichage"))
+
+    @app.route("/admin/shows/update-orders", methods=["POST"])
+    @login_required
+    @admin_required
+    def update_shows_orders():
+        """Met à jour l'ordre de plusieurs spectacles en une fois (via AJAX ou formulaire)."""
+        try:
+            # Format attendu : orders = {"show_id": new_order, ...}
+            orders = request.get_json()
+            if orders:
+                for show_id, new_order in orders.items():
+                    show = Show.query.get(int(show_id))
+                    if show:
+                        show.display_order = int(new_order)
+                db.session.commit()
+                return {"success": True, "message": "Ordres mis à jour"}
+            return {"success": False, "message": "Aucune donnée reçue"}, 400
+        except Exception as e:
+            db.session.rollback()
+            return {"success": False, "message": str(e)}, 500
 
     # ---------------------------
     # Pages diverses

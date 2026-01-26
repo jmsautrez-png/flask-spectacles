@@ -168,6 +168,7 @@
           <span class="label-text">Tranche d'âge du public <span class="req">*</span></span>
           <select id="age_range" name="age_range" required>
             <option value="">-- Choisir --</option>
+            <option value="familial" {% if request.form.get('age_range','') == 'familial' %}selected{% endif %}>Familial</option>
             <option value="enfant" {% if request.form.get('age_range','') == 'enfant' %}selected{% endif %}>Enfant</option>
             <option value="enfant_2_6" {% if request.form.get('age_range','') == 'enfant_2_6' %}selected{% endif %}>Enfant (2/6ans)</option>
             <option value="enfant_5_10" {% if request.form.get('age_range','') == 'enfant_5_10' %}selected{% endif %}>Enfant (5/10ans)</option>

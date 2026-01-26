@@ -96,9 +96,9 @@
       <div>
         <label>
           <span class="label-text">Description <span class="req">*</span></span>
-          <span class="hint">Maximum 200 mots - Décrivez votre spectacle, ses points forts, le message...</span>
+          <span class="hint">Maximum 300 mots - Décrivez votre spectacle, ses points forts, le message...</span>
           <textarea id="description" name="description" rows="4" placeholder="Décrivez votre spectacle..." required></textarea>
-          <div id="desc-counter" style="font-size:0.85rem; color:var(--muted); margin-top:4px;">0/200 mots</div>
+          <div id="desc-counter" style="font-size:0.85rem; color:var(--muted); margin-top:4px;">0/300 mots</div>
         </label>
       </div>
       <div class="grid-2">
@@ -296,6 +296,7 @@
             <span class="label-text">Âge / Public</span>
             <select name="age_range" required>
               <option value="">-- Choisir --</option>
+              <option value="familial">Familial</option>
               <option value="enfant">Enfant</option>
               <option value="enfant_2_6">Enfant (2/6 ans)</option>
               <option value="enfant_6_10">Enfant (6/10 ans)</option>
@@ -461,19 +462,19 @@
                 }
               });
               </script>
-<!-- Limiteur 200 mots (front) -->
+<!-- Limiteur 300 mots (front) -->
 <script>
 (function () {
   const ta = document.getElementById('description');
   const counter = document.getElementById('desc-counter');
-  const MAX = 200;
+  const MAX = 300;
 
   if (!ta || !counter) return;
 
   function update() {
     const words = ta.value.trim().split(/\s+/).filter(Boolean);
     if (words.length > MAX) {
-      // tronque au-delà de 200 mots
+      // tronque au-delà de 300 mots
       ta.value = words.slice(0, MAX).join(' ');
     }
     const count = ta.value.trim() ? ta.value.trim().split(/\s+/).length : 0;
@@ -505,7 +506,7 @@
       const words = ta.value.trim().split(/\s+/).filter(Boolean);
       if (words.length > MAX) {
         e.preventDefault();
-        alert('La description ne doit pas dépasser 200 mots.');
+        alert('La description ne doit pas dépasser 300 mots.');
       }
     });
   });
