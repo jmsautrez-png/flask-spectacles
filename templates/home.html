@@ -333,7 +333,7 @@
     <div class="desc-box">
       <p>Nous vous trouvons le spectacle et les animations adaptés à votre thème de l'année</p>
     </div>
-    <span class="cta-hint">Découvrir l'offre →</span>
+    <span class="cta-hint">Découvrir →</span>
   </a>
   
   <a href="{{ url_for('catalogue') }}" class="hero-choice-card">
@@ -436,7 +436,27 @@
     <article class="card" style="border:2px solid #222;border-radius:16px;box-shadow:0 2px 12px #0008;padding:0 0 8px 0;transition:box-shadow .2s;color:#fff;">
       <a href="{{ url_for('show_detail', show_id=spectacle.id) }}" class="media-link">
         <div class="media">
-          {% if spectacle.has_image() %}
+          {% set images = spectacle.get_all_images() %}
+          {% if images|length > 1 %}
+            <!-- Diaporama avec plusieurs photos -->
+            <div class="card-carousel" data-carousel>
+              <div class="carousel-slides">
+                {% for img in images %}
+                <div class="carousel-slide">
+                  <img src="{{ url_for('uploaded_file', filename=img) }}" alt="{{ spectacle.title }}{% if loop.index > 1 %} - Photo {{ loop.index }}{% endif %}">
+                </div>
+                {% endfor %}
+              </div>
+              <span class="photo-count">{{ images|length }} 📷</span>
+              <div class="carousel-indicators">
+                {% for img in images %}
+                <span class="carousel-indicator{% if loop.first %} active{% endif %}" data-slide="{{ loop.index0 }}"></span>
+                {% endfor %}
+              </div>
+              <button class="carousel-nav carousel-prev" aria-label="Photo précédente">‹</button>
+              <button class="carousel-nav carousel-next" aria-label="Photo suivante">›</button>
+            </div>
+          {% elif spectacle.has_image() %}
             <img src="{{ url_for('uploaded_file', filename=spectacle.file_name) }}" alt="{{ spectacle.title }}">
           {% else %}
             <div class="placeholder">🎭</div>
@@ -561,6 +581,78 @@
   if (statsSection) {
     observer.observe(statsSection);
   }
+})();
+
+// Redirection automatique vers catalogue sur mobile
+(function() {
+  // Détecter si c'est un appareil mobile
+  const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) 
+                   || window.innerWidth <= 768;
+  
+  // Vérifier si l'utilisateur n'a pas déjà visité (pour éviter boucle infinie)
+  const hasVisitedHome = sessionStorage.getItem('visited_home');
+  
+  if (isMobile && !hasVisitedHome) {
+    sessionStorage.setItem('visited_home', 'true');
+    window.location.href = "{{ url_for('catalogue') }}";
+  }
+})();
+
+// Fonction pour initialiser les carousels des spectacles à la une
+(function() {
+  var carousels = document.querySelectorAll('[data-carousel]');
+  
+  carousels.forEach(function(carousel, carouselIndex) {
+    if (carousel.dataset.initialized === 'true') return;
+    carousel.dataset.initialized = 'true';
+    
+    var slidesContainer = carousel.querySelector('.carousel-slides');
+    var allSlides = carousel.querySelectorAll('.carousel-slide');
+    var indicators = carousel.querySelectorAll('.carousel-indicator');
+    var prevBtn = carousel.querySelector('.carousel-prev');
+    var nextBtn = carousel.querySelector('.carousel-next');
+    var totalSlides = allSlides.length;
+    var currentSlide = 0;
+    var isPaused = false;
+    var lastChangeTime = Date.now();
+    var INTERVAL = 6000;
+
+    if (totalSlides <= 1) return;
+
+    function goToSlide(index) {
+      if (index < 0) index = totalSlides - 1;
+      else if (index >= totalSlides) index = 0;
+      currentSlide = index;
+      if (slidesContainer) {
+        slidesContainer.style.transform = 'translateX(-' + (currentSlide * 100) + '%)';
+      }
+      indicators.forEach(function(ind, i) {
+        ind.classList.toggle('active', i === currentSlide);
+      });
+      lastChangeTime = Date.now();
+    }
+
+    function nextSlide() { goToSlide(currentSlide + 1); }
+    function prevSlide() { goToSlide(currentSlide - 1); }
+
+    function tick() {
+      if (!isPaused && document.body.contains(carousel)) {
+        if (Date.now() - lastChangeTime >= INTERVAL) nextSlide();
+        requestAnimationFrame(tick);
+      }
+    }
+
+    if (prevBtn) prevBtn.addEventListener('click', function(e) { e.preventDefault(); e.stopPropagation(); prevSlide(); });
+    if (nextBtn) nextBtn.addEventListener('click', function(e) { e.preventDefault(); e.stopPropagation(); nextSlide(); });
+    indicators.forEach(function(indicator, i) {
+      indicator.addEventListener('click', function(e) { e.preventDefault(); e.stopPropagation(); goToSlide(i); });
+    });
+
+    carousel.addEventListener('mouseenter', function() { isPaused = true; });
+    carousel.addEventListener('mouseleave', function() { isPaused = false; lastChangeTime = Date.now(); });
+
+    requestAnimationFrame(tick);
+  });
 })();
 </script>
 
