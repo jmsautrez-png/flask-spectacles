@@ -252,13 +252,22 @@
 
 <div class="demande-ecole-wrap">
   <div class="demande-header">
+    {% if theme == 'atelier-divers' %}
+    <h1>🎨 Demande d'atelier pédagogique</h1>
+    {% else %}
     <h1>📝 Demande de spectacle pédagogique</h1>
+    {% endif %}
     <span class="theme-badge">{{ theme_emoji }} {{ theme_label }}</span>
   </div>
   
   <div class="intro-text">
+    {% if theme == 'atelier-divers' %}
+    Ce questionnaire nous permet de comprendre précisément votre projet d'atelier pédagogique 
+    afin de vous proposer l'intervenant le plus adapté à vos besoins.
+    {% else %}
     Ce questionnaire nous permet de comprendre précisément votre projet pédagogique 
     afin de vous proposer la solution artistique la plus adaptée.
+    {% endif %}
   </div>
 
   <form action="{{ url_for('demande_ecole') }}" method="POST" novalidate>
@@ -468,6 +477,23 @@
           <label class="checkbox-item"><input type="checkbox" name="sous_themes" value="Premiers secours"> Premiers secours</label>
         </div>
       </div>
+      {% elif theme == 'atelier-divers' %}
+      <div class="sous-themes-section">
+        <h4>🎨 Quel type d'atelier vous intéresse ?</h4>
+        <div class="checkbox-group">
+          <label class="checkbox-item"><input type="checkbox" name="sous_themes" value="Fabrication de marionnettes"> Fabrication de marionnettes</label>
+          <label class="checkbox-item"><input type="checkbox" name="sous_themes" value="Fabrication d'instruments"> Fabrication d'instruments</label>
+          <label class="checkbox-item"><input type="checkbox" name="sous_themes" value="Initiation musicale"> Initiation musicale</label>
+          <label class="checkbox-item"><input type="checkbox" name="sous_themes" value="Calligraphie"> Calligraphie</label>
+          <label class="checkbox-item"><input type="checkbox" name="sous_themes" value="Théâtre / Expression dramatique"> Théâtre / Expression dramatique</label>
+          <label class="checkbox-item"><input type="checkbox" name="sous_themes" value="Arts plastiques"> Arts plastiques</label>
+          <label class="checkbox-item"><input type="checkbox" name="sous_themes" value="Danse"> Danse</label>
+          <label class="checkbox-item"><input type="checkbox" name="sous_themes" value="Éveil corporel"> Éveil corporel</label>
+          <label class="checkbox-item"><input type="checkbox" name="sous_themes" value="Cirque"> Cirque</label>
+          <label class="checkbox-item"><input type="checkbox" name="sous_themes" value="Conte & Oralité"> Conte & Oralité</label>
+          <label class="checkbox-item"><input type="checkbox" name="sous_themes" value="Autre atelier créatif"> Autre atelier créatif</label>
+        </div>
+      </div>
       {% endif %}
       
       <label style="margin-top: 20px;">
@@ -480,6 +506,19 @@
     
     <!-- Section 5: Type d'animation -->
     <fieldset class="demande-section">
+      {% if theme == 'atelier-divers' %}
+      <legend>5️⃣ Format d'atelier souhaité</legend>
+      
+      <div class="checkbox-group">
+        <label class="checkbox-item"><input type="checkbox" name="types_animation" value="Atelier découverte (1h)"> Atelier découverte (1h)</label>
+        <label class="checkbox-item"><input type="checkbox" name="types_animation" value="Atelier approfondi (2h)"> Atelier approfondi (2h)</label>
+        <label class="checkbox-item"><input type="checkbox" name="types_animation" value="Cycle d'ateliers (plusieurs séances)"> Cycle d'ateliers (plusieurs séances)</label>
+        <label class="checkbox-item"><input type="checkbox" name="types_animation" value="Atelier parent-enfant"> Atelier parent-enfant</label>
+        <label class="checkbox-item"><input type="checkbox" name="types_animation" value="Atelier classe entière"> Atelier classe entière</label>
+        <label class="checkbox-item"><input type="checkbox" name="types_animation" value="Atelier demi-groupe"> Atelier demi-groupe</label>
+        <label class="checkbox-item"><input type="checkbox" name="types_animation" value="Restitution finale"> Avec restitution finale</label>
+      </div>
+      {% else %}
       <legend>5️⃣ Type d'animation souhaitée</legend>
       
       <div class="checkbox-group">
@@ -493,6 +532,7 @@
         <label class="checkbox-item"><input type="checkbox" name="types_animation" value="Cirque"> Cirque</label>
         <label class="checkbox-item"><input type="checkbox" name="types_animation" value="Magie"> Magie</label>
       </div>
+      {% endif %}
     </fieldset>
     
     <!-- Section 6: Contraintes techniques -->

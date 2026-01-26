@@ -2745,6 +2745,7 @@ THEMES_ECOLES = {
     'prevention': {'label': 'Prévention & Bien-être', 'emoji': '❤️'},
     'cirque': {'label': 'Cirque', 'emoji': '🎪'},
     'carnaval': {'label': 'Carnaval', 'emoji': '🎭'},
+    'atelier-divers': {'label': 'Ateliers Créatifs', 'emoji': '🎨'},
     'autre': {'label': 'Autre thème', 'emoji': '📝'},
 }
 

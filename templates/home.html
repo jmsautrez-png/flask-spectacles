@@ -398,6 +398,91 @@
   }
 </style>
 
+<!-- Section Spectacles à la Une -->
+{% if spectacles_une %}
+<style>
+  .spectacles-une-section {
+    max-width: 100%;
+    margin: 32px auto 0 auto;
+    padding: 0;
+  }
+  
+  .spectacles-une-header {
+    text-align: center;
+    margin-bottom: 24px;
+  }
+  
+  .spectacles-une-header h2 {
+    font-size: 1.8rem;
+    margin: 0 0 8px 0;
+    color: var(--text);
+  }
+  
+  .spectacles-une-header p {
+    color: var(--muted);
+    font-size: 1rem;
+    margin: 0;
+  }
+</style>
+
+<div class="spectacles-une-section">
+  <div class="spectacles-une-header">
+    <h2>✨ Spectacles à la Une</h2>
+    <p>Découvrez notre sélection de spectacles exceptionnels</p>
+  </div>
+  
+  <div class="cards">
+    {% for spectacle in spectacles_une %}
+    <article class="card" style="border:2px solid #222;border-radius:16px;box-shadow:0 2px 12px #0008;padding:0 0 8px 0;transition:box-shadow .2s;color:#fff;">
+      <a href="{{ url_for('show_detail', show_id=spectacle.id) }}" class="media-link">
+        <div class="media">
+          {% if spectacle.has_image() %}
+            <img src="{{ url_for('uploaded_file', filename=spectacle.file_name) }}" alt="{{ spectacle.title }}">
+          {% else %}
+            <div class="placeholder">🎭</div>
+          {% endif %}
+        </div>
+      </a>
+      
+      <a href="{{ url_for('show_detail', show_id=spectacle.id) }}" class="content-link">
+        <div class="content">
+          <div style="margin-bottom:6px;">
+            <span class="badge" style="background:linear-gradient(135deg, #ffd700 0%, #ffed4e 100%); color:#222; font-weight:700; border:none; font-size:0.75rem; padding:3px 8px; border-radius:10px;">
+              ⭐ À la une
+            </span>
+          </div>
+          
+          {% if spectacle.raison_sociale %}
+            <p class="meta" style="font-weight:600; margin-bottom:8px; color:var(--primary); font-size:0.85em;">
+              {{ spectacle.raison_sociale|title }}
+            </p>
+          {% endif %}
+          
+          <h3 style="margin:0 0 6px 0; line-height:1.2;">{{ spectacle.title }}</h3>
+          
+          <div style="display:flex; flex-direction:column; gap:4px; font-size:0.85em; margin-top:-2px;">
+            {% if spectacle.age_range %}
+            <div style="display:flex; align-items:center; gap:6px;">
+              <span style="opacity:0.7; min-width:20px;">👥</span>
+              <span style="color:rgba(255,255,255,0.9);">{{ spectacle.age_range|format_age }}</span>
+            </div>
+            {% endif %}
+          </div>
+        </div>
+      </a>
+    </article>
+    {% endfor %}
+  </div>
+  
+  <div style="text-align:center; margin-top:24px;">
+    <a href="{{ url_for('catalogue') }}" 
+       style="display:inline-flex; align-items:center; gap:8px; padding:12px 28px; background:linear-gradient(135deg, #ffd700 0%, #ffed4e 100%); color:#222; text-decoration:none; border-radius:25px; font-weight:700; font-size:1rem; transition:all 0.3s ease; box-shadow:0 4px 15px rgba(255,215,0,0.4);">
+      🎭 Voir le catalogue complet <i class="fa fa-arrow-right"></i>
+    </a>
+  </div>
+</div>
+{% endif %}
+
 <!-- Section Chiffres Clés avec animation -->
 <section class="stats-section" style="background:linear-gradient(135deg,#162447 0%,#283e5e 100%); border-radius:12px; padding:20px 15px; margin:25px 0; box-shadow:0 2px 12px rgba(22,36,71,0.3);">
   <h2 style="text-align:center; color:#fff; margin-bottom:15px; font-size:1.1rem;">Nos chiffres clés</h2>
@@ -478,90 +563,5 @@
   }
 })();
 </script>
-
-<!-- Section Spectacles à la Une -->
-{% if spectacles_une %}
-<style>
-  .spectacles-une-section {
-    max-width: 100%;
-    margin: 32px auto 0 auto;
-    padding: 0;
-  }
-  
-  .spectacles-une-header {
-    text-align: center;
-    margin-bottom: 24px;
-  }
-  
-  .spectacles-une-header h2 {
-    font-size: 1.8rem;
-    margin: 0 0 8px 0;
-    color: var(--text);
-  }
-  
-  .spectacles-une-header p {
-    color: var(--muted);
-    font-size: 1rem;
-    margin: 0;
-  }
-</style>
-
-<div class="spectacles-une-section">
-  <div class="spectacles-une-header">
-    <h2>✨ Spectacles à la Une</h2>
-    <p>Découvrez notre sélection de spectacles exceptionnels</p>
-  </div>
-  
-  <div class="cards">
-    {% for spectacle in spectacles_une %}
-    <article class="card" style="border:2px solid #222;border-radius:16px;box-shadow:0 2px 12px #0008;padding:0 0 8px 0;transition:box-shadow .2s;color:#fff;">
-      <a href="{{ url_for('show_detail', show_id=spectacle.id) }}" class="media-link">
-        <div class="media">
-          {% if spectacle.has_image() %}
-            <img src="{{ url_for('uploaded_file', filename=spectacle.file_name) }}" alt="{{ spectacle.title }}">
-          {% else %}
-            <div class="placeholder">🎭</div>
-          {% endif %}
-        </div>
-      </a>
-      
-      <a href="{{ url_for('show_detail', show_id=spectacle.id) }}" class="content-link">
-        <div class="content">
-          <div style="margin-bottom:6px;">
-            <span class="badge" style="background:linear-gradient(135deg, #ffd700 0%, #ffed4e 100%); color:#222; font-weight:700; border:none; font-size:0.75rem; padding:3px 8px; border-radius:10px;">
-              ⭐ À la une
-            </span>
-          </div>
-          
-          {% if spectacle.raison_sociale %}
-            <p class="meta" style="font-weight:600; margin-bottom:8px; color:var(--primary); font-size:0.85em;">
-              {{ spectacle.raison_sociale|title }}
-            </p>
-          {% endif %}
-          
-          <h3 style="margin:0 0 6px 0; line-height:1.2;">{{ spectacle.title }}</h3>
-          
-          <div style="display:flex; flex-direction:column; gap:4px; font-size:0.85em; margin-top:-2px;">
-            {% if spectacle.age_range %}
-            <div style="display:flex; align-items:center; gap:6px;">
-              <span style="opacity:0.7; min-width:20px;">👥</span>
-              <span style="color:rgba(255,255,255,0.9);">{{ spectacle.age_range|format_age }}</span>
-            </div>
-            {% endif %}
-          </div>
-        </div>
-      </a>
-    </article>
-    {% endfor %}
-  </div>
-  
-  <div style="text-align:center; margin-top:24px;">
-    <a href="{{ url_for('seo_category', category_slug='une') }}" 
-       style="display:inline-flex; align-items:center; gap:8px; padding:12px 28px; background:linear-gradient(135deg, #ffd700 0%, #ffed4e 100%); color:#222; text-decoration:none; border-radius:25px; font-weight:700; font-size:1rem; transition:all 0.3s ease; box-shadow:0 4px 15px rgba(255,215,0,0.4);">
-      ⭐ Voir tous les spectacles à la une <i class="fa fa-arrow-right"></i>
-    </a>
-  </div>
-</div>
-{% endif %}
 
 {% endblock %}
