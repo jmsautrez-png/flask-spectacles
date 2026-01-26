@@ -2712,6 +2712,255 @@ def export_shows_xlsx():
     return send_file(file_path, as_attachment=True, download_name="spectacles_export.xlsx")
 
 # ---------------------------
+# SECTION ÉCOLES - Demandes thématiques pédagogiques
+# ---------------------------
+
+# Dictionnaire des thèmes avec leurs labels et emojis
+THEMES_ECOLES = {
+    'noel': {'label': 'Noël & Fêtes', 'emoji': '🎄'},
+    'ecologie': {'label': 'Écologie & Développement durable', 'emoji': '🌍'},
+    'vivre-ensemble': {'label': 'Vivre ensemble & Citoyenneté', 'emoji': '🤝'},
+    'musique': {'label': 'Musique & Chant', 'emoji': '🎵'},
+    'litterature': {'label': 'Langage & Littérature', 'emoji': '📚'},
+    'marionnettes': {'label': 'Marionnettes', 'emoji': '🎭'},
+    'inclusion': {'label': 'Différences & Inclusion', 'emoji': '🌈'},
+    'theatre': {'label': 'Théâtre', 'emoji': '🎪'},
+    'cultures-monde': {'label': 'Cultures du monde', 'emoji': '🌐'},
+    'prevention': {'label': 'Prévention & Bien-être', 'emoji': '❤️'},
+    'cirque': {'label': 'Cirque', 'emoji': '🎪'},
+    'carnaval': {'label': 'Carnaval', 'emoji': '🎭'},
+    'autre': {'label': 'Autre thème', 'emoji': '📝'},
+}
+
+@app.route("/ecoles")
+def ecoles_themes():
+    """Page présentant les thèmes pédagogiques pour les écoles"""
+    return render_template("ecoles_themes.html", user=current_user())
+
+@app.route("/ecoles/demande", methods=["GET", "POST"])
+def demande_ecole():
+    """Formulaire de demande pour les écoles"""
+    from models.models import DemandeEcole
+    
+    if request.method == "POST":
+        # Récupération des données
+        auto_datetime = request.form.get("auto_datetime", "")
+        theme_principal = request.form.get("theme_principal", "").strip()
+        
+        # Infos école
+        nom_ecole = request.form.get("nom_ecole", "").strip()
+        type_etablissement = request.form.get("type_etablissement", "").strip()
+        adresse = request.form.get("adresse", "").strip()
+        code_postal = request.form.get("code_postal", "").strip()
+        ville = request.form.get("ville", "").strip()
+        region = request.form.get("region", "").strip()
+        
+        # Contact
+        nom_contact = request.form.get("nom_contact", "").strip()
+        fonction_contact = request.form.get("fonction_contact", "").strip()
+        email = request.form.get("email", "").strip()
+        telephone = request.form.get("telephone", "").strip()
+        
+        # Classes
+        nombre_classes = request.form.get("nombre_classes", "").strip()
+        nombre_eleves = request.form.get("nombre_eleves", "").strip()
+        niveaux = request.form.getlist("niveaux")
+        niveaux_concernes = ", ".join(niveaux) if niveaux else ""
+        
+        # Thème et objectifs
+        sous_themes = request.form.getlist("sous_themes")
+        sous_themes_str = ", ".join(sous_themes) if sous_themes else ""
+        objectifs_pedagogiques = request.form.get("objectifs_pedagogiques", "").strip()
+        
+        # Animation
+        types_animation = request.form.getlist("types_animation")
+        types_animation_str = ", ".join(types_animation) if types_animation else ""
+        
+        # Contraintes
+        salles = request.form.getlist("salle_disponible")
+        salle_disponible = ", ".join(salles) if salles else ""
+        surface_approximative = request.form.get("surface_approximative", "").strip()
+        acces_electricite = request.form.get("acces_electricite", "1") == "1"
+        
+        # Période et budget
+        periode_souhaitee = request.form.get("periode_souhaitee", "").strip()
+        date_precise = request.form.get("date_precise", "").strip()
+        budget = request.form.get("budget", "").strip()
+        
+        # Infos complémentaires
+        informations_complementaires = request.form.get("informations_complementaires", "").strip()
+        
+        # Validation
+        if not all([nom_ecole, type_etablissement, code_postal, ville, nom_contact, email, telephone, objectifs_pedagogiques]):
+            flash("Veuillez remplir tous les champs obligatoires.", "danger")
+            return render_template("demande_ecole.html", 
+                                   user=current_user(),
+                                   theme=theme_principal,
+                                   theme_label=THEMES_ECOLES.get(theme_principal, {}).get('label', 'Autre'),
+                                   theme_emoji=THEMES_ECOLES.get(theme_principal, {}).get('emoji', '📝')), 400
+        
+        # Convertir le slug du thème en label
+        theme_label = THEMES_ECOLES.get(theme_principal, {}).get('label', theme_principal)
+        
+        # Créer la demande
+        demande = DemandeEcole(
+            auto_datetime=auto_datetime,
+            nom_ecole=nom_ecole,
+            type_etablissement=type_etablissement,
+            adresse=adresse,
+            code_postal=code_postal,
+            ville=ville,
+            region=region,
+            nom_contact=nom_contact,
+            fonction_contact=fonction_contact,
+            email=email,
+            telephone=telephone,
+            nombre_classes=nombre_classes,
+            nombre_eleves=nombre_eleves,
+            niveaux_concernes=niveaux_concernes,
+            theme_principal=theme_label,
+            sous_themes=sous_themes_str,
+            objectifs_pedagogiques=objectifs_pedagogiques,
+            types_animation=types_animation_str,
+            salle_disponible=salle_disponible,
+            surface_approximative=surface_approximative,
+            acces_electricite=acces_electricite,
+            periode_souhaitee=periode_souhaitee,
+            date_precise=date_precise,
+            budget=budget,
+            informations_complementaires=informations_complementaires
+        )
+        db.session.add(demande)
+        db.session.commit()
+        
+        # Envoi email à l'admin si configuré
+        if getattr(current_app, "mail", None) and current_app.config.get("MAIL_USERNAME"):
+            try:
+                to_addr = current_app.config.get("MAIL_DEFAULT_SENDER") or current_app.config.get("MAIL_USERNAME")
+                body = f"""
+Nouvelle demande école - Thème pédagogique
+
+Date de la demande : {auto_datetime}
+École : {nom_ecole} ({type_etablissement})
+Ville : {ville} ({code_postal})
+Région : {region}
+
+Contact : {nom_contact} ({fonction_contact})
+Email : {email}
+Téléphone : {telephone}
+
+Thème : {theme_label}
+Sous-thèmes : {sous_themes_str}
+Objectifs pédagogiques : {objectifs_pedagogiques}
+
+Classes : {nombre_classes} classes, {nombre_eleves} élèves
+Niveaux : {niveaux_concernes}
+
+Types d'animation souhaités : {types_animation_str}
+Budget : {budget}
+Période : {periode_souhaitee} ({date_precise})
+
+Contraintes techniques :
+- Salle : {salle_disponible}
+- Surface : {surface_approximative}
+- Électricité : {'Oui' if acces_electricite else 'Non'}
+
+Informations complémentaires :
+{informations_complementaires}
+"""
+                msg = Message(subject=f"Nouvelle demande école - {theme_label}", recipients=[to_addr])
+                msg.body = body
+                current_app.mail.send(msg)
+            except Exception as e:
+                print("[MAIL] envoi impossible:", e)
+        
+        flash("Votre demande a bien été envoyée ! Nous vous recontacterons dans les 48h avec une proposition personnalisée.", "success")
+        return redirect(url_for("ecoles_themes"))
+    
+    # GET - Afficher le formulaire
+    theme = request.args.get("theme", "autre")
+    theme_data = THEMES_ECOLES.get(theme, {'label': 'Autre thème', 'emoji': '📝'})
+    
+    return render_template("demande_ecole.html",
+                           user=current_user(),
+                           theme=theme,
+                           theme_label=theme_data['label'],
+                           theme_emoji=theme_data['emoji'])
+
+# Routes Admin pour les demandes d'écoles
+@app.route("/admin/demandes-ecoles")
+@login_required
+@admin_required
+def admin_demandes_ecole():
+    """Liste des demandes des écoles (admin uniquement)"""
+    from models.models import DemandeEcole
+    
+    # Filtres
+    statut_filter = request.args.get("statut", "")
+    theme_filter = request.args.get("theme", "")
+    
+    query = DemandeEcole.query
+    
+    if statut_filter:
+        query = query.filter(DemandeEcole.statut == statut_filter)
+    if theme_filter:
+        theme_label = THEMES_ECOLES.get(theme_filter, {}).get('label', '')
+        if theme_label:
+            query = query.filter(DemandeEcole.theme_principal.ilike(f'%{theme_label}%'))
+    
+    demandes = query.order_by(DemandeEcole.created_at.desc()).all()
+    
+    # Stats
+    all_demandes = DemandeEcole.query.all()
+    stats = {
+        'total': len(all_demandes),
+        'nouvelles': len([d for d in all_demandes if d.statut == 'nouvelle']),
+        'en_cours': len([d for d in all_demandes if d.statut == 'en_cours']),
+        'traitees': len([d for d in all_demandes if d.statut == 'traitee']),
+    }
+    
+    return render_template("admin_demandes_ecole.html", 
+                           user=current_user(), 
+                           demandes=demandes,
+                           stats=stats)
+
+@app.route("/admin/demandes-ecoles/<int:demande_id>")
+@login_required
+@admin_required
+def admin_demande_ecole_detail(demande_id):
+    """Détail d'une demande d'école"""
+    from models.models import DemandeEcole
+    demande = DemandeEcole.query.get_or_404(demande_id)
+    return render_template("admin_demande_ecole_detail.html", 
+                           user=current_user(), 
+                           demande=demande)
+
+@app.route("/admin/demandes-ecoles/<int:demande_id>/statut", methods=["POST"])
+@login_required
+@admin_required
+def admin_demande_ecole_statut(demande_id):
+    """Modifier le statut d'une demande d'école"""
+    from models.models import DemandeEcole
+    demande = DemandeEcole.query.get_or_404(demande_id)
+    nouveau_statut = request.form.get("statut", "nouvelle")
+    demande.statut = nouveau_statut
+    db.session.commit()
+    flash(f"Statut mis à jour : {nouveau_statut}", "success")
+    return redirect(request.referrer or url_for("admin_demandes_ecole"))
+
+@app.route("/admin/demandes-ecoles/<int:demande_id>/notes", methods=["POST"])
+@login_required
+@admin_required
+def admin_demande_ecole_notes(demande_id):
+    """Enregistrer les notes admin d'une demande d'école"""
+    from models.models import DemandeEcole
+    demande = DemandeEcole.query.get_or_404(demande_id)
+    demande.notes_admin = request.form.get("notes_admin", "")
+    db.session.commit()
+    flash("Notes enregistrées.", "success")
+    return redirect(url_for("admin_demande_ecole_detail", demande_id=demande_id))
+
+# ---------------------------
 # Routes SEO
 # ---------------------------
 from flask import redirect, url_for, abort

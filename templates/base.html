@@ -553,6 +553,11 @@
         {# ----- VISITEUR ----- #}
         {% else %}
           <li>
+            <a href="{{ url_for('ecoles_themes') }}" style="padding:8px 14px; background:linear-gradient(135deg, #1a237e, #0d47a1); color:#fff; border-radius:6px; font-weight:600; font-size:0.85rem; text-decoration:none; display:inline-block; transition:opacity 0.2s;">
+              🏫 Écoles
+            </a>
+          </li>
+          <li>
             <a href="{{ url_for('login') }}" style="padding:8px 14px; background:transparent; color:var(--text); border:1px solid var(--border); border-radius:6px; font-weight:500; font-size:0.85rem; text-decoration:none; display:inline-block; transition:background 0.2s;">
               Se connecter
             </a>

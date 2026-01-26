@@ -1,0 +1,363 @@
+{% extends "base.html" %}
+{% block title %}Détail demande école #{{ demande.id }} - Admin{% endblock %}
+
+{% block content %}
+<style>
+  .detail-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 25px;
+    flex-wrap: wrap;
+    gap: 15px;
+  }
+  
+  .detail-header h1 {
+    color: #ffc107;
+    margin: 0;
+    font-size: 1.4rem;
+  }
+  
+  .detail-section {
+    background: linear-gradient(135deg, #162447 0%, #1f4068 100%);
+    border: 1px solid #355c7d;
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 20px;
+  }
+  
+  .detail-section h2 {
+    color: #ffc107;
+    margin: 0 0 15px 0;
+    font-size: 1.1rem;
+    padding-bottom: 10px;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+  }
+  
+  .detail-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 15px;
+  }
+  
+  .detail-item {
+    margin-bottom: 12px;
+  }
+  
+  .detail-item .label {
+    color: rgba(255,255,255,0.6);
+    font-size: 0.85rem;
+    margin-bottom: 4px;
+  }
+  
+  .detail-item .value {
+    color: #fff;
+    font-size: 1rem;
+  }
+  
+  .badge {
+    display: inline-block;
+    padding: 6px 14px;
+    border-radius: 15px;
+    font-size: 0.85rem;
+    font-weight: 600;
+  }
+  
+  .badge-nouvelle { background: #4caf50; color: #fff; }
+  .badge-en_cours { background: #ff9800; color: #000; }
+  .badge-traitee { background: #2196f3; color: #fff; }
+  .badge-annulee { background: #9e9e9e; color: #fff; }
+  
+  .theme-badge {
+    display: inline-block;
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-size: 1rem;
+    background: linear-gradient(135deg, #ffc107 0%, #ffeb3b 100%);
+    color: #000;
+    font-weight: 700;
+  }
+  
+  .objectifs-box {
+    background: rgba(255,255,255,0.05);
+    border-left: 4px solid #ffc107;
+    padding: 15px 20px;
+    border-radius: 0 8px 8px 0;
+    white-space: pre-wrap;
+    line-height: 1.6;
+  }
+  
+  .sous-themes-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 10px;
+  }
+  
+  .sous-theme-tag {
+    padding: 5px 12px;
+    background: rgba(76, 175, 80, 0.2);
+    border: 1px solid #4caf50;
+    border-radius: 15px;
+    font-size: 0.85rem;
+    color: #4caf50;
+  }
+  
+  .action-bar {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-top: 25px;
+    padding-top: 20px;
+    border-top: 1px solid rgba(255,255,255,0.1);
+  }
+  
+  .btn {
+    padding: 10px 20px;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: 600;
+    transition: all 0.2s;
+    border: none;
+    cursor: pointer;
+  }
+  
+  .btn-back {
+    background: #355c7d;
+    color: #fff;
+  }
+  
+  .btn-email {
+    background: #2196f3;
+    color: #fff;
+  }
+  
+  .btn-call {
+    background: #4caf50;
+    color: #fff;
+  }
+  
+  .btn:hover {
+    transform: translateY(-2px);
+  }
+  
+  .notes-form {
+    margin-top: 20px;
+  }
+  
+  .notes-form textarea {
+    width: 100%;
+    padding: 12px;
+    border-radius: 8px;
+    border: 1px solid rgba(255,255,255,0.2);
+    background: rgba(0,0,0,0.3);
+    color: #fff;
+    font-size: 0.95rem;
+    resize: vertical;
+    min-height: 100px;
+  }
+  
+  .notes-form button {
+    margin-top: 10px;
+    padding: 10px 25px;
+    background: #ffc107;
+    color: #000;
+    border: none;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  
+  @media (max-width: 600px) {
+    .detail-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
+
+<div class="detail-header">
+  <h1>📄 Demande #{{ demande.id }}</h1>
+  <span class="badge badge-{{ demande.statut }}">{{ demande.statut.replace('_', ' ') }}</span>
+</div>
+
+<!-- Informations sur l'école -->
+<div class="detail-section">
+  <h2>🏫 Établissement</h2>
+  <div class="detail-grid">
+    <div class="detail-item">
+      <div class="label">Nom de l'école</div>
+      <div class="value"><strong>{{ demande.nom_ecole }}</strong></div>
+    </div>
+    <div class="detail-item">
+      <div class="label">Type</div>
+      <div class="value">{{ demande.type_etablissement }}</div>
+    </div>
+    <div class="detail-item">
+      <div class="label">Adresse</div>
+      <div class="value">{{ demande.adresse or 'Non renseignée' }}</div>
+    </div>
+    <div class="detail-item">
+      <div class="label">Ville</div>
+      <div class="value">{{ demande.code_postal }} {{ demande.ville }}</div>
+    </div>
+    <div class="detail-item">
+      <div class="label">Région</div>
+      <div class="value">{{ demande.region or 'Non renseignée' }}</div>
+    </div>
+  </div>
+</div>
+
+<!-- Contact -->
+<div class="detail-section">
+  <h2>👤 Contact</h2>
+  <div class="detail-grid">
+    <div class="detail-item">
+      <div class="label">Nom</div>
+      <div class="value"><strong>{{ demande.nom_contact }}</strong></div>
+    </div>
+    <div class="detail-item">
+      <div class="label">Fonction</div>
+      <div class="value">{{ demande.fonction_contact or 'Non renseignée' }}</div>
+    </div>
+    <div class="detail-item">
+      <div class="label">Email</div>
+      <div class="value"><a href="mailto:{{ demande.email }}" style="color: #4fc3f7;">{{ demande.email }}</a></div>
+    </div>
+    <div class="detail-item">
+      <div class="label">Téléphone</div>
+      <div class="value"><a href="tel:{{ demande.telephone }}" style="color: #4fc3f7;">{{ demande.telephone }}</a></div>
+    </div>
+  </div>
+</div>
+
+<!-- Classes -->
+<div class="detail-section">
+  <h2>👨‍🎓 Classes concernées</h2>
+  <div class="detail-grid">
+    <div class="detail-item">
+      <div class="label">Nombre de classes</div>
+      <div class="value">{{ demande.nombre_classes or 'Non renseigné' }}</div>
+    </div>
+    <div class="detail-item">
+      <div class="label">Nombre d'élèves</div>
+      <div class="value">{{ demande.nombre_eleves or 'Non renseigné' }}</div>
+    </div>
+    <div class="detail-item">
+      <div class="label">Niveaux</div>
+      <div class="value">{{ demande.niveaux_concernes or 'Non renseignés' }}</div>
+    </div>
+  </div>
+</div>
+
+<!-- Thème et objectifs -->
+<div class="detail-section">
+  <h2>🎯 Thème pédagogique</h2>
+  <div style="margin-bottom: 20px;">
+    <span class="theme-badge">{{ demande.theme_principal }}</span>
+  </div>
+  
+  {% if demande.sous_themes %}
+  <div class="detail-item">
+    <div class="label">Sous-thèmes sélectionnés</div>
+    <div class="sous-themes-list">
+      {% for st in demande.sous_themes.split(',') %}
+        <span class="sous-theme-tag">{{ st.strip() }}</span>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+  
+  <div class="detail-item" style="margin-top: 20px;">
+    <div class="label">Objectifs pédagogiques</div>
+    <div class="objectifs-box">{{ demande.objectifs_pedagogiques }}</div>
+  </div>
+</div>
+
+<!-- Type d'animation -->
+<div class="detail-section">
+  <h2>🎭 Animation souhaitée</h2>
+  <div class="detail-item">
+    <div class="label">Types d'animation</div>
+    <div class="value">{{ demande.types_animation or 'Non précisés' }}</div>
+  </div>
+</div>
+
+<!-- Contraintes techniques -->
+<div class="detail-section">
+  <h2>🔧 Contraintes techniques</h2>
+  <div class="detail-grid">
+    <div class="detail-item">
+      <div class="label">Salle disponible</div>
+      <div class="value">{{ demande.salle_disponible or 'Non précisée' }}</div>
+    </div>
+    <div class="detail-item">
+      <div class="label">Surface</div>
+      <div class="value">{{ demande.surface_approximative or 'Non précisée' }}</div>
+    </div>
+    <div class="detail-item">
+      <div class="label">Électricité</div>
+      <div class="value">{{ 'Oui' if demande.acces_electricite else 'Non' }}</div>
+    </div>
+  </div>
+</div>
+
+<!-- Période et budget -->
+<div class="detail-section">
+  <h2>📅 Période & Budget</h2>
+  <div class="detail-grid">
+    <div class="detail-item">
+      <div class="label">Période souhaitée</div>
+      <div class="value">{{ demande.periode_souhaitee or 'Non précisée' }}</div>
+    </div>
+    <div class="detail-item">
+      <div class="label">Date précise</div>
+      <div class="value">{{ demande.date_precise or 'Non précisée' }}</div>
+    </div>
+    <div class="detail-item">
+      <div class="label">Budget</div>
+      <div class="value" style="color: #ffc107; font-weight: 600;">{{ demande.budget or 'Non précisé' }}</div>
+    </div>
+  </div>
+</div>
+
+<!-- Informations complémentaires -->
+{% if demande.informations_complementaires %}
+<div class="detail-section">
+  <h2>📝 Informations complémentaires</h2>
+  <div class="objectifs-box">{{ demande.informations_complementaires }}</div>
+</div>
+{% endif %}
+
+<!-- Notes admin -->
+<div class="detail-section">
+  <h2>🔒 Notes internes (admin)</h2>
+  <form action="{{ url_for('admin_demande_ecole_notes', demande_id=demande.id) }}" method="POST" class="notes-form">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <textarea name="notes_admin" placeholder="Ajoutez vos notes internes ici...">{{ demande.notes_admin or '' }}</textarea>
+    <button type="submit">💾 Enregistrer les notes</button>
+  </form>
+</div>
+
+<!-- Barre d'actions -->
+<div class="action-bar">
+  <a href="{{ url_for('admin_demandes_ecole') }}" class="btn btn-back">← Retour à la liste</a>
+  <a href="mailto:{{ demande.email }}?subject=Votre demande de spectacle - {{ demande.theme_principal }}" class="btn btn-email">📧 Envoyer un email</a>
+  <a href="tel:{{ demande.telephone }}" class="btn btn-call">📞 Appeler</a>
+  
+  <form action="{{ url_for('admin_demande_ecole_statut', demande_id=demande.id) }}" method="POST" style="display: flex; gap: 8px; align-items: center;">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <select name="statut" style="padding: 10px; border-radius: 8px; background: #1f4068; color: #fff; border: 1px solid #355c7d;">
+      <option value="nouvelle" {{ 'selected' if demande.statut == 'nouvelle' }}>Nouvelle</option>
+      <option value="en_cours" {{ 'selected' if demande.statut == 'en_cours' }}>En cours</option>
+      <option value="traitee" {{ 'selected' if demande.statut == 'traitee' }}>Traitée</option>
+      <option value="annulee" {{ 'selected' if demande.statut == 'annulee' }}>Annulée</option>
+    </select>
+    <button type="submit" class="btn" style="background: #ffc107; color: #000;">Mettre à jour</button>
+  </form>
+</div>
+
+<p style="margin-top: 20px; color: rgba(255,255,255,0.5); font-size: 0.85rem;">
+  Demande reçue le {{ demande.created_at.strftime('%d/%m/%Y à %H:%M') if demande.created_at else 'N/A' }}
+</p>
+
+{% endblock %}

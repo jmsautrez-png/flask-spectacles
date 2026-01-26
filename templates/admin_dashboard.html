@@ -7,8 +7,9 @@
 
 <div style="margin-bottom: 24px; display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap;">
   <div style="display: flex; gap: 12px; flex-wrap: wrap;">
-    <a href="{{ url_for('admin_demandes_animation') }}" class="btn btn-warning" style="padding:10px 18px; border-radius:8px; font-weight:600; background:#ffc107; color:#000; text-decoration:none;">📋 Gérer les demandes d'animation</a>
-    <a href="{{ url_for('admin_ordre_affichage') }}" class="btn btn-info" style="padding:10px 18px; border-radius:8px; font-weight:600; background:#17a2b8; color:#fff; text-decoration:none;">🔢 Gérer l'ordre des cartes</a>
+    <a href="{{ url_for('admin_demandes_animation') }}" class="btn btn-warning" style="padding:10px 18px; border-radius:8px; font-weight:600; background:#ffc107; color:#000; text-decoration:none;">📋 Demandes d'animation</a>
+    <a href="{{ url_for('admin_demandes_ecole') }}" class="btn btn-primary" style="padding:10px 18px; border-radius:8px; font-weight:600; background:#1a237e; color:#fff; text-decoration:none;">🏫 Demandes des écoles</a>
+    <a href="{{ url_for('admin_ordre_affichage') }}" class="btn btn-info" style="padding:10px 18px; border-radius:8px; font-weight:600; background:#17a2b8; color:#fff; text-decoration:none;">🔢 Ordre des cartes</a>
   </div>
   <div style="display: flex; gap: 12px;">
     <a href="{{ url_for('export_shows_xlsx') }}" class="btn btn-primary" style="padding:10px 18px; border-radius:8px; font-weight:600; background:#0d6efd; color:white; text-decoration:none;">🎭 Exporter les spectacles (Excel)</a>

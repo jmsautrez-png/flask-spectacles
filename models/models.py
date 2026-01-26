@@ -119,3 +119,57 @@ class Show(db.Model):
     def image_count(self):
         """Retourne le nombre d'images disponibles."""
         return len(self.get_all_images())
+
+
+# Modèle pour les demandes d'écoles (thèmes pédagogiques)
+class DemandeEcole(db.Model):
+    __tablename__ = "demande_ecole"
+
+    id = db.Column(db.Integer, primary_key=True)
+    auto_datetime = db.Column(db.String(50), nullable=True)
+    
+    # Informations sur l'école
+    nom_ecole = db.Column(db.String(200), nullable=False)
+    type_etablissement = db.Column(db.String(50), nullable=False)  # Maternelle, Primaire, Les deux
+    adresse = db.Column(db.String(300), nullable=True)
+    code_postal = db.Column(db.String(10), nullable=False)
+    ville = db.Column(db.String(100), nullable=False)
+    region = db.Column(db.String(100), nullable=True)
+    
+    # Contact
+    nom_contact = db.Column(db.String(150), nullable=False)
+    fonction_contact = db.Column(db.String(100), nullable=True)  # Directeur, Enseignant, etc.
+    email = db.Column(db.String(255), nullable=False)
+    telephone = db.Column(db.String(50), nullable=False)
+    
+    # Informations sur les classes
+    nombre_classes = db.Column(db.String(20), nullable=True)
+    nombre_eleves = db.Column(db.String(20), nullable=True)
+    niveaux_concernes = db.Column(db.String(200), nullable=True)  # PS, MS, GS, CP, CE1, CE2, CM1, CM2
+    
+    # Thème pédagogique
+    theme_principal = db.Column(db.String(100), nullable=False)
+    sous_themes = db.Column(db.Text, nullable=True)  # JSON ou liste séparée par virgules
+    objectifs_pedagogiques = db.Column(db.Text, nullable=False)
+    
+    # Type d'animation souhaitée
+    types_animation = db.Column(db.String(500), nullable=True)  # Spectacle, Atelier, Conférence, etc.
+    
+    # Contraintes techniques
+    salle_disponible = db.Column(db.String(100), nullable=True)  # Salle de classe, Polyvalente, Gymnase
+    surface_approximative = db.Column(db.String(50), nullable=True)
+    acces_electricite = db.Column(db.Boolean, default=True)
+    
+    # Période et budget
+    periode_souhaitee = db.Column(db.String(100), nullable=True)
+    date_precise = db.Column(db.String(100), nullable=True)
+    budget = db.Column(db.String(50), nullable=True)
+    
+    # Informations complémentaires
+    informations_complementaires = db.Column(db.Text, nullable=True)
+    
+    # Statut de la demande
+    statut = db.Column(db.String(50), default="nouvelle")  # nouvelle, en_cours, traitee, annulee
+    notes_admin = db.Column(db.Text, nullable=True)
+    
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
