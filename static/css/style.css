@@ -319,11 +319,14 @@ main.container {
   overflow: hidden;
   position: relative;
   width: 100%;
+  /* Fix pour Safari/iOS */
+  -webkit-overflow-scrolling: touch;
 }
 
 .card img {
   width: 100%;
   height: 100%;
+  max-width: 100%;  /* Empêche le débordement sur mobile */
   object-fit: cover;
   /* max-height retiré, retour à la taille d'origine */
   object-position: center center;  /* Center the image instead of 30% from top */
@@ -901,30 +904,89 @@ a[href*="edit"]:hover {
   }
 }
 
-/* Petits mobiles (< 600px) */
+/* Petits mobiles (< 600px) - 2 cartes par ligne style eBay */
 @media (max-width: 600px) {
   .cards {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
   }
   
   .card {
     min-height: auto;
+    border-radius: 10px !important;
+    padding: 0 0 6px 0 !important;
+  }
+  
+  /* Contenu de la carte compact */
+  .card .content {
+    padding: 8px 10px;
+  }
+  
+  .card .content h3 {
+    font-size: 0.85rem !important;
+    line-height: 1.25;
+    margin: 0 0 4px 0 !important;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  
+  .card .content .meta {
+    font-size: 0.75em !important;
+    margin-bottom: 4px !important;
+  }
+  
+  .card .content > div {
+    font-size: 0.75em !important;
   }
   
   .grid-2 {
     grid-template-columns: 1fr;
   }
   
-  /* Images responsive */
-  .card .media img {
-    max-height: 300px;
+  /* Images responsive sur mobile - fix iPhone */
+  .card .media {
+    aspect-ratio: 1/1;
+    min-height: unset;
+    max-height: none;
+    height: auto;
+    width: 100%;
+    border-radius: 10px 10px 0 0;
+  }
+  
+  .card .media img,
+  .card-carousel .carousel-slide img {
+    width: 100%;
+    height: auto;
+    max-width: 100%;
     object-fit: cover;
+    object-position: center center;
+  }
+  
+  /* Badge photo count plus petit */
+  .card-carousel .photo-count {
+    font-size: 0.65rem;
+    padding: 2px 6px;
+  }
+  
+  /* Navigation carousel plus petite */
+  .card-carousel .carousel-nav {
+    width: 22px;
+    height: 22px;
+    font-size: 12px;
+  }
+  
+  /* Indicateurs plus petits */
+  .card-carousel .carousel-indicator {
+    width: 6px;
+    height: 6px;
   }
   
   /* Espacement réduit */
   main.container {
-    padding-top: 16px;
-    padding-bottom: 24px;
+    padding-top: 12px;
+    padding-bottom: 20px;
   }
   
   .demande-section {
@@ -938,14 +1000,47 @@ a[href*="edit"]:hover {
   }
 }
 
-/* Très petits écrans (< 400px) */
+/* Très petits écrans (< 400px) - iPhone SE, anciens modèles */
 @media (max-width: 400px) {
   .container {
-    width: 98%;
+    width: 99%;
+  }
+  
+  /* Garder 2 colonnes mais réduire l'espacement */
+  .cards {
+    gap: 6px;
   }
   
   .brand {
     font-size: 0.95rem;
+  }
+  
+  /* Cartes encore plus compactes */
+  .card {
+    border-radius: 8px !important;
+  }
+  
+  .card .content {
+    padding: 6px 8px;
+  }
+  
+  .card .content h3 {
+    font-size: 0.78rem !important;
+  }
+  
+  /* Images des cartes - très petits écrans */
+  .card .media {
+    aspect-ratio: 1/1;
+    min-height: unset;
+    max-height: none;
+    border-radius: 8px 8px 0 0;
+  }
+  
+  .card .media img,
+  .card-carousel .carousel-slide img {
+    width: 100%;
+    height: auto;
+    max-width: 100%;
   }
   
   /* Texte plus petit pour éviter le débordement */
