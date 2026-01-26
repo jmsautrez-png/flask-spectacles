@@ -168,7 +168,69 @@
       border-image: linear-gradient(90deg, #ffc107, #ff5722, #e91e63, #9c27b0, #ffc107) 1;
       box-shadow: 0 4px 30px rgba(109, 19, 19, 0.7), 0 0 60px rgba(255, 193, 7, 0.15);
       overflow: hidden;
-      min-height: 126px;
+      min-height: 7.875rem; /* 126px en rem */
+    }
+    
+    /* ============================================
+       BRAND & HEADER - Styles normalisés en rem
+       ============================================ */
+    .brand {
+      /* Aligné avec le container principal (3% de marge car container = 94%) */
+      margin-left: 3%;
+      text-decoration: none;
+    }
+    
+    /* Quand le diaporama est visible (grands écrans), décaler juste après le diaporama */
+    @media (min-width: 1281px) {
+      .brand {
+        margin-left: 15.75rem; /* Juste après le diaporama (4.375 + 11.25 + 0.125) */
+      }
+    }
+    
+    .brand-inner {
+      display: flex;
+      align-items: center;
+      gap: 0.875rem; /* 14px */
+    }
+    
+    .brand-bar {
+      width: 0.25rem; /* 4px */
+      height: 2.5rem; /* 40px */
+      background: var(--primary);
+      border-radius: 0.125rem;
+    }
+    
+    .brand-title {
+      font-weight: 700;
+      font-size: 1.95rem;
+      color: #ffe4e1;
+      letter-spacing: -0.5px;
+    }
+    
+    .brand-subtitle {
+      font-size: 0.975rem;
+      color: #FFDEDE;
+      line-height: 1.3;
+      margin-top: 0.125rem;
+      max-width: 35rem;
+    }
+    
+    .header-nav {
+      display: flex;
+      gap: 0.5rem;
+      align-items: center;
+      list-style: none;
+      margin: 0;
+      padding: 0;
+    }
+    
+    .header-nav li a {
+      padding: 0.5rem 0.875rem;
+      font-size: 0.85rem;
+      border-radius: 0.375rem;
+      text-decoration: none;
+      display: inline-block;
+      transition: opacity 0.2s, background 0.2s;
     }
     
     @keyframes header-gradient {
@@ -296,48 +358,45 @@
     }
     
     .site-header .brand:hover {
+      -webkit-transform: scale(1.01);
       transform: scale(1.01);
+      -webkit-transition: transform 0.3s ease;
       transition: transform 0.3s ease;
+    }
+    
+    /* Responsive: cacher diaporama sur écrans < 1280px */
+    @media (max-width: 1280px) {
+      .header-slideshow { display: none; }
+      .brand { margin-left: 1rem !important; }
     }
     
     /* Responsive: cacher certains éléments sur mobile */
     @media (max-width: 768px) {
-      .curtain { width: 40px; opacity: 0.4; }
+      .curtain { width: 2.5rem; opacity: 0.4; }
       .theater-masks { display: none; }
-      .spotlight { width: 80px; }
-      .header-slideshow { display: none; }
+      .spotlight { width: 5rem; }
+      .brand { margin-left: 0.5rem !important; }
     }
     
-    /* Responsive: tablettes */
-    @media (min-width: 769px) and (max-width: 1024px) {
-      .header-slideshow {
-        left: 50px;
-        width: clamp(120px, 12vw, 180px);
-        height: clamp(65px, 7vw, 100px);
-      }
-    }
-    
-    /* Responsive: grands écrans */
-    @media (min-width: 1400px) {
-      .header-slideshow {
-        width: 220px;
-        height: 120px;
-      }
-    }
-    
-    /* Diaporama header */
+    /* Diaporama header - seulement sur grands écrans */
     .header-slideshow {
       position: absolute;
-      left: clamp(50px, 6vw, 90px);
+      left: 4.375rem; /* 70px */
       top: 50%;
+      -webkit-transform: translateY(-50%);
+      -ms-transform: translateY(-50%);
       transform: translateY(-50%);
-      width: clamp(140px, 15vw, 220px);
-      height: clamp(75px, 8vw, 120px);
-      border-radius: 10px;
+      width: 11.25rem; /* 180px */
+      height: 5.9375rem; /* 95px */
+      border-radius: 0.625rem;
       overflow: hidden;
-      box-shadow: 0 4px 15px rgba(0,0,0,0.5), 0 0 20px rgba(255,193,7,0.3);
-      border: 2px solid rgba(255,193,7,0.6);
+      box-shadow: 0 0.25rem 0.9375rem rgba(0,0,0,0.5), 0 0 1.25rem rgba(255,193,7,0.3);
+      border: 0.125rem solid rgba(255,193,7,0.6);
       z-index: 5;
+      /* Fix Edge rendu */
+      -webkit-backface-visibility: hidden;
+      backface-visibility: hidden;
+      will-change: transform;
     }
     
     .slideshow-container {
@@ -353,7 +412,11 @@
       width: 100%;
       height: 100%;
       opacity: 0;
+      -webkit-transition: opacity 1s ease-in-out;
+      -ms-transition: opacity 1s ease-in-out;
       transition: opacity 1s ease-in-out;
+      -webkit-backface-visibility: hidden;
+      backface-visibility: hidden;
     }
     
     .slideshow-slide.active {
@@ -363,8 +426,13 @@
     .slideshow-slide img {
       width: 100%;
       height: 100%;
+      -o-object-fit: contain;
       object-fit: contain;
       background: linear-gradient(135deg, #1a0a0a, #2a1515);
+      /* Fix Edge rendu image */
+      -ms-interpolation-mode: bicubic;
+      image-rendering: -webkit-optimize-contrast;
+      image-rendering: crisp-edges;
     }
     
     .slideshow-label {
@@ -404,12 +472,16 @@
     
     /* Effet survol diaporama */
     .header-slideshow:hover {
+      -webkit-transform: translateY(-50%) scale(1.05);
+      -ms-transform: translateY(-50%) scale(1.05);
       transform: translateY(-50%) scale(1.05);
       box-shadow: 0 6px 25px rgba(0,0,0,0.6), 0 0 35px rgba(255,193,7,0.5);
       border-color: rgba(255,193,7,1);
     }
     
     .header-slideshow {
+      -webkit-transition: all 0.3s ease;
+      -ms-transition: all 0.3s ease;
       transition: all 0.3s ease;
       cursor: pointer;
     }
@@ -442,9 +514,58 @@
       padding: 8px;
       line-height: 1.3;
     }
+    
+    /* Responsive header-grid et navigation */
+    .header-grid {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 0.625rem;
+    }
+    
+    .header-grid .brand {
+      flex: 1;
+      min-width: 12.5rem;
+    }
+    
+    .header-grid nav ul {
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+    
+    /* Le responsive est géré par le font-size du html dans style.css */
+    /* Seul breakpoint mobile nécessaire */
+    @media (max-width: 900px) {
+      .header-grid {
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        padding: 0.625rem 0;
+      }
+      .brand {
+        margin-left: 0 !important;
+        margin-bottom: 0.625rem;
+      }
+      .brand-subtitle {
+        max-width: 100%;
+      }
+      .header-nav {
+        justify-content: center;
+      }
+    }
   </style>
   
-  <!-- Diaporama des spectacles à la une -->
+  {% set current_path = request.path %}
+  
+  <!-- Logo pour la page écoles uniquement -->
+  {% if current_path == '/ecoles' or current_path.startswith('/ecoles') %}
+  <a href="{{ url_for('home') }}" class="header-slideshow header-logo-box" title="Retour à l'accueil">
+    <img src="{{ url_for('static', filename='img/logo_spectaclement_votre.jpg') }}" alt="Spectacle'ment VØtre" style="width:100%;height:100%;object-fit:contain;border-radius:0.5rem;">
+  </a>
+  
+  <!-- Diaporama sur TOUTES les autres pages -->
+  {% else %}
   <a href="{{ url_for('seo_category', category_slug='une') }}" class="header-slideshow" title="Voir tous les spectacles à la une">
     <div class="slideshow-overlay">
       <span class="slideshow-overlay-text">⭐ Voir tous les<br>spectacles à la une</span>
@@ -464,7 +585,6 @@
             {% set ns.first_slide = false %}
             {% endfor %}
           {% else %}
-            {# Fallback si show.file_name existe mais pas dans get_all_images (ex: PDF) #}
             {% if show.file_name %}
             <div class="slideshow-slide {% if ns.first_slide %}active{% endif %}">
               <img src="{{ url_for('uploaded_file', filename=show.file_name) }}" alt="{{ show.title }}">
@@ -476,7 +596,6 @@
           {% endif %}
         {% endfor %}
       {% else %}
-        <!-- Placeholder quand pas de spectacles -->
         <div class="slideshow-slide active">
           <div style="width:100%;height:100%;background:linear-gradient(135deg,#6d1313,#ffc107);display:flex;align-items:center;justify-content:center;">
             <span style="font-size:2rem;">🎭</span>
@@ -491,32 +610,31 @@
   <script>
     document.addEventListener('DOMContentLoaded', function() {
       var slides = document.querySelectorAll('.header-slideshow .slideshow-slide');
-      console.log('Diaporama: ' + slides.length + ' slides trouvées');
       if (slides.length <= 1) return;
       var current = 0;
       window.setInterval(function() {
         slides[current].classList.remove('active');
         current = (current + 1) % slides.length;
         slides[current].classList.add('active');
-        console.log('Slide active: ' + current);
       }, 5000);
     });
   </script>
   {% endif %}
+  {% endif %}
   
   <div class="container header-grid">
-    <a href="{{ url_for('home') }}" class="brand" id="brand-logo" style="margin-left: 60px;">
-      <div style="display:flex; align-items:center; gap:14px;">
-        <div style="width:4px; height:40px; background:var(--primary); border-radius:2px;"></div>
-        <div>
-          <div style="font-weight:700; font-size:1.95rem; color:#ffe4e1; letter-spacing:-0.5px;">Spectacle'ment VØtre</div>
-          <div style="font-size:0.975rem; color:#FFDEDE; line-height:1.3; margin-top:2px;">la plateforme qui connecte facilement les organisateurs d'événements avec des artistes et compagnies de spectacle vivant.</div>
+    <a href="{{ url_for('home') }}" class="brand" id="brand-logo">
+      <div class="brand-inner">
+        <div class="brand-bar"></div>
+        <div class="brand-text">
+          <div class="brand-title">Spectacle'ment VØtre</div>
+          <div class="brand-subtitle">la plateforme qui connecte facilement les organisateurs d'événements avec des artistes et compagnies de spectacle vivant.</div>
         </div>
       </div>
     </a>
 
     <nav>
-      <ul class="nav" style="display:flex; gap:8px; align-items:center; list-style:none; margin:0; padding:0;">
+      <ul class="nav header-nav">
 
         {# ----- ADMIN CONNECTÉ ----- #}
         {% if user and user.is_admin %}

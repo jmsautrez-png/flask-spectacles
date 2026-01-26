@@ -143,30 +143,44 @@
 <!-- Section Hero : Deux choix principaux -->
 <style>
   .hero-choice-section {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 30px;
-    margin-bottom: 45px;
+    display: -webkit-box;
+    display: -ms-flexbox;
+    display: flex;
+    -ms-flex-wrap: wrap;
+    flex-wrap: wrap;
+    gap: 1.875rem;
+    margin-bottom: 2.8125rem;
+  }
+  
+  .hero-choice-section > a {
+    -webkit-box-flex: 1;
+    -ms-flex: 1 1 calc(50% - 1rem);
+    flex: 1 1 calc(50% - 1rem);
+    min-width: 280px;
   }
   
   @media (max-width: 768px) {
     .hero-choice-section {
-      grid-template-columns: 1fr;
-      gap: 20px;
+      gap: 1.25rem;
+    }
+    .hero-choice-section > a {
+      -ms-flex: 1 1 100%;
+      flex: 1 1 100%;
     }
   }
   
   .hero-choice-card {
     display: block;
     background: linear-gradient(135deg, #162447 0%, #1f4068 50%, #283e5e 100%);
-    border: 3px solid #355c7d;
-    border-radius: 20px;
-    padding: 60px 35px;
+    border: 0.1875rem solid #355c7d;
+    border-radius: 1.25rem;
+    padding: 3.75rem 2.1875rem;
     text-align: center;
     text-decoration: none;
     color: #fff;
+    -webkit-transition: all 0.3s ease;
     transition: all 0.3s ease;
-    box-shadow: 0 8px 30px rgba(0,0,0,0.3);
+    box-shadow: 0 0.5rem 1.875rem rgba(0,0,0,0.3);
     position: relative;
     overflow: hidden;
   }
@@ -177,65 +191,79 @@
     top: 0;
     left: 0;
     right: 0;
-    height: 4px;
+    height: 0.25rem;
     background: linear-gradient(90deg, #ffc107, #ff9800, #ffc107);
   }
   
   .hero-choice-card:hover {
-    transform: translateY(-8px);
+    -webkit-transform: translateY(-0.5rem);
+    transform: translateY(-0.5rem);
     border-color: #ffc107;
-    box-shadow: 0 15px 45px rgba(255,193,7,0.25);
+    box-shadow: 0 0.9375rem 2.8125rem rgba(255,193,7,0.25);
   }
   
   .hero-choice-card h2 {
-    margin: 0 0 18px 0;
-    font-size: 1.8rem;
-    color: #ffc107;
+    margin: 0 0 1.125rem 0;
+    font-size: 1.5rem;
+    color: #ffc107 !important;
     font-weight: 700;
-    text-shadow: 0 2px 8px rgba(0,0,0,0.3);
+    text-shadow: 0 0.125rem 0.5rem rgba(0,0,0,0.3);
+    display: block;
+    visibility: visible;
+    opacity: 1;
   }
   
   .hero-choice-card p {
     margin: 0;
-    font-size: 1.1rem;
-    color: rgba(255,255,255,0.95);
+    font-size: 1rem;
+    color: #fff;
     line-height: 1.6;
-    max-width: 350px;
-    margin: 0 auto;
+    text-align: center;
   }
   
   .hero-choice-card .cta-hint {
     display: inline-block;
-    margin-top: 25px;
-    padding: 12px 28px;
+    margin-top: 1.5625rem;
+    padding: 0.75rem 1.75rem;
     background: #ffc107;
     border: none;
-    border-radius: 25px;
+    border-radius: 1.5625rem;
     font-size: 1rem;
     color: #000;
     font-weight: 700;
+    -webkit-transition: all 0.3s;
     transition: all 0.3s;
   }
   
   .hero-choice-card:hover .cta-hint {
     background: #ffeb3b;
+    -webkit-transform: scale(1.05);
     transform: scale(1.05);
+  }
+  
+  .hero-choice-card .desc-box {
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 0.625rem;
+    padding: 0.75rem 1.25rem;
+    margin: 0.9375rem auto 0 auto;
+    display: inline-block;
   }
 </style>
 
 <div class="hero-choice-section">
   <a href="#catalogue" class="hero-choice-card">
-    <h2>Trouver un spectacle pour mairie, école, CSE...</h2>
-    <div style="background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.2); border-radius: 10px; padding: 12px 16px; margin: 10px auto 0 auto; max-width: 90%; text-align: center;">
-      <p style="margin: 0; color: #fff; line-height: 1.5; text-align: center;">Artistes, compagnies et spectacles pour vos événements : mairies, CSE, écoles, associations...</p>
+    <h2>Mairie, École, CSE... : trouver un spectacle</h2>
+    <div class="desc-box">
+      <p>Artistes, compagnies et spectacles pour vos événements : mairies, CSE, écoles, associations...</p>
     </div>
     <span class="cta-hint">Parcourir le catalogue →</span>
   </a>
   
   <a href="{{ url_for('ecoles_themes') }}" class="hero-choice-card">
     <h2>Écoles : votre projet pédagogique</h2>
-    <div style="background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.2); border-radius: 10px; padding: 12px 16px; margin: 10px auto 0 auto; max-width: 90%; text-align: center;">
-      <p style="margin: 0; color: #fff; line-height: 1.5; text-align: center;">Accompagnement clé en main pour les écoles : spectacles adaptés à votre thème d'année</p>
+    <div class="desc-box">
+      <p>Accompagnement clé en main pour les écoles : spectacles adaptés à votre thème d'année</p>
     </div>
     <span class="cta-hint">Découvrir l'offre →</span>
   </a>

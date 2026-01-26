@@ -20,17 +20,35 @@
   --secondary:#3b3b47;
   --secondary-hover:#4a4a5a;
 }
+
+/* ============================================
+   NORMALISATION POUR TOUS LES ÉCRANS ET NAVIGATEURS
+   ============================================ */
+html {
+  /* Taille de base fixe - identique partout */
+  font-size: 16px;
+  /* Normalisation du rendu texte pour Edge/Chrome/Firefox */
+  -webkit-text-size-adjust: 100%;
+  -ms-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+  /* Empêcher le zoom automatique sur certains éléments */
+  -webkit-tap-highlight-color: transparent;
+}
+
 *{ box-sizing:border-box; }
 body{
   margin:0;
-  font-family:system-ui,Segoe UI,Roboto,Arial;
+  font-family:system-ui,-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Oxygen,Ubuntu,Cantarell,Arial,sans-serif;
   color:var(--text);
   background:#000A68;
   min-height:100vh;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
 }
-.container{ width:min(1540px,94%); margin:0 auto; }
-.site-header{ background:rgba(23,23,27,.85); border-bottom:1px solid var(--border); position:sticky; top:0; backdrop-filter:blur(12px); z-index:10; box-shadow:0 2px 8px rgba(0,0,0,0.1); }
-.header-grid{ display:flex; align-items:center; justify-content:space-between; padding:16px 0; }
+.container{ max-width: 1540px; width: 94%; margin:0 auto; }
+.site-header{ background:rgba(23,23,27,.85); border-bottom:1px solid var(--border); position:sticky; top:0; backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px); z-index:10; box-shadow:0 2px 8px rgba(0,0,0,0.1); }
+.header-grid{ display:-webkit-box; display:-ms-flexbox; display:flex; -webkit-box-align:center; -ms-flex-align:center; align-items:center; -webkit-box-pack:justify; -ms-flex-pack:justify; justify-content:space-between; padding:16px 0; }
 
 /* Main content spacing below header */
 main.container {
