@@ -906,6 +906,31 @@ a[href*="edit"]:hover {
 
 /* Petits mobiles (< 600px) - 2 cartes par ligne style eBay */
 @media (max-width: 600px) {
+  /* Réorganisation mobile : cartes en premier */
+  .mobile-content-wrapper {
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .mobile-cta-block {
+    order: 2;
+    margin-top: 20px !important;
+    margin-bottom: 10px !important;
+  }
+  
+  .mobile-search-block {
+    order: 3;
+    margin-bottom: 15px !important;
+  }
+  
+  .page-layout {
+    order: 1;
+  }
+  
+  .page-sidebar {
+    order: 10;  /* Sidebar en dernier sur mobile */
+  }
+  
   .cards {
     grid-template-columns: repeat(2, 1fr);
     gap: 10px;
