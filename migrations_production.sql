@@ -39,6 +39,9 @@ ALTER TABLE demande_animation ADD COLUMN IF NOT EXISTS code_postal VARCHAR(10);
 -- Migration 12: Ajouter colonne region a demande_animation
 ALTER TABLE demande_animation ADD COLUMN IF NOT EXISTS region VARCHAR(100);
 
+-- Migration 13: Ajouter colonne display_order pour gerer l'ordre d'affichage des cartes
+ALTER TABLE shows ADD COLUMN IF NOT EXISTS display_order INTEGER DEFAULT 0;
+
 -- ======================================================
 -- VERIFICATION (optionnel)
 -- ======================================================
