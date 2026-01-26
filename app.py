@@ -832,6 +832,22 @@ def register_routes(app: Flask) -> None:
     # ---------------------------
     @app.route("/", endpoint="home")
     def home():
+        """Page d'accueil avec les deux blocs hero et le compteur"""
+        # Récupérer les spectacles "à la une" pour les afficher
+        spectacles_une = Show.query.filter(
+            Show.approved == True,
+            Show.category.ilike('%Spectacle à la une%'),
+        ).order_by(Show.display_order.asc()).limit(8).all()
+        
+        return render_template(
+            "home.html",
+            user=current_user(),
+            spectacles_une=spectacles_une,
+        )
+
+    @app.route("/catalogue", endpoint="catalogue")
+    def catalogue():
+        """Page catalogue avec les cartes des spectacles"""
         q = request.args.get("q", "", type=str).strip()
         category = request.args.get("category", "", type=str).strip()
         location = request.args.get("location", "", type=str).strip()
@@ -975,7 +991,7 @@ def register_routes(app: Flask) -> None:
         shows_list_sorted = sorted(shows_list, key=genre_order)
 
         return render_template(
-            "home.html",
+            "catalogue.html",
             shows=shows_list_sorted,
             pagination=pagination,
             q=q,
@@ -2217,7 +2233,7 @@ Accessibilité: {accessibilite}
         region = request.args.get('region', '').strip()
         
         # Base de la requête - TOUJOURS filtrer les demandes privées sur la page publique
-        demandes_query = DemandeAnimation.query.filter(DemandeAnimation.is_private.is_(False)).order_by(DemandeAnimation.created_at.desc())
+        demandes_query = DemandeAnimation.query.filter(DemandeAnimation.is_private == False).order_by(DemandeAnimation.created_at.desc())
         
         if categorie:
             demandes_query = demandes_query.filter(DemandeAnimation.genre_recherche.ilike(f"%{categorie}%"))

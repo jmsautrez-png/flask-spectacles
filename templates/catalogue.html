@@ -1,0 +1,552 @@
+{% extends "base.html" %}
+{# Bloc robots : noindex uniquement si recherche textuelle (pas pour pagination ou filtres) #}
+{% block robots %}
+  {% if q %}
+    <meta name="robots" content="noindex,follow">
+  {% else %}
+    <meta name="robots" content="index,follow">
+  {% endif %}
+{% endblock %}
+
+{# Balises rel prev/next pour la pagination #}
+{% if pagination %}
+  {% if pagination.has_prev %}
+    <link rel="prev" href="{{ url_for('catalogue', page=pagination.prev_num, category=request.args.get('category', ''), location=request.args.get('location', ''), _external=True) }}">
+  {% endif %}
+  {% if pagination.has_next %}
+    <link rel="next" href="{{ url_for('catalogue', page=pagination.next_num, category=request.args.get('category', ''), location=request.args.get('location', ''), _external=True) }}">
+  {% endif %}
+{% endif %}
+
+{# OG URL sans params aussi #}
+{% block og_url %}{{ request.base_url }}{% endblock %}
+{% block title %}Catalogue des spectacles - Spectacle'ment VØtre{% endblock %}
+{% block description %}Découvrez notre catalogue de spectacles pour enfants, animations d'entreprise et d'anniversaire. Magie, théâtre, cirque, clowns, marionnettes. Réservez directement avec des artistes professionnels en France.{% endblock %}
+{% block content %}
+
+<style>
+@keyframes pulse {
+  0%, 100% {
+    transform: scale(1);
+    box-shadow: 0 4px 15px rgba(109,19,19,0.5);
+  }
+  50% {
+    transform: scale(1.05);
+    box-shadow: 0 6px 20px rgba(109,19,19,0.8);
+  }
+}
+
+@keyframes border-spin {
+  0% {
+    background-position: 0% 50%;
+  }
+  100% {
+    background-position: 200% 50%;
+  }
+}
+
+.btn-mairie-wrapper {
+  position: relative;
+  display: inline-block;
+  padding: 3px;
+  border-radius: 28px;
+  background: linear-gradient(90deg, #ffc107, #ff5722, #e91e63, #9c27b0, #3f51b5, #2196f3, #00bcd4, #4caf50, #ffc107);
+  background-size: 200% 100%;
+  animation: border-spin 2s linear infinite;
+}
+
+.btn-mairie {
+  display: block;
+  background: #ffc107;
+  color: #000;
+  padding: 12px 24px;
+  border-radius: 25px;
+  font-weight: 700;
+  font-size: 1.1rem;
+  text-decoration: none;
+  white-space: nowrap;
+  letter-spacing: 0.8px;
+  transition: all 0.3s;
+}
+
+.btn-mairie:hover {
+  transform: scale(1.02);
+}
+
+.btn-artiste-wrapper {
+  position: relative;
+  display: inline-block;
+  padding: 3px;
+  border-radius: 28px;
+  background: linear-gradient(90deg, #ffc107, #ffeb3b, #ff9800, #ffd54f, #ffca28, #fff176, #ffc107);
+  background-size: 200% 100%;
+  animation: border-spin 2s linear infinite;
+}
+
+.btn-artiste {
+  display: block;
+  background: linear-gradient(135deg, #ffc107 0%, #ffeb3b 50%, #ffd54f 100%);
+  color: #000;
+  padding: 8px 18px;
+  border-radius: 25px;
+  font-weight: 600;
+  font-size: 0.95rem;
+  text-decoration: none;
+  white-space: nowrap;
+  letter-spacing: 0.5px;
+  transition: all 0.3s;
+}
+
+.btn-artiste:hover {
+  transform: scale(1.02);
+}
+
+.btn-evenement-wrapper {
+  position: relative;
+  display: inline-block;
+  padding: 3px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #0a0a1a 0%, #6d1313 25%, #e91e63 50%, #9c27b0 75%, #0a0a1a 100%);
+  background-size: 300% 300%;
+  animation: header-gradient-btn 8s ease infinite;
+}
+
+@keyframes header-gradient-btn {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+
+.btn-evenement {
+  display: block;
+  background: linear-gradient(135deg, #1a0a0a 0%, #6d1313 30%, #8b1e1e 50%, #6d1313 70%, #1a0a0a 100%);
+  background-size: 300% 300%;
+  animation: header-gradient-btn 8s ease infinite;
+  color: #fff;
+  padding: 12px 28px;
+  border-radius: 10px;
+  font-weight: 700;
+  font-size: 1.08em;
+  text-decoration: none;
+  white-space: nowrap;
+  box-shadow: 0 4px 15px rgba(109, 19, 19, 0.5);
+  transition: all 0.3s;
+}
+
+.btn-evenement:hover {
+  transform: scale(1.03);
+  box-shadow: 0 6px 20px rgba(233, 30, 99, 0.6);
+}
+</style>
+
+<div class="mobile-content-wrapper">
+
+<div class="mobile-cta-block" style="display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:16px;">
+  <h1 id="catalogue" style="font-size:1.25rem;margin:0 0 8px 0;font-weight:700;color:#FFDEDE;line-height:1.3;">{{ h1_title|default('Spectacles et animations pour mairies, écoles et CSE partout en France') }}</h1>
+  <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;justify-content:flex-end;width:100%;">
+      <span class="btn-artiste-wrapper">
+        <a href="{{ url_for('publish') }}" class="btn-artiste">
+          Je suis artiste / compagnie — Je publie mon spectacle
+        </a>
+      </span>
+      <a href="{{ url_for('abonnement_compagnie') }}" style="background:linear-gradient(135deg,#1a237e 0%,#283e5e 50%,#1976d2 100%);color:#fff;padding:8px 18px;border-radius:22px;font-weight:600;font-size:0.95rem;text-decoration:none;box-shadow:0 2px 8px #1976d244;transition:background .2s;white-space:nowrap;display:inline-block;letter-spacing:0.5px;">
+        Abonnement Compagnie
+      </a>
+    <a href="{{ url_for('demandes_animation') }}" style="background:linear-gradient(135deg,#0d47a1 0%,#1976d2 50%,#43cea2 100%);color:#fff;padding:8px 18px;border-radius:22px;font-weight:600;font-size:0.95rem;text-decoration:none;box-shadow:0 2px 8px #1976d244;transition:background .2s;white-space:nowrap;display:inline-block;letter-spacing:0.5px;">
+      Voir les appels d'offres
+    </a>
+    <span class="btn-mairie-wrapper">
+      <a href="{{ url_for('demande_animation') }}" class="btn-mairie">
+        🎯 Mairie, CSE, École, asso etc — Je publie mon appel d'offre
+      </a>
+    </span>
+  </div>
+</div>
+
+
+<form action="" method="get" class="mobile-search-block"
+      style="display:flex; align-items:center; gap:12px; background:#f8f9fa; border:2px solid #283e5e; padding:10px 16px; border-radius:14px; margin:0 0 20px; box-shadow:0 2px 8px #16244722; color:#888;"
+      role="search"
+      aria-label="Rechercher un spectacle">
+  <span aria-hidden="true" style="color:#888;">🔍</span>
+  <input name="q" value="{{ q or '' }}"
+    placeholder="Recherche catégorie, spectacle, âge..."
+    aria-label="Recherche générale"
+    style="flex:2; border:none; background:transparent; outline:none; font-size:15px; color:#888;">
+  <span style="color:#ccc;">|</span>
+  <input name="location" value="{{ location or '' }}"
+    placeholder="Ville ou région..."
+    style="flex:1; border:none; background:transparent; outline:none; font-size:15px; color:#888;">
+  <button type="submit"
+     style="border:none; background:var(--primary); color:white; font-weight:600; cursor:pointer; padding:6px 14px; border-radius:8px;">Rechercher</button>
+</form>
+
+<div class="page-layout">
+  <!-- COLONNE GAUCHE : catalogue -->
+  <div class="page-main">
+
+    <div style="display:flex; align-items:center; gap:8px; margin-bottom:18px;">
+      <span style="font-size:1.3em; color:#f1c40f;">✨</span>
+      <span style="color:#f1c40f; font-size:1em; font-weight:600; letter-spacing:0.5px;"> Nouveautés du mois : spectacles & animations au rendez-vous. </span>
+    </div>
+    <div class="cards">
+      {% for show in shows or [] %}
+      <article class="card" style="border:2px solid #222;border-radius:16px;box-shadow:0 2px 12px #0008;padding:0 0 8px 0;transition:box-shadow .2s;color:#fff;">
+        <a href="{{ url_for('show_detail', show_id=show.id) }}" class="media-link">
+          <div class="media">
+            {% set images = show.get_all_images() %}
+            {% if images|length > 1 %}
+              <!-- Diaporama avec plusieurs photos -->
+              <div class="card-carousel" data-carousel>
+                <div class="carousel-slides">
+                  {% for img in images %}
+                  <div class="carousel-slide">
+                    <img src="{{ url_for('uploaded_file', filename=img) }}" alt="{{ show.title }}{% if loop.index > 1 %} - Photo {{ loop.index }}{% endif %}">
+                  </div>
+                  {% endfor %}
+                </div>
+                <span class="photo-count">{{ images|length }} 📷</span>
+                <div class="carousel-indicators">
+                  {% for img in images %}
+                  <span class="carousel-indicator{% if loop.first %} active{% endif %}" data-slide="{{ loop.index0 }}"></span>
+                  {% endfor %}
+                </div>
+                <button class="carousel-nav carousel-prev" aria-label="Photo précédente">‹</button>
+                <button class="carousel-nav carousel-next" aria-label="Photo suivante">›</button>
+              </div>
+            {% elif show.has_image() %}
+              <img src="{{ url_for('uploaded_file', filename=show.file_name) }}" alt="{{ show.title }}">
+            {% elif show.is_pdf() %}
+              <div class="pdf-thumb">
+                <a href="{{ url_for('uploaded_file', filename=show.file_name) }}" target="_blank" rel="noopener">PDF</a>
+              </div>
+            {% else %}
+              <div class="placeholder">Aucun fichier</div>
+            {% endif %}
+          </div>
+        </a>
+
+        <a href="{{ url_for('show_detail', show_id=show.id) }}" class="content-link">
+          <div class="content">
+            {% if show.raison_sociale %}
+              <p class="meta" style="font-weight:600; margin-bottom:8px; color:var(--primary); font-size:0.85em;">
+                {{ show.raison_sociale|title }}
+              </p>
+            {% endif %}
+            <h3 style="margin:0 0 6px 0; line-height:1.2;">{{ show.title }}</h3>
+            
+            <div style="display:flex; flex-direction:column; gap:4px; font-size:0.85em; margin-top:-2px;">
+
+              
+
+              
+              {% if show.age_range %}
+              <div style="display:flex; align-items:center; gap:6px;">
+                <span style="opacity:0.7; min-width:20px;">👥</span>
+                <span style="color:rgba(255,255,255,0.9);">{{ show.age_range|format_age }}</span>
+              </div>
+              {% endif %}
+
+            </div>
+            
+            {% if not show.approved %}
+
+            {% endif %}
+          </div>
+        </a>
+
+        {% if user and user.is_admin %}
+        <div class="actions">
+          <a href="{{ url_for('show_edit', show_id=show.id) }}">Modifier</a>
+
+          <form action="{{ url_for('show_delete', show_id=show.id) }}" method="post"
+                onsubmit="return confirm('Supprimer cette annonce ?');">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+            <button type="submit" class="danger">Supprimer</button>
+          </form>
+
+          {% if not show.approved %}
+          <form action="{{ url_for('show_approve', show_id=show.id) }}" method="post">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+            <button type="submit">✅ Valider</button>
+          </form>
+          {% endif %}
+        </div>
+        {% endif %}
+      </article>
+      {% endfor %}
+    </div>
+
+
+    {# PAGINATION #}
+    {% if pagination and pagination.pages > 1 %}
+    <nav class="pagination" style="margin: 30px 0; text-align: center;">
+      <div style="display: inline-flex; gap: 8px; align-items: center; flex-wrap: wrap; justify-content: center;">
+        {% if pagination.has_prev %}
+           <a href="{{ url_for('catalogue', page=pagination.prev_num, q=q, category=category, location=location, type=type_filter, sort=sort, date_from=date_from, date_to=date_to) }}"
+             style="padding: 8px 12px; background: var(--primary); color: white; text-decoration: none; border-radius: 4px; font-weight: 600;">
+            ← Précédent
+          </a>
+        {% else %}
+          <span style="padding: 8px 12px; background: #ddd; color: #999; border-radius: 4px; font-weight: 600;">
+            ← Précédent
+          </span>
+        {% endif %}
+
+        {% for p in pagination.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
+          {% if p %}
+            {% if p == pagination.page %}
+              <span style="padding: 8px 12px; background: var(--primary); color: white; border-radius: 4px; font-weight: 600;">
+                {{ p }}
+              </span>
+            {% else %}
+                <a href="{{ url_for('catalogue', page=p, q=q, category=category, location=location, type=type_filter, sort=sort, date_from=date_from, date_to=date_to) }}"
+                  style="padding: 8px 12px; background: #f2f3f7; color: var(--text); text-decoration: none; border-radius: 4px; font-weight: 600;"{% if p == 1 %} rel="first"{% endif %}>
+                {{ p }}
+              </a>
+            {% endif %}
+          {% else %}
+            <span style="padding: 8px 12px; color: #999;">...</span>
+          {% endif %}
+        {% endfor %}
+
+        {% if pagination.has_next %}
+           <a href="{{ url_for('catalogue', page=pagination.next_num, q=q, category=category, location=location, type=type_filter, sort=sort, date_from=date_from, date_to=date_to) }}"
+             rel="next"
+             style="padding: 8px 12px; background: var(--primary); color: white; text-decoration: none; border-radius: 4px; font-weight: 600;">
+            Suivant →
+          </a>
+        {% else %}
+          <span style="padding: 8px 12px; background: #ddd; color: #999; border-radius: 4px; font-weight: 600;">
+            Suivant →
+          </span>
+        {% endif %}
+      </div>
+
+      <p style="margin-top: 16px; color: var(--muted); font-size: 0.9rem;">
+        Page {{ pagination.page }} sur {{ pagination.pages }} ({{ pagination.total }} résultat{{ 's' if pagination.total > 1 else '' }})
+      </p>
+    </nav>
+    {% endif %}
+
+  </div>
+
+  <!-- COLONNE DROITE : ton nouveau bloc -->
+  <aside class="page-sidebar">
+    <section class="seo-block" style="background:linear-gradient(135deg,#162447 0%,#283e5e 100%); border:2px solid #283e5e; border-radius:16px; padding:24px; margin-bottom:24px; box-shadow:0 2px 12px #16244722; color:#fff;">
+      <h2>Mairie, CSE, Ecole etc. — Besoin d'un spectacle, une animation, un atelier, un concert, un DJ etc..?</h2>
+      <p>
+        Retrouvez rapidement un spectacle par thème&nbsp;:
+      </p>
+        <div style="margin: 12px 0 18px 0; text-align:center; display:flex; flex-direction:column; gap:10px; align-items:center;">
+          <a href="{{ url_for('seo_category', category_slug='une') }}" class="btn btn-featured theme-btn" data-theme="une" style="display:inline-block; background:#ffc107; color:#000; font-weight:700; border-radius:25px; padding:12px 28px; font-size:1.08em; box-shadow:0 4px 15px rgba(255,193,7,0.5); text-decoration:none; transition:all 0.3s; border:3px solid #000;">⭐ Spectacle à la une</a>
+          <span class="btn-evenement-wrapper"><a href="{{ url_for('evenements') }}" class="btn-evenement">📅 Événements annoncés</a></span>
+        </div>
+      <ul style="list-style:none; padding:0; margin:0 0 12px 0;">
+        <li><a href="{{ url_for('catalogue') }}" style="color:#FFDEDE;font-weight:bold;">Tout</a></li>
+        <li><a href="{{ url_for('seo_category', category_slug='marionnette') }}" style="color:#FFDEDE;">Marionnette</a></li>
+        <li><a href="{{ url_for('seo_category', category_slug='magie') }}" style="color:#FFDEDE;">Magie</a></li>
+        <li><a href="{{ url_for('seo_category', category_slug='clown') }}" style="color:#FFDEDE;">Clown</a></li>
+        <li><a href="{{ url_for('seo_category', category_slug='theatre') }}" style="color:#FFDEDE;">Théâtre</a></li>
+        <li><a href="{{ url_for('seo_category', category_slug='danse') }}" style="color:#FFDEDE;">Danse</a></li>
+        <li><a href="{{ url_for('seo_category', category_slug='enfant') }}" style="color:#FFDEDE;">Spectacle enfant</a></li>
+        <li><a href="{{ url_for('seo_category', category_slug='atelier') }}" style="color:#FFDEDE;">Atelier</a></li>
+        <li><a href="{{ url_for('seo_category', category_slug='concert') }}" style="color:#FFDEDE;">Concert</a></li>
+        <li><a href="{{ url_for('seo_category', category_slug='cirque') }}" style="color:#FFDEDE;">Cirque</a></li>
+        <li><a href="{{ url_for('seo_category', category_slug='rue') }}" style="color:#FFDEDE;">Spectacle de rue</a></li>
+        <li><a href="{{ url_for('seo_category', category_slug='orchestre') }}" style="color:#FFDEDE;">Orchestre</a></li>
+        <li><a href="{{ url_for('seo_category', category_slug='arbre-de-noel') }}" style="color:#FFDEDE;font-weight:600;">Arbre de Noël</a></li>
+        <li><a href="{{ url_for('seo_category', category_slug='animation-ecole') }}" style="color:#FFDEDE;font-weight:600;">Animation école</a></li>
+        <li><a href="{{ url_for('seo_category', category_slug='fete-de-village') }}" style="color:#FFDEDE;font-weight:600;">Fête de village</a></li>
+      </ul>
+    </section>
+  </aside>
+</div>
+
+</div><!-- Fin mobile-content-wrapper -->
+
+<script>
+(function() {
+  // Rotation automatique des pages de pagination toutes les 30 secondes
+  let currentPage = 1;
+  const cardsContainer = document.querySelector('.cards');
+  
+  if (!cardsContainer) return;
+  
+  // Détecter le nombre total de pages
+  const paginationLinks = document.querySelectorAll('.pagination a');
+  let maxPages = 1;
+  paginationLinks.forEach(link => {
+    const match = link.href.match(/[?&]page=(\d+)/);
+    if (match) {
+      const pageNum = parseInt(match[1]);
+      if (pageNum > maxPages) maxPages = pageNum;
+    }
+  });
+  
+  // Si pas de pagination détectée, chercher dans le texte
+  const paginationText = document.querySelector('.pagination p');
+  if (paginationText && maxPages === 1) {
+    const match = paginationText.textContent.match(/sur (\d+)/);
+    if (match) maxPages = parseInt(match[1]);
+  }
+  
+  function loadNextPage() {
+    currentPage++;
+    if (currentPage > maxPages) {
+      currentPage = 1;
+    }
+    
+    // Animation de sortie
+    cardsContainer.style.opacity = '0.3';
+    cardsContainer.style.transition = 'opacity 0.5s ease';
+    
+    // Construire l'URL avec le paramètre page
+    const url = new URL(window.location.href);
+    url.searchParams.set('page', currentPage);
+    
+    // Charger le contenu via fetch
+    fetch(url)
+      .then(response => response.text())
+      .then(html => {
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(html, 'text/html');
+        const newCards = doc.querySelector('.cards');
+        
+        if (newCards) {
+          setTimeout(() => {
+            cardsContainer.innerHTML = newCards.innerHTML;
+            cardsContainer.style.opacity = '1';
+            // Réinitialiser les carousels après le chargement
+            if (typeof initCarousels === 'function') {
+              initCarousels();
+            }
+          }, 500);
+        }
+      })
+      .catch(error => {
+        console.log('Rotation des pages:', error);
+        cardsContainer.style.opacity = '1';
+      });
+  }
+  
+  // Lancer la rotation toutes les 30 secondes
+  setInterval(loadNextPage, 30000);
+})();
+</script>
+
+<!-- Script pour les carousels de photos sur les cartes -->
+<script>
+// Fonction globale pour initialiser les carousels
+function initCarousels() {
+  console.log('Initialisation des carousels...');
+  
+  var carousels = document.querySelectorAll('[data-carousel]');
+  console.log('Nombre de carousels trouvés:', carousels.length);
+  
+  carousels.forEach(function(carousel, carouselIndex) {
+    // Éviter de réinitialiser un carousel déjà initialisé
+    if (carousel.dataset.initialized === 'true') return;
+    carousel.dataset.initialized = 'true';
+    
+    var slidesContainer = carousel.querySelector('.carousel-slides');
+    var allSlides = carousel.querySelectorAll('.carousel-slide');
+    var indicators = carousel.querySelectorAll('.carousel-indicator');
+    var prevBtn = carousel.querySelector('.carousel-prev');
+    var nextBtn = carousel.querySelector('.carousel-next');
+    var totalSlides = allSlides.length;
+    var currentSlide = 0;
+    var isPaused = false;
+    var lastChangeTime = Date.now();
+    var INTERVAL = 8000; // 8 secondes
+
+    console.log('Carousel', carouselIndex, ':', totalSlides, 'slides');
+
+    // Ne pas initialiser si une seule slide
+    if (totalSlides <= 1) {
+      console.log('Carousel', carouselIndex, ': une seule slide, skip');
+      return;
+    }
+
+    function goToSlide(index) {
+      if (index < 0) {
+        index = totalSlides - 1;
+      } else if (index >= totalSlides) {
+        index = 0;
+      }
+      currentSlide = index;
+      if (slidesContainer) {
+        slidesContainer.style.transform = 'translateX(-' + (currentSlide * 100) + '%)';
+      }
+      
+      indicators.forEach(function(ind, i) {
+        if (i === currentSlide) {
+          ind.classList.add('active');
+        } else {
+          ind.classList.remove('active');
+        }
+      });
+      
+      lastChangeTime = Date.now();
+    }
+
+    function nextSlide() {
+      goToSlide(currentSlide + 1);
+    }
+
+    function prevSlide() {
+      goToSlide(currentSlide - 1);
+    }
+
+    // Boucle d'animation continue
+    function tick() {
+      if (!isPaused && document.body.contains(carousel)) {
+        var now = Date.now();
+        if (now - lastChangeTime >= INTERVAL) {
+          nextSlide();
+        }
+        requestAnimationFrame(tick);
+      }
+    }
+
+    if (prevBtn) {
+      prevBtn.addEventListener('click', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        prevSlide();
+      });
+    }
+
+    if (nextBtn) {
+      nextBtn.addEventListener('click', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        nextSlide();
+      });
+    }
+
+    indicators.forEach(function(indicator, i) {
+      indicator.addEventListener('click', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        goToSlide(i);
+      });
+    });
+
+    carousel.addEventListener('mouseenter', function() {
+      isPaused = true;
+    });
+    carousel.addEventListener('mouseleave', function() {
+      isPaused = false;
+      lastChangeTime = Date.now();
+    });
+
+    requestAnimationFrame(tick);
+    console.log('Carousel', carouselIndex, ': démarré');
+  });
+}
+
+// Initialiser au chargement
+document.addEventListener('DOMContentLoaded', initCarousels);
+</script>
+
+{% endblock %}
