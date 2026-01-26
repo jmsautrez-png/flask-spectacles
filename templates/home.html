@@ -648,9 +648,6 @@
       indicator.addEventListener('click', function(e) { e.preventDefault(); e.stopPropagation(); goToSlide(i); });
     });
 
-    carousel.addEventListener('mouseenter', function() { isPaused = true; });
-    carousel.addEventListener('mouseleave', function() { isPaused = false; lastChangeTime = Date.now(); });
-
     requestAnimationFrame(tick);
   });
 })();
