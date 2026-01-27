@@ -1,0 +1,229 @@
+{% extends "base.html" %}
+{% block title %}Qui sommes-nous - Spectacle'ment VØtre{% endblock %}
+
+{% block content %}
+<style>
+  .about-hero {
+    text-align: center;
+    padding: 3rem 1rem;
+    background: linear-gradient(135deg, rgba(109, 19, 19, 0.1), rgba(255, 193, 7, 0.1));
+    border-radius: 20px;
+    margin-bottom: 2rem;
+  }
+  
+  .about-hero h1 {
+    font-size: 2.5rem;
+    color: var(--primary);
+    margin-bottom: 1rem;
+  }
+  
+  .about-hero .subtitle {
+    font-size: 1.2rem;
+    color: var(--text-muted);
+    max-width: 700px;
+    margin: 0 auto;
+  }
+  
+  .about-section {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 2rem;
+    margin-bottom: 2rem;
+  }
+  
+  .about-section h2 {
+    color: var(--primary);
+    font-size: 1.6rem;
+    margin-bottom: 1.2rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  
+  .about-section p {
+    font-size: 1.1rem;
+    line-height: 1.8;
+    margin-bottom: 1rem;
+  }
+  
+  .values-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1.5rem;
+    margin-top: 1.5rem;
+  }
+  
+  .value-card {
+    background: linear-gradient(135deg, rgba(109, 19, 19, 0.05), rgba(255, 193, 7, 0.05));
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1.5rem;
+    text-align: center;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+  }
+  
+  .value-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+  }
+  
+  .value-card .icon {
+    font-size: 2.5rem;
+    margin-bottom: 1rem;
+  }
+  
+  .value-card h3 {
+    color: var(--primary);
+    font-size: 1.2rem;
+    margin-bottom: 0.8rem;
+  }
+  
+  .value-card p {
+    font-size: 1rem;
+    color: var(--text-muted);
+    margin: 0;
+  }
+  
+  .team-section {
+    text-align: center;
+  }
+  
+  .team-section .team-intro {
+    max-width: 700px;
+    margin: 0 auto 1.5rem;
+  }
+  
+  .cta-section {
+    background: linear-gradient(135deg, #6d1313, #8b1e1e);
+    color: white;
+    text-align: center;
+    padding: 2.5rem;
+    border-radius: 16px;
+    margin-top: 2rem;
+  }
+  
+  .cta-section h2 {
+    color: #ffc107;
+    margin-bottom: 1rem;
+  }
+  
+  .cta-section p {
+    font-size: 1.15rem;
+    margin-bottom: 1.5rem;
+    opacity: 0.95;
+  }
+  
+  .cta-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+  
+  .cta-btn {
+    display: inline-block;
+    padding: 0.9rem 2rem;
+    border-radius: 8px;
+    font-weight: 700;
+    text-decoration: none;
+    transition: all 0.3s ease;
+  }
+  
+  .cta-btn-primary {
+    background: #ffc107;
+    color: #1a0a0a;
+  }
+  
+  .cta-btn-primary:hover {
+    background: #ffca28;
+    transform: translateY(-2px);
+  }
+  
+  .cta-btn-secondary {
+    background: transparent;
+    color: #fff;
+    border: 2px solid #fff;
+  }
+  
+  .cta-btn-secondary:hover {
+    background: rgba(255, 255, 255, 0.1);
+    transform: translateY(-2px);
+  }
+</style>
+
+<div class="about-hero">
+  <h1>🎭 Qui sommes-nous ?</h1>
+  <p class="subtitle">
+    <strong>Spectacle'ment VØtre</strong> est une plateforme de mise en relation entre organisateurs d'événements 
+    et artistes du spectacle vivant. Notre mission : faciliter l'accès à la culture pour tous.
+  </p>
+</div>
+
+<section class="about-section">
+  <h2>🌟 Notre Mission</h2>
+  <p>
+    Nous croyons que le spectacle vivant doit être accessible à tous. C'est pourquoi nous avons créé 
+    <strong>Spectacle'ment VØtre</strong>, une plateforme qui simplifie la mise en relation entre 
+    les organisateurs (mairies, écoles, CSE, associations) et les artistes/compagnies de spectacle vivant.
+  </p>
+  <p>
+    Notre objectif est de démocratiser l'accès aux arts du spectacle en permettant à chaque structure, 
+    quelle que soit sa taille ou son budget, de trouver facilement l'artiste ou la compagnie 
+    correspondant à ses besoins et à ses valeurs.
+  </p>
+</section>
+
+<section class="about-section">
+  <h2>💎 Nos Valeurs</h2>
+  <div class="values-grid">
+    <div class="value-card">
+      <div class="icon">🎪</div>
+      <h3>Diversité Artistique</h3>
+      <p>Magiciens, clowns, marionnettistes, conteurs... Nous proposons une grande variété de spectacles pour tous les publics.</p>
+    </div>
+    <div class="value-card">
+      <div class="icon">🤝</div>
+      <h3>Proximité</h3>
+      <p>Nous favorisons les rencontres locales entre artistes et organisateurs pour créer des liens durables.</p>
+    </div>
+    <div class="value-card">
+      <div class="icon">✨</div>
+      <h3>Qualité</h3>
+      <p>Chaque artiste et compagnie présent sur notre plateforme est sélectionné pour son professionnalisme et sa créativité.</p>
+    </div>
+    <div class="value-card">
+      <div class="icon">🏫</div>
+      <h3>Pédagogie</h3>
+      <p>Nous accordons une attention particulière aux interventions pédagogiques en milieu scolaire.</p>
+    </div>
+  </div>
+</section>
+
+<section class="about-section team-section">
+  <h2>👥 Notre Équipe</h2>
+  <p class="team-intro">
+    Passionnés par le spectacle vivant et les rencontres humaines, nous mettons notre expertise au service 
+    des artistes et des organisateurs pour créer des moments magiques et inoubliables.
+  </p>
+  <p>
+    Notre équipe est composée de professionnels du spectacle, de la communication et du numérique, 
+    tous animés par la même envie : faire rayonner la culture et les arts du spectacle.
+  </p>
+</section>
+
+<section class="cta-section">
+  <h2>🎯 Envie de collaborer ?</h2>
+  <p>
+    Que vous soyez un organisateur à la recherche du spectacle parfait ou un artiste souhaitant 
+    développer votre visibilité, nous sommes là pour vous accompagner.
+  </p>
+  <div class="cta-buttons">
+    <a href="{{ url_for('contact') }}" class="cta-btn cta-btn-primary">📧 Nous contacter</a>
+    <a href="{{ url_for('catalogue') }}" class="cta-btn cta-btn-secondary">🎭 Découvrir le catalogue</a>
+  </div>
+</section>
+
+{% endblock %}
+
+{% block seo_block %}{% endblock %}

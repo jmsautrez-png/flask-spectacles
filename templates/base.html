@@ -62,6 +62,148 @@
   <!-- Stylesheet -->
   <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
   
+  <!-- Hamburger Menu CSS -->
+  <style>
+    .hamburger-container {
+      position: fixed;
+      right: 1.5rem;
+      top: 1rem;
+      z-index: 9999;
+    }
+    
+    .hamburger-btn {
+      display: flex;
+      flex-direction: column;
+      justify-content: space-around;
+      width: 3.2rem;
+      height: 2.8rem;
+      background: linear-gradient(135deg, #6d1313, #8b1e1e);
+      border: 3px solid #ffc107;
+      border-radius: 10px;
+      cursor: pointer;
+      padding: 0.5rem;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4), 0 0 10px rgba(255, 193, 7, 0.3);
+    }
+    
+    .hamburger-btn:hover {
+      background: linear-gradient(135deg, #8b1e1e, #a52a2a);
+      border-color: #ffca28;
+      box-shadow: 0 6px 25px rgba(0, 0, 0, 0.5), 0 0 25px rgba(255, 193, 7, 0.6);
+      transform: scale(1.08);
+    }
+    
+    .hamburger-btn span {
+      display: block;
+      width: 100%;
+      height: 4px;
+      background: #ffc107;
+      border-radius: 3px;
+      transition: all 0.3s ease;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+    }
+    
+    .hamburger-btn:hover span {
+      background: #ffeb3b;
+      box-shadow: 0 0 8px rgba(255, 235, 59, 0.8);
+    }
+    
+    .hamburger-menu {
+      position: absolute;
+      top: calc(100% + 0.8rem);
+      right: 0;
+      background: linear-gradient(135deg, #1a0a0a 0%, #2d1515 50%, #1a0a0a 100%);
+      border: 3px solid #ffc107;
+      border-radius: 14px;
+      padding: 1rem;
+      min-width: 240px;
+      box-shadow: 0 12px 40px rgba(0, 0, 0, 0.7), 0 0 30px rgba(255, 193, 7, 0.3);
+      opacity: 0;
+      visibility: hidden;
+      transform: translateY(-10px);
+      transition: all 0.3s ease;
+    }
+    
+    .hamburger-menu.active {
+      opacity: 1;
+      visibility: visible;
+      transform: translateY(0);
+    }
+    
+    .hamburger-menu a {
+      display: block;
+      padding: 0.85rem 1.2rem;
+      color: #fff;
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 1rem;
+      border-radius: 10px;
+      margin-bottom: 0.6rem;
+      transition: all 0.3s ease;
+      text-align: center;
+    }
+    
+    .hamburger-menu a:last-child {
+      margin-bottom: 0;
+    }
+    
+    .hamburger-menu a.menu-catalogue {
+      background: linear-gradient(135deg, #ff5722, #ff9800);
+      border: 2px solid rgba(255, 255, 255, 0.3);
+      color: #333;
+    }
+    
+    .hamburger-menu a.menu-catalogue:hover {
+      background: linear-gradient(135deg, #ff6f3c, #ffab40);
+      transform: scale(1.03);
+      box-shadow: 0 4px 15px rgba(255, 87, 34, 0.5);
+      color: #222;
+    }
+    
+    .hamburger-menu a.menu-contact {
+      background: linear-gradient(135deg, #28a745, #20c997);
+      border: 2px solid rgba(255, 255, 255, 0.3);
+    }
+    
+    .hamburger-menu a.menu-contact:hover {
+      background: linear-gradient(135deg, #34ce57, #2ed8a8);
+      transform: scale(1.03);
+      box-shadow: 0 4px 15px rgba(40, 167, 69, 0.5);
+    }
+    
+    .hamburger-menu a.menu-about {
+      background: linear-gradient(135deg, #6f42c1, #9c27b0);
+      border: 2px solid rgba(255, 255, 255, 0.3);
+    }
+    
+    .hamburger-menu a.menu-about:hover {
+      background: linear-gradient(135deg, #7e4fd4, #ab47bc);
+      transform: scale(1.03);
+      box-shadow: 0 4px 15px rgba(111, 66, 193, 0.5);
+    }
+    
+    .hamburger-menu a.menu-pedagogique {
+      background: linear-gradient(135deg, #1a237e, #0d47a1);
+      border: 2px solid rgba(255, 255, 255, 0.3);
+    }
+    
+    .hamburger-menu a.menu-pedagogique:hover {
+      background: linear-gradient(135deg, #283593, #1565c0);
+      transform: scale(1.03);
+      box-shadow: 0 4px 15px rgba(13, 71, 161, 0.5);
+    }
+    
+    @media (max-width: 900px) {
+      .hamburger-container {
+        right: 0.5rem;
+        top: 0.5rem;
+      }
+      .hamburger-menu {
+        min-width: 200px;
+      }
+    }
+  </style>
+  
   <!-- Smooth scroll script -->
   <script>
     document.addEventListener('DOMContentLoaded', function() {
@@ -701,6 +843,42 @@
     {% endif %}
   </div>
 </header>
+
+<!-- Hamburger Menu fixe en haut à droite -->
+<div class="hamburger-container">
+  <button class="hamburger-btn" id="hamburger-btn" aria-label="Menu">
+    <span></span>
+    <span></span>
+    <span></span>
+  </button>
+  <div class="hamburger-menu" id="hamburger-menu">
+    <a href="{{ url_for('catalogue') }}" class="menu-catalogue">🎭 Catalogue</a>
+    <a href="{{ url_for('contact') }}" class="menu-contact">📧 Contact</a>
+    <a href="{{ url_for('about') }}" class="menu-about">ℹ️ Qui sommes-nous</a>
+    <a href="{{ url_for('ecoles_themes') }}" class="menu-pedagogique">🎓 Intervention pédagogique</a>
+  </div>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    var hamburgerBtn = document.getElementById('hamburger-btn');
+    var hamburgerMenu = document.getElementById('hamburger-menu');
+    
+    hamburgerBtn.addEventListener('click', function(e) {
+      e.stopPropagation();
+      hamburgerBtn.classList.toggle('active');
+      hamburgerMenu.classList.toggle('active');
+    });
+    
+    // Fermer le menu en cliquant ailleurs
+    document.addEventListener('click', function(e) {
+      if (!hamburgerBtn.contains(e.target) && !hamburgerMenu.contains(e.target)) {
+        hamburgerBtn.classList.remove('active');
+        hamburgerMenu.classList.remove('active');
+      }
+    });
+  });
+</script>
 
 <main class="container">
 

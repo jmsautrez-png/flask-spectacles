@@ -2200,6 +2200,10 @@ Accessibilité: {accessibilite}
     def abonnement_compagnie():
         return render_template("abonnement_compagnie.html")
 
+    @app.route("/qui-sommes-nous")
+    def about():
+        return render_template("about.html")
+
     @app.route("/contact", methods=["GET", "POST"])
     def contact():
         if request.method == "POST":
