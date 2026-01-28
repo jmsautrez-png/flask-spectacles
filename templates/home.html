@@ -412,23 +412,49 @@
     margin-bottom: 24px;
   }
   
+  .spectacles-une-header-link {
+    display: block;
+    text-decoration: none;
+    color: inherit;
+    padding: 16px;
+    border-radius: 12px;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+  }
+  
+  .spectacles-une-header-link:hover {
+    background-color: rgba(255, 255, 255, 0.05);
+    transform: scale(1.02);
+  }
+  
+  .spectacles-une-header-link:hover h2 {
+    color: var(--primary, #f59e0b);
+  }
+  
+  .spectacles-une-header-link:hover p {
+    color: var(--text);
+  }
+  
   .spectacles-une-header h2 {
     font-size: 1.8rem;
     margin: 0 0 8px 0;
     color: var(--text);
+    transition: color 0.3s ease;
   }
   
   .spectacles-une-header p {
     color: var(--muted);
     font-size: 1rem;
     margin: 0;
+    transition: color 0.3s ease;
   }
 </style>
 
 <div class="spectacles-une-section">
   <div class="spectacles-une-header">
-    <h2>✨ Spectacles à la Une</h2>
-    <p>Découvrez notre sélection de spectacles exceptionnels</p>
+    <a href="https://spectacleanimation.fr/catalogue" class="spectacles-une-header-link">
+      <h2>✨ Spectacles à la Une</h2>
+      <p>Découvrez notre sélection de spectacles exceptionnels</p>
+    </a>
   </div>
   
   <div class="cards">
