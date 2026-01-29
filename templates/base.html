@@ -7,8 +7,32 @@
       "@context": "https://schema.org",
       "@type": "Organization",
       "name": "Spectacle'ment VØtre",
+      "alternateName": "Spectaclement Votre",
       "url": "{{ request.url_root }}",
-      "logo": "{{ url_for('static', filename='img/logo_spectaclement_votre.jpg', _external=True) }}"
+      "logo": {
+        "@type": "ImageObject",
+        "url": "{{ url_for('static', filename='img/logo_spectaclement_votre.png', _external=True) }}",
+        "width": 512,
+        "height": 512,
+        "caption": "Logo Spectacle'ment VØtre"
+      },
+      "image": "{{ url_for('static', filename='img/logo_spectaclement_votre.png', _external=True) }}",
+      "description": "Plateforme de mise en relation entre artistes professionnels et organisateurs d'événements. Spectacles pour enfants, animations entreprise, anniversaires.",
+      "sameAs": []
+    }
+    </script>
+    <!-- Données structurées WebSite pour Google Search -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebSite",
+      "name": "Spectacle'ment VØtre",
+      "url": "{{ request.url_root }}",
+      "potentialAction": {
+        "@type": "SearchAction",
+        "target": "{{ request.url_root }}catalogue?q={search_term_string}",
+        "query-input": "required name=search_term_string"
+      }
     }
     </script>
   <meta charset="utf-8">
@@ -20,7 +44,7 @@
   <meta name="theme-color" content="#0a1833">
   
   <!-- Favicon pour Google et navigateurs -->
-  <link rel="icon" type="image/jpeg" href="{{ url_for('static', filename='img/légé_spectaclemnet-votre_logo.jpg') }}">
+  <link rel="icon" type="image/png" href="{{ url_for('static', filename='img/logo_spectaclement_votre.png') }}">
   <!-- SEO Meta Tags -->
   <meta name="google-site-verification" content="El4lpt0naRzFdXqihVvr6K27e1FFc7TTsXFMCq-VybE" />
   <title>{% block title %}Spectacle'ment VØtre - Artistes, spectacles, animations la plateforme qui met en scène vos animations{% endblock %}</title>
@@ -38,15 +62,18 @@
   {# OG URL sans params aussi (plus propre) #}
   <meta property="og:url" content="{% block og_url %}{{ request.base_url }}{% endblock %}">
   <meta property="og:site_name" content="Spectacle'ment VØtre">
-  <meta property="og:image" content="{% block og_image %}{{ url_for('static', filename='img/default-og.svg', _external=True) }}{% endblock %}">
-  <meta property="og:image:width" content="1200">
-  <meta property="og:image:height" content="630">
+  <meta property="og:image" content="{% block og_image %}{{ url_for('static', filename='img/logo_spectaclement_votre.png', _external=True) }}{% endblock %}">
+  <meta property="og:image:width" content="512">
+  <meta property="og:image:height" content="512">
+  <meta property="og:image:alt" content="Logo Spectacle'ment VØtre">
+  <meta property="og:locale" content="fr_FR">
   
   <!-- Twitter Card -->
-  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:card" content="summary">
   <meta name="twitter:title" content="{% block twitter_title %}Spectacle'ment VØtre - Spectacles et animations{% endblock %}">
   <meta name="twitter:description" content="{% block twitter_description %}Trouvez l'animation parfaite pour votre événement{% endblock %}">
-  <meta name="twitter:image" content="{% block twitter_image %}{{ url_for('static', filename='img/default-og.svg', _external=True) }}{% endblock %}">
+  <meta name="twitter:image" content="{% block twitter_image %}{{ url_for('static', filename='img/logo_spectaclement_votre.png', _external=True) }}{% endblock %}">
+  <meta name="twitter:image:alt" content="Logo Spectacle'ment VØtre">>
   
   <!-- Canonical URL -->
   {# Canonical sans paramètres (évite ?page= ?q= etc.) #}
@@ -719,7 +746,7 @@
   <!-- Brand positionné à gauche -->
   <a href="{{ url_for('home') }}" class="header-brand-box" id="brand-logo">
     <div class="brand-inner">
-      <img src="{{ url_for('static', filename='img/logo_spectaclement_votre.jpg') }}" alt="Logo Spectacle'ment VØtre" class="brand-logo-img">
+      <img src="{{ url_for('static', filename='img/logo_spectaclement_votre.png') }}" alt="Logo Spectacle'ment VØtre" class="brand-logo-img">
       <div class="brand-text">
         <div class="brand-title">Spectacle'ment VØtre</div>
         <div class="brand-subtitle">la plateforme qui connecte facilement les organisateurs d'événements avec des artistes et compagnies de spectacle vivant.</div>
@@ -767,7 +794,7 @@
         {% else %}
           <li>
             <a href="{{ url_for('ecoles_themes') }}" style="padding:8px 14px; background:linear-gradient(135deg, #1a237e, #0d47a1); color:#fff; border-radius:6px; font-weight:600; font-size:0.85rem; text-decoration:none; display:inline-block; transition:opacity 0.2s;">
-              🏫 Écoles
+              🏫 Intervention pédagogique
             </a>
           </li>
           <li>
@@ -941,15 +968,12 @@
     <a href="{{ url_for('legal') }}" style="display:inline-block;padding:10px 16px;background:transparent;color:var(--text);border:1px solid var(--border);border-radius:6px;font-weight:bold;text-decoration:none;">
       Contact / Mentions légales
     </a>
-    <!-- Boutons réseaux sociaux -->
-    <a class="social-bandeau youtube" href="#" title="Notre chaine Youtube" target="_blank" style="display:inline-flex;align-items:center;gap:8px;padding:10px 16px;border-radius:6px;font-size:1em;font-weight:600;text-decoration:none;background:linear-gradient(90deg,#c4302b 60%,#e52d27 100%);color:#fff;margin-left:6px;">
-      <i class="fa fa-youtube"></i> <span>YouTube</span>
+    <a href="{{ url_for('ecoles_themes') }}" style="display:inline-block;padding:10px 16px;background:#4CAF50;color:white;border-radius:6px;font-weight:bold;text-decoration:none;">
+      🎓 Intervention pédagogique
     </a>
+    <!-- Boutons réseaux sociaux -->
     <a class="social-bandeau facebook" href="#" title="Notre page Facebook" target="_blank" style="display:inline-flex;align-items:center;gap:8px;padding:10px 16px;border-radius:6px;font-size:1em;font-weight:600;text-decoration:none;background:linear-gradient(90deg,#3b5998 60%,#4267B2 100%);color:#fff;margin-left:6px;">
       <i class="fa fa-facebook"></i> <span>Facebook</span>
-    </a>
-    <a class="social-bandeau twitter" href="#" title="Artémisia sur Twitter" target="_blank" style="display:inline-flex;align-items:center;gap:8px;padding:10px 16px;border-radius:6px;font-size:1em;font-weight:600;text-decoration:none;background:linear-gradient(90deg,#1da1f2 60%,#0a95dd 100%);color:#fff;margin-left:6px;">
-      <i class="fa fa-twitter"></i> <span>Twitter</span>
     </a>
     <a class="social-bandeau instagram" href="#" title="Instagram (lien en attente)" target="_blank" style="display:inline-flex;align-items:center;gap:8px;padding:10px 16px;border-radius:6px;font-size:1em;font-weight:600;text-decoration:none;background:linear-gradient(90deg,#e1306c 60%,#fd1d1d 100%);color:#fff;margin-left:6px;">
       <i class="fa fa-instagram"></i> <span>Instagram</span>

@@ -4,10 +4,15 @@
   "description": "Plateforme de mise en relation pour spectacles et animations professionnels",
   "icons": [
     {
+      "src": "/static/img/logo_spectaclement_votre.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
       "src": "/static/img/favicon.svg",
       "sizes": "any",
-      "type": "image/svg+xml",
-      "purpose": "any maskable"
+      "type": "image/svg+xml"
     }
   ],
   "theme_color": "#6a11cb",
