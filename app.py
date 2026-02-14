@@ -3021,6 +3021,53 @@ def seo_category_city(category_slug, city_slug):
         code=301
     )
 
+# Route pour le sitemap.xml dynamique
+@app.route('/sitemap.xml')
+def sitemap():
+    """Génère un sitemap XML dynamique pour améliorer le référencement"""
+    from flask import Response
+    
+    pages = []
+    base_url = request.url_root.rstrip('/')
+    
+    # Pages statiques principales
+    static_pages = [
+        {'loc': url_for('home', _external=True), 'priority': '1.0', 'changefreq': 'daily'},
+        {'loc': url_for('catalogue', _external=True), 'priority': '0.9', 'changefreq': 'daily'},
+        {'loc': url_for('ecoles_themes', _external=True), 'priority': '0.8', 'changefreq': 'weekly'},
+        {'loc': url_for('about', _external=True), 'priority': '0.7', 'changefreq': 'monthly'},
+        {'loc': url_for('contact', _external=True), 'priority': '0.8', 'changefreq': 'monthly'},
+        {'loc': url_for('legal', _external=True), 'priority': '0.3', 'changefreq': 'yearly'},
+    ]
+    pages.extend(static_pages)
+    
+    # Tous les spectacles actifs
+    try:
+        spectacles = Show.query.filter_by(is_validated=True).all()
+        for spectacle in spectacles:
+            pages.append({
+                'loc': url_for('show_detail', show_id=spectacle.id, _external=True),
+                'priority': '0.6',
+                'changefreq': 'weekly'
+            })
+    except:
+        pass
+    
+    # Générer le XML
+    xml = '<?xml version="1.0" encoding="UTF-8"?>\n'
+    xml += '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
+    
+    for page in pages:
+        xml += '  <url>\n'
+        xml += f'    <loc>{page["loc"]}</loc>\n'
+        xml += f'    <changefreq>{page["changefreq"]}</changefreq>\n'
+        xml += f'    <priority>{page["priority"]}</priority>\n'
+        xml += '  </url>\n'
+    
+    xml += '</urlset>'
+    
+    return Response(xml, mimetype='application/xml')
+
 if __name__ == "__main__":
     import os
     app.run(debug=True, port=int(os.environ.get("PORT", 5000)))

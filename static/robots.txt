@@ -7,5 +7,4 @@ Disallow: /logout
 Disallow: /publish
 Disallow: /submit
 
-# Remplacer par votre domaine en production (ex: https://spectaclementvotre.fr/sitemap.xml)
-Sitemap: /sitemap.xml
+Sitemap: https://spectacleanimation.fr/sitemap.xml

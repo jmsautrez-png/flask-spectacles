@@ -22,8 +22,8 @@
 
 {# OG URL sans params aussi #}
 {% block og_url %}{{ request.base_url }}{% endblock %}
-{% block title %}Spectacles et Animations Haut de Gamme | +200 Artistes Professionnels | Écoles, Mairies, CSE{% endblock %}
-{% block description %}🎭 Plateforme n°1 de spectacles et animations haut de gamme en France. +200 artistes professionnels expérimentés : magie, cirque, théâtre, clowns. Devis gratuit sous 3h. 30 ans d'excellence.{% endblock %}
+{% block title %}Trouver et Réserver un Spectacle pour votre École, Mairie, CSE | +200 Artistes Professionnels{% endblock %}
+{% block description %}Vous cherchez un spectacle pour votre école, mairie, CSE ou association ? Trouvez l'artiste idéal parmi +200 professionnels : magie, cirque, théâtre. Réponse sous 3h. 30 ans d'expérience.{% endblock %}
 
 {% block extra_head %}
 <!-- Données structurées Schema.org pour la page d'accueil -->
@@ -33,7 +33,7 @@
   "@type": "Service",
   "serviceType": "Spectacle Animation",
   "name": "Spectacle'ment VØtre - Spectacles et Animations Haut de Gamme",
-  "description": "Plateforme de mise en relation avec +200 artistes professionnels expérimentés pour spectacles et animations haut de gamme : magie, cirque, théâtre, clowns, marionnettes. Pour écoles, mairies, CSE, anniversaires. 30 ans d'expérience.",
+  "description": "Trouvez et réservez votre spectacle professionnel en quelques clics. Plateforme n°1 pour engager +200 artistes vérifiés (magie, cirque, théâtre, clowns, marionnettes). Idéal pour écoles, mairies, CSE, centres culturels. Devis gratuit sous 3h. 30 ans d'expertise.",
   "provider": {
     "@type": "Organization",
     "name": "Spectacle'ment VØtre",
@@ -120,6 +120,38 @@
   "mainEntity": [
     {
       "@type": "Question",
+      "name": "Comment trouver un spectacle de qualité pour ma commune ?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Pour trouver un spectacle pour votre mairie, parcourez notre catalogue d'artistes professionnels vérifiés. Filtrez par localisation, catégorie (cirque, théâtre, magie) et budget. Chaque artiste a un profil détaillé avec photos, vidéos et avis. Vous pouvez également publier un appel d'offre gratuit et recevoir plusieurs propositions sous 3h."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Où chercher un artiste professionnel pour l'école ?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Pour chercher un spectacle pour votre école (maternelle, primaire, collège), Spectacle'ment VØtre référence +200 artistes spécialisés dans les animations pédagogiques. Nos spectacles éducatifs sont adaptés aux thèmes scolaires : sciences, environnement, lecture, histoire. Devis gratuit et réponse rapide garantie."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Comment réserver un spectacle pour mon CSE ?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Pour réserver un spectacle pour votre comité d'entreprise, consultez notre catalogue, sélectionnez les artistes qui vous intéressent, et faites une demande de devis en précisant votre date, lieu et nombre de participants. Les artistes vous contactent directement sous 3h avec des propositions détaillées. Sans intermédiaire, sans frais cachés."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Quel spectacle choisir pour une fête de village ?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Pour une fête de village, nous recommandons des spectacles tout public : cirque de rue, théâtre burlesque, concerts, spectacles déambulatoires. Les spectacles en extérieur sont particulièrement appréciés. Consultez nos catégories Spectacle de rue et Cirque pour des propositions adaptées aux événements municipaux."
+      }
+    },
+    {
+      "@type": "Question",
       "name": "Qu'est-ce qu'un spectacle animation ?",
       "acceptedAnswer": {
         "@type": "Answer",
@@ -182,13 +214,13 @@
 <!-- Section Hero principale avec H1 et intro SEO -->
 <section class="hero-intro" style="text-align: center; margin-bottom: 40px; padding: 30px 20px; background: linear-gradient(135deg, rgba(22,36,71,0.8) 0%, rgba(40,62,94,0.8) 100%); border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.3);">
   <h1 style="font-size: 2.2rem; margin: 0 0 20px 0; color: #ffc107; font-weight: 800; line-height: 1.3; text-shadow: 0 2px 4px rgba(0,0,0,0.3);">
-    Spectacles et Animations Haut de Gamme : La Plateforme n°1 en France
+    Vous Cherchez un Spectacle ? Trouvez l'Artiste Idéal pour votre Établissement
   </h1>
   <p style="font-size: 1.1rem; color: #fff; line-height: 1.7; max-width: 900px; margin: 0 auto 15px; opacity: 0.95;">
-    Trouvez le <strong>spectacle</strong> ou l'<strong>animation</strong> parfait(e) pour votre événement ! <strong>Spectacle'ment VØtre</strong> vous met en relation avec <strong>+200 artistes professionnels expérimentés</strong> : spectacles pour enfants, animations scolaires, magie, cirque, théâtre, clowns, marionnettes. Pour les <strong>écoles</strong>, <strong>mairies</strong>, <strong>CSE</strong>, <strong>anniversaires</strong>, associations et particuliers en France.
+    <strong>Réservez le spectacle parfait</strong> pour votre <strong>école</strong>, <strong>mairie</strong>, <strong>CSE</strong>, association ou <strong>centre culturel</strong>. <strong>Spectacle'ment VØtre</strong> vous met en relation avec <strong>+200 artistes professionnels expérimentés</strong> : spectacles pour enfants, animations scolaires, magie, cirque, théâtre, clowns, marionnettes. Trouvez, comparez et engagez l'artiste idéal en toute simplicité.
   </p>
   <p style="font-size: 1rem; color: rgba(255,255,255,0.85); max-width: 800px; margin: 0 auto;">
-    🎯 Réponse moyenne sous 3h • ⭐ 30 ans d'expérience • 📍 Toute la France • ✅ +180 spectacles/an
+    • Réponse moyenne sous 3h • 30 ans d'expérience • Toute la France • +180 spectacles/an
   </p>
 </section>
 
@@ -493,6 +525,105 @@
   }
 </style>
 
+<!-- Section: Vous cherchez un spectacle -->
+<style>
+  .spectacle-card-link {
+    display: block;
+    background: rgba(255,255,255,0.08);
+    padding: 20px;
+    border-radius: 12px;
+    border-left: 4px solid #ffc107;
+    text-decoration: none;
+    color: inherit;
+    transition: all 0.3s ease;
+    cursor: pointer;
+  }
+  
+  .spectacle-card-link:hover {
+    background: rgba(255,193,7,0.15);
+    border-left-color: #fff;
+    transform: translateY(-4px);
+    box-shadow: 0 8px 20px rgba(255,193,7,0.3);
+  }
+  
+  .spectacle-card-link h3 {
+    color: #ffc107;
+    font-size: 1.1rem;
+    margin: 0 0 10px 0;
+    font-weight: 700;
+    transition: color 0.3s ease;
+  }
+  
+  .spectacle-card-link:hover h3 {
+    color: #fff;
+  }
+  
+  .spectacle-card-link p {
+    margin: 0;
+    font-size: 0.95rem;
+    line-height: 1.6;
+    color: rgba(255,255,255,0.9);
+  }
+</style>
+
+<section style="max-width: 1100px; margin: 0 auto 50px; padding: 35px 30px; background: linear-gradient(135deg, rgba(40,62,94,0.9) 0%, rgba(22,36,71,0.9) 100%); border-radius: 16px; border: 2px solid rgba(255,193,7,0.3); box-shadow: 0 4px 20px rgba(0,0,0,0.3);">
+  <h2 style="text-align: center; color: #ffc107; font-size: 1.9rem; margin: 0 0 25px 0; font-weight: 800;">Vous cherchez un spectacle pour votre établissement ?</h2>
+  
+  <div style="color: #fff; line-height: 1.8; font-size: 1.05rem; text-align: center; max-width: 950px; margin: 0 auto;">
+    <p style="margin: 0 0 25px 0;">
+      Que vous souhaitiez <strong>trouver un spectacle pour votre école</strong>, <strong>réserver une animation pour votre mairie</strong>, <strong>engager un artiste pour votre CSE</strong> ou <strong>programmer un spectacle dans votre centre culturel</strong>, Spectacle'ment VØtre simplifie vos recherches.
+    </p>
+    
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 20px; margin: 30px 0; text-align: left;">
+      <a href="{{ url_for('catalogue') }}" class="spectacle-card-link">
+        <h3>Spectacle pour École</h3>
+        <p>
+          Cherchez et trouvez le <strong>spectacle idéal pour votre école maternelle, primaire ou collège</strong>. Animations pédagogiques, spectacles de fin d'année, kermesses.
+        </p>
+      </a>
+      
+      <a href="{{ url_for('catalogue') }}" class="spectacle-card-link">
+        <h3>Spectacle pour Mairie</h3>
+        <p>
+          Réservez un <strong>spectacle pour votre commune</strong> : fête de village, arbre de Noël, 14 juillet, carnaval. Artistes de qualité pour vos événements municipaux.
+        </p>
+      </a>
+      
+      <a href="{{ url_for('catalogue') }}" class="spectacle-card-link">
+        <h3>Spectacle pour CSE</h3>
+        <p>
+          Engagez un artiste professionnel pour votre <strong>comité d'entreprise</strong>. Arbre de Noël, team building, événements salariés. Devis rapide et transparent.
+        </p>
+      </a>
+      
+      <a href="{{ url_for('catalogue') }}" class="spectacle-card-link">
+        <h3>Spectacle pour Centre Culturel</h3>
+        <p>
+          Programmez des <strong>spectacles de qualité</strong> : théâtre contemporain, spectacles du monde, créations originales. Artistes reconnus et expérimentés.
+        </p>
+      </a>
+      
+      <a href="{{ url_for('ecoles_themes') }}" class="spectacle-card-link">
+        <h3>Interventions Pédagogiques</h3>
+        <p>
+          <strong>Spectacles éducatifs sur mesure</strong> pour écoles et médiathèques. Sciences, environnement, lecture, histoire, prévention. Ateliers interactifs animés par des <strong>pédagogues professionnels</strong>.
+        </p>
+      </a>
+      
+      <a href="{{ url_for('catalogue') }}" class="spectacle-card-link">
+        <h3>Arbre de Noël Clé en Main</h3>
+        <p>
+          <strong>Formule tout compris</strong> : location salle, goûter, spectacle, passage du Père Noël. Thèmes au choix : ferme écologique, cirque, fête foraine, magie. Organisation complète pour votre <strong>événement de fin d'année</strong>.
+        </p>
+      </a>
+    </div>
+    
+    <p style="margin: 25px 0 0 0; font-size: 1.05rem; font-weight: 600;">
+      ✓ Recherche simplifiée • ✓ Catalogue de +200 artistes • ✓ Réponse sous 3h • ✓ Sans intermédiaire
+    </p>
+  </div>
+</section>
+
 <div class="hero-choice-section">
   <a href="{{ url_for('ecoles_themes') }}" class="hero-choice-card">
     <h2>Écoles : votre projet pédagogique</h2>
@@ -514,11 +645,11 @@
 <!-- Bloc Artiste/Compagnie - Deux colonnes -->
 <div class="hero-artiste-section">
   <a href="{{ url_for('publish') }}" class="hero-artiste-card">
-    <h3>🎭 Artiste ou Compagnie ?</h3>
+    <h3>Artiste ou Compagnie ?</h3>
     <span class="cta-hint-artiste">Publier mon spectacle →</span>
   </a>
   <a href="{{ url_for('abonnement_compagnie') }}" class="hero-artiste-card hero-abonnement">
-    <h3>⭐ Abonnement Compagnie</h3>
+    <h3>Abonnement Compagnie</h3>
     <span class="cta-hint-artiste">Découvrir les avantages →</span>
   </a>
 </div>
@@ -618,7 +749,7 @@
 <div class="spectacles-une-section">
   <div class="spectacles-une-header">
     <a href="https://spectacleanimation.fr/catalogue" class="spectacles-une-header-link">
-      <h2>✨ Spectacles à la Une</h2>
+      <h2>Spectacles à la Une</h2>
       <p>Découvrez notre sélection de spectacles exceptionnels</p>
     </a>
   </div>
@@ -639,7 +770,7 @@
                 </div>
                 {% endfor %}
               </div>
-              <span class="photo-count">{{ images|length }} 📷</span>
+              <span class="photo-count">{{ images|length }} photos</span>
               <div class="carousel-indicators">
                 {% for img in images %}
                 <span class="carousel-indicator{% if loop.first %} active{% endif %}" data-slide="{{ loop.index0 }}"></span>
@@ -651,7 +782,7 @@
           {% elif spectacle.has_image() %}
             <img src="{{ url_for('uploaded_file', filename=spectacle.file_name) }}" alt="{{ spectacle.title }}">
           {% else %}
-            <div class="placeholder">🎭</div>
+            <div class="placeholder">SPECTACLE</div>
           {% endif %}
         </div>
       </a>
@@ -660,7 +791,7 @@
         <div class="content">
           <div style="margin-bottom:6px;">
             <span class="badge" style="background:linear-gradient(135deg, #ffd700 0%, #ffed4e 100%); color:#222; font-weight:700; border:none; font-size:0.75rem; padding:3px 8px; border-radius:10px;">
-              ⭐ À la une
+              À la une
             </span>
           </div>
           
@@ -675,7 +806,7 @@
           <div style="display:flex; flex-direction:column; gap:4px; font-size:0.85em; margin-top:-2px;">
             {% if spectacle.age_range %}
             <div style="display:flex; align-items:center; gap:6px;">
-              <span style="opacity:0.7; min-width:20px;">👥</span>
+              <span style="opacity:0.7; min-width:20px;">Âge:</span>
               <span style="color:rgba(255,255,255,0.9);">{{ spectacle.age_range|format_age }}</span>
             </div>
             {% endif %}
@@ -689,13 +820,53 @@
   <div style="text-align:center; margin-top:24px;">
     <a href="{{ url_for('catalogue') }}" 
        style="display:inline-flex; align-items:center; gap:8px; padding:12px 28px; background:linear-gradient(135deg, #ffd700 0%, #ffed4e 100%); color:#222; text-decoration:none; border-radius:25px; font-weight:700; font-size:1rem; transition:all 0.3s ease; box-shadow:0 4px 15px rgba(255,215,0,0.4);">
-      🎭 Voir le catalogue complet <i class="fa fa-arrow-right"></i>
+      Voir le catalogue complet <i class="fa fa-arrow-right"></i>
     </a>
   </div>
 </div>
 {% endif %}
 
 <!-- Section SEO Spectacle Animation -->
+<style>
+  .animation-card-link {
+    display: block;
+    background: rgba(0,0,0,0.3);
+    padding: 20px;
+    border-radius: 12px;
+    border-left: 4px solid #ffc107;
+    text-decoration: none;
+    color: inherit;
+    transition: all 0.3s ease;
+    cursor: pointer;
+  }
+  
+  .animation-card-link:hover {
+    background: rgba(255,193,7,0.2);
+    border-left-color: #fff;
+    transform: translateY(-4px);
+    box-shadow: 0 8px 25px rgba(255,193,7,0.4);
+  }
+  
+  .animation-card-link h3 {
+    color: #ffc107;
+    font-size: 1.2rem;
+    margin: 0 0 12px 0;
+    transition: color 0.3s ease;
+  }
+  
+  .animation-card-link:hover h3 {
+    color: #fff;
+    text-shadow: 0 2px 8px rgba(255,193,7,0.6);
+  }
+  
+  .animation-card-link p {
+    margin: 0;
+    font-size: 0.95rem;
+    line-height: 1.6;
+    color: rgba(255,255,255,0.95);
+  }
+</style>
+
 <section style="max-width: 1100px; margin: 45px auto; padding: 40px 30px; background: linear-gradient(135deg, #1a0a0a 0%, #6d1313 30%, #8b1e1e 50%, #6d1313 70%, #1a0a0a 100%); border-radius: 16px; box-shadow: 0 6px 25px rgba(109,19,19,0.4); border: 2px solid rgba(233,30,99,0.3);">
   <h2 style="text-align: center; color: #ffc107; font-size: 2rem; margin: 0 0 25px 0; font-weight: 800; text-shadow: 0 2px 6px rgba(0,0,0,0.5);">Spectacle et Animation : Notre Expertise à Votre Service</h2>
   
@@ -705,26 +876,26 @@
     </p>
     
     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 20px; margin: 30px 0;">
-      <div style="background: rgba(0,0,0,0.3); padding: 20px; border-radius: 12px; border-left: 4px solid #ffc107;">
-        <h3 style="color: #ffc107; font-size: 1.2rem; margin: 0 0 12px 0;">Spectacle Animation Scolaire</h3>
-        <p style="margin: 0; font-size: 0.95rem; line-height: 1.6;">
+      <a href="{{ url_for('ecoles_themes') }}" class="animation-card-link">
+        <h3>Spectacle Animation Scolaire</h3>
+        <p>
           Nos <strong>spectacles pour écoles</strong> (maternelle, primaire, collège) s'adaptent à tous vos projets pédagogiques : sciences, environnement, prévention, lecture. Animations interactives et éducatives approuvées par des milliers d'enseignants.
         </p>
-      </div>
+      </a>
       
-      <div style="background: rgba(0,0,0,0.3); padding: 20px; border-radius: 12px; border-left: 4px solid #ffc107;">
-        <h3 style="color: #ffc107; font-size: 1.2rem; margin: 0 0 12px 0;">Spectacle Animation Mairie & CSE</h3>
-        <p style="margin: 0; font-size: 0.95rem; line-height: 1.6;">
+      <a href="{{ url_for('catalogue') }}" class="animation-card-link">
+        <h3>Spectacle Animation Mairie & CSE</h3>
+        <p>
           <strong>Fêtes de village</strong>, arbres de Noël, kermesses, événements municipaux : nous proposons des <strong>spectacles animation</strong> adaptés à tous les budgets et tous les publics. Prix dégressifs pour collectivités.
         </p>
-      </div>
+      </a>
       
-      <div style="background: rgba(0,0,0,0.3); padding: 20px; border-radius: 12px; border-left: 4px solid #ffc107;">
-        <h3 style="color: #ffc107; font-size: 1.2rem; margin: 0 0 12px 0;">Spectacles Qualitatifs pour Centres Culturels</h3>
-        <p style="margin: 0; font-size: 0.95rem; line-height: 1.6;">
+      <a href="{{ url_for('catalogue') }}" class="animation-card-link">
+        <h3>Spectacles Qualitatifs pour Centres Culturels</h3>
+        <p>
           Des <strong>spectacles du monde</strong>, <strong>spectacles contemporains</strong> et créations originales pour vos <strong>centres culturels</strong>. Nos compagnies ont été présentées en <strong>scènes nationales</strong>, théâtres municipaux et festivals reconnus. Programmation artistique de qualité garantie.
         </p>
-      </div>
+      </a>
     </div>
     
     <p style="margin: 25px 0 0 0; text-align: center; font-weight: 600; font-size: 1.1rem; color: #ffc107;">
@@ -781,26 +952,26 @@
   
   <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 25px; margin-bottom: 25px;">
     <div style="text-align: center; padding: 20px; background: rgba(255,255,255,0.05); border-radius: 12px; border: 1px solid rgba(255,255,255,0.1);">
-      <div style="font-size: 2.5rem; margin-bottom: 10px;">🔍</div>
-      <h3 style="color: #fff; font-size: 1.1rem; margin: 0 0 10px 0;">1. Parcourez</h3>
+      <div style="width: 60px; height: 60px; margin: 0 auto 15px auto; background: linear-gradient(135deg, #ffc107 0%, #ff9800 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.8rem; font-weight: 800; color: #000; box-shadow: 0 4px 12px rgba(255,193,7,0.4);">1</div>
+      <h3 style="color: #fff; font-size: 1.1rem; margin: 0 0 10px 0;">Parcourez</h3>
       <p style="color: rgba(255,255,255,0.8); font-size: 0.9rem; margin: 0; line-height: 1.5;">Explorez notre catalogue de spectacles par catégorie : magiciens, clowns, cirque, marionnettes, théâtre...</p>
     </div>
     
     <div style="text-align: center; padding: 20px; background: rgba(255,255,255,0.05); border-radius: 12px; border: 1px solid rgba(255,255,255,0.1);">
-      <div style="font-size: 2.5rem; margin-bottom: 10px;">📝</div>
-      <h3 style="color: #fff; font-size: 1.1rem; margin: 0 0 10px 0;">2. Demandez</h3>
+      <div style="width: 60px; height: 60px; margin: 0 auto 15px auto; background: linear-gradient(135deg, #ffc107 0%, #ff9800 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.8rem; font-weight: 800; color: #000; box-shadow: 0 4px 12px rgba(255,193,7,0.4);">2</div>
+      <h3 style="color: #fff; font-size: 1.1rem; margin: 0 0 10px 0;">Demandez</h3>
       <p style="color: rgba(255,255,255,0.8); font-size: 0.9rem; margin: 0; line-height: 1.5;">Faites une demande de devis gratuite en quelques clics. Précisez votre date, lieu et type d'événement.</p>
     </div>
     
     <div style="text-align: center; padding: 20px; background: rgba(255,255,255,0.05); border-radius: 12px; border: 1px solid rgba(255,255,255,0.1);">
-      <div style="font-size: 2.5rem; margin-bottom: 10px;">⚡</div>
-      <h3 style="color: #fff; font-size: 1.1rem; margin: 0 0 10px 0;">3. Recevez</h3>
+      <div style="width: 60px; height: 60px; margin: 0 auto 15px auto; background: linear-gradient(135deg, #ffc107 0%, #ff9800 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.8rem; font-weight: 800; color: #000; box-shadow: 0 4px 12px rgba(255,193,7,0.4);">3</div>
+      <h3 style="color: #fff; font-size: 1.1rem; margin: 0 0 10px 0;">Recevez</h3>
       <p style="color: rgba(255,255,255,0.8); font-size: 0.9rem; margin: 0; line-height: 1.5;">L'artiste vous contacte sous 3h en moyenne avec un devis personnalisé et détaillé.</p>
     </div>
     
     <div style="text-align: center; padding: 20px; background: rgba(255,255,255,0.05); border-radius: 12px; border: 1px solid rgba(255,255,255,0.1);">
-      <div style="font-size: 2.5rem; margin-bottom: 10px;">🎉</div>
-      <h3 style="color: #fff; font-size: 1.1rem; margin: 0 0 10px 0;">4. Profitez</h3>
+      <div style="width: 60px; height: 60px; margin: 0 auto 15px auto; background: linear-gradient(135deg, #ffc107 0%, #ff9800 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.8rem; font-weight: 800; color: #000; box-shadow: 0 4px 12px rgba(255,193,7,0.4);">4</div>
+      <h3 style="color: #fff; font-size: 1.1rem; margin: 0 0 10px 0;">Profitez</h3>
       <p style="color: rgba(255,255,255,0.8); font-size: 0.9rem; margin: 0; line-height: 1.5;">Réservez directement avec l'artiste et profitez d'un spectacle professionnel inoubliable !</p>
     </div>
   </div>
@@ -815,6 +986,41 @@
   <h2 style="text-align: center; color: #ffc107; font-size: 1.7rem; margin: 0 0 25px 0; font-weight: 700;">Questions fréquentes</h2>
   
   <div style="display: flex; flex-direction: column; gap: 18px;">
+    <details style="background: rgba(255,255,255,0.05); padding: 18px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.1); cursor: pointer;">
+      <summary style="font-weight: 700; color: #fff; font-size: 1.05rem; cursor: pointer; list-style: none; display: flex; align-items: center; gap: 10px;">
+        <span style="color: #ffc107;">▶</span> Comment trouver un spectacle de qualité pour ma commune ?
+      </summary>
+      <p style="color: rgba(255,255,255,0.85); margin: 15px 0 0 24px; line-height: 1.6; font-size: 0.95rem;">
+        Pour <strong>trouver un spectacle pour votre mairie</strong>, parcourez notre catalogue d'artistes professionnels vérifiés. Filtrez par localisation, catégorie (cirque, théâtre, magie) et budget. Chaque artiste a un profil détaillé avec photos, vidéos et avis. Vous pouvez également publier un appel d'offre gratuit et recevoir plusieurs propositions sous 3h.
+      </p>
+    </details>
+    
+    <details style="background: rgba(255,255,255,0.05); padding: 18px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.1); cursor: pointer;">
+      <summary style="font-weight: 700; color: #fff; font-size: 1.05rem; cursor: pointer; list-style: none; display: flex; align-items: center; gap: 10px;">
+        <span style="color: #ffc107;">▶</span> Où chercher un artiste professionnel pour l'école ?
+      </summary>
+      <p style="color: rgba(255,255,255,0.85); margin: 15px 0 0 24px; line-height: 1.6; font-size: 0.95rem;">
+        Pour <strong>chercher un spectacle pour votre école</strong> (maternelle, primaire, collège), Spectacle'ment VØtre référence +200 artistes spécialisés dans les animations pédagogiques. Nos spectacles éducatifs sont adaptés aux thèmes scolaires : sciences, environnement, lecture, histoire. Devis gratuit et réponse rapide garantie.
+      </p>
+    </details>
+    
+    <details style="background: rgba(255,255,255,0.05); padding: 18px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.1); cursor: pointer;">
+      <summary style="font-weight: 700; color: #fff; font-size: 1.05rem; cursor: pointer; list-style: none; display: flex; align-items: center; gap: 10px;">
+        <span style="color: #ffc107;">▶</span> Comment réserver un spectacle pour mon CSE ?
+      </summary>
+      <p style="color: rgba(255,255,255,0.85); margin: 15px 0 0 24px; line-height: 1.6; font-size: 0.95rem;">
+        Pour <strong>réserver un spectacle pour votre comité d'entreprise</strong>, consultez notre catalogue, sélectionnez les artistes qui vous intéressent, et faites une demande de devis en précisant votre date, lieu et nombre de participants. Les artistes vous contactent directement sous 3h avec des propositions détaillées. Sans intermédiaire, sans frais cachés.
+      </p>
+    </details>
+    
+    <details style="background: rgba(255,255,255,0.05); padding: 18px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.1); cursor: pointer;">
+      <summary style="font-weight: 700; color: #fff; font-size: 1.05rem; cursor: pointer; list-style: none; display: flex; align-items: center; gap: 10px;">
+        <span style="color: #ffc107;">▶</span> Quel spectacle choisir pour une fête de village ?
+      </summary>
+      <p style="color: rgba(255,255,255,0.85); margin: 15px 0 0 24px; line-height: 1.6; font-size: 0.95rem;">
+        Pour une <strong>fête de village</strong>, nous recommandons des spectacles tout public : cirque de rue, théâtre burlesque, concerts, spectacles déambulatoires. Les spectacles en extérieur sont particulièrement appréciés. Consultez nos catégories "Spectacle de rue" et "Cirque" pour des propositions adaptées aux événements municipaux.
+      </p>
+    </details>
     <details style="background: rgba(255,255,255,0.05); padding: 18px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.1); cursor: pointer;">
       <summary style="font-weight: 700; color: #fff; font-size: 1.05rem; cursor: pointer; list-style: none; display: flex; align-items: center; gap: 10px;">
         <span style="color: #ffc107;">▶</span> Qu'est-ce qu'un spectacle animation ?
