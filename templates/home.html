@@ -22,9 +22,175 @@
 
 {# OG URL sans params aussi #}
 {% block og_url %}{{ request.base_url }}{% endblock %}
-{% block title %}Spectacle'ment VØtre - Spectacles et animations pour enfants, entreprises, anniversaires | Artistes professionnels{% endblock %}
-{% block description %}Découvrez des spectacles pour enfants, animations d'entreprise et d'anniversaire. Magie, théâtre, cirque, clowns, marionnettes. Réservez directement avec des artistes professionnels en France.{% endblock %}
+{% block title %}Spectacle Animation - Trouvez votre spectacle et animation pour enfants, écoles, mairies, entreprises | +200 artistes professionnels{% endblock %}
+{% block description %}🎭 Plateforme n°1 de spectacle animation en France : spectacles pour enfants, animations scolaires, magie, cirque, théâtre, clowns. +200 artistes pro. Devis gratuit sous 3h. Écoles, mairies, CSE, anniversaires.{% endblock %}
+
+{% block extra_head %}
+<!-- Données structurées Schema.org pour la page d'accueil -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Service",
+  "serviceType": "Spectacle Animation",
+  "name": "Spectacle'ment VØtre - Spectacles et Animations",
+  "description": "Plateforme de mise en relation avec +200 artistes professionnels pour spectacles et animations : magie, cirque, théâtre, clowns, marionnettes. Pour écoles, mairies, CSE, anniversaires.",
+  "provider": {
+    "@type": "Organization",
+    "name": "Spectacle'ment VØtre",
+    "url": "{{ request.url_root }}",
+    "logo": "{{ url_for('static', filename='img/logo_spectaclement_votre.png', _external=True) }}",
+    "contactPoint": {
+      "@type": "ContactPoint",
+      "contactType": "Service Client",
+      "availableLanguage": "French",
+      "areaServed": "FR"
+    }
+  },
+  "areaServed": {
+    "@type": "Country",
+    "name": "France"
+  },
+  "audience": {
+    "@type": "Audience",
+    "audienceType": ["Écoles", "Mairies", "Comités d'entreprise", "Particuliers", "Associations"]
+  },
+  "offers": {
+    "@type": "AggregateOffer",
+    "priceCurrency": "EUR",
+    "lowPrice": "300",
+    "highPrice": "2000",
+    "priceSpecification": {
+      "@type": "PriceSpecification",
+      "priceCurrency": "EUR",
+      "price": "300-2000"
+    }
+  },
+  "aggregateRating": {
+    "@type": "AggregateRating",
+    "ratingValue": "4.8",
+    "reviewCount": "180",
+    "bestRating": "5"
+  },
+  "hasOfferCatalog": {
+    "@type": "OfferCatalog",
+    "name": "Catalogue Spectacles et Animations",
+    "itemListElement": [
+      {
+        "@type": "Offer",
+        "itemOffered": {
+          "@type": "Service",
+          "name": "Spectacle Animation Enfants",
+          "description": "Spectacles et animations pour enfants : magie, cirque, clowns, marionnettes"
+        }
+      },
+      {
+        "@type": "Offer",
+        "itemOffered": {
+          "@type": "Service",
+          "name": "Animation Scolaire",
+          "description": "Spectacles pédagogiques pour écoles maternelles, primaires et collèges"
+        }
+      },
+      {
+        "@type": "Offer",
+        "itemOffered": {
+          "@type": "Service",
+          "name": "Animation Mairie et CSE",
+          "description": "Spectacles pour fêtes de village, arbres de Noël, événements municipaux"
+        }
+      },
+      {
+        "@type": "Offer",
+        "itemOffered": {
+          "@type": "Service",
+          "name": "Animation Anniversaire",
+          "description": "Animations pour anniversaires d'enfants avec magiciens, clowns, cirque"
+        }
+      }
+    ]
+  }
+}
+</script>
+
+<!-- Données structurées FAQ pour Google -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "Qu'est-ce qu'un spectacle animation ?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Un spectacle animation combine une prestation artistique (magie, cirque, théâtre, clown) avec une dimension interactive où les enfants ou le public participent activement. Nos spectacles animations sont conçus pour divertir, éduquer et créer des moments mémorables lors de vos événements (écoles, anniversaires, fêtes de village, arbres de Noël)."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Quels types de spectacles et animations proposez-vous ?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Nous proposons une large gamme de spectacles et animations : magie interactive, clowns professionnels, cirque, marionnettes, théâtre jeune public, contes musicaux, ventriloquie, animations scientifiques, ateliers créatifs. Tous nos artistes de spectacle animation sont professionnels et adaptent leur prestation selon l'âge du public (3-12 ans)."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Combien coûte un spectacle animation pour école ou mairie ?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Le prix d'un spectacle animation varie selon le type de prestation, la durée, le nombre de participants et la localisation. En moyenne, comptez entre 300€ et 800€ pour une animation scolaire, et entre 500€ et 2000€ pour un événement de mairie, CSE ou arbre de Noël."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Comment trouver un magicien pour un anniversaire ?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Pour réserver un magicien pour anniversaire, parcourez notre catégorie 'Magiciens' dans le catalogue, consultez les profils et photos des artistes, puis faites une demande de devis en indiquant la date, le lieu et le nombre d'enfants. Vous recevrez rapidement des propositions personnalisées."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Intervenez-vous dans toute la France ?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Oui ! Notre réseau d'artistes couvre toute la France. Vous pouvez filtrer les spectacles par région et ville dans notre catalogue. Beaucoup d'artistes se déplacent sur plusieurs départements et régions."
+      }
+    }
+  ]
+}
+</script>
+
+<!-- Breadcrumb Schema.org -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [{
+    "@type": "ListItem",
+    "position": 1,
+    "name": "Accueil",
+    "item": "{{ request.url_root }}"
+  }]
+}
+</script>
+{% endblock %}
+
 {% block content %}
+
+<!-- Section Hero principale avec H1 et intro SEO -->
+<section class="hero-intro" style="text-align: center; margin-bottom: 40px; padding: 30px 20px; background: linear-gradient(135deg, rgba(22,36,71,0.8) 0%, rgba(40,62,94,0.8) 100%); border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.3);">
+  <h1 style="font-size: 2.2rem; margin: 0 0 20px 0; color: #ffc107; font-weight: 800; line-height: 1.3; text-shadow: 0 2px 4px rgba(0,0,0,0.3);">
+    Spectacle Animation : La Plateforme n°1 pour vos Événements
+  </h1>
+  <p style="font-size: 1.1rem; color: #fff; line-height: 1.7; max-width: 900px; margin: 0 auto 15px; opacity: 0.95;">
+    Trouvez le <strong>spectacle</strong> ou l'<strong>animation</strong> parfait(e) pour votre événement ! <strong>Spectacle'ment VØtre</strong> vous met en relation avec <strong>+200 artistes professionnels</strong> : spectacles pour enfants, animations scolaires, magie, cirque, théâtre, clowns, marionnettes. Pour les <strong>écoles</strong>, <strong>mairies</strong>, <strong>CSE</strong>, <strong>anniversaires</strong>, associations et particuliers en France.
+  </p>
+  <p style="font-size: 1rem; color: rgba(255,255,255,0.85); max-width: 800px; margin: 0 auto;">
+    🎯 Réponse moyenne sous 3h • ⭐ 30 ans d'expérience • 📍 Toute la France • ✅ +180 spectacles/an
+  </p>
+</section>
 
 <style>
 @keyframes pulse {
@@ -331,15 +497,15 @@
   <a href="{{ url_for('ecoles_themes') }}" class="hero-choice-card">
     <h2>Écoles : votre projet pédagogique</h2>
     <div class="desc-box">
-      <p>Nous vous trouvons le spectacle et les animations adaptés à votre thème de l'année</p>
+      <p>Spectacles éducatifs adaptés à votre thème annuel : sciences, environnement, lecture, histoire... Nous trouvons l'artiste parfait pour votre classe de maternelle, primaire ou collège.</p>
     </div>
-    <span class="cta-hint">Découvrir →</span>
+    <span class="cta-hint">Découvrir nos spectacles pédagogiques →</span>
   </a>
   
   <a href="{{ url_for('catalogue') }}" class="hero-choice-card">
     <h2>Mairie, École, CSE... : trouver un spectacle</h2>
     <div class="desc-box">
-      <p>Mairie, école, CSE, association : publiez votre appel d'offre</p>
+      <p>Vous organisez un événement pour votre commune, école, comité d'entreprise ou association ? Découvrez notre catalogue de spectacles : magie, cirque, théâtre, concerts. Publiez votre appel d'offre gratuitement !</p>
     </div>
     <span class="cta-hint">Parcourir le catalogue →</span>
   </a>
@@ -529,6 +695,50 @@
 </div>
 {% endif %}
 
+<!-- Section SEO Spectacle Animation -->
+<section style="max-width: 1100px; margin: 45px auto; padding: 40px 30px; background: linear-gradient(135deg, #1a0a0a 0%, #6d1313 30%, #8b1e1e 50%, #6d1313 70%, #1a0a0a 100%); border-radius: 16px; box-shadow: 0 6px 25px rgba(109,19,19,0.4); border: 2px solid rgba(233,30,99,0.3);">
+  <h2 style="text-align: center; color: #ffc107; font-size: 2rem; margin: 0 0 25px 0; font-weight: 800; text-shadow: 0 2px 6px rgba(0,0,0,0.5);">🎭 Spectacle et Animation : Notre Expertise à Votre Service</h2>
+  
+  <div style="color: #fff; line-height: 1.8; font-size: 1.05rem;">
+    <p style="margin: 0 0 20px 0; text-align: justify;">
+      Depuis <strong>30 ans</strong>, <strong>Spectacle'ment VØtre</strong> est LA référence en matière de <strong>spectacle animation</strong> en France. Nous sommes spécialisés dans l'organisation et la mise en relation entre <strong>artistes professionnels</strong> et organisateurs d'événements pour tous types de manifestations.
+    </p>
+    
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 20px; margin: 30px 0;">
+      <div style="background: rgba(0,0,0,0.3); padding: 20px; border-radius: 12px; border-left: 4px solid #ffc107;">
+        <h3 style="color: #ffc107; font-size: 1.2rem; margin: 0 0 12px 0;">🏫 Spectacle Animation Scolaire</h3>
+        <p style="margin: 0; font-size: 0.95rem; line-height: 1.6;">
+          Nos <strong>spectacles pour écoles</strong> (maternelle, primaire, collège) s'adaptent à tous vos projets pédagogiques : sciences, environnement, prévention, lecture. Animations interactives et éducatives approuvées par des milliers d'enseignants.
+        </p>
+      </div>
+      
+      <div style="background: rgba(0,0,0,0.3); padding: 20px; border-radius: 12px; border-left: 4px solid #ffc107;">
+        <h3 style="color: #ffc107; font-size: 1.2rem; margin: 0 0 12px 0;">🏛️ Spectacle Animation Mairie & CSE</h3>
+        <p style="margin: 0; font-size: 0.95rem; line-height: 1.6;">
+          <strong>Fêtes de village</strong>, arbres de Noël, kermesses, événements municipaux : nous proposons des <strong>spectacles animation</strong> adaptés à tous les budgets et tous les publics. Prix dégressifs pour collectivités.
+        </p>
+      </div>
+      
+      <div style="background: rgba(0,0,0,0.3); padding: 20px; border-radius: 12px; border-left: 4px solid #ffc107;">
+        <h3 style="color: #ffc107; font-size: 1.2rem; margin: 0 0 12px 0;">🎂 Animation Anniversaire Enfant</h3>
+        <p style="margin: 0; font-size: 0.95rem; line-height: 1.6;">
+          Pour un <strong>anniversaire inoubliable</strong>, réservez un magicien, un clown, un spectacle de cirque ou une animation à thème. Nos artistes s'adaptent à l'âge des enfants (3-12 ans) et au lieu (domicile, salle).
+        </p>
+      </div>
+    </div>
+    
+    <p style="margin: 25px 0 0 0; text-align: center; font-weight: 600; font-size: 1.1rem; color: #ffc107;">
+      🌟 Plus de <strong>200 artistes référencés</strong> • <strong>180+ spectacles programmés par an</strong> • Satisfaction garantie
+    </p>
+  </div>
+  
+  <div style="text-align: center; margin-top: 30px;">
+    <a href="{{ url_for('catalogue') }}" style="display: inline-block; padding: 16px 40px; background: linear-gradient(135deg, #ffc107 0%, #ffeb3b 100%); color: #000; text-decoration: none; border-radius: 30px; font-weight: 800; font-size: 1.15rem; box-shadow: 0 6px 20px rgba(255,193,7,0.5); transition: all 0.3s ease; border: 2px solid #fff;">
+      🎭 Découvrir tous nos spectacles et animations
+    </a>
+  </div>
+</section>
+
 <!-- Section Chiffres Clés avec animation -->
 <section class="stats-section" style="background:linear-gradient(135deg,#162447 0%,#283e5e 100%); border-radius:12px; padding:20px 15px; margin:25px 0; box-shadow:0 2px 12px rgba(22,36,71,0.3);">
   <h2 style="text-align:center; color:#fff; margin-bottom:15px; font-size:1.1rem;">Nos chiffres clés</h2>
@@ -564,6 +774,113 @@
     
   </div>
 </section>
+
+<!-- Section Comment ça marche -->
+<section style="max-width: 1000px; margin: 40px auto; padding: 35px 25px; background: linear-gradient(135deg, rgba(22,36,71,0.6) 0%, rgba(40,62,94,0.6) 100%); border-radius: 16px; border: 2px solid rgba(255,193,7,0.2);">
+  <h2 style="text-align: center; color: #ffc107; font-size: 1.8rem; margin: 0 0 30px 0; font-weight: 700;">Comment réserver un spectacle ?</h2>
+  
+  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 25px; margin-bottom: 25px;">
+    <div style="text-align: center; padding: 20px; background: rgba(255,255,255,0.05); border-radius: 12px; border: 1px solid rgba(255,255,255,0.1);">
+      <div style="font-size: 2.5rem; margin-bottom: 10px;">🔍</div>
+      <h3 style="color: #fff; font-size: 1.1rem; margin: 0 0 10px 0;">1. Parcourez</h3>
+      <p style="color: rgba(255,255,255,0.8); font-size: 0.9rem; margin: 0; line-height: 1.5;">Explorez notre catalogue de spectacles par catégorie : magiciens, clowns, cirque, marionnettes, théâtre...</p>
+    </div>
+    
+    <div style="text-align: center; padding: 20px; background: rgba(255,255,255,0.05); border-radius: 12px; border: 1px solid rgba(255,255,255,0.1);">
+      <div style="font-size: 2.5rem; margin-bottom: 10px;">📝</div>
+      <h3 style="color: #fff; font-size: 1.1rem; margin: 0 0 10px 0;">2. Demandez</h3>
+      <p style="color: rgba(255,255,255,0.8); font-size: 0.9rem; margin: 0; line-height: 1.5;">Faites une demande de devis gratuite en quelques clics. Précisez votre date, lieu et type d'événement.</p>
+    </div>
+    
+    <div style="text-align: center; padding: 20px; background: rgba(255,255,255,0.05); border-radius: 12px; border: 1px solid rgba(255,255,255,0.1);">
+      <div style="font-size: 2.5rem; margin-bottom: 10px;">⚡</div>
+      <h3 style="color: #fff; font-size: 1.1rem; margin: 0 0 10px 0;">3. Recevez</h3>
+      <p style="color: rgba(255,255,255,0.8); font-size: 0.9rem; margin: 0; line-height: 1.5;">L'artiste vous contacte sous 3h en moyenne avec un devis personnalisé et détaillé.</p>
+    </div>
+    
+    <div style="text-align: center; padding: 20px; background: rgba(255,255,255,0.05); border-radius: 12px; border: 1px solid rgba(255,255,255,0.1);">
+      <div style="font-size: 2.5rem; margin-bottom: 10px;">🎉</div>
+      <h3 style="color: #fff; font-size: 1.1rem; margin: 0 0 10px 0;">4. Profitez</h3>
+      <p style="color: rgba(255,255,255,0.8); font-size: 0.9rem; margin: 0; line-height: 1.5;">Réservez directement avec l'artiste et profitez d'un spectacle professionnel inoubliable !</p>
+    </div>
+  </div>
+  
+  <p style="text-align: center; color: rgba(255,255,255,0.9); font-size: 1rem; margin: 0;">
+    <strong>Service 100% gratuit</strong> pour les organisateurs • Contact direct avec les artistes • Sans intermédiaire
+  </p>
+</section>
+
+<!-- FAQ SEO -->
+<section style="max-width: 900px; margin: 40px auto; padding: 30px 25px; background: rgba(22,36,71,0.4); border-radius: 16px; border: 1px solid rgba(255,193,7,0.15);">
+  <h2 style="text-align: center; color: #ffc107; font-size: 1.7rem; margin: 0 0 25px 0; font-weight: 700;">Questions fréquentes</h2>
+  
+  <div style="display: flex; flex-direction: column; gap: 18px;">
+    <details style="background: rgba(255,255,255,0.05); padding: 18px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.1); cursor: pointer;">
+      <summary style="font-weight: 700; color: #fff; font-size: 1.05rem; cursor: pointer; list-style: none; display: flex; align-items: center; gap: 10px;">
+        <span style="color: #ffc107;">▶</span> Qu'est-ce qu'un spectacle animation ?
+      </summary>
+      <p style="color: rgba(255,255,255,0.85); margin: 15px 0 0 24px; line-height: 1.6; font-size: 0.95rem;">
+        Un <strong>spectacle animation</strong> combine une prestation artistique (magie, cirque, théâtre, clown) avec une dimension interactive où les enfants ou le public participent activement. Nos <strong>spectacles animations</strong> sont conçus pour divertir, éduquer et créer des moments mémorables lors de vos événements (écoles, anniversaires, fêtes de village, arbres de Noël).
+      </p>
+    </details>
+    
+    <details style="background: rgba(255,255,255,0.05); padding: 18px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.1); cursor: pointer;">
+      <summary style="font-weight: 700; color: #fff; font-size: 1.05rem; cursor: pointer; list-style: none; display: flex; align-items: center; gap: 10px;">
+        <span style="color: #ffc107;">▶</span> Quels types de spectacles et animations proposez-vous ?
+      </summary>
+      <p style="color: rgba(255,255,255,0.85); margin: 15px 0 0 24px; line-height: 1.6; font-size: 0.95rem;">
+        Nous proposons une large gamme de <strong>spectacles et animations</strong> : magie interactive, clowns professionnels, cirque, marionnettes, théâtre jeune public, contes musicaux, ventriloquie, animations scientifiques, ateliers créatifs. Tous nos artistes de <strong>spectacle animation</strong> sont professionnels et adaptent leur prestation selon l'âge du public (3-12 ans) et le type d'événement.
+      </p>
+    </details>
+    
+    <details style="background: rgba(255,255,255,0.05); padding: 18px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.1); cursor: pointer;">
+      <summary style="font-weight: 700; color: #fff; font-size: 1.05rem; cursor: pointer; list-style: none; display: flex; align-items: center; gap: 10px;">
+        <span style="color: #ffc107;">▶</span> Combien coûte un spectacle animation pour école ou mairie ?
+      </summary>
+      <p style="color: rgba(255,255,255,0.85); margin: 15px 0 0 24px; line-height: 1.6; font-size: 0.95rem;">
+        Le prix d'un <strong>spectacle animation</strong> varie selon le type de prestation, la durée, le nombre de participants et la localisation. En moyenne, comptez entre <strong>300€ et 800€</strong> pour une <strong>animation scolaire</strong>, et entre <strong>500€ et 2000€</strong> pour un événement de mairie, CSE ou arbre de Noël. Demandez des <strong>devis gratuits</strong> pour comparer les offres de nos artistes professionnels.
+      </p>
+    </details>
+    
+    <details style="background: rgba(255,255,255,0.05); padding: 18px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.1); cursor: pointer;">
+      <summary style="font-weight: 700; color: #fff; font-size: 1.05rem; cursor: pointer; list-style: none; display: flex; align-items: center; gap: 10px;">
+        <span style="color: #ffc107;">▶</span> Comment trouver un magicien pour un anniversaire ?
+      </summary>
+      <p style="color: rgba(255,255,255,0.85); margin: 15px 0 0 24px; line-height: 1.6; font-size: 0.95rem;">
+        Pour réserver un <strong>magicien pour anniversaire</strong>, parcourez notre catégorie "Magiciens" dans le catalogue, consultez les profils et photos des artistes, puis faites une demande de devis en indiquant la date, le lieu et le nombre d'enfants. Vous recevrez rapidement des propositions personnalisées.
+      </p>
+    </details>
+    
+    <details style="background: rgba(255,255,255,0.05); padding: 18px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.1); cursor: pointer;">
+      <summary style="font-weight: 700; color: #fff; font-size: 1.05rem; cursor: pointer; list-style: none; display: flex; align-items: center; gap: 10px;">
+        <span style="color: #ffc107;">▶</span> Quel délai pour réserver un spectacle ?
+      </summary>
+      <p style="color: rgba(255,255,255,0.85); margin: 15px 0 0 24px; line-height: 1.6; font-size: 0.95rem;">
+        Nous recommandons de réserver <strong>au moins 4 à 6 semaines à l'avance</strong> pour avoir le meilleur choix d'artistes, surtout pour les périodes de forte demande (Noël, fin d'année scolaire, kermesses). Les artistes répondent généralement sous <strong>3h</strong> à vos demandes.
+      </p>
+    </details>
+    
+    <details style="background: rgba(255,255,255,0.05); padding: 18px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.1); cursor: pointer;">
+      <summary style="font-weight: 700; color: #fff; font-size: 1.05rem; cursor: pointer; list-style: none; display: flex; align-items: center; gap: 10px;">
+        <span style="color: #ffc107;">▶</span> Intervenez-vous dans toute la France ?
+      </summary>
+      <p style="color: rgba(255,255,255,0.85); margin: 15px 0 0 24px; line-height: 1.6; font-size: 0.95rem;">
+        Oui ! Notre réseau d'artistes couvre <strong>toute la France</strong>. Vous pouvez filtrer les spectacles par région et ville dans notre catalogue. Beaucoup d'artistes se déplacent sur plusieurs départements et régions.
+      </p>
+    </details>
+  </div>
+</section>
+
+<style>
+/* Style pour les détails FAQ */
+details[open] summary span {
+  transform: rotate(90deg);
+  transition: transform 0.3s ease;
+}
+details summary span {
+  transition: transform 0.3s ease;
+}
+</style>
 
 <script>
 // Animation des compteurs
@@ -606,21 +923,6 @@
   const statsSection = document.querySelector('.stats-section');
   if (statsSection) {
     observer.observe(statsSection);
-  }
-})();
-
-// Redirection automatique vers catalogue sur mobile
-(function() {
-  // Détecter si c'est un appareil mobile
-  const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) 
-                   || window.innerWidth <= 768;
-  
-  // Vérifier si l'utilisateur n'a pas déjà visité (pour éviter boucle infinie)
-  const hasVisitedHome = sessionStorage.getItem('visited_home');
-  
-  if (isMobile && !hasVisitedHome) {
-    sessionStorage.setItem('visited_home', 'true');
-    window.location.href = "{{ url_for('catalogue') }}";
   }
 })();
 
