@@ -211,6 +211,181 @@
 
 {% block content %}
 
+<!-- Section Spectacles à la Une -->
+{% if spectacles_une %}
+<style>
+  .spectacles-une-section {
+    max-width: 100%;
+    margin: 32px auto 0 auto;
+    padding: 0;
+  }
+  
+  .spectacles-une-header {
+    text-align: center;
+    margin-bottom: 24px;
+  }
+  
+  .spectacles-une-header-link {
+    display: block;
+    text-decoration: none;
+    color: inherit;
+    padding: 16px;
+    border-radius: 12px;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+  }
+  
+  .spectacles-une-header-link:hover {
+    background-color: rgba(255, 255, 255, 0.05);
+    transform: scale(1.02);
+  }
+  
+  .spectacles-une-header-link:hover h2 {
+    color: var(--primary, #f59e0b);
+  }
+  
+  .spectacles-une-header-link:hover p {
+    color: var(--text);
+  }
+  
+  .spectacles-une-header h2 {
+    font-size: 1.8rem;
+    margin: 0 0 8px 0;
+    color: var(--text);
+    transition: color 0.3s ease;
+  }
+  
+  .spectacles-une-header p {
+    color: var(--muted);
+    font-size: 1rem;
+    margin: 0;
+    transition: color 0.3s ease;
+  }
+</style>
+
+<div class="spectacles-une-section">
+  <div class="cards">
+    {% for spectacle in spectacles_une %}
+    <article class="card" style="border:2px solid #222;border-radius:16px;box-shadow:0 2px 12px #0008;padding:0 0 8px 0;transition:box-shadow .2s;color:#fff;">
+      <a href="{{ url_for('show_detail', show_id=spectacle.id) }}" class="media-link">
+        <div class="media">
+          {% set images = spectacle.get_all_images() %}
+          {% if images|length > 1 %}
+            <!-- Diaporama avec plusieurs photos -->
+            <div class="card-carousel" data-carousel>
+              <div class="carousel-slides">
+                {% for img in images %}
+                <div class="carousel-slide">
+                  <img src="{{ url_for('uploaded_file', filename=img) }}" alt="{{ spectacle.title }}{% if loop.index > 1 %} - Photo {{ loop.index }}{% endif %}">
+                </div>
+                {% endfor %}
+              </div>
+              <span class="photo-count">{{ images|length }} photos</span>
+              <div class="carousel-indicators">
+                {% for img in images %}
+                <span class="carousel-indicator{% if loop.first %} active{% endif %}" data-slide="{{ loop.index0 }}"></span>
+                {% endfor %}
+              </div>
+              <button class="carousel-nav carousel-prev" aria-label="Photo précédente">‹</button>
+              <button class="carousel-nav carousel-next" aria-label="Photo suivante">›</button>
+            </div>
+          {% elif spectacle.has_image() %}
+            <img src="{{ url_for('uploaded_file', filename=spectacle.file_name) }}" alt="{{ spectacle.title }}">
+          {% else %}
+            <div class="placeholder">SPECTACLE</div>
+          {% endif %}
+        </div>
+      </a>
+      
+      <a href="{{ url_for('show_detail', show_id=spectacle.id) }}" class="content-link">
+        <div class="content">
+          <div style="margin-bottom:6px;">
+            <span class="badge" style="background:linear-gradient(135deg, #ffd700 0%, #ffed4e 100%); color:#222; font-weight:700; border:none; font-size:0.75rem; padding:3px 8px; border-radius:10px;">
+              À la une
+            </span>
+          </div>
+          
+          {% if spectacle.raison_sociale %}
+            <p class="meta" style="font-weight:600; margin-bottom:8px; color:var(--primary); font-size:0.85em;">
+              {{ spectacle.raison_sociale|title }}
+            </p>
+          {% endif %}
+          
+          <h3 style="margin:0 0 6px 0; line-height:1.2;">{{ spectacle.title }}</h3>
+          
+          <div style="display:flex; flex-direction:column; gap:4px; font-size:0.85em; margin-top:-2px;">
+            {% if spectacle.age_range %}
+            <div style="display:flex; align-items:center; gap:6px;">
+              <span style="opacity:0.7; min-width:20px;">Âge:</span>
+              <span style="color:rgba(255,255,255,0.9);">{{ spectacle.age_range|format_age }}</span>
+            </div>
+            {% endif %}
+          </div>
+        </div>
+      </a>
+    </article>
+    {% endfor %}
+  </div>
+</div>
+{% endif %}
+
+<!-- Section: Deux blocs principaux côte à côte -->
+<div class="blocs-principaux">
+  <!-- Bloc Collectivités -->
+  <div class="bloc-collectivites">
+    <h2>Mairies, Écoles, CSE</h2>
+    <p>Vous organisez un événement pour votre commune, école, comité d'entreprise ou association ? Découvrez notre catalogue de spectacles : magie, cirque, théâtre, concerts...</p>
+    
+    <!-- Bandeau intégré -->
+    <div class="bandeau-interne-collectivite">
+      <h3>🎪 Appel d'offre GRATUIT</h3>
+      <p>Publiez votre demande et recevez des propositions d'artistes qualifiés</p>
+      <a href="{{ url_for('demande_animation') }}" class="btn-bandeau">Publier ma demande →</a>
+    </div>
+    
+    <div class="recherches-populaires">
+      <ul>
+        <li><a href="{{ url_for('catalogue', category='Spectacle Enfants') }}">Trouver un spectacle pour Enfants</a></li>
+        <li><a href="{{ url_for('catalogue', category='Spectacle de rue') }}">Spectacle de rue pour fête de village</a></li>
+        <li><a href="{{ url_for('catalogue', category='Spectacle Enfants') }}">Spectacle enfant pour centre culturel</a></li>
+        <li><a href="{{ url_for('catalogue') }}">Spectacle bibliothèque APE</a></li>
+        <li><a href="{{ url_for('ecoles_themes') }}">Intervention pédagogique pour votre école</a></li>
+        <li><a href="{{ url_for('catalogue') }}">Spectacle pour arbre de Noël CSE</a></li>
+      </ul>
+    </div>
+    
+    <div class="text-center">
+      <a href="{{ url_for('catalogue') }}" class="btn-catalogue">Parcourir le catalogue</a>
+    </div>
+  </div>
+  
+  <!-- Bloc Artistes -->
+  <div class="bloc-artistes">
+    <h2>Artistes & Compagnies</h2>
+    <p>Développez votre visibilité et trouvez de nouveaux contrats grâce à notre plateforme dédiée aux professionnels du spectacle vivant.</p>
+    
+    <div class="avantages-liste">
+      <ul>
+        <li>Publication illimitée de vos spectacles</li>
+        <li>Réponse aux appels d'offre des collectivités</li>
+        <li>Gestion simplifiée de vos demandes</li>
+        <li>Visibilité auprès des organisateurs</li>
+        <li>Contact direct avec les clients</li>
+        <li>0% de commission sur vos prestations</li>
+      </ul>
+    </div>
+    
+    <div class="badges-container">
+      <span class="badge">🎭 Gratuit</span>
+      <span class="badge">⚡ Rapide</span>
+      <span class="badge">💼 Professionnel</span>
+    </div>
+    
+    <div class="text-center">
+      <a href="{{ url_for('register') }}" class="btn-publier">Publier votre spectacle</a>
+    </div>
+  </div>
+</div>
+
 <!-- Section Hero principale avec H1 et intro SEO -->
 <section class="hero-intro" style="text-align: center; margin-bottom: 40px; padding: 30px 20px; background: linear-gradient(135deg, rgba(22,36,71,0.8) 0%, rgba(40,62,94,0.8) 100%); border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.3);">
   <h1 style="font-size: 2.2rem; margin: 0 0 20px 0; color: #ffc107; font-weight: 800; line-height: 1.3; text-shadow: 0 2px 4px rgba(0,0,0,0.3);">
@@ -624,207 +799,374 @@
   </div>
 </section>
 
-<div class="hero-choice-section">
-  <a href="{{ url_for('ecoles_themes') }}" class="hero-choice-card">
-    <h2>Écoles : votre projet pédagogique</h2>
-    <div class="desc-box">
-      <p>Spectacles éducatifs adaptés à votre thème annuel : sciences, environnement, lecture, histoire... Nous trouvons l'artiste parfait pour votre classe de maternelle, primaire ou collège.</p>
-    </div>
-    <span class="cta-hint">Découvrir nos spectacles pédagogiques →</span>
-  </a>
-  
-  <a href="{{ url_for('catalogue') }}" class="hero-choice-card">
-    <h2>Mairie, École, CSE... : trouver un spectacle</h2>
-    <div class="desc-box">
-      <p>Vous organisez un événement pour votre commune, école, comité d'entreprise ou association ? Découvrez notre catalogue de spectacles : magie, cirque, théâtre, concerts. Publiez votre appel d'offre gratuitement !</p>
-    </div>
-    <span class="cta-hint">Parcourir le catalogue →</span>
-  </a>
-</div>
-
-<!-- Bloc Artiste/Compagnie - Deux colonnes -->
-<div class="hero-artiste-section">
-  <a href="{{ url_for('publish') }}" class="hero-artiste-card">
-    <h3>Artiste ou Compagnie ?</h3>
-    <span class="cta-hint-artiste">Publier mon spectacle →</span>
-  </a>
-  <a href="{{ url_for('abonnement_compagnie') }}" class="hero-artiste-card hero-abonnement">
-    <h3>Abonnement Compagnie</h3>
-    <span class="cta-hint-artiste">Découvrir les avantages →</span>
-  </a>
-</div>
-
+<!-- Section: Deux blocs principaux côte à côte -->
 <style>
-  .hero-artiste-section {
+  .blocs-principaux {
     display: flex;
-    gap: 1.5rem;
-    margin-top: 1rem;
+    gap: 30px;
+    margin-bottom: 45px;
+    align-items: stretch;
   }
   
-  .hero-artiste-section .hero-artiste-card {
+  .blocs-principaux > div {
     flex: 1;
-    margin-top: 0;
+    position: relative;
   }
   
-  .hero-abonnement {
-    background: linear-gradient(135deg, #1a237e 0%, #283e5e 50%, #1976d2 100%) !important;
-    border-color: #1976d2 !important;
-    color: #fff !important;
-    box-shadow: 0 0.375rem 1.25rem rgba(25,118,210,0.4) !important;
+  /* Bloc Collectivités (gauche) */
+  .bloc-collectivites {
+    background: linear-gradient(135deg, #162447 0%, #1f4068 50%, #283e5e 100%);
+    border: 3px solid #355c7d;
+    border-radius: 20px;
+    padding: 40px 30px;
+    box-shadow: 0 8px 30px rgba(0,0,0,0.3);
+    position: relative;
+    overflow: hidden;
   }
   
-  .hero-abonnement h3 {
-    color: #fff !important;
+  .bloc-collectivites::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, #ffc107, #ff9800, #ffc107);
   }
   
-  .hero-abonnement .cta-hint-artiste {
-    background: #ffc107 !important;
-    color: #000 !important;
+  .bloc-collectivites h2 {
+    color: #ffc107;
+    font-size: 1.8rem;
+    margin-bottom: 20px;
+    font-weight: 700;
+    text-align: center;
   }
   
-  .hero-abonnement:hover {
-    border-color: #ffc107 !important;
-    box-shadow: 0 0.5rem 1.5rem rgba(25,118,210,0.6) !important;
+  .bloc-collectivites p {
+    color: #fff;
+    font-size: 1rem;
+    line-height: 1.6;
+    margin-bottom: 25px;
+    text-align: center;
   }
   
-  @media (max-width: 768px) {
-    .hero-artiste-section {
+  /* Bandeau intégré dans le bloc collectivités */
+  .bandeau-interne-collectivite {
+    background: linear-gradient(135deg, #ff6b35 0%, #f7931e 25%, #ffc107 50%, #f7931e 75%, #ff6b35 100%);
+    background-size: 300% 100%;
+    padding: 20px 25px;
+    border-radius: 15px;
+    text-align: center;
+    margin: 25px 0;
+    position: relative;
+    overflow: hidden;
+    border: 3px solid #ff9800;
+    box-shadow: 0 6px 20px rgba(255,107,53,0.4);
+    animation: gradient-pulse 4s ease infinite;
+  }
+  
+  @keyframes gradient-pulse {
+    0%, 100% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+  }
+  
+  .bandeau-interne-collectivite::before {
+    content: '';
+    position: absolute;
+    top: -2px;
+    left: -2px;
+    right: -2px;
+    bottom: -2px;
+    background: linear-gradient(90deg, #fff, #ffc107, #ff6b35, #ffc107, #fff);
+    border-radius: 15px;
+    z-index: -1;
+    opacity: 0;
+    animation: border-glow 3s ease-in-out infinite;
+  }
+  
+  @keyframes border-glow {
+    0%, 100% { opacity: 0; }
+    50% { opacity: 0.6; }
+  }
+  
+  .bandeau-interne-collectivite h3 {
+    color: #000;
+    font-size: 1.3rem;
+    margin: 0 0 12px 0;
+    font-weight: 800;
+    text-shadow: 1px 1px 2px rgba(255,255,255,0.3);
+  }
+  
+  .bandeau-interne-collectivite p {
+    color: #1a1a1a;
+    font-size: 0.95rem;
+    margin: 0 0 15px 0;
+    font-weight: 600;
+    line-height: 1.4;
+  }
+  
+  .bandeau-interne-collectivite .btn-bandeau {
+    display: inline-block;
+    background: #000;
+    color: #ffc107;
+    padding: 12px 28px;
+    border-radius: 25px;
+    text-decoration: none;
+    font-weight: 700;
+    font-size: 0.95rem;
+    transition: all 0.3s ease;
+    border: 2px solid #000;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+  }
+  
+  .bandeau-interne-collectivite .btn-bandeau:hover {
+    background: #222;
+    transform: scale(1.05);
+    box-shadow: 0 6px 20px rgba(255,193,7,0.5);
+  }
+  
+  .bloc-collectivites .btn-catalogue {
+    display: inline-block;
+    background: #ffc107;
+    color: #000;
+    padding: 14px 32px;
+    border-radius: 25px;
+    text-decoration: none;
+    font-weight: 700;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+    margin-top: 10px;
+    border: 2px solid #ffc107;
+    box-shadow: 0 4px 15px rgba(255,193,7,0.4);
+  }
+  
+  .bloc-collectivites .btn-catalogue:hover {
+    background: #ffeb3b;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(255,193,7,0.6);
+  }
+  
+  .bloc-collectivites .recherches-populaires {
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 15px;
+    padding: 20px;
+    margin: 20px 0;
+  }
+  
+  .bloc-collectivites .recherches-populaires ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0 15px;
+  }
+  
+  .bloc-collectivites .recherches-populaires li {
+    color: #fff;
+    padding: 8px 0;
+    padding-left: 30px;
+    position: relative;
+    font-size: 0.9rem;
+    line-height: 1.5;
+  }
+  
+  .bloc-collectivites .recherches-populaires li::before {
+    content: '✓';
+    position: absolute;
+    left: 0;
+    color: #ffc107;
+    font-weight: bold;
+    font-size: 1.2rem;
+  }
+  
+  .bloc-collectivites .recherches-populaires a {
+    color: #fff;
+    text-decoration: none;
+    transition: color 0.3s ease;
+  }
+  
+  .bloc-collectivites .recherches-populaires a:hover {
+    color: #ffc107;
+  }
+  
+  .bloc-collectivites .text-center {
+    text-align: center;
+  }
+  
+  /* Bloc Artistes (droite) */
+  .bloc-artistes {
+    background: linear-gradient(135deg, #162447 0%, #1f4068 50%, #283e5e 100%);
+    border: 3px solid #355c7d;
+    border-radius: 20px;
+    padding: 40px 30px;
+    box-shadow: 0 8px 30px rgba(0,0,0,0.3);
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .bloc-artistes::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, #ffc107, #ff9800, #ffc107);
+  }
+  
+  .bloc-artistes h2 {
+    color: #ffc107;
+    font-size: 1.8rem;
+    margin-bottom: 20px;
+    font-weight: 700;
+    text-align: center;
+  }
+  
+  .bloc-artistes p {
+    color: #fff;
+    font-size: 1rem;
+    line-height: 1.6;
+    margin-bottom: 25px;
+    text-align: center;
+  }
+  
+  .bloc-artistes .avantages-liste {
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 15px;
+    padding: 20px;
+    margin-bottom: 25px;
+  }
+  
+  .bloc-artistes .avantages-liste ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+  
+  .bloc-artistes .avantages-liste li {
+    color: #fff;
+    padding: 10px 0;
+    padding-left: 30px;
+    position: relative;
+    font-size: 0.95rem;
+    line-height: 1.5;
+  }
+  
+  .bloc-artistes .avantages-liste li::before {
+    content: '✓';
+    position: absolute;
+    left: 0;
+    color: #ffc107;
+    font-weight: bold;
+    font-size: 1.2rem;
+  }
+  
+  .bloc-artistes .badges-container {
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+    margin-bottom: 25px;
+    flex-wrap: wrap;
+  }
+  
+  .bloc-artistes .badge {
+    background: rgba(255, 193, 7, 0.15);
+    border: 2px solid #ffc107;
+    color: #ffc107;
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-weight: 600;
+    font-size: 0.85rem;
+    position: relative;
+    animation: badge-pulse 2s ease-in-out infinite;
+  }
+  
+  @keyframes badge-pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+  }
+  
+  .bloc-artistes .btn-publier {
+    display: inline-block;
+    background: #ffc107;
+    color: #000;
+    padding: 14px 32px;
+    border-radius: 25px;
+    text-decoration: none;
+    font-weight: 700;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+    border: 2px solid #ffc107;
+    box-shadow: 0 4px 15px rgba(255,193,7,0.4);
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .bloc-artistes .btn-publier::before {
+    content: '';
+    position: absolute;
+    top: -2px;
+    left: -2px;
+    right: -2px;
+    bottom: -2px;
+    background: linear-gradient(45deg, #ff6b35, #ffc107, #ff6b35);
+    border-radius: 25px;
+    z-index: -1;
+    opacity: 0;
+    animation: border-spin 3s linear infinite;
+  }
+  
+  @keyframes border-spin {
+    0% { transform: rotate(0deg); opacity: 0; }
+    50% { opacity: 0.6; }
+    100% { transform: rotate(360deg); opacity: 0; }
+  }
+  
+  .bloc-artistes .btn-publier:hover {
+    background: #ffeb3b;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(255,193,7,0.6);
+  }
+  
+  .bloc-artistes .text-center {
+    text-align: center;
+  }
+  
+  /* Responsive */
+  @media (max-width: 992px) {
+    .blocs-principaux {
       flex-direction: column;
-      gap: 1rem;
+      gap: 25px;
+    }
+  }
+  
+  @media (max-width: 576px) {
+    .bloc-collectivites,
+    .bloc-artistes {
+      padding: 30px 20px;
+    }
+    
+    .bloc-collectivites h2,
+    .bloc-artistes h2 {
+      font-size: 1.5rem;
+    }
+    
+    .bandeau-interne-collectivite h3 {
+      font-size: 1.1rem;
+    }
+    
+    .bandeau-interne-collectivite p {
+      font-size: 0.9rem;
+    }
+    
+    .bloc-collectivites .recherches-populaires ul {
+      grid-template-columns: 1fr;
     }
   }
 </style>
-
-<!-- Section Spectacles à la Une -->
-{% if spectacles_une %}
-<style>
-  .spectacles-une-section {
-    max-width: 100%;
-    margin: 32px auto 0 auto;
-    padding: 0;
-  }
-  
-  .spectacles-une-header {
-    text-align: center;
-    margin-bottom: 24px;
-  }
-  
-  .spectacles-une-header-link {
-    display: block;
-    text-decoration: none;
-    color: inherit;
-    padding: 16px;
-    border-radius: 12px;
-    transition: background-color 0.3s ease, transform 0.2s ease;
-  }
-  
-  .spectacles-une-header-link:hover {
-    background-color: rgba(255, 255, 255, 0.05);
-    transform: scale(1.02);
-  }
-  
-  .spectacles-une-header-link:hover h2 {
-    color: var(--primary, #f59e0b);
-  }
-  
-  .spectacles-une-header-link:hover p {
-    color: var(--text);
-  }
-  
-  .spectacles-une-header h2 {
-    font-size: 1.8rem;
-    margin: 0 0 8px 0;
-    color: var(--text);
-    transition: color 0.3s ease;
-  }
-  
-  .spectacles-une-header p {
-    color: var(--muted);
-    font-size: 1rem;
-    margin: 0;
-    transition: color 0.3s ease;
-  }
-</style>
-
-<div class="spectacles-une-section">
-  <div class="spectacles-une-header">
-    <a href="https://spectacleanimation.fr/catalogue" class="spectacles-une-header-link">
-      <h2>Spectacles à la Une</h2>
-      <p>Découvrez notre sélection de spectacles exceptionnels</p>
-    </a>
-  </div>
-  
-  <div class="cards">
-    {% for spectacle in spectacles_une %}
-    <article class="card" style="border:2px solid #222;border-radius:16px;box-shadow:0 2px 12px #0008;padding:0 0 8px 0;transition:box-shadow .2s;color:#fff;">
-      <a href="{{ url_for('show_detail', show_id=spectacle.id) }}" class="media-link">
-        <div class="media">
-          {% set images = spectacle.get_all_images() %}
-          {% if images|length > 1 %}
-            <!-- Diaporama avec plusieurs photos -->
-            <div class="card-carousel" data-carousel>
-              <div class="carousel-slides">
-                {% for img in images %}
-                <div class="carousel-slide">
-                  <img src="{{ url_for('uploaded_file', filename=img) }}" alt="{{ spectacle.title }}{% if loop.index > 1 %} - Photo {{ loop.index }}{% endif %}">
-                </div>
-                {% endfor %}
-              </div>
-              <span class="photo-count">{{ images|length }} photos</span>
-              <div class="carousel-indicators">
-                {% for img in images %}
-                <span class="carousel-indicator{% if loop.first %} active{% endif %}" data-slide="{{ loop.index0 }}"></span>
-                {% endfor %}
-              </div>
-              <button class="carousel-nav carousel-prev" aria-label="Photo précédente">‹</button>
-              <button class="carousel-nav carousel-next" aria-label="Photo suivante">›</button>
-            </div>
-          {% elif spectacle.has_image() %}
-            <img src="{{ url_for('uploaded_file', filename=spectacle.file_name) }}" alt="{{ spectacle.title }}">
-          {% else %}
-            <div class="placeholder">SPECTACLE</div>
-          {% endif %}
-        </div>
-      </a>
-      
-      <a href="{{ url_for('show_detail', show_id=spectacle.id) }}" class="content-link">
-        <div class="content">
-          <div style="margin-bottom:6px;">
-            <span class="badge" style="background:linear-gradient(135deg, #ffd700 0%, #ffed4e 100%); color:#222; font-weight:700; border:none; font-size:0.75rem; padding:3px 8px; border-radius:10px;">
-              À la une
-            </span>
-          </div>
-          
-          {% if spectacle.raison_sociale %}
-            <p class="meta" style="font-weight:600; margin-bottom:8px; color:var(--primary); font-size:0.85em;">
-              {{ spectacle.raison_sociale|title }}
-            </p>
-          {% endif %}
-          
-          <h3 style="margin:0 0 6px 0; line-height:1.2;">{{ spectacle.title }}</h3>
-          
-          <div style="display:flex; flex-direction:column; gap:4px; font-size:0.85em; margin-top:-2px;">
-            {% if spectacle.age_range %}
-            <div style="display:flex; align-items:center; gap:6px;">
-              <span style="opacity:0.7; min-width:20px;">Âge:</span>
-              <span style="color:rgba(255,255,255,0.9);">{{ spectacle.age_range|format_age }}</span>
-            </div>
-            {% endif %}
-          </div>
-        </div>
-      </a>
-    </article>
-    {% endfor %}
-  </div>
-  
-  <div style="text-align:center; margin-top:24px;">
-    <a href="{{ url_for('catalogue') }}" 
-       style="display:inline-flex; align-items:center; gap:8px; padding:12px 28px; background:linear-gradient(135deg, #ffd700 0%, #ffed4e 100%); color:#222; text-decoration:none; border-radius:25px; font-weight:700; font-size:1rem; transition:all 0.3s ease; box-shadow:0 4px 15px rgba(255,215,0,0.4);">
-      Voir le catalogue complet <i class="fa fa-arrow-right"></i>
-    </a>
-  </div>
-</div>
-{% endif %}
 
 <!-- Section SEO Spectacle Animation -->
 <style>
