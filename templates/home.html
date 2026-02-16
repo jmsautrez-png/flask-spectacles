@@ -354,28 +354,43 @@
   
   <!-- Bloc Artistes -->
   <div class="bloc-artistes">
-    <h2>Artistes & Compagnies</h2>
+    <h2 style="display: flex; align-items: center; justify-content: center; gap: 12px; flex-wrap: wrap;">
+      <span>Artistes & Compagnies</span>
+      <span style="font-size: 0.85em; color: var(--primary); font-weight: 600;">✅ 100% GRATUIT</span>
+    </h2>
     <p>Développez votre visibilité et trouvez de nouveaux contrats grâce à notre plateforme dédiée aux professionnels du spectacle vivant.</p>
     
     <div class="avantages-liste">
       <ul>
-        <li>Publication illimitée de vos spectacles</li>
-        <li>Réponse aux appels d'offre des collectivités</li>
-        <li>Gestion simplifiée de vos demandes</li>
-        <li>Visibilité auprès des organisateurs</li>
-        <li>Contact direct avec les clients</li>
-        <li>0% de commission sur vos prestations</li>
+        <li><strong>Publication illimitée</strong> de vos spectacles sur le site</li>
+        <li><strong>Visibilité maximale</strong> auprès de 60 000 contacts (écoles, mairies, CSE)</li>
+        <li><strong>Réception automatique</strong> des appels d'offres selon vos thèmes</li>
+        <li><strong>Réponse directe</strong> aux demandes des organisateurs</li>
+        <li><strong>Contact direct</strong> avec les clients potentiels</li>
+        <li><strong>0% de commission</strong> - Vous négociez vos tarifs librement</li>
       </ul>
+      
+      <div style="margin: 25px 0 10px; padding: 15px; background: rgba(255, 193, 7, 0.15); border-left: 4px solid #ffc107; border-radius: 6px;">
+        <a href="{{ url_for('abonnement_compagnie') }}" style="color: #ffc107; text-decoration: none; font-size: 1.1rem; font-weight: 600; display: flex; align-items: center; gap: 8px; transition: opacity 0.2s;">
+          <span>💼 Administration compagnie</span>
+          <span style="font-size: 0.75rem; background: #000; padding: 3px 8px; border-radius: 4px; color: #ffc107; font-weight: 700; letter-spacing: 0.5px;">NOUVEAU</span>
+          <span style="font-size: 0.85rem; opacity: 0.85; font-weight: 500;">Abonnement premium</span>
+          <span style="font-size: 0.9rem; opacity: 0.8;">→</span>
+        </a>
+        <p style="margin: 8px 0 0 0; font-size: 0.85rem; color: rgba(255, 255, 255, 0.7); line-height: 1.4;">
+          Gestion URSSAF, fiches de salaire, contrats, accompagnement juridique
+        </p>
+      </div>
     </div>
     
     <div class="badges-container">
-      <span class="badge">🎭 Gratuit</span>
-      <span class="badge">⚡ Rapide</span>
-      <span class="badge">💼 Professionnel</span>
+      <span class="badge">🎭 Inscription gratuite</span>
+      <span class="badge">⚡ Diffusion immédiate</span>
+      <span class="badge">💼 Accompagnement pro</span>
     </div>
     
     <div class="text-center">
-      <a href="{{ url_for('register') }}" class="btn-publier">Publier votre spectacle</a>
+      <a href="{{ url_for('register') }}" class="btn-publier">Publier votre spectacle gratuitement</a>
     </div>
   </div>
 </div>
@@ -389,7 +404,7 @@
     <strong>Réservez le spectacle parfait</strong> pour votre <strong>école</strong>, <strong>mairie</strong>, <strong>CSE</strong>, association ou <strong>centre culturel</strong>. <strong>Spectacle'ment VØtre</strong> vous met en relation avec <strong>+200 artistes professionnels expérimentés</strong> : spectacles pour enfants, animations scolaires, magie, cirque, théâtre, clowns, marionnettes. Trouvez, comparez et engagez l'artiste idéal en toute simplicité.
   </p>
   <p style="font-size: 1rem; color: rgba(255,255,255,0.85); max-width: 800px; margin: 0 auto;">
-    • Réponse moyenne sous 3h • 30 ans d'expérience • Toute la France • +180 spectacles/an
+    • Réponse moyenne sous 3h • 30 ans d'expérience • Toute la France
   </p>
 </section>
 
