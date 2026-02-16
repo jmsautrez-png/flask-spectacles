@@ -22,8 +22,8 @@ accesslog = '-'  # Log vers stdout
 errorlog = '-'   # Log vers stderr
 loglevel = os.environ.get('LOG_LEVEL', 'info')
 
-# Preload de l'application pour économiser la mémoire
-preload_app = True
+# Preload désactivé pour mieux voir les erreurs au démarrage
+preload_app = False
 
 # Nombre de requêtes par worker avant redémarrage (évite les fuites mémoire)
 max_requests = 1000
