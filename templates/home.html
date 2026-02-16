@@ -369,14 +369,16 @@
         <li><strong>0% de commission</strong> - Vous négociez vos tarifs librement</li>
       </ul>
       
-      <div style="margin: 25px 0 10px; padding: 15px; background: rgba(255, 193, 7, 0.15); border-left: 4px solid #ffc107; border-radius: 6px;">
+      <div style="margin: 25px 0 10px; padding: 15px; background: rgba(255, 193, 7, 0.15); border-left: 4px solid #ffc107; border-radius: 6px; transition: all 0.3s ease; cursor: pointer; position: relative;" 
+           onmouseover="this.style.transform='scale(1.08)'; this.style.background='rgba(255, 193, 7, 0.25)'; this.style.boxShadow='0 8px 25px rgba(255, 193, 7, 0.4)'; this.style.borderLeft='6px solid #ffc107';" 
+           onmouseout="this.style.transform='scale(1)'; this.style.background='rgba(255, 193, 7, 0.15)'; this.style.boxShadow='none'; this.style.borderLeft='4px solid #ffc107';">
         <a href="{{ url_for('abonnement_compagnie') }}" style="color: #ffc107; text-decoration: none; font-size: 1.1rem; font-weight: 600; display: flex; align-items: center; gap: 8px; transition: opacity 0.2s;">
           <span>💼 Administration compagnie</span>
           <span style="font-size: 0.75rem; background: #000; padding: 3px 8px; border-radius: 4px; color: #ffc107; font-weight: 700; letter-spacing: 0.5px;">NOUVEAU</span>
           <span style="font-size: 0.85rem; opacity: 0.85; font-weight: 500;">Abonnement premium</span>
           <span style="font-size: 0.9rem; opacity: 0.8;">→</span>
         </a>
-        <p style="margin: 8px 0 0 0; font-size: 0.85rem; color: rgba(255, 255, 255, 0.7); line-height: 1.4;">
+        <p style="margin: 8px 0 0 0; font-size: 0.85rem; color: #fff; line-height: 1.4; font-weight: 700;">
           Gestion URSSAF, fiches de salaire, contrats, accompagnement juridique
         </p>
       </div>
