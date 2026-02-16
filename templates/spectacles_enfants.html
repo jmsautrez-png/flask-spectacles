@@ -46,7 +46,6 @@
               </div>
               {% endfor %}
             </div>
-            <span class="photo-count">{{ images|length }} 📷</span>
             <div class="carousel-indicators">
               {% for img in images %}
               <span class="carousel-indicator{% if loop.first %} active{% endif %}" data-slide="{{ loop.index0 }}"></span>

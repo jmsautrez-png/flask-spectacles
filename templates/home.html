@@ -273,7 +273,6 @@
                 </div>
                 {% endfor %}
               </div>
-              <span class="photo-count">{{ images|length }} photos</span>
               <div class="carousel-indicators">
                 {% for img in images %}
                 <span class="carousel-indicator{% if loop.first %} active{% endif %}" data-slide="{{ loop.index0 }}"></span>
@@ -394,6 +393,17 @@
     </div>
   </div>
 </div>
+
+<!-- Section Qui sommes-nous -->
+<a href="{{ url_for('about') }}" style="display: block; margin: 40px 0; padding: 30px; background: linear-gradient(135deg, rgba(109,19,19,0.08) 0%, rgba(255,193,7,0.08) 100%); border: 2px solid rgba(255,193,7,0.3); border-radius: 16px; text-align: center; transition: all 0.3s ease; box-shadow: 0 2px 12px rgba(255,193,7,0.15); text-decoration: none; cursor: pointer;" onmouseover="this.style.transform='translateY(-4px)'; this.style.boxShadow='0 6px 20px rgba(255,193,7,0.25)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 12px rgba(255,193,7,0.15)';">
+  <h2 style="font-size: 1.8rem; color: #ffc107; font-weight: 700; margin: 0 0 15px 0;">Qui sommes-nous ?</h2>
+  <p style="font-size: 1.05rem; color: rgba(255,255,255,0.9); line-height: 1.6; max-width: 700px; margin: 0 auto 20px; font-weight: 500;">
+    <strong style="color: #ffc107;">33 ans d'expérience</strong> • <strong style="color: #ffc107;">2 700 représentations</strong> • <strong style="color: #ffc107;">Une sélection qualité professionnelle</strong>
+  </p>
+  <p style="font-size: 0.95rem; color: rgba(255,255,255,0.75); max-width: 600px; margin: 0 auto; line-height: 1.5;">
+    Découvrez comment nous sélectionnons rigoureusement les meilleurs artistes pour garantir la qualité de vos événements
+  </p>
+</a>
 
 <!-- Section Hero principale avec H1 et intro SEO -->
 <section class="hero-intro" style="text-align: center; margin-bottom: 40px; padding: 30px 20px; background: linear-gradient(135deg, rgba(22,36,71,0.8) 0%, rgba(40,62,94,0.8) 100%); border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.3);">

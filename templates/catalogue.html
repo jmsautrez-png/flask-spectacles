@@ -143,6 +143,11 @@
 <div class="mobile-cta-block" style="display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:16px;">
   <h1 id="catalogue" style="font-size:1.25rem;margin:0 0 8px 0;font-weight:700;color:#FFDEDE;line-height:1.3;">{{ h1_title|default('Spectacles et animations pour mairies, écoles et CSE partout en France') }}</h1>
   <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;justify-content:flex-end;width:100%;">
+    <span class="btn-mairie-wrapper" style="order:-1;flex:1 1 100%;">
+      <a href="{{ url_for('demande_animation') }}" class="btn-mairie" style="font-size:1.15rem;padding:14px 28px;">
+        Mairie, CSE, École, Centre culturel — Publier mon Appel d'Offres GRATUIT
+      </a>
+    </span>
       <span class="btn-artiste-wrapper">
         <a href="{{ url_for('publish') }}" class="btn-artiste">
           Je suis artiste / compagnie — Je publie mon spectacle
@@ -154,11 +159,6 @@
     <a href="{{ url_for('demandes_animation') }}" style="background:linear-gradient(135deg,#0d47a1 0%,#1976d2 50%,#43cea2 100%);color:#fff;padding:8px 18px;border-radius:22px;font-weight:600;font-size:0.95rem;text-decoration:none;box-shadow:0 2px 8px #1976d244;transition:background .2s;white-space:nowrap;display:inline-block;letter-spacing:0.5px;">
       Voir les appels d'offres
     </a>
-    <span class="btn-mairie-wrapper">
-      <a href="{{ url_for('demande_animation') }}" class="btn-mairie">
-        🎯 Mairie, CSE, École, asso etc — Je publie mon appel d'offre
-      </a>
-    </span>
   </div>
 </div>
 
@@ -218,7 +218,6 @@
                   </div>
                   {% endfor %}
                 </div>
-                <span class="photo-count">{{ images|length }} 📷</span>
                 <div class="carousel-indicators">
                   {% for img in images %}
                   <span class="carousel-indicator{% if loop.first %} active{% endif %}" data-slide="{{ loop.index0 }}"></span>
@@ -561,6 +560,17 @@ function initCarousels() {
 
 // Initialiser au chargement
 document.addEventListener('DOMContentLoaded', initCarousels);
+</script>
+
+<script>
+// Détection du mode carousel automatique depuis la page d'accueil
+const urlParams = new URLSearchParams(window.location.search);
+if (urlParams.get('auto_carousel') === '1') {
+  // Redirection vers la page d'accueil après 10 secondes
+  setTimeout(function() {
+    window.location.href = "{{ url_for('home') }}";
+  }, 10000);
+}
 </script>
 
 {% endblock %}
