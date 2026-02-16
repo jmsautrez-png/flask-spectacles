@@ -20,7 +20,7 @@ keepalive = 5
 # Logging
 accesslog = '-'  # Log vers stdout
 errorlog = '-'   # Log vers stderr
-loglevel = os.environ.get('LOG_LEVEL', 'info')
+loglevel = 'debug'  # Level debug pour voir toutes les erreurs
 
 # Preload désactivé pour mieux voir les erreurs au démarrage
 preload_app = False

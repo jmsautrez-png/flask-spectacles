@@ -11,7 +11,12 @@ except ImportError:
     Talisman = None
 import sys
 
+print("=" * 70)
+print("🚀 DÉMARRAGE APP.PY")
+print("=" * 70)
 print("PYTHON EXE:", sys.executable)
+print("PYTHON VERSION:", sys.version)
+
 from sqlalchemy import or_
 from datetime import datetime
 from pathlib import Path
@@ -20,6 +25,8 @@ import random
 import os
 import logging
 from logging.handlers import RotatingFileHandler
+
+print("✓ Imports standards OK")
 
 import uuid
 
@@ -35,10 +42,13 @@ try:
 except ImportError:
     Compress = None
 
+print("✓ Imports optionnels OK (boto3, Compress)")
+
 # Charger les variables d'environnement du fichier .env
 from dotenv import load_dotenv
 load_dotenv()
 
+print("✓ Dotenv chargé")
 
 from flask import (
     Flask,
@@ -52,9 +62,13 @@ from flask import (
     current_app
 )
 
+print("✓ Flask importé")
+
 from config import Config
 from models import db
 from models.models import User, Show
+
+print("✓ Config et models importés")
 
 # -----------------------------------------------------
 # Logging
@@ -154,7 +168,11 @@ def _validate_production_config(app: Flask) -> None:
 
 
 def create_app() -> Flask:
+    print("\n📦 Entrée dans create_app()")
+    
     app = Flask(__name__, instance_relative_config=True)
+    
+    print("✓ Instance Flask créée")
 
     app.config.from_object(Config)
     import os
@@ -2675,7 +2693,12 @@ L'équipe Spectacle'ment VØtre
 # Entrée
 # -----------------------------------------------------
 
+print("🏗️  Création de l'application Flask...")
 app = create_app()
+print("✅ Application Flask créée avec succès!")
+print(f"   App name: {app.name}")
+print(f"   Debug: {app.debug}")
+print("=" * 70)
 
 # === ROUTE EXPORT UTILISATEURS EXCEL ===
 import pandas as pd
