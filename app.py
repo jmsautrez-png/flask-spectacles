@@ -1328,9 +1328,9 @@ def register_routes(app: Flask) -> None:
                         + f"Date de création de la fiche : {show.created_at.strftime('%d/%m/%Y %H:%M')}\n\n"
                         + f"📧 Email: {contact_email}\n"
                         + f"📱 Téléphone: {contact_phone}\n"
-                        + "\n\nAussi, vous bénéficiez dès aujourd'hui d'un abonnement gratuit de six mois (voir onglet Abonnement).\n"
-                        + "L'abonnement est optionnel. La plateforme Spectacle'ment Vôtre est avant tout un annuaire du spectacle vivant français.\n\n"
-                        + "N'hésitez pas à vous inscrire \"gratuitement\" et ajouter vos spectacles.\n"
+                        + "\n\n✅ Rappel : Le déploiement sur Spectacle'ment Vôtre est entièrement gratuit.\n"
+                        + "📢 Nous sélectionnons des artistes d'excellence pour offrir aux programmateurs des spectacles professionnels de qualité.\n\n"
+                        + "💼 Service d'administration disponible pour les compagnies (gestion URSSAF, DSN, contrats, etc.).\n"
                         + "\nCordialement,\nL'équipe Spectacle'ment VØtre"
                     )
                     msg = Message(subject="🎭 Nouvelle annonce à valider", recipients=[to_addr])  # type: ignore[arg-type]
@@ -1827,42 +1827,45 @@ def register_routes(app: Flask) -> None:
                 if show.user_id:
                     # Carte créée par l'utilisateur lui-même → Email de validation classique
                     subject = "Votre spectacle est validé sur Spectacle'ment VØtre !"
+                    abonnement_url = url_for('abonnement_compagnie', _external=True)
                     body = (
                         "Bonjour,\n\n"
-                        "Votre spectacle vient d'être validé et publié sur Spectacle'ment VØtre.\n\n"
+                        "Félicitations ! Votre spectacle vient d'être validé et publié sur Spectacle'ment VØtre.\n\n"
                         f"Compagnie : {show.raison_sociale or 'Non renseignée'}\n"
                         f"Titre : {show.title}\n"
                         f"Lieu : {show.location}\n"
                         f"Catégorie : {show.category}\n"
                         + (f"Date : {show.date}\n" if show.date else "")
                         + f"Date de publication : {show.created_at.strftime('%d/%m/%Y %H:%M') if show.created_at else 'N/A'}\n\n"
-                        + f"Lien direct vers l'annonce (public) : {show_url}\n\n"
-                        + "Si vous souhaitez la retirer ou la modifier, merci de nous contacter par simple retour de ce mail.\n\n"
-                        + "Aussi, vous bénéficiez dès aujourd'hui d'un abonnement gratuit de six mois (voir onglet Abonnement).\n"
-                        + "L'abonnement est totalement optionnel : Spectacle'ment VØtre reste avant tout un annuaire gratuit d'artistes.\n\n"
-                        + "N'hésitez pas à vous inscrire \"gratuitement\" et ajouter vos spectacles sur la plateforme (Inscription/Connexion > Ajouter votre spectacle).\n\n"
+                        + f"Lien direct vers votre annonce : {show_url}\n\n"
+                        + "📢 Spectacle'ment VØtre est un annuaire gratuit qui sélectionne des artistes d'excellence pour offrir aux programmateurs (écoles, mairies, CSE, centres culturels) des spectacles professionnels de qualité.\n\n"
+                        + "✅ Votre déploiement sur la plateforme est entièrement gratuit.\n\n"
+                        + "💼 Besoin d'aide administrative ? Spectacle'ment VØtre propose également un service d'administration pour les compagnies (gestion URSSAF, DSN, DUE, fiches de salaire, contrats).\n"
+                        + f"Découvrez notre offre premium : {abonnement_url}\n\n"
+                        + "Si vous souhaitez retirer ou modifier votre fiche, contactez-nous par simple retour de mail.\n\n"
                         + "Spectaclement vôtre,\nL'équipe Spectacle'ment VØtre"
                     )
                 else:
                     # Carte créée par l'admin → Email de découverte
-                    subject = "Nous serions honorés de votre apparition gratuite sur notre annuaire Spectacle'ment VØtre !"
+                    subject = "Votre spectacle a été repéré pour notre annuaire Spectacle'ment VØtre !"
+                    abonnement_url = url_for('abonnement_compagnie', _external=True)
                     body = (
                         "Bonjour,\n\n"
-                        "Spectacle'ment VØtre diffuse, crée et produit auprès des acteurs culturels français (Centres Culturels, C.Com, Mairies, CSE, Écoles, MJC, etc.), depuis plus de trente ans, des spectacles de qualité. "
-                        "Notre créneau : proposer des spectacles haut de gamme avec des artistes expérimentés, évitant l'écueil de l'amateurisme aux acheteurs en quête de professionnalisme. "
-                        "_Nous aimerions alors leur garantir ainsi la qualité car ils n'ont pas facilement la possibilité de se déplacer._\n\n"
-                        "Votre spectacle a été repéré et nous avons créé une fiche pour vous :\n\n"
+                        "Depuis plus de trente ans, Spectacle'ment VØtre accompagne les acteurs culturels français (Centres Culturels, Mairies, CSE, Écoles, MJC, etc.) en leur proposant des spectacles de qualité exceptionnelle.\n\n"
+                        "🎭 Notre mission : Repérer les meilleurs artistes et compagnies pour offrir de l'excellence aux programmateurs qui recherchent des spectacles professionnels.\n\n"
+                        "Votre talent a retenu notre attention et nous avons créé une fiche pour vous sur notre annuaire gratuit :\n\n"
                         f"Compagnie : {show.raison_sociale or 'Non renseignée'}\n"
                         f"Titre : {show.title}\n"
                         f"Lieu : {show.location}\n"
                         f"Catégorie : {show.category}\n"
                         + (f"Date : {show.date}\n" if show.date else "")
                         + f"Date de publication : {show.created_at.strftime('%d/%m/%Y %H:%M') if show.created_at else 'N/A'}\n\n"
-                        + f"Lien direct vers l'annonce (public) : {show_url}\n\n"
-                        + "Si vous souhaitez la retirer ou la modifier, merci de nous contacter par simple retour de ce mail.\n\n"
-                        + "Aussi, vous bénéficiez dès aujourd'hui d'un abonnement gratuit de six mois (voir onglet Abonnement).\n"
-                        + "L'abonnement est totalement optionnel : Spectacle'ment VØtre reste avant tout un annuaire gratuit d'artistes.\n\n"
-                        + "N'hésitez pas à vous inscrire \"gratuitement\" et ajouter vos spectacles sur la plateforme (Inscription/Connexion > Ajouter votre spectacle).\n\n"
+                        + f"Lien direct vers votre annonce : {show_url}\n\n"
+                        + "✅ Votre déploiement sur notre plateforme est entièrement gratuit.\n\n"
+                        + "💼 Au-delà de la visibilité, Spectacle'ment VØtre propose également un service d'administration complet pour les compagnies (gestion URSSAF, DSN, DUE, AEM, fiches de salaire, contrats de cession). \n"
+                        + "Si cette dimension vous intéresse, découvrez notre accompagnement premium :\n"
+                        + f"{abonnement_url}\n\n"
+                        + "Si vous souhaitez retirer ou modifier votre fiche, contactez-nous par simple retour de mail.\n\n"
                         + "Spectaclement vôtre,\nL'équipe Spectacle'ment VØtre"
                     )
                 

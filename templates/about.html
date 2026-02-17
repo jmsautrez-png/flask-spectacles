@@ -162,47 +162,59 @@
 
 <section class="about-section">
   <h2>Notre Mission</h2>
-  <p>
-    <strong>Spectacle'ment VØtre</strong> est née d'une conviction : proposer aux écoles, mairies, CSE et centres culturels 
-    une <strong>sélection exigeante de spectacles professionnels de qualité</strong>, évitant ainsi l'écueil des prestations 
-    improvisées et approximatives qui saturent aujourd'hui le marché.
-  </p>
-  <p>
-    Notre plateforme se distingue par une <strong>curation rigoureuse</strong> des compagnies et artistes présents. 
-    Nous apportons une aide substantielle aux organisateurs qui, face à la profusion d'offres, peinent à identifier 
-    les spectacles dignes de ce nom, créés par de véritables professionnels.
-  </p>
   
-  <h3 style="color: var(--primary); margin-top: 30px; font-size: 1.2rem;">Nos critères de sélection</h3>
-  <p>
-    Bien que le jugement artistique reste subjectif, notre sélection s'appuie sur <strong>trois critères objectifs</strong> 
-    pour garantir un niveau professionnel :
-  </p>
-  <ul style="line-height: 2; margin: 20px 0;">
-    <li><strong>Volume d'activité</strong> : Nombre de représentations jouées dans l'année</li>
-    <li><strong>Expérience avérée</strong> : Ancienneté et parcours professionnel de l'artiste</li>
-    <li><strong>Excellence artistique</strong> : Talent évalué grâce à notre expertise du terrain</li>
-  </ul>
+  <!-- POUR LES ORGANISATEURS -->
+  <a href="{{ url_for('catalogue') }}" style="display: block; text-decoration: none; color: inherit; margin-top: 20px; padding: 25px; background: rgba(25, 118, 210, 0.1); border: 2px solid rgba(25, 118, 210, 0.3); border-radius: 12px; transition: all 0.3s ease; cursor: pointer;" 
+     onmouseover="this.style.transform='scale(1.03)'; this.style.background='rgba(25, 118, 210, 0.2)'; this.style.boxShadow='0 6px 20px rgba(25, 118, 210, 0.3)'; this.style.borderColor='#1976d2';" 
+     onmouseout="this.style.transform='scale(1)'; this.style.background='rgba(25, 118, 210, 0.1)'; this.style.boxShadow='none'; this.style.borderColor='rgba(25, 118, 210, 0.3)';">
+    <h3 style="color: var(--primary); margin-top: 0; font-size: 1.4rem;">Mairies, CSE et centres culturels</h3>
+    <p>
+      <strong>Spectacle'ment VØtre</strong> est née d'une conviction : proposer aux organisateurs d'événements
+      une <strong>sélection exigeante de spectacles professionnels de qualité</strong>, évitant ainsi l'écueil des prestations 
+      improvisées et approximatives qui saturent aujourd'hui le marché.
+    </p>
+    <p>
+      Notre plateforme se distingue par une <strong>curation rigoureuse</strong> des compagnies et artistes présents. 
+      Nous apportons une aide substantielle aux organisateurs qui, face à la profusion d'offres, peinent à identifier 
+      les spectacles dignes de ce nom, créés par de véritables professionnels.
+    </p>
+    
+    <h4 style="color: var(--primary); margin-top: 30px; font-size: 1.2rem;">Nos critères de sélection</h4>
+    <p>
+      Bien que le jugement artistique reste subjectif, la sélection des artistes de notre catalogue s'appuie sur <strong>trois critères objectifs</strong> 
+      pour garantir un niveau professionnel :
+    </p>
+    <ul style="line-height: 2; margin: 20px 0;">
+      <li><strong>Volume d'activité</strong> : Nombre de représentations jouées dans l'année</li>
+      <li><strong>Expérience avérée</strong> : Ancienneté et parcours professionnel de l'artiste</li>
+      <li><strong>Excellence artistique</strong> : Talent évalué grâce à notre expertise du terrain</li>
+    </ul>
+    
+    <p style="background: rgba(25, 118, 210, 0.1); padding: 20px; border-left: 4px solid var(--primary); border-radius: 6px; margin: 25px 0 0 0;">
+      <strong style="color: var(--primary);">Notre expertise : </strong>
+      Fort de <strong>33 années d'expérience</strong> dans le spectacle vivant, de <strong>2 700 représentations</strong> 
+      assurées et de <strong>10 spectacles créés</strong>, nous savons reconnaître la qualité et le professionnalisme. 
+      Cette légitimité nous permet de guider les organisateurs vers des choix artistiques pertinents, tout en maintenant 
+      une offre <strong>éclectique et diverse</strong> pour répondre à tous les publics et toutes les sensibilités.
+    </p>
+  </a>
   
-  <p style="background: rgba(25, 118, 210, 0.1); padding: 20px; border-left: 4px solid var(--primary); border-radius: 6px; margin: 25px 0;">
-    <strong style="color: var(--primary);">Notre expertise : </strong>
-    Fort de <strong>33 années d'expérience</strong> dans le spectacle vivant, de <strong>2 700 représentations</strong> 
-    assurées et de <strong>10 spectacles créés</strong>, nous savons reconnaître la qualité et le professionnalisme. 
-    Cette légitimité nous permet de guider les organisateurs vers des choix artistiques pertinents, tout en maintenant 
-    une offre <strong>éclectique et diverse</strong> pour répondre à tous les publics et toutes les sensibilités.
-  </p>
-  
-  <h3 style="color: var(--primary); margin-top: 30px; font-size: 1.2rem;">Notre accompagnement des artistes</h3>
-  <p>
-    Au-delà de la <strong>visibilité gratuite</strong> offerte sur notre catalogue, nous proposons aux compagnies 
-    un <strong>accompagnement administratif complet</strong> : gestion des DSN (Déclarations Sociales Nominatives), 
-    DUE (Déclarations Uniques d'Embauche), AEM (Attestations Employeur Mensuelles), fiches de salaire, contrats de cession.
-  </p>
-  <p>
-    Ces tâches administratives complexes, chronophages et sources d'erreurs, peuvent être déléguées à notre équipe 
-    expérimentée. Nous permettons ainsi aux artistes de <strong>se concentrer sur leur création</strong> pendant que 
-    nous sécurisons leur gestion sociale et juridique.
-  </p>
+  <!-- POUR LES ARTISTES -->
+  <a href="{{ url_for('abonnement_compagnie') }}" style="display: block; text-decoration: none; color: inherit; margin-top: 40px; padding: 25px; background: rgba(255, 193, 7, 0.1); border: 2px solid rgba(255, 193, 7, 0.3); border-radius: 12px; transition: all 0.3s ease; cursor: pointer;" 
+     onmouseover="this.style.transform='scale(1.03)'; this.style.background='rgba(255, 193, 7, 0.2)'; this.style.boxShadow='0 6px 20px rgba(255, 193, 7, 0.3)'; this.style.borderColor='#ffc107';" 
+     onmouseout="this.style.transform='scale(1)'; this.style.background='rgba(255, 193, 7, 0.1)'; this.style.boxShadow='none'; this.style.borderColor='rgba(255, 193, 7, 0.3)';">
+    <h3 style="color: #ffc107; margin-top: 0; font-size: 1.4rem;">Cher(e) artiste et compagnie</h3>
+    <p>
+      Au-delà de la <strong>visibilité gratuite</strong> offerte sur notre catalogue, nous proposons aux compagnies 
+      un <strong>accompagnement administratif complet</strong> : gestion des DSN (Déclarations Sociales Nominatives), 
+      DUE (Déclarations Uniques d'Embauche), AEM (Attestations Employeur Mensuelles), fiches de salaire, contrats de cession.
+    </p>
+    <p style="margin-bottom: 0;">
+      Ces tâches administratives complexes, chronophages et sources d'erreurs, peuvent être déléguées à notre équipe 
+      expérimentée. Nous permettons ainsi aux artistes de <strong>se concentrer sur leur création</strong> pendant que 
+      nous sécurisons leur gestion sociale et juridique.
+    </p>
+  </a>
 </section>
 
 <section class="about-section">
