@@ -796,18 +796,18 @@
         {# ----- VISITEUR ----- #}
         {% else %}
           <li>
+            <a href="{{ url_for('about') }}" style="padding:8px 14px; background:transparent; color:var(--text); border:1px solid var(--border); border-radius:6px; font-weight:500; font-size:0.85rem; text-decoration:none; display:inline-block; transition:background 0.2s;">
+              ℹ️ Qui nous sommes
+            </a>
+          </li>
+          <li>
             <a href="{{ url_for('ecoles_themes') }}" style="padding:8px 14px; background:linear-gradient(135deg, #1a237e, #0d47a1); color:#fff; border-radius:6px; font-weight:600; font-size:0.85rem; text-decoration:none; display:inline-block; transition:opacity 0.2s;">
               🏫 Intervention pédagogique
             </a>
           </li>
           <li>
-            <a href="{{ url_for('login') }}" style="padding:8px 14px; background:transparent; color:var(--text); border:1px solid var(--border); border-radius:6px; font-weight:500; font-size:0.85rem; text-decoration:none; display:inline-block; transition:background 0.2s;">
-              Se connecter
-            </a>
-          </li>
-          <li>
-            <a href="{{ url_for('register') }}" style="padding:8px 14px; background:#FFDEDE; color:#8b1e1e; border-radius:6px; font-weight:600; font-size:0.85rem; text-decoration:none; display:inline-block; transition:opacity 0.2s;">
-              S'inscrire
+            <a href="{{ url_for('login') }}" style="padding:8px 14px; background:#FFDEDE; color:#8b1e1e; border-radius:6px; font-weight:600; font-size:0.85rem; text-decoration:none; display:inline-block; transition:opacity 0.2s;">
+              Se connecter (Artiste Compagnie)
             </a>
           </li>
           {# Bouton Demande d'animation supprimé #}
