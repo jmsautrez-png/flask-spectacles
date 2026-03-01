@@ -3,7 +3,7 @@
 
 {% block content %}
 <div class="demande-wrap" style="max-width:500px;background:linear-gradient(135deg,#162447 0%,#283e5e 100%); border:2px solid #283e5e; border-radius:16px; padding:32px; margin-bottom:32px; position:relative; overflow:hidden; box-shadow:0 4px 16px #16244722; color:#fff;">
-  <h1 style="margin:0 0 8px 0; font-size:1.2rem;">Je publie mon Spectacle</h1>
+  <h1 style="margin:0 0 8px 0; font-size:1.2rem;">Je publie mon Spectacle <a href="{{ url_for('register') }}" style="color:#ff9800; font-weight:600; text-decoration:none; border-bottom:1px dotted #ff9800; cursor:pointer; padding:2px 6px; border-radius:4px; transition:all 0.3s ease; display:inline-block; position:relative; background:linear-gradient(90deg, transparent 0%, #ff980022 50%, transparent 100%); background-size:200% 100%; background-position:100% 0; font-size:0.85rem;" onmouseover="this.style.backgroundPosition='0 0'; this.style.transform='scale(1.05)'; this.style.color='#000'; this.style.backgroundColor='#ff9800';" onmouseout="this.style.backgroundPosition='100% 0'; this.style.transform='scale(1)'; this.style.color='#ff9800'; this.style.backgroundColor='transparent';" title="Cliquez ici pour vous inscrire">(créer un compte)</a></h1>
   <p class="text-muted" style="margin:0 0 24px 0;">
     Connectez-vous pour accéder à votre espace personnel.
   </p>
@@ -15,7 +15,7 @@
       <legend>Identifiants</legend>
 
       <label style="margin-bottom:16px;">
-        <span class="label-text">Nom d'utilisateur <span style="color:#ff6b6b; font-weight:600;">(être inscrit)</span> <span class="req">*</span></span>
+        <span class="label-text">Nom d'utilisateur <a href="{{ url_for('register') }}" class="inscription-link" style="color:#ff6b6b; font-weight:600; text-decoration:none; border-bottom:1px dotted #ff6b6b; cursor:pointer; padding:2px 6px; border-radius:4px; transition:all 0.3s ease; display:inline-block; position:relative; background:linear-gradient(90deg, transparent 0%, #ff6b6b22 50%, transparent 100%); background-size:200% 100%; background-position:100% 0;" onmouseover="this.style.backgroundPosition='0 0'; this.style.transform='scale(1.05)'; this.style.color='#000'; this.style.backgroundColor='#ff6b6b';" onmouseout="this.style.backgroundPosition='100% 0'; this.style.transform='scale(1)'; this.style.color='#ff6b6b'; this.style.backgroundColor='transparent';" title="Cliquez ici pour vous inscrire">(être inscrit)</a> <span class="req">*</span></span>
         <input name="username" type="text" required autofocus placeholder="Votre nom d'utilisateur"
                value="{{ request.form.get('username','') }}">
       </label>
