@@ -15,7 +15,7 @@
       <legend>Identifiants</legend>
 
       <label style="margin-bottom:16px;">
-        <span class="label-text">Nom d'utilisateur <a href="{{ url_for('register') }}" class="inscription-link" style="color:#ff6b6b; font-weight:600; text-decoration:none; border-bottom:1px dotted #ff6b6b; cursor:pointer; padding:2px 6px; border-radius:4px; transition:all 0.3s ease; display:inline-block; position:relative; background:linear-gradient(90deg, transparent 0%, #ff6b6b22 50%, transparent 100%); background-size:200% 100%; background-position:100% 0;" onmouseover="this.style.backgroundPosition='0 0'; this.style.transform='scale(1.05)'; this.style.color='#000'; this.style.backgroundColor='#ff6b6b';" onmouseout="this.style.backgroundPosition='100% 0'; this.style.transform='scale(1)'; this.style.color='#ff6b6b'; this.style.backgroundColor='transparent';" title="Cliquez ici pour vous inscrire">(être inscrit)</a> <span class="req">*</span></span>
+        <span class="label-text">Nom d'utilisateur <a href="{{ url_for('register') }}" class="inscription-link" style="color:#ff6b6b; font-weight:600; text-decoration:none; border-bottom:1px dotted #ff6b6b; cursor:pointer; padding:2px 6px; border-radius:4px; transition:all 0.3s ease; display:inline-block; position:relative; background:linear-gradient(90deg, transparent 0%, #ff6b6b22 50%, transparent 100%); background-size:200% 100%; background-position:100% 0;" onmouseover="this.style.backgroundPosition='0 0'; this.style.transform='scale(1.05)'; this.style.color='#000'; this.style.backgroundColor='#ff6b6b';" onmouseout="this.style.backgroundPosition='100% 0'; this.style.transform='scale(1)'; this.style.color='#ff6b6b'; this.style.backgroundColor='transparent';" title="Cliquez ici pour vous inscrire">(créer un compte)</a> <span class="req">*</span></span>
         <input name="username" type="text" required autofocus placeholder="Votre nom d'utilisateur"
                value="{{ request.form.get('username','') }}">
       </label>
@@ -30,8 +30,8 @@
       <button type="submit" class="publish-btn" style="width:100%; padding:14px; font-size:1rem; border-radius:10px; background:linear-gradient(135deg,#1976d2 0%,#355c7d 100%); color:#fff; font-weight:700; border:none; box-shadow:0 2px 8px #1976d244; transition:all 0.2s;">
         Se connecter
       </button>
-      <a href="{{ url_for('register') }}" style="width:100%; display:block; margin-top:12px; padding:14px; font-size:1rem; border-radius:10px; background:linear-gradient(135deg,#22c55e 0%,#16a34a 100%); color:#fff; font-weight:700; text-align:center; text-decoration:none; box-shadow:0 2px 8px #22c55e44; transition:all 0.2s;">
-        S'inscrire
+      <a href="{{ url_for('register') }}" style="width:100%; display:block; margin-top:12px; padding:14px; font-size:1rem; border-radius:10px; background:linear-gradient(135deg,#22c55e 0%,#16a34a 100%); color:#fff; font-weight:700; text-align:center; text-decoration:none; box-shadow:0 2px 8px #22c55e44; transition:all 0.3s;" onmouseover="this.style.transform='scale(1.05)'; this.style.boxShadow='0 4px 16px #22c55e66';" onmouseout="this.style.transform='scale(1)'; this.style.boxShadow='0 2px 8px #22c55e44';">
+        Créer un compte
       </a>
       <div style="display:block; margin-top:12px;">
         <a class="lost-pass" href="{{ url_for('forgot_password') }}" 
@@ -44,7 +44,7 @@
         </a>
       </div>
       <p class="text-muted" style="margin:16px 0 0 0; font-size:0.85rem; text-align:center; color:#e0e6f6;">
-        Pas encore de compte ? <a href="{{ url_for('register') }}" style="color:#1976d2; text-decoration:underline; font-weight:600;">S'inscrire</a>
+        Pas encore de compte ? <a href="{{ url_for('register') }}" style="color:#1976d2; text-decoration:underline; font-weight:600;">Créer un compte</a>
       </p>
     </div>
   </form>
