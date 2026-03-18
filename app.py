@@ -734,7 +734,7 @@ def register_routes(app: Flask) -> None:
                 db.session.commit()
 
                 # Envoi d'un email à l'admin avec le pédigrée du nouvel utilisateur
-                if getattr(current_app, "mail", None) and current_app.config.get("MAIL_USERNAME"):
+                if getattr(current_app, "mail", None) and current_app.config.get("MAIL_USERNAME") and current_app.config.get("MAIL_PASSWORD"):
                     try:
                         to_addr = current_app.config.get("MAIL_DEFAULT_SENDER") or current_app.config.get("MAIL_USERNAME")
                         body = (
@@ -749,8 +749,17 @@ def register_routes(app: Flask) -> None:
                         msg = Message(subject="Nouvelle inscription utilisateur", recipients=[to_addr])  # type: ignore[arg-type]
                         msg.body = body  # type: ignore[assignment]
                         current_app.mail.send(msg)  # type: ignore[attr-defined]
+                        current_app.logger.info(f"[MAIL] ✓ Email envoyé à l'admin pour inscription de {username}")
                     except Exception as e:
+                        current_app.logger.error(f"[MAIL] ✗ Envoi impossible (inscription admin): {e}")
                         print("[MAIL] envoi impossible (inscription admin):", e)
+                else:
+                    if not getattr(current_app, "mail", None):
+                        current_app.logger.warning("[MAIL] ⚠ Flask-Mail non initialisé")
+                    elif not current_app.config.get("MAIL_USERNAME"):
+                        current_app.logger.warning("[MAIL] ⚠ MAIL_USERNAME non défini")
+                    elif not current_app.config.get("MAIL_PASSWORD"):
+                        current_app.logger.warning("[MAIL] ⚠ MAIL_PASSWORD non défini")
                     
                     # Envoi d'un email de bienvenue à l'utilisateur
                     if email:
@@ -771,7 +780,9 @@ def register_routes(app: Flask) -> None:
                             msg_user = Message(subject="Bienvenue sur Spectacle'ment VØtre !", recipients=[email])  # type: ignore[arg-type]
                             msg_user.body = body_user  # type: ignore[assignment]
                             current_app.mail.send(msg_user)  # type: ignore[attr-defined]
+                            current_app.logger.info(f"[MAIL] ✓ Email de bienvenue envoyé à {email}")
                         except Exception as e:
+                            current_app.logger.error(f"[MAIL] ✗ Envoi impossible (inscription utilisateur): {e}")
                             print("[MAIL] envoi impossible (inscription utilisateur):", e)
 
                 flash("Compte créé ! Vous pouvez maintenant vous connecter.", "success")
@@ -1377,7 +1388,7 @@ def register_routes(app: Flask) -> None:
             db.session.add(show)
             db.session.commit()
 
-            if getattr(current_app, "mail", None) and current_app.config.get("MAIL_USERNAME"):
+            if getattr(current_app, "mail", None) and current_app.config.get("MAIL_USERNAME") and current_app.config.get("MAIL_PASSWORD"):
                 try:
                     to_addr = current_app.config.get("MAIL_DEFAULT_SENDER") or current_app.config.get("MAIL_USERNAME")
                     type_annonce = "📅 ÉVÉNEMENT" if is_event else "🎭 CATALOGUE"
@@ -1400,8 +1411,17 @@ def register_routes(app: Flask) -> None:
                     msg = Message(subject="🎭 Nouvelle annonce à valider", recipients=[to_addr])  # type: ignore[arg-type]
                     msg.body = body  # type: ignore[assignment]
                     current_app.mail.send(msg)  # type: ignore[attr-defined]
+                    current_app.logger.info(f"[MAIL] ✓ Email envoyé à l'admin pour nouvelle annonce: {title}")
                 except Exception as e:  # pragma: no cover
+                    current_app.logger.error(f"[MAIL] ✗ Envoi impossible (nouvelle annonce): {e}")
                     print("[MAIL] envoi impossible:", e)
+            else:
+                if not getattr(current_app, "mail", None):
+                    current_app.logger.warning("[MAIL] ⚠ Flask-Mail non initialisé - Email non envoyé pour nouvelle annonce")
+                elif not current_app.config.get("MAIL_USERNAME"):
+                    current_app.logger.warning("[MAIL] ⚠ MAIL_USERNAME non défini - Email non envoyé")
+                elif not current_app.config.get("MAIL_PASSWORD"):
+                    current_app.logger.warning("[MAIL] ⚠ MAIL_PASSWORD non défini - Email non envoyé")
 
             flash("Annonce envoyée ! Elle sera visible après validation.", "success")
             # Afficher uniquement le message flash après création
@@ -1881,7 +1901,7 @@ def register_routes(app: Flask) -> None:
         db.session.commit()
         
         # Envoi automatique d'un email avec le lien du spectacle à la compagnie après validation
-        if getattr(current_app, "mail", None) and current_app.config.get("MAIL_USERNAME"):
+        if getattr(current_app, "mail", None) and current_app.config.get("MAIL_USERNAME") and current_app.config.get("MAIL_PASSWORD"):
             try:
                 # On privilégie l'email de la compagnie si présent, sinon fallback admin
                 to_addr = show.contact_email if show.contact_email else (current_app.config.get("MAIL_DEFAULT_SENDER") or current_app.config.get("MAIL_USERNAME"))
@@ -1936,8 +1956,17 @@ def register_routes(app: Flask) -> None:
                 msg = Message(subject=subject, recipients=[to_addr])  # type: ignore[arg-type]
                 msg.body = body  # type: ignore[assignment]
                 current_app.mail.send(msg)  # type: ignore[attr-defined]
+                current_app.logger.info(f"[MAIL] ✓ Email envoyé à {to_addr} pour validation de spectacle: {show.title}")
             except Exception as e:
+                current_app.logger.error(f"[MAIL] ✗ Envoi impossible (validation spectacle): {e}")
                 print("[MAIL] envoi automatique impossible:", e)
+        else:
+            if not getattr(current_app, "mail", None):
+                current_app.logger.warning("[MAIL] ⚠ Flask-Mail non initialisé - Email validation non envoyé")
+            elif not current_app.config.get("MAIL_USERNAME"):
+                current_app.logger.warning("[MAIL] ⚠ MAIL_USERNAME non défini")
+            elif not current_app.config.get("MAIL_PASSWORD"):
+                current_app.logger.warning("[MAIL] ⚠ MAIL_PASSWORD non défini")
         
         flash("Annonce validée ✅", "success")
         return redirect(url_for("admin_dashboard"))
@@ -2037,7 +2066,7 @@ def register_routes(app: Flask) -> None:
                 return render_template("demande_animation.html", user=current_user()), 400
 
             # Envoi d'email si configuré
-            if getattr(current_app, "mail", None) and current_app.config.get("MAIL_USERNAME"):
+            if getattr(current_app, "mail", None) and current_app.config.get("MAIL_USERNAME") and current_app.config.get("MAIL_PASSWORD"):
                 try:
                     to_addr = current_app.config.get("MAIL_DEFAULT_SENDER") or current_app.config.get("MAIL_USERNAME")
                     body = f"""
@@ -2064,8 +2093,17 @@ Accessibilité: {accessibilite}
                     msg = Message(subject="Nouvelle demande d'animation", recipients=[to_addr])  # type: ignore[arg-type]
                     msg.body = body  # type: ignore[assignment]
                     current_app.mail.send(msg)  # type: ignore[attr-defined]
+                    current_app.logger.info(f"[MAIL] ✓ Email envoyé à l'admin pour demande d'animation de {structure}")
                 except Exception as e:  # pragma: no cover
+                    current_app.logger.error(f"[MAIL] ✗ Envoi impossible (demande animation): {e}")
                     print("[MAIL] envoi impossible:", e)
+            else:
+                if not getattr(current_app, "mail", None):
+                    current_app.logger.warning("[MAIL] ⚠ Flask-Mail non initialisé - Email demande animation non envoyé")
+                elif not current_app.config.get("MAIL_USERNAME"):
+                    current_app.logger.warning("[MAIL] ⚠ MAIL_USERNAME non défini")
+                elif not current_app.config.get("MAIL_PASSWORD"):
+                    current_app.logger.warning("[MAIL] ⚠ MAIL_PASSWORD non défini")
 
             # Enregistrement de la demande en base
             from models.models import DemandeAnimation
@@ -2960,7 +2998,7 @@ def demande_ecole():
         db.session.commit()
         
         # Envoi email à l'admin si configuré
-        if getattr(current_app, "mail", None) and current_app.config.get("MAIL_USERNAME"):
+        if getattr(current_app, "mail", None) and current_app.config.get("MAIL_USERNAME") and current_app.config.get("MAIL_PASSWORD"):
             try:
                 to_addr = current_app.config.get("MAIL_DEFAULT_SENDER") or current_app.config.get("MAIL_USERNAME")
                 body = f"""
@@ -2997,8 +3035,17 @@ Informations complémentaires :
                 msg = Message(subject=f"Nouvelle demande école - {theme_label}", recipients=[to_addr])
                 msg.body = body
                 current_app.mail.send(msg)
+                current_app.logger.info(f"[MAIL] ✓ Email envoyé à l'admin pour demande école: {nom_ecole}")
             except Exception as e:
+                current_app.logger.error(f"[MAIL] ✗ Envoi impossible (demande école): {e}")
                 print("[MAIL] envoi impossible:", e)
+        else:
+            if not getattr(current_app, "mail", None):
+                current_app.logger.warning("[MAIL] ⚠ Flask-Mail non initialisé - Email demande école non envoyé")
+            elif not current_app.config.get("MAIL_USERNAME"):
+                current_app.logger.warning("[MAIL] ⚠ MAIL_USERNAME non défini")
+            elif not current_app.config.get("MAIL_PASSWORD"):
+                current_app.logger.warning("[MAIL] ⚠ MAIL_PASSWORD non défini")
         
         flash("Votre demande a bien été envoyée ! Nous vous recontacterons dans les 48h avec une proposition personnalisée.", "success")
         return redirect(url_for("ecoles_themes"))
