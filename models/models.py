@@ -42,6 +42,7 @@ class User(db.Model):
     telephone = db.Column(db.String(50), nullable=True)  # Téléphone de l'utilisateur
     created_at = db.Column(db.DateTime, default=datetime.utcnow)  # Date de création
     region = db.Column(db.String(200), nullable=True)  # Région de l'utilisateur
+    site_internet = db.Column(db.String(255), nullable=True)  # Site web de l'utilisateur
 
     def set_password(self, password: str):
         self.password_hash = generate_password_hash(password)

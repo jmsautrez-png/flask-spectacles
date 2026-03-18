@@ -686,6 +686,8 @@ def register_routes(app: Flask) -> None:
                     email=email or None,
                     raison_sociale=raison_sociale or None,
                     region=region or None,
+                    telephone=telephone or None,
+                    site_internet=site_internet or None,
                 )
                 user.set_password(password)
                 db.session.add(user)
@@ -708,7 +710,29 @@ def register_routes(app: Flask) -> None:
                         msg.body = body  # type: ignore[assignment]
                         current_app.mail.send(msg)  # type: ignore[attr-defined]
                     except Exception as e:
-                        print("[MAIL] envoi impossible (inscription):", e)
+                        print("[MAIL] envoi impossible (inscription admin):", e)
+                    
+                    # Envoi d'un email de bienvenue à l'utilisateur
+                    if email:
+                        try:
+                            body_user = (
+                                f"Bonjour {username},\n\n"
+                                f"Bienvenue sur Spectacle'ment VØtre !\n\n"
+                                f"Votre compte a été créé avec succès. Vous pouvez maintenant vous connecter et :\n"
+                                f"• Publier vos spectacles et animations gratuitement\n"
+                                f"• Bénéficier d'une visibilité renforcée auprès de notre réseau d'acheteurs\n"
+                                f"• Profiter de notre diffusion gratuite auprès de plus de 100 000 contacts professionnels\n\n"
+                                f"Pour vous connecter : https://www.spectacleanimation.fr/login\n\n"
+                                f"Nom d'utilisateur : {username}\n\n"
+                                f"À très bientôt !\n\n"
+                                f"L'équipe Spectacle'ment VØtre\n"
+                                f"contact@spectacleanimation.fr"
+                            )
+                            msg_user = Message(subject="Bienvenue sur Spectacle'ment VØtre !", recipients=[email])  # type: ignore[arg-type]
+                            msg_user.body = body_user  # type: ignore[assignment]
+                            current_app.mail.send(msg_user)  # type: ignore[attr-defined]
+                        except Exception as e:
+                            print("[MAIL] envoi impossible (inscription utilisateur):", e)
 
                 flash("Compte créé ! Vous pouvez maintenant vous connecter.", "success")
                 return redirect(url_for("login"))
