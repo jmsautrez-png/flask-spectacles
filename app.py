@@ -340,6 +340,7 @@ def create_app() -> Flask:
 
     with app.app_context():
         db.create_all()
+        _run_critical_migrations(app)
         _bootstrap_admin(app)
 
     # Filtre Jinja2 pour formater les âges
@@ -565,6 +566,45 @@ def _is_suspicious_request() -> bool:
         return True
         
     return False
+
+def _run_critical_migrations(app: Flask) -> None:
+    """
+    Exécute les migrations critiques nécessaires au démarrage.
+    Utilise du SQL brut pour éviter les problèmes avec les modèles SQLAlchemy.
+    """
+    from sqlalchemy import text
+    
+    try:
+        with db.engine.connect() as conn:
+            # Migration: Ajouter site_internet à users si elle n'existe pas
+            # Vérifier d'abord si la colonne existe
+            if 'postgresql' in str(db.engine.url):
+                # PostgreSQL
+                result = conn.execute(text("""
+                    SELECT column_name 
+                    FROM information_schema.columns 
+                    WHERE table_name = 'users' AND column_name = 'site_internet'
+                """))
+                
+                if not result.fetchone():
+                    app.logger.info("[MIGRATION] Ajout de la colonne site_internet à users...")
+                    conn.execute(text("ALTER TABLE users ADD COLUMN site_internet VARCHAR(255)"))
+                    conn.commit()
+                    app.logger.info("[MIGRATION] ✓ Colonne site_internet ajoutée")
+            else:
+                # SQLite
+                result = conn.execute(text("PRAGMA table_info(users)"))
+                columns = [row[1] for row in result.fetchall()]
+                
+                if 'site_internet' not in columns:
+                    app.logger.info("[MIGRATION] Ajout de la colonne site_internet à users...")
+                    conn.execute(text("ALTER TABLE users ADD COLUMN site_internet VARCHAR(255)"))
+                    conn.commit()
+                    app.logger.info("[MIGRATION] ✓ Colonne site_internet ajoutée")
+                    
+    except Exception as e:
+        app.logger.warning(f"[MIGRATION] Avertissement lors de la migration: {e}")
+        # Ne pas bloquer le démarrage si la colonne existe déjà
 
 def _bootstrap_admin(app: Flask) -> None:
     """
