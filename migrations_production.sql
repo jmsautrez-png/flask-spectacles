@@ -42,6 +42,9 @@ ALTER TABLE demande_animation ADD COLUMN IF NOT EXISTS region VARCHAR(100);
 -- Migration 13: Ajouter colonne display_order pour gerer l'ordre d'affichage des cartes
 ALTER TABLE shows ADD COLUMN IF NOT EXISTS display_order INTEGER DEFAULT 0;
 
+-- Migration 14: Ajouter colonne site_internet à users
+ALTER TABLE users ADD COLUMN IF NOT EXISTS site_internet VARCHAR(255);
+
 -- ======================================================
 -- VERIFICATION (optionnel)
 -- ======================================================
