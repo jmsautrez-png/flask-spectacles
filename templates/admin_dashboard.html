@@ -76,7 +76,7 @@
 {% for show in shows %}
     <article class="card">
         {# --------- FICHIER ASSOCIÉ (IMAGE OU PDF) --------- #}
-        <div class="media">
+        <div class="media" style="position: relative;">
             {% if show.file_name %}
                 {% if show.is_pdf() %}
                     <a href="{{ url_for('uploaded_file', filename=show.file_name) }}"
@@ -88,6 +88,11 @@
                     <img src="{{ url_for('uploaded_file', filename=show.file_name) }}"
                          alt="{{ show.title }}">
                 {% endif %}
+                <!-- Bouton supprimer la photo principale -->
+                <form action="{{ url_for('admin_delete_photo', show_id=show.id, photo_field='file_name') }}" method="post" style="position: absolute; top: 8px; right: 8px; margin: 0;" onsubmit="return confirm('Supprimer cette photo ?');">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                    <button type="submit" style="background: rgba(220,53,69,0.9); color: white; border: none; padding: 6px 10px; border-radius: 4px; cursor: pointer; font-size: 1.1em; box-shadow: 0 2px 4px rgba(0,0,0,0.3);" title="Supprimer cette photo">🗑️</button>
+                </form>
             {% else %}
                 <div class="placeholder">Aucun fichier</div>
             {% endif %}
