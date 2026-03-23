@@ -988,7 +988,82 @@
 
 
 
-
+<script>
+// Validation de la taille des fichiers uploadés (particulièrement important sur mobile)
+document.addEventListener('DOMContentLoaded', function() {
+    const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5 MB en bytes
+    const MAX_FILE_SIZE_MB = 5;
+    
+    // Trouver tous les inputs de type file
+    const fileInputs = document.querySelectorAll('input[type="file"]');
+    
+    fileInputs.forEach(function(input) {
+        input.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            
+            if (file && file.size > MAX_FILE_SIZE) {
+                const fileSizeMB = (file.size / (1024 * 1024)).toFixed(2);
+                
+                // Message d'erreur clair
+                const message = `❌ La photo "${file.name}" est trop lourde !\n\n` +
+                               `Taille de votre photo : ${fileSizeMB} MB\n` +
+                               `Taille maximale autorisée : ${MAX_FILE_SIZE_MB} MB\n\n` +
+                               `Veuillez compresser votre photo ou en choisir une plus légère.`;
+                
+                alert(message);
+                
+                // Réinitialiser l'input
+                e.target.value = '';
+                
+                // Message visuel supplémentaire sur mobile
+                if (window.innerWidth <= 768) {
+                    const warningDiv = document.createElement('div');
+                    warningDiv.style.cssText = `
+                        position: fixed;
+                        top: 50%;
+                        left: 50%;
+                        transform: translate(-50%, -50%);
+                        background: #ef4444;
+                        color: white;
+                        padding: 20px;
+                        border-radius: 12px;
+                        box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+                        z-index: 10000;
+                        max-width: 90%;
+                        text-align: center;
+                        font-size: 16px;
+                        line-height: 1.5;
+                    `;
+                    warningDiv.innerHTML = `
+                        <div style="font-size: 40px; margin-bottom: 10px;">⚠️</div>
+                        <div style="font-weight: bold; margin-bottom: 10px;">Photo trop lourde !</div>
+                        <div>Votre photo fait ${fileSizeMB} MB</div>
+                        <div>Maximum autorisé : ${MAX_FILE_SIZE_MB} MB</div>
+                        <button onclick="this.parentElement.remove()" style="
+                            margin-top: 15px;
+                            padding: 10px 20px;
+                            background: white;
+                            color: #ef4444;
+                            border: none;
+                            border-radius: 6px;
+                            font-weight: bold;
+                            font-size: 14px;
+                        ">OK, compris</button>
+                    `;
+                    document.body.appendChild(warningDiv);
+                    
+                    // Auto-remove après 8 secondes
+                    setTimeout(() => {
+                        if (warningDiv.parentElement) {
+                            warningDiv.remove();
+                        }
+                    }, 8000);
+                }
+            }
+        });
+    });
+});
+</script>
 
 </body>
 </html>
