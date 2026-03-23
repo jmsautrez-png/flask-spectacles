@@ -2877,6 +2877,54 @@ def export_shows_xlsx():
     df.to_excel(file_path, index=False)
     return send_file(file_path, as_attachment=True, download_name="spectacles_export.xlsx")
 
+# === GESTION DES UTILISATEURS ===
+@app.route("/admin/users")
+@login_required
+@admin_required
+def admin_users():
+    """Affiche la liste de tous les utilisateurs pour gestion admin."""
+    users = User.query.order_by(User.created_at.desc()).all()
+    return render_template("admin_users.html", users=users)
+
+@app.route("/admin/delete-user/<int:user_id>", methods=["POST"])
+@login_required
+@admin_required
+def admin_delete_user(user_id):
+    """Supprime un utilisateur et tous ses spectacles associés."""
+    user = User.query.get_or_404(user_id)
+    
+    # Empêcher la suppression d'un admin
+    if user.is_admin:
+        flash("Impossible de supprimer un compte administrateur.", "danger")
+        return redirect(url_for("admin_users"))
+    
+    # Empêcher l'auto-suppression
+    if user.id == current_user().id:
+        flash("Vous ne pouvez pas supprimer votre propre compte.", "danger")
+        return redirect(url_for("admin_users"))
+    
+    username = user.username
+    nb_shows = len(user.shows) if hasattr(user, 'shows') else 0
+    
+    try:
+        # Supprimer tous les spectacles associés
+        if hasattr(user, 'shows'):
+            for show in user.shows:
+                db.session.delete(show)
+        
+        # Supprimer l'utilisateur
+        db.session.delete(user)
+        db.session.commit()
+        
+        flash(f"✅ L'utilisateur « {username} » et ses {nb_shows} spectacle(s) ont été supprimés.", "success")
+        current_app.logger.info(f"[ADMIN] Utilisateur {username} (ID: {user_id}) supprimé par {current_user().username}")
+    except Exception as e:
+        db.session.rollback()
+        flash(f"❌ Erreur lors de la suppression : {str(e)}", "danger")
+        current_app.logger.error(f"[ADMIN] Erreur suppression utilisateur {user_id}: {e}")
+    
+    return redirect(url_for("admin_users"))
+
 # ---------------------------
 # SECTION ÉCOLES - Demandes thématiques pédagogiques
 # ---------------------------
