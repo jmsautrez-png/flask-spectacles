@@ -1,27 +1,4 @@
-  <label>Email de contact <span style="font-size:0.85rem;font-weight:normal;color:var(--muted);">(Modifiable uniquement par l'admin)</span>
-    {% if user and user.is_admin %}
-      <input type="email" name="contact_email" value="{{ request.form.get('contact_email', 'contact@spectacleanimation.fr') }}">
-    {% else %}
-      <input type="email" name="contact_email" value="{{ request.form.get('contact_email', 'contact@spectacleanimation.fr') }}" readonly style="background:#eee; color:#888; cursor:not-allowed;">
-    {% endif %}
-  </label>
-
-  <label>Téléphone de contact <span style="font-size:0.85rem;font-weight:normal;color:var(--muted);">(Modifiable uniquement par l'admin)</span>
-    {% if user and user.is_admin %}
-      <input type="tel" name="contact_phone" value="{{ show.contact_phone or '06 76 07 01 79' }}" placeholder="06 76 07 01 79">
-    {% else %}
-      <input type="tel" name="contact_phone" value="{{ show.contact_phone or '06 76 07 01 79' }}" placeholder="06 76 07 01 79" readonly style="background:#eee; color:#888; cursor:not-allowed;">
-    {% endif %}
-  </label>
-
-  <label>Site internet <span style="font-size:0.85rem;font-weight:normal;color:var(--muted);">(Modifiable uniquement par l'admin)</span>
-    {% if user and user.is_admin %}
-      <input type="url" name="site_internet" placeholder="https://spectacleanimation.fr/" value="{{ request.form.get('site_internet', 'https://spectacleanimation.fr/') }}">
-    {% else %}
-      <input type="url" name="site_internet" placeholder="https://spectacleanimation.fr/" value="{{ request.form.get('site_internet', 'https://spectacleanimation.fr/') }}" readonly style="background:#eee; color:#888; cursor:not-allowed;">
-    {% endif %}
-  </label>
-{% extends "base.html" %}
+﻿{% extends "base.html" %}
 {% block title %}Compléter le spectacle - AnimatoSpectacle{% endblock %}
 {% block content %}
 <h2>Compléter le spectacle</h2>
@@ -248,55 +225,21 @@
                 📄 Voir le PDF ({{ show.file_name }})
             </a>
         </p>
-    {% endif %}
-  {% endif %}
-  
-  {% if not show.is_pdf() %}
-    {% if show.file_name or show.file_name2 or show.file_name3 %}
+    {% else %}
         <p>Photos actuelles :</p>
-    {% endif %}
-    <div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:12px; margin-bottom:16px;">
-      {% if show.has_image() %}
-      <div style="text-align:center; position:relative;">
-        <span style="font-size:0.85rem; color:var(--muted); display:block; margin-bottom:6px;">Photo 1 (principale)</span>
-        <img src="{{ url_for('uploaded_file', filename=show.file_name) }}"
-             alt="{{ show.title }}"
-             style="max-width:100%; max-height:150px; border-radius:8px; border:1px solid var(--border);">
-        <form action="{{ url_for('admin_delete_photo', show_id=show.id, photo_field='file_name') }}" 
-              method="post" 
-              style="position:absolute; top:28px; right:8px;" 
-              onsubmit="return confirm('Supprimer cette photo ?');">
-          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-          <button type="submit" 
-                  style="background:#ef4444; color:white; border:none; padding:6px 10px; border-radius:6px; cursor:pointer; font-size:0.85rem; box-shadow:0 2px 4px rgba(0,0,0,0.2);"
-                  title="Supprimer cette photo">
-            🗑️ Supprimer
-          </button>
-        </form>
-      </div>
-      {% else %}
-      <div style="text-align:center; opacity:0.5;">
-        <span style="font-size:0.85rem; color:var(--muted); display:block; margin-bottom:6px;">Photo 1 (principale)</span>
-        <div style="height:100px; background:var(--bg); border-radius:8px; border:1px dashed var(--border); display:flex; align-items:center; justify-content:center; color:var(--muted);">Non définie</div>
-      </div>
-      {% endif %}
+        <div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:12px; margin-bottom:16px;">
+          <div style="text-align:center;">
+            <span style="font-size:0.85rem; color:var(--muted); display:block; margin-bottom:6px;">Photo 1 (principale)</span>
+            <img src="{{ url_for('uploaded_file', filename=show.file_name) }}"
+                 alt="{{ show.title }}"
+                 style="max-width:100%; max-height:150px; border-radius:8px; border:1px solid var(--border);">
+          </div>
           {% if show.has_image2() %}
-          <div style="text-align:center; position:relative;">
+          <div style="text-align:center;">
             <span style="font-size:0.85rem; color:var(--muted); display:block; margin-bottom:6px;">Photo 2</span>
             <img src="{{ url_for('uploaded_file', filename=show.file_name2) }}"
                  alt="{{ show.title }} - Photo 2"
                  style="max-width:100%; max-height:150px; border-radius:8px; border:1px solid var(--border);">
-            <form action="{{ url_for('admin_delete_photo', show_id=show.id, photo_field='file_name2') }}" 
-                  method="post" 
-                  style="position:absolute; top:28px; right:8px;" 
-                  onsubmit="return confirm('Supprimer cette photo ?');">
-              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-              <button type="submit" 
-                      style="background:#ef4444; color:white; border:none; padding:6px 10px; border-radius:6px; cursor:pointer; font-size:0.85rem; box-shadow:0 2px 4px rgba(0,0,0,0.2);"
-                      title="Supprimer cette photo">
-                🗑️ Supprimer
-              </button>
-            </form>
           </div>
           {% else %}
           <div style="text-align:center; opacity:0.5;">
@@ -305,22 +248,11 @@
           </div>
           {% endif %}
           {% if show.has_image3() %}
-          <div style="text-align:center; position:relative;">
+          <div style="text-align:center;">
             <span style="font-size:0.85rem; color:var(--muted); display:block; margin-bottom:6px;">Photo 3</span>
             <img src="{{ url_for('uploaded_file', filename=show.file_name3) }}"
                  alt="{{ show.title }} - Photo 3"
                  style="max-width:100%; max-height:150px; border-radius:8px; border:1px solid var(--border);">
-            <form action="{{ url_for('admin_delete_photo', show_id=show.id, photo_field='file_name3') }}" 
-                  method="post" 
-                  style="position:absolute; top:28px; right:8px;" 
-                  onsubmit="return confirm('Supprimer cette photo ?');">
-              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-              <button type="submit" 
-                      style="background:#ef4444; color:white; border:none; padding:6px 10px; border-radius:6px; cursor:pointer; font-size:0.85rem; box-shadow:0 2px 4px rgba(0,0,0,0.2);"
-                      title="Supprimer cette photo">
-                🗑️ Supprimer
-              </button>
-            </form>
           </div>
           {% else %}
           <div style="text-align:center; opacity:0.5;">
@@ -329,11 +261,10 @@
           </div>
           {% endif %}
         </div>
-  {% endif %}
-  
-  {% if not show.file_name and not show.file_name2 and not show.file_name3 %}
-    <p><em>Aucune photo associée pour l'instant.</em></p>
-  {% endif %}
+    {% endif %}
+{% else %}
+    <p><em>Aucun fichier associé pour l’instant.</em></p>
+{% endif %}
 
 
 
@@ -399,3 +330,27 @@
 })();
 </script>
 {% endblock %}
+
+  <label>Email de contact <span style="font-size:0.85rem;font-weight:normal;color:var(--muted);">(Modifiable uniquement par l'admin)</span>
+    {% if user and user.is_admin %}
+      <input type="email" name="contact_email" value="{{ request.form.get('contact_email', 'contact@spectacleanimation.fr') }}">
+    {% else %}
+      <input type="email" name="contact_email" value="{{ request.form.get('contact_email', 'contact@spectacleanimation.fr') }}" readonly style="background:#eee; color:#888; cursor:not-allowed;">
+    {% endif %}
+  </label>
+
+  <label>Téléphone de contact <span style="font-size:0.85rem;font-weight:normal;color:var(--muted);">(Modifiable uniquement par l'admin)</span>
+    {% if user and user.is_admin %}
+      <input type="tel" name="contact_phone" value="{{ show.contact_phone or '06 76 07 01 79' }}" placeholder="06 76 07 01 79">
+    {% else %}
+      <input type="tel" name="contact_phone" value="{{ show.contact_phone or '06 76 07 01 79' }}" placeholder="06 76 07 01 79" readonly style="background:#eee; color:#888; cursor:not-allowed;">
+    {% endif %}
+  </label>
+
+  <label>Site internet <span style="font-size:0.85rem;font-weight:normal;color:var(--muted);">(Modifiable uniquement par l'admin)</span>
+    {% if user and user.is_admin %}
+      <input type="url" name="site_internet" placeholder="https://spectacleanimation.fr/" value="{{ request.form.get('site_internet', 'https://spectacleanimation.fr/') }}">
+    {% else %}
+      <input type="url" name="site_internet" placeholder="https://spectacleanimation.fr/" value="{{ request.form.get('site_internet', 'https://spectacleanimation.fr/') }}" readonly style="background:#eee; color:#888; cursor:not-allowed;">
+    {% endif %}
+  </label>
