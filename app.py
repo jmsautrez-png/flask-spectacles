@@ -1298,9 +1298,12 @@ def register_routes(app: Flask) -> None:
     @login_required
     def submit_show():
         if request.method == "POST":
-            # Forcer la raison sociale = username de l'utilisateur connecté
+            # Récupérer la raison sociale du formulaire (un utilisateur peut gérer plusieurs compagnies)
             u = current_user()
-            raison_sociale = u.username if u else None
+            raison_sociale = request.form.get("raison_sociale", "").strip()
+            # Si vide, utiliser la raison sociale de l'utilisateur ou son username par défaut
+            if not raison_sociale and u:
+                raison_sociale = u.raison_sociale if u.raison_sociale else u.username
             title = request.form.get("title", "").strip()
             description = request.form.get("description", "").strip()
             region = request.form.get("region", "").strip()
