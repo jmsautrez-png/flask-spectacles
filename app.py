@@ -2925,6 +2925,68 @@ def admin_delete_user(user_id):
     
     return redirect(url_for("admin_users"))
 
+# === SUPPRESSION DE PHOTO INDIVIDUELLE ===
+@app.route("/admin/shows/<int:show_id>/delete-photo/<photo_field>", methods=["POST"])
+@login_required
+def admin_delete_photo(show_id, photo_field):
+    """Supprime une photo spécifique d'un spectacle (file_name, file_name2 ou file_name3).
+    Accessible aux admins ET aux propriétaires du spectacle."""
+    show = Show.query.get_or_404(show_id)
+    user = current_user()
+    
+    # Vérifier que l'utilisateur a le droit de supprimer (admin OU propriétaire)
+    if not user.is_admin and show.user_id != user.id:
+        flash("❌ Vous n'avez pas la permission de modifier ce spectacle.", "danger")
+        return redirect(url_for("home"))
+    
+    # Valider que photo_field est bien autorisé
+    if photo_field not in ['file_name', 'file_name2', 'file_name3']:
+        flash("❌ Champ de photo invalide.", "danger")
+        # Rediriger selon le contexte
+        if user.is_admin:
+            return redirect(url_for("admin_dashboard"))
+        else:
+            return redirect(url_for("show_edit_self", show_id=show_id))
+    
+    # Récupérer le nom du fichier à supprimer
+    file_to_delete = getattr(show, photo_field, None)
+    
+    if file_to_delete:
+        try:
+            # Supprimer le fichier du système (si stockage local)
+            file_path = Path(current_app.config["UPLOAD_FOLDER"]) / file_to_delete
+            if file_path.exists():
+                file_path.unlink()
+                current_app.logger.info(f"[ADMIN] Fichier {file_to_delete} supprimé du disque")
+            
+            # Supprimer la référence dans la base de données
+            setattr(show, photo_field, None)
+            if photo_field == 'file_name':
+                # Si c'est la photo principale, supprimer aussi le mimetype
+                show.file_mimetype = None
+            elif photo_field == 'file_name2':
+                show.file_mimetype2 = None
+            elif photo_field == 'file_name3':
+                show.file_mimetype3 = None
+            
+            db.session.commit()
+            
+            photo_num = photo_field.replace('file_name', '').replace('_', '') or '1'
+            flash(f"✅ Photo {photo_num} supprimée avec succès.", "success")
+            current_app.logger.info(f"[DELETE PHOTO] Photo {photo_field} supprimée du spectacle {show_id} par {user.username}")
+        except Exception as e:
+            db.session.rollback()
+            flash(f"❌ Erreur lors de la suppression : {str(e)}", "danger")
+            current_app.logger.error(f"[DELETE PHOTO] Erreur suppression photo {photo_field} du spectacle {show_id}: {e}")
+    else:
+        flash("⚠️ Aucune photo à supprimer.", "warning")
+    
+    # Rediriger selon le contexte
+    if user.is_admin:
+        return redirect(url_for("admin_dashboard"))
+    else:
+        return redirect(url_for("show_edit_self", show_id=show_id))
+
 # ---------------------------
 # SECTION ÉCOLES - Demandes thématiques pédagogiques
 # ---------------------------
