@@ -251,18 +251,40 @@
     {% else %}
         <p>Photos actuelles :</p>
         <div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:12px; margin-bottom:16px;">
-          <div style="text-align:center;">
+          <div style="text-align:center; position:relative;">
             <span style="font-size:0.85rem; color:var(--muted); display:block; margin-bottom:6px;">Photo 1 (principale)</span>
             <img src="{{ url_for('uploaded_file', filename=show.file_name) }}"
                  alt="{{ show.title }}"
                  style="max-width:100%; max-height:150px; border-radius:8px; border:1px solid var(--border);">
+            <form action="{{ url_for('admin_delete_photo', show_id=show.id, photo_field='file_name') }}" 
+                  method="post" 
+                  style="position:absolute; top:28px; right:8px;" 
+                  onsubmit="return confirm('Supprimer cette photo ?');">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+              <button type="submit" 
+                      style="background:#ef4444; color:white; border:none; padding:6px 10px; border-radius:6px; cursor:pointer; font-size:0.85rem; box-shadow:0 2px 4px rgba(0,0,0,0.2);"
+                      title="Supprimer cette photo">
+                🗑️ Supprimer
+              </button>
+            </form>
           </div>
           {% if show.has_image2() %}
-          <div style="text-align:center;">
+          <div style="text-align:center; position:relative;">
             <span style="font-size:0.85rem; color:var(--muted); display:block; margin-bottom:6px;">Photo 2</span>
             <img src="{{ url_for('uploaded_file', filename=show.file_name2) }}"
                  alt="{{ show.title }} - Photo 2"
                  style="max-width:100%; max-height:150px; border-radius:8px; border:1px solid var(--border);">
+            <form action="{{ url_for('admin_delete_photo', show_id=show.id, photo_field='file_name2') }}" 
+                  method="post" 
+                  style="position:absolute; top:28px; right:8px;" 
+                  onsubmit="return confirm('Supprimer cette photo ?');">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+              <button type="submit" 
+                      style="background:#ef4444; color:white; border:none; padding:6px 10px; border-radius:6px; cursor:pointer; font-size:0.85rem; box-shadow:0 2px 4px rgba(0,0,0,0.2);"
+                      title="Supprimer cette photo">
+                🗑️ Supprimer
+              </button>
+            </form>
           </div>
           {% else %}
           <div style="text-align:center; opacity:0.5;">
@@ -271,11 +293,22 @@
           </div>
           {% endif %}
           {% if show.has_image3() %}
-          <div style="text-align:center;">
+          <div style="text-align:center; position:relative;">
             <span style="font-size:0.85rem; color:var(--muted); display:block; margin-bottom:6px;">Photo 3</span>
             <img src="{{ url_for('uploaded_file', filename=show.file_name3) }}"
                  alt="{{ show.title }} - Photo 3"
                  style="max-width:100%; max-height:150px; border-radius:8px; border:1px solid var(--border);">
+            <form action="{{ url_for('admin_delete_photo', show_id=show.id, photo_field='file_name3') }}" 
+                  method="post" 
+                  style="position:absolute; top:28px; right:8px;" 
+                  onsubmit="return confirm('Supprimer cette photo ?');">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+              <button type="submit" 
+                      style="background:#ef4444; color:white; border:none; padding:6px 10px; border-radius:6px; cursor:pointer; font-size:0.85rem; box-shadow:0 2px 4px rgba(0,0,0,0.2);"
+                      title="Supprimer cette photo">
+                🗑️ Supprimer
+              </button>
+            </form>
           </div>
           {% else %}
           <div style="text-align:center; opacity:0.5;">
