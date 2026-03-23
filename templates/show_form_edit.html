@@ -248,26 +248,38 @@
                 📄 Voir le PDF ({{ show.file_name }})
             </a>
         </p>
-    {% else %}
+    {% endif %}
+  {% endif %}
+  
+  {% if not show.is_pdf() %}
+    {% if show.file_name or show.file_name2 or show.file_name3 %}
         <p>Photos actuelles :</p>
-        <div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:12px; margin-bottom:16px;">
-          <div style="text-align:center; position:relative;">
-            <span style="font-size:0.85rem; color:var(--muted); display:block; margin-bottom:6px;">Photo 1 (principale)</span>
-            <img src="{{ url_for('uploaded_file', filename=show.file_name) }}"
-                 alt="{{ show.title }}"
-                 style="max-width:100%; max-height:150px; border-radius:8px; border:1px solid var(--border);">
-            <form action="{{ url_for('admin_delete_photo', show_id=show.id, photo_field='file_name') }}" 
-                  method="post" 
-                  style="position:absolute; top:28px; right:8px;" 
-                  onsubmit="return confirm('Supprimer cette photo ?');">
-              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-              <button type="submit" 
-                      style="background:#ef4444; color:white; border:none; padding:6px 10px; border-radius:6px; cursor:pointer; font-size:0.85rem; box-shadow:0 2px 4px rgba(0,0,0,0.2);"
-                      title="Supprimer cette photo">
-                🗑️ Supprimer
-              </button>
-            </form>
-          </div>
+    {% endif %}
+    <div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:12px; margin-bottom:16px;">
+      {% if show.has_image() %}
+      <div style="text-align:center; position:relative;">
+        <span style="font-size:0.85rem; color:var(--muted); display:block; margin-bottom:6px;">Photo 1 (principale)</span>
+        <img src="{{ url_for('uploaded_file', filename=show.file_name) }}"
+             alt="{{ show.title }}"
+             style="max-width:100%; max-height:150px; border-radius:8px; border:1px solid var(--border);">
+        <form action="{{ url_for('admin_delete_photo', show_id=show.id, photo_field='file_name') }}" 
+              method="post" 
+              style="position:absolute; top:28px; right:8px;" 
+              onsubmit="return confirm('Supprimer cette photo ?');">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+          <button type="submit" 
+                  style="background:#ef4444; color:white; border:none; padding:6px 10px; border-radius:6px; cursor:pointer; font-size:0.85rem; box-shadow:0 2px 4px rgba(0,0,0,0.2);"
+                  title="Supprimer cette photo">
+            🗑️ Supprimer
+          </button>
+        </form>
+      </div>
+      {% else %}
+      <div style="text-align:center; opacity:0.5;">
+        <span style="font-size:0.85rem; color:var(--muted); display:block; margin-bottom:6px;">Photo 1 (principale)</span>
+        <div style="height:100px; background:var(--bg); border-radius:8px; border:1px dashed var(--border); display:flex; align-items:center; justify-content:center; color:var(--muted);">Non définie</div>
+      </div>
+      {% endif %}
           {% if show.has_image2() %}
           <div style="text-align:center; position:relative;">
             <span style="font-size:0.85rem; color:var(--muted); display:block; margin-bottom:6px;">Photo 2</span>
@@ -317,10 +329,11 @@
           </div>
           {% endif %}
         </div>
-    {% endif %}
-{% else %}
-    <p><em>Aucun fichier associé pour l’instant.</em></p>
-{% endif %}
+  {% endif %}
+  
+  {% if not show.file_name and not show.file_name2 and not show.file_name3 %}
+    <p><em>Aucune photo associée pour l'instant.</em></p>
+  {% endif %}
 
 
 
