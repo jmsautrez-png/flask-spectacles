@@ -233,17 +233,12 @@
             <img src="{{ url_for('uploaded_file', filename=show.file_name) }}"
                  alt="{{ show.title }}"
                  style="max-width:100%; max-height:150px; border-radius:8px; border:1px solid var(--border);">
-            <form action="{{ url_for('admin_delete_photo', show_id=show.id, photo_field='file_name') }}" 
-                  method="post" 
-                  style="position:absolute; top:28px; right:8px;" 
-                  onsubmit="return confirm('Supprimer cette photo ?');">
-              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-              <button type="submit" 
-                      style="background:#ef4444; color:white; border:none; padding:6px 10px; border-radius:6px; cursor:pointer; font-size:0.85rem; box-shadow:0 2px 4px rgba(0,0,0,0.2);"
-                      title="Supprimer cette photo">
-                🗑️ Supprimer
-              </button>
-            </form>
+            <button type="button"
+                    onclick="deletePhoto({{ show.id }}, 'file_name')"
+                    style="position:absolute; top:28px; right:8px; background:#ef4444; color:white; border:none; padding:6px 10px; border-radius:6px; cursor:pointer; font-size:0.85rem; box-shadow:0 2px 4px rgba(0,0,0,0.2);"
+                    title="Supprimer cette photo">
+              🗑️ Supprimer
+            </button>
           </div>
           {% if show.has_image2() %}
           <div style="text-align:center; position:relative;">
@@ -251,17 +246,12 @@
             <img src="{{ url_for('uploaded_file', filename=show.file_name2) }}"
                  alt="{{ show.title }} - Photo 2"
                  style="max-width:100%; max-height:150px; border-radius:8px; border:1px solid var(--border);">
-            <form action="{{ url_for('admin_delete_photo', show_id=show.id, photo_field='file_name2') }}" 
-                  method="post" 
-                  style="position:absolute; top:28px; right:8px;" 
-                  onsubmit="return confirm('Supprimer cette photo ?');">
-              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-              <button type="submit" 
-                      style="background:#ef4444; color:white; border:none; padding:6px 10px; border-radius:6px; cursor:pointer; font-size:0.85rem; box-shadow:0 2px 4px rgba(0,0,0,0.2);"
-                      title="Supprimer cette photo">
-                🗑️ Supprimer
-              </button>
-            </form>
+            <button type="button"
+                    onclick="deletePhoto({{ show.id }}, 'file_name2')"
+                    style="position:absolute; top:28px; right:8px; background:#ef4444; color:white; border:none; padding:6px 10px; border-radius:6px; cursor:pointer; font-size:0.85rem; box-shadow:0 2px 4px rgba(0,0,0,0.2);"
+                    title="Supprimer cette photo">
+              🗑️ Supprimer
+            </button>
           </div>
           {% else %}
           <div style="text-align:center; opacity:0.5;">
@@ -275,17 +265,12 @@
             <img src="{{ url_for('uploaded_file', filename=show.file_name3) }}"
                  alt="{{ show.title }} - Photo 3"
                  style="max-width:100%; max-height:150px; border-radius:8px; border:1px solid var(--border);">
-            <form action="{{ url_for('admin_delete_photo', show_id=show.id, photo_field='file_name3') }}" 
-                  method="post" 
-                  style="position:absolute; top:28px; right:8px;" 
-                  onsubmit="return confirm('Supprimer cette photo ?');">
-              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-              <button type="submit" 
-                      style="background:#ef4444; color:white; border:none; padding:6px 10px; border-radius:6px; cursor:pointer; font-size:0.85rem; box-shadow:0 2px 4px rgba(0,0,0,0.2);"
-                      title="Supprimer cette photo">
-                🗑️ Supprimer
-              </button>
-            </form>
+            <button type="button"
+                    onclick="deletePhoto({{ show.id }}, 'file_name3')"
+                    style="position:absolute; top:28px; right:8px; background:#ef4444; color:white; border:none; padding:6px 10px; border-radius:6px; cursor:pointer; font-size:0.85rem; box-shadow:0 2px 4px rgba(0,0,0,0.2);"
+                    title="Supprimer cette photo">
+              🗑️ Supprimer
+            </button>
           </div>
           {% else %}
           <div style="text-align:center; opacity:0.5;">
@@ -361,6 +346,35 @@
     });
   });
 })();
+
+// Fonction pour supprimer une photo via AJAX
+function deletePhoto(showId, photoField) {
+  if (!confirm('Supprimer cette photo ?')) {
+    return;
+  }
+  
+  const csrfToken = document.querySelector('input[name="csrf_token"]').value;
+  
+  fetch(`/admin/shows/${showId}/delete-photo/${photoField}`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/x-www-form-urlencoded',
+    },
+    body: `csrf_token=${encodeURIComponent(csrfToken)}`
+  })
+  .then(response => {
+    if (response.ok) {
+      // Recharger la page pour voir les changements
+      window.location.reload();
+    } else {
+      alert('Erreur lors de la suppression de la photo.');
+    }
+  })
+  .catch(error => {
+    console.error('Erreur:', error);
+    alert('Erreur lors de la suppression de la photo.');
+  });
+}
 </script>
 {% endblock %}
 
