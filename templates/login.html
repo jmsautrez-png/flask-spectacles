@@ -20,10 +20,26 @@
                value="{{ request.form.get('username','') }}">
       </label>
 
-      <label style="margin-bottom:0;">
+      <label style="margin-bottom:0; position:relative;">
         <span class="label-text">Mot de passe <span class="req">*</span></span>
-        <input name="password" type="password" required placeholder="Votre mot de passe">
+        <input name="password" type="password" id="login-password" required placeholder="Votre mot de passe" style="padding-right:38px;">
+        <span onclick="togglePasswordLogin()" style="position:absolute; right:10px; top:38px; cursor:pointer; color:#1976d2; font-size:1.2em; user-select:none;" title="Afficher/masquer le mot de passe">
+          <svg id="eye-login" xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2" d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12Z"/><circle id="eye-dot-login" cx="12" cy="12" r="3" fill="currentColor"/></svg>
+        </span>
       </label>
+    <script>
+    function togglePasswordLogin() {
+      const input = document.getElementById('login-password');
+      const eye = document.getElementById('eye-login');
+      if (input.type === 'password') {
+        input.type = 'text';
+        eye.style.opacity = 0.5;
+      } else {
+        input.type = 'password';
+        eye.style.opacity = 1;
+      }
+    }
+    </script>
     </fieldset>
 
     <div class="demande-actions">

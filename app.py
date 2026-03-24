@@ -715,10 +715,18 @@ def register_routes(app: Flask) -> None:
                 flash("Le mot de passe doit contenir au moins 6 caractères.", "danger")
                 return render_template("register.html")
 
+            # Vérifier si le nom d'utilisateur existe déjà
             existing_user = User.query.filter_by(username=username).first()
             if existing_user:
-                flash("Ce nom d'utilisateur existe déjà.", "warning")
+                flash("Ce nom d'utilisateur est déjà utilisé. Si c'est votre compte, essayez de vous connecter ou utilisez 'Mot de passe oublié'.", "warning")
                 return render_template("register.html")
+            
+            # Vérifier si l'email existe déjà
+            if email:
+                existing_email = User.query.filter_by(email=email).first()
+                if existing_email:
+                    flash("Cette adresse email est déjà utilisée. Si c'est votre compte, essayez de vous connecter ou utilisez 'Mot de passe oublié'.", "warning")
+                    return render_template("register.html")
 
             try:
                 user = User(
@@ -787,9 +795,12 @@ def register_routes(app: Flask) -> None:
 
                 flash("Compte créé ! Vous pouvez maintenant vous connecter.", "success")
                 return redirect(url_for("login"))
-            except Exception:
+            except Exception as e:
                 db.session.rollback()
-                flash("Erreur lors de la création du compte.", "danger")
+                current_app.logger.error(f"[INSCRIPTION] Erreur lors de la création du compte pour {username}: {e}")
+                print(f"[INSCRIPTION] Erreur: {e}")
+                flash("Erreur lors de la création du compte. Veuillez réessayer.", "danger")
+                return render_template("register.html")
 
         return render_template("register.html")
 
