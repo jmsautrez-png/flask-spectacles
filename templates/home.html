@@ -1550,4 +1550,15 @@ details summary span {
 })();
 </script>
 
+<!-- Compteur de visites -->
+<div style="text-align: center; padding: 40px 20px; margin-top: 60px; background: linear-gradient(135deg, rgba(245, 158, 11, 0.05) 0%, rgba(245, 158, 11, 0.02) 100%); border-radius: 12px;">
+  <div style="max-width: 600px; margin: 0 auto;">
+    <p style="font-size: 0.9rem; color: #6b7280; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 1px;">Nombre de visiteurs</p>
+    <p style="font-size: 2.5rem; font-weight: 700; color: #f59e0b; margin: 0; text-shadow: 0 2px 4px rgba(245, 158, 11, 0.2);">
+      {{ "{:,}".format(visit_count).replace(',', ' ') }}
+    </p>
+    <p style="font-size: 0.85rem; color: #9ca3af; margin-top: 8px;">visiteurs depuis le lancement</p>
+  </div>
+</div>
+
 {% endblock %}

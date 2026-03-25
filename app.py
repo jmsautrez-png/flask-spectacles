@@ -66,7 +66,7 @@ print("✓ Flask importé")
 
 from config import Config
 from models import db
-from models.models import User, Show
+from models.models import User, Show, PageVisit
 
 print("✓ Config et models importés")
 
@@ -934,6 +934,28 @@ def register_routes(app: Flask) -> None:
     @app.route("/", endpoint="home")
     def home():
         """Page d'accueil avec les deux blocs hero et le compteur"""
+        # Incrémenter le compteur de visites (une seule fois par session)
+        try:
+            # Vérifier si l'utilisateur a déjà été compté dans cette session
+            if not session.get('home_visit_counted'):
+                visit_counter = PageVisit.query.filter_by(page_name='home').first()
+                if not visit_counter:
+                    visit_counter = PageVisit(page_name='home', visit_count=1)
+                    db.session.add(visit_counter)
+                else:
+                    visit_counter.visit_count += 1
+                    visit_counter.last_visit = datetime.utcnow()
+                db.session.commit()
+                # Marquer que cette session a été comptée
+                session['home_visit_counted'] = True
+            
+            # Récupérer le compteur actuel
+            visit_counter = PageVisit.query.filter_by(page_name='home').first()
+            visit_count = visit_counter.visit_count if visit_counter else 0
+        except Exception as e:
+            print(f"Erreur lors de l'incrémentation du compteur: {e}")
+            visit_count = 0
+        
         # Récupérer les spectacles "à la une" pour les afficher
         spectacles_une = Show.query.filter(
             Show.approved == True,
@@ -944,6 +966,7 @@ def register_routes(app: Flask) -> None:
             "home.html",
             user=current_user(),
             spectacles_une=spectacles_une,
+            visit_count=visit_count,
         )
 
     @app.route("/catalogue", endpoint="catalogue")

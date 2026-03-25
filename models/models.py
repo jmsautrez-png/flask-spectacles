@@ -174,3 +174,13 @@ class DemandeEcole(db.Model):
     notes_admin = db.Column(db.Text, nullable=True)
     
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+
+# Modèle pour le compteur de visites de la page d'accueil
+class PageVisit(db.Model):
+    __tablename__ = "page_visit"
+
+    id = db.Column(db.Integer, primary_key=True)
+    page_name = db.Column(db.String(50), nullable=False, unique=True)  # Nom de la page (ex: 'home')
+    visit_count = db.Column(db.Integer, default=0)  # Nombre de visites
+    last_visit = db.Column(db.DateTime, default=datetime.utcnow)  # Dernière visite
