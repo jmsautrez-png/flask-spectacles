@@ -14,10 +14,10 @@ def migrate():
         # Initialiser le compteur pour la page d'accueil
         existing = PageVisit.query.filter_by(page_name='home').first()
         if not existing:
-            counter = PageVisit(page_name='home', visit_count=0)
+            counter = PageVisit(page_name='home', visit_count=6800)
             db.session.add(counter)
             db.session.commit()
-            print("✅ Table page_visit créée et initialisée avec succès!")
+            print("✅ Table page_visit créée et initialisée avec succès à 6800 visites!")
         else:
             print("ℹ️  La table page_visit existe déjà.")
 
