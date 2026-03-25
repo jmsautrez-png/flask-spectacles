@@ -818,11 +818,6 @@ def register_routes(app: Flask) -> None:
         if request.method == "POST":
             username = request.form.get("username", "").strip()
             password = request.form.get("password", "").strip()
-            
-            # Protection contre les injections SQL (SQLAlchemy protège déjà, mais vérifions)
-            if any(char in username for char in ["'", '"', ';', '--', '/*']):
-                flash("Caractères invalides détectés.", "danger")
-                return render_template("login.html", user=current_user())
 
             user = User.query.filter_by(username=username).first()
             if user and user.check_password(password):
