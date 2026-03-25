@@ -761,13 +761,6 @@ def register_routes(app: Flask) -> None:
                     except Exception as e:
                         current_app.logger.error(f"[MAIL] ✗ Envoi impossible (inscription admin): {e}")
                         print("[MAIL] envoi impossible (inscription admin):", e)
-                else:
-                    if not getattr(current_app, "mail", None):
-                        current_app.logger.warning("[MAIL] ⚠ Flask-Mail non initialisé")
-                    elif not current_app.config.get("MAIL_USERNAME"):
-                        current_app.logger.warning("[MAIL] ⚠ MAIL_USERNAME non défini")
-                    elif not current_app.config.get("MAIL_PASSWORD"):
-                        current_app.logger.warning("[MAIL] ⚠ MAIL_PASSWORD non défini")
                     
                     # Envoi d'un email de bienvenue à l'utilisateur
                     if email:
@@ -792,6 +785,13 @@ def register_routes(app: Flask) -> None:
                         except Exception as e:
                             current_app.logger.error(f"[MAIL] ✗ Envoi impossible (inscription utilisateur): {e}")
                             print("[MAIL] envoi impossible (inscription utilisateur):", e)
+                else:
+                    if not getattr(current_app, "mail", None):
+                        current_app.logger.warning("[MAIL] ⚠ Flask-Mail non initialisé")
+                    elif not current_app.config.get("MAIL_USERNAME"):
+                        current_app.logger.warning("[MAIL] ⚠ MAIL_USERNAME non défini")
+                    elif not current_app.config.get("MAIL_PASSWORD"):
+                        current_app.logger.warning("[MAIL] ⚠ MAIL_PASSWORD non défini")
 
                 flash("Compte créé ! Vous pouvez maintenant vous connecter.", "success")
                 return redirect(url_for("login"))
