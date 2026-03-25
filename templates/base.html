@@ -764,6 +764,11 @@
         {# ----- ADMIN CONNECTÉ ----- #}
         {% if user and user.is_admin %}
           <li>
+            <a href="{{ url_for('catalogue') }}" style="padding:8px 14px; background:linear-gradient(135deg, #673ab7, #9c27b0); color:white; border-radius:6px; font-weight:600; font-size:0.85rem; text-decoration:none; display:inline-block; transition:opacity 0.2s;">
+              Catalogue
+            </a>
+          </li>
+          <li>
             <a href="{{ url_for('admin_dashboard') }}" style="padding:8px 14px; background:#dc3545; color:white; border-radius:6px; font-weight:600; font-size:0.85rem; text-decoration:none; display:inline-block; transition:opacity 0.2s;">
               🛠️ Admin
             </a>
@@ -786,6 +791,11 @@
 
         {# ----- UTILISATEUR CONNECTÉ mais pas admin ----- #}
         {% elif user %}
+          <li>
+            <a href="{{ url_for('catalogue') }}" style="padding:8px 14px; background:linear-gradient(135deg, #673ab7, #9c27b0); color:white; border-radius:6px; font-weight:600; font-size:0.85rem; text-decoration:none; display:inline-block; transition:opacity 0.2s;">
+              Catalogue
+            </a>
+          </li>
           {# Bouton Demande d'animation supprimé #}
           <li>
             <a href="{{ url_for('logout') }}" style="padding:8px 14px; background:transparent; color:#fff; font-weight:500; font-size:0.85rem; text-decoration:none; display:inline-block; transition:color 0.2s;">
@@ -795,6 +805,11 @@
 
         {# ----- VISITEUR ----- #}
         {% else %}
+          <li>
+            <a href="{{ url_for('catalogue') }}" style="padding:8px 14px; background:linear-gradient(135deg, #673ab7, #9c27b0); color:white; border-radius:6px; font-weight:600; font-size:0.85rem; text-decoration:none; display:inline-block; transition:opacity 0.2s;">
+              Catalogue
+            </a>
+          </li>
           <li>
             <a href="{{ url_for('about') }}" style="padding:8px 14px; background:transparent; color:var(--text); border:1px solid var(--border); border-radius:6px; font-weight:500; font-size:0.85rem; text-decoration:none; display:inline-block; transition:background 0.2s;">
               ℹ️ Qui nous sommes
