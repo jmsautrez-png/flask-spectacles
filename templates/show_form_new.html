@@ -92,6 +92,7 @@
           <label style="display:flex; flex-direction:column; gap:6px;">
             <span style="font-size:0.85rem; color:var(--muted);">Photo 1 (principale)</span>
             <input type="file" name="file" id="file" accept=".png,.jpg,.jpeg,.gif,.webp,.pdf" style="padding:8px; background:var(--bg); border:1px solid var(--border); border-radius:8px;">
+            <button type="button" onclick="clearFileInput('file')" id="clear-file" style="display:none; padding:6px 12px; background:#e74c3c; color:#fff; border:none; border-radius:6px; cursor:pointer; font-size:0.85rem;">🗑️ Retirer</button>
             <div class="upload-progress" id="progress-file" style="display:none; margin-top:4px;">
               <div class="progress-bar"><div class="progress-fill" id="progress-fill-file"></div></div>
               <div class="progress-text" id="progress-text-file">0%</div>
@@ -100,6 +101,7 @@
           <label style="display:flex; flex-direction:column; gap:6px;">
             <span style="font-size:0.85rem; color:var(--muted);">Photo 2</span>
             <input type="file" name="file2" id="file2" accept=".png,.jpg,.jpeg,.gif,.webp" style="padding:8px; background:var(--bg); border:1px solid var(--border); border-radius:8px;">
+            <button type="button" onclick="clearFileInput('file2')" id="clear-file2" style="display:none; padding:6px 12px; background:#e74c3c; color:#fff; border:none; border-radius:6px; cursor:pointer; font-size:0.85rem;">🗑️ Retirer</button>
             <div class="upload-progress" id="progress-file2" style="display:none; margin-top:4px;">
               <div class="progress-bar"><div class="progress-fill" id="progress-fill-file2"></div></div>
               <div class="progress-text" id="progress-text-file2">0%</div>
@@ -108,6 +110,7 @@
           <label style="display:flex; flex-direction:column; gap:6px;">
             <span style="font-size:0.85rem; color:var(--muted);">Photo 3</span>
             <input type="file" name="file3" id="file3" accept=".png,.jpg,.jpeg,.gif,.webp" style="padding:8px; background:var(--bg); border:1px solid var(--border); border-radius:8px;">
+            <button type="button" onclick="clearFileInput('file3')" id="clear-file3" style="display:none; padding:6px 12px; background:#e74c3c; color:#fff; border:none; border-radius:6px; cursor:pointer; font-size:0.85rem;">🗑️ Retirer</button>
             <div class="upload-progress" id="progress-file3" style="display:none; margin-top:4px;">
               <div class="progress-bar"><div class="progress-fill" id="progress-fill-file3"></div></div>
               <div class="progress-text" id="progress-text-file3">0%</div>
@@ -163,6 +166,41 @@
     });
   });
 })();
+
+// Fonction pour réinitialiser un input de fichier
+function clearFileInput(inputId) {
+  const input = document.getElementById(inputId);
+  const clearBtn = document.getElementById('clear-' + inputId);
+  const progressContainer = document.getElementById('progress-' + inputId);
+  
+  if (input) {
+    input.value = '';
+  }
+  if (clearBtn) {
+    clearBtn.style.display = 'none';
+  }
+  if (progressContainer) {
+    progressContainer.style.display = 'none';
+  }
+}
+
+// Afficher/masquer les boutons "Retirer" selon la sélection de fichiers
+document.addEventListener('DOMContentLoaded', function() {
+  ['file', 'file2', 'file3'].forEach(function(inputId) {
+    const input = document.getElementById(inputId);
+    const clearBtn = document.getElementById('clear-' + inputId);
+    
+    if (input && clearBtn) {
+      input.addEventListener('change', function() {
+        if (this.files && this.files.length > 0) {
+          clearBtn.style.display = 'inline-block';
+        } else {
+          clearBtn.style.display = 'none';
+        }
+      });
+    }
+  });
+});
 </script>
 
 {# Hide SEO block on this form page #}

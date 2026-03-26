@@ -60,8 +60,8 @@
       <div>
         <label>
           <span class="label-text">Raison sociale <span class="req">*</span></span>
-          <span class="hint">Nom de votre compagnie ou structure (vous pouvez le modifier pour gérer plusieurs compagnies)</span>
           <input type="text" name="raison_sociale" placeholder="Nom de votre compagnie" value="{{ user.raison_sociale if user and user.raison_sociale else (user.username if user else '') }}" required>
+          <span class="hint">Nom de votre compagnie ou structure (vous pouvez le modifier pour gérer plusieurs compagnies)</span>
         </label>
       </div>
 
@@ -69,16 +69,16 @@
         <div>
           <label>
             <span class="label-text">Votre e-mail <span class="req">*</span></span>
-            <span class="hint">Votre adresse e-mail de contact pour les organisateurs d'événements</span>
             <input type="email" name="contact_email" placeholder="votre@email.fr" value="{{ request.form.get('contact_email', '') }}" required>
+            <span class="hint">Votre adresse e-mail de contact pour les organisateurs d'événements</span>
           </label>
         </div>
 
         <div>
           <label>
             <span class="label-text">Votre téléphone <span class="req">*</span></span>
-            <span class="hint">Visible uniquement par l'administrateur</span>
             <input type="tel" name="contact_phone" placeholder="06 12 34 56 78" required>
+            <span class="hint">Visible uniquement par l'administrateur</span>
           </label>
         </div>
       </div>
@@ -96,9 +96,11 @@
       <div>
         <label>
           <span class="label-text">Description <span class="req">*</span></span>
-          <span class="hint">Maximum 300 mots - Décrivez votre spectacle, ses points forts, le message...</span>
           <textarea id="description" name="description" rows="4" placeholder="Décrivez votre spectacle..." required></textarea>
-          <div id="desc-counter" style="font-size:0.85rem; color:var(--muted); margin-top:4px;">0/300 mots</div>
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-top:6px;">
+            <span class="hint" style="margin:0;">Maximum 300 mots - Décrivez votre spectacle, ses points forts, le message...</span>
+            <span id="desc-counter" style="font-size:0.85rem; color:var(--muted); white-space:nowrap; margin-left:12px;">0/300 mots</span>
+          </div>
         </label>
       </div>
       <div class="grid-2">
@@ -319,8 +321,9 @@
         <div>
           <label>
             <span class="label-text">Photo 1 (principale)</span>
-            <span class="hint">Max 500 Ko - PNG, JPG, JPEG, GIF, WEBP, PDF</span>
             <input type="file" name="file" id="file" accept=".png,.jpg,.jpeg,.gif,.webp,.pdf">
+            <span class="hint">Max 500 Ko - PNG, JPG, JPEG, GIF, WEBP, PDF</span>
+            <button type="button" onclick="clearFileInput('file')" id="clear-file" style="display:none; margin-top:8px; padding:6px 12px; background:#e74c3c; color:#fff; border:none; border-radius:6px; cursor:pointer; font-size:0.85rem;">🗑️ Retirer</button>
             <div class="upload-progress" id="progress-file" style="display:none; margin-top:8px;">
               <div class="progress-bar"><div class="progress-fill" id="progress-fill-file"></div></div>
               <div class="progress-text" id="progress-text-file">0%</div>
@@ -330,8 +333,9 @@
         <div>
           <label>
             <span class="label-text">Photo 2 (optionnelle)</span>
-            <span class="hint">Max 500 Ko - PNG, JPG, JPEG, GIF, WEBP</span>
             <input type="file" name="file2" id="file2" accept=".png,.jpg,.jpeg,.gif,.webp">
+            <span class="hint">Max 500 Ko - PNG, JPG, JPEG, GIF, WEBP</span>
+            <button type="button" onclick="clearFileInput('file2')" id="clear-file2" style="display:none; margin-top:8px; padding:6px 12px; background:#e74c3c; color:#fff; border:none; border-radius:6px; cursor:pointer; font-size:0.85rem;">🗑️ Retirer</button>
             <div class="upload-progress" id="progress-file2" style="display:none; margin-top:8px;">
               <div class="progress-bar"><div class="progress-fill" id="progress-fill-file2"></div></div>
               <div class="progress-text" id="progress-text-file2">0%</div>
@@ -341,8 +345,9 @@
         <div>
           <label>
             <span class="label-text">Photo 3 (optionnelle)</span>
-            <span class="hint">Max 500 Ko - PNG, JPG, JPEG, GIF, WEBP</span>
             <input type="file" name="file3" id="file3" accept=".png,.jpg,.jpeg,.gif,.webp">
+            <span class="hint">Max 500 Ko - PNG, JPG, JPEG, GIF, WEBP</span>
+            <button type="button" onclick="clearFileInput('file3')" id="clear-file3" style="display:none; margin-top:8px; padding:6px 12px; background:#e74c3c; color:#fff; border:none; border-radius:6px; cursor:pointer; font-size:0.85rem;">🗑️ Retirer</button>
             <div class="upload-progress" id="progress-file3" style="display:none; margin-top:8px;">
               <div class="progress-bar"><div class="progress-fill" id="progress-fill-file3"></div></div>
               <div class="progress-text" id="progress-text-file3">0%</div>
@@ -523,5 +528,40 @@
     });
   });
 })();
+
+// Fonction pour réinitialiser un input de fichier
+function clearFileInput(inputId) {
+  const input = document.getElementById(inputId);
+  const clearBtn = document.getElementById('clear-' + inputId);
+  const progressContainer = document.getElementById('progress-' + inputId);
+  
+  if (input) {
+    input.value = '';
+  }
+  if (clearBtn) {
+    clearBtn.style.display = 'none';
+  }
+  if (progressContainer) {
+    progressContainer.style.display = 'none';
+  }
+}
+
+// Afficher/masquer les boutons "Retirer" selon la sélection de fichiers
+document.addEventListener('DOMContentLoaded', function() {
+  ['file', 'file2', 'file3'].forEach(function(inputId) {
+    const input = document.getElementById(inputId);
+    const clearBtn = document.getElementById('clear-' + inputId);
+    
+    if (input && clearBtn) {
+      input.addEventListener('change', function() {
+        if (this.files && this.files.length > 0) {
+          clearBtn.style.display = 'inline-block';
+        } else {
+          clearBtn.style.display = 'none';
+        }
+      });
+    }
+  });
+});
 </script>
 {% endblock %}

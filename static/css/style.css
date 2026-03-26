@@ -4,6 +4,12 @@
 .demande-form textarea {
   background: #fff !important;
   color: #222 !important;
+  padding: 12px 14px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 1rem;
+  width: 100%;
+  transition: border-color 0.2s ease;
 }
 /* thème */
 :root{
@@ -78,7 +84,8 @@ main.container {
   border: 1px solid var(--border);
   background: var(--panel);
   border-radius: 14px;
-  padding: 20px;
+  padding: 24px;
+  margin-bottom: 24px;
 }
 
 .demande-section legend {
@@ -109,6 +116,11 @@ main.container {
   color: var(--text);
   min-width: 0;
   width: 100%;
+  margin-bottom: 20px;
+}
+
+.demande-form label:last-child {
+  margin-bottom: 0;
 }
 
 /* Label text row: keeps text + asterisk on same line */
@@ -116,7 +128,7 @@ main.container {
   display: block;
   font-weight: 600;
   line-height: 1.4;
-  margin-bottom: 8px;
+  margin-bottom: 6px;
 }
 
 /* Required asterisk inline with label */
@@ -158,8 +170,18 @@ main.container {
   line-height: 1.5;
 }
 
-/* Hint text below input */
-.demande-form .hint {
+/* Hint text - span version (appears after input) */
+.demande-form span.hint {
+  display: block;
+  margin-top: 6px;
+  color: var(--muted);
+  font-weight: 400;
+  font-size: 0.8rem;
+  line-height: 1.3;
+}
+
+/* Hint text - small version (appears after input) */
+.demande-form small.hint {
   display: block;
   margin-top: 6px;
   color: var(--muted);
@@ -1191,4 +1213,26 @@ a[href*="edit"]:hover {
   color: var(--text);
   margin-top: 4px;
   text-align: center;
+}
+
+/* ============================================
+   ANIMATION TEXTE CLIGNOTANT
+   ============================================ */
+@keyframes clignotement {
+  0%, 100% { 
+    color: #ffffff; 
+    opacity: 1; 
+    text-shadow: 0 0 15px rgba(0, 0, 0, 0.8), 0 2px 4px rgba(0, 0, 0, 0.5);
+  }
+  50% { 
+    color: #000000; 
+    opacity: 1; 
+    text-shadow: 0 0 15px rgba(255, 255, 255, 0.8), 0 2px 4px rgba(255, 255, 255, 0.5);
+  }
+}
+
+.texte-clignotant {
+  animation: clignotement 10s ease-in-out infinite;
+  color: #ffffff;
+  font-size: 1.05rem;
 }

@@ -968,8 +968,7 @@ def register_routes(app: Flask) -> None:
         
         # Récupérer les spectacles "à la une" pour les afficher
         spectacles_une = Show.query.filter(
-            Show.approved == True,
-            Show.category.ilike('%Spectacle à la une%'),
+            Show.approved == True
         ).order_by(Show.display_order.asc()).limit(8).all()
         
         return render_template(
