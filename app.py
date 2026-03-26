@@ -967,10 +967,17 @@ def register_routes(app: Flask) -> None:
             visit_count = 0
         
         # Récupérer les spectacles "à la une" pour les afficher
-        spectacles_une = Show.query.filter(
-            Show.approved == True,
-            Show.is_featured == True
-        ).order_by(Show.display_order.asc()).limit(8).all()
+        try:
+            spectacles_une = Show.query.filter(
+                Show.approved == True,
+                Show.is_featured == True
+            ).order_by(Show.display_order.asc()).limit(8).all()
+        except Exception as e:
+            # Fallback si la colonne is_featured n'existe pas encore (avant migration)
+            print(f"⚠️  Colonne is_featured non trouvée, affichage des spectacles approuvés: {e}")
+            spectacles_une = Show.query.filter(
+                Show.approved == True
+            ).order_by(Show.display_order.asc()).limit(8).all()
         
         return render_template(
             "home.html",
