@@ -968,7 +968,8 @@ def register_routes(app: Flask) -> None:
         
         # Récupérer les spectacles "à la une" pour les afficher
         spectacles_une = Show.query.filter(
-            Show.approved == True
+            Show.approved == True,
+            Show.is_featured == True
         ).order_by(Show.display_order.asc()).limit(8).all()
         
         return render_template(
@@ -1871,6 +1872,8 @@ def register_routes(app: Flask) -> None:
             show.site_internet = request.form.get("site_internet", "").strip() or None
             # Gérer le champ is_event (admin seulement)
             show.is_event = request.form.get("is_event", "0") == "1"
+            # Gérer le champ is_featured (admin seulement) - Affichage "à la une"
+            show.is_featured = request.form.get("is_featured", "0") == "1"
             if date_str:
                 try:
                     show.date = datetime.strptime(date_str, "%Y-%m-%d").date()

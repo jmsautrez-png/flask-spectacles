@@ -216,6 +216,16 @@
       <input type="date" name="date" value="{{ show.date.strftime('%Y-%m-%d') if show and show.date else '' }}" style="display:block;margin-top:8px;padding:10px 14px;border-radius:8px;border:none;font-size:1rem;width:100%;max-width:250px;">
     </label>
   </div>
+  
+  <div style="background:linear-gradient(135deg,#ffd700 0%,#ff9800 100%);border-radius:12px;padding:16px;margin:16px 0;box-shadow:0 4px 15px rgba(255,215,0,0.3);">
+    <label style="display:flex;align-items:center;gap:12px;cursor:pointer;color:#222;font-weight:700;">
+      <input type="checkbox" name="is_featured" value="1" {% if show and show.is_featured %}checked{% endif %} style="width:20px;height:20px;cursor:pointer;">
+      <span>⭐ Afficher "À la une" sur la page d'accueil</span>
+    </label>
+    <p style="margin:8px 0 0 32px;font-size:0.9rem;color:rgba(0,0,0,0.7);">
+      Les spectacles "à la une" sont mis en avant sur la page d'accueil (maximum 8 spectacles).
+    </p>
+  </div>
   {% endif %}
 
   {% if show.file_name %}

@@ -73,6 +73,7 @@ class Show(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
     approved = db.Column(db.Boolean, default=False)
+    is_featured = db.Column(db.Boolean, default=False)  # True = affiché "à la une" sur la page d'accueil
     is_event = db.Column(db.Boolean, default=False)  # True = événement annoncé, False = catalogue
     contact_email = db.Column(db.String(255), nullable=True)
     contact_phone = db.Column(db.String(20), nullable=True)
