@@ -19,6 +19,21 @@ def migrate():
             db.session.commit()
             print("✅ Colonne 'is_featured' ajoutée avec succès!")
             
+            # Marquer automatiquement les 8 premiers spectacles approuvés comme "à la une"
+            print("🔄 Marquage automatique des 8 premiers spectacles comme 'à la une'...")
+            db.session.execute(db.text("""
+                UPDATE shows 
+                SET is_featured = TRUE 
+                WHERE approved = TRUE 
+                AND id IN (
+                    SELECT id FROM shows 
+                    WHERE approved = TRUE 
+                    ORDER BY display_order ASC, created_at DESC 
+                    LIMIT 8
+                )
+            """))
+            db.session.commit()
+            
             # Vérification
             result = db.session.execute(db.text("""
                 SELECT COUNT(*) as total_featured 
@@ -27,8 +42,8 @@ def migrate():
             """))
             count = result.scalar()
             
-            print(f"ℹ️  Nombre de spectacles actuellement 'à la une' : {count}")
-            print("ℹ️  L'admin peut cocher 'À la une' dans l'interface d'édition pour marquer des spectacles.")
+            print(f"✅ {count} spectacles marqués 'à la une' automatiquement")
+            print("ℹ️  L'admin peut modifier ce choix dans l'interface d'édition des spectacles.")
             
         except Exception as e:
             db.session.rollback()
