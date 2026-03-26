@@ -85,21 +85,33 @@
 
       <!-- Upload de 3 photos pour le diaporama -->
       <div style="margin-bottom:16px;">
-        <span class="label-text" style="display:block; margin-bottom:12px;">Photos du spectacle <span style="font-size:0.85rem;font-weight:normal;color:var(--muted);">(jusqu'à 3 photos - Taille max : 5 MB chacune)</span></span>
-        <small class="hint" style="display:block; margin-bottom:12px;">Les photos s'afficheront en diaporama sur votre carte. Formats acceptés : PNG, JPG, GIF, WEBP ou PDF.</small>
+        <span class="label-text" style="display:block; margin-bottom:12px;">Photos du spectacle <span style="font-size:0.85rem;font-weight:normal;color:#fff;">(jusqu'à 3 photos - Taille max : 500 Ko chacune)</span></span>
+        <small class="hint" style="display:block; margin-bottom:12px; color:#fff;">Les photos s'afficheront en diaporama sur votre carte. Formats acceptés : PNG, JPG, GIF, WEBP ou PDF.</small>
         
         <div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:12px;">
           <label style="display:flex; flex-direction:column; gap:6px;">
             <span style="font-size:0.85rem; color:var(--muted);">Photo 1 (principale)</span>
-            <input type="file" name="file" accept=".png,.jpg,.jpeg,.gif,.webp,.pdf" style="padding:8px; background:var(--bg); border:1px solid var(--border); border-radius:8px;">
+            <input type="file" name="file" id="file" accept=".png,.jpg,.jpeg,.gif,.webp,.pdf" style="padding:8px; background:var(--bg); border:1px solid var(--border); border-radius:8px;">
+            <div class="upload-progress" id="progress-file" style="display:none; margin-top:4px;">
+              <div class="progress-bar"><div class="progress-fill" id="progress-fill-file"></div></div>
+              <div class="progress-text" id="progress-text-file">0%</div>
+            </div>
           </label>
           <label style="display:flex; flex-direction:column; gap:6px;">
             <span style="font-size:0.85rem; color:var(--muted);">Photo 2</span>
-            <input type="file" name="file2" accept=".png,.jpg,.jpeg,.gif,.webp" style="padding:8px; background:var(--bg); border:1px solid var(--border); border-radius:8px;">
+            <input type="file" name="file2" id="file2" accept=".png,.jpg,.jpeg,.gif,.webp" style="padding:8px; background:var(--bg); border:1px solid var(--border); border-radius:8px;">
+            <div class="upload-progress" id="progress-file2" style="display:none; margin-top:4px;">
+              <div class="progress-bar"><div class="progress-fill" id="progress-fill-file2"></div></div>
+              <div class="progress-text" id="progress-text-file2">0%</div>
+            </div>
           </label>
           <label style="display:flex; flex-direction:column; gap:6px;">
             <span style="font-size:0.85rem; color:var(--muted);">Photo 3</span>
-            <input type="file" name="file3" accept=".png,.jpg,.jpeg,.gif,.webp" style="padding:8px; background:var(--bg); border:1px solid var(--border); border-radius:8px;">
+            <input type="file" name="file3" id="file3" accept=".png,.jpg,.jpeg,.gif,.webp" style="padding:8px; background:var(--bg); border:1px solid var(--border); border-radius:8px;">
+            <div class="upload-progress" id="progress-file3" style="display:none; margin-top:4px;">
+              <div class="progress-bar"><div class="progress-fill" id="progress-fill-file3"></div></div>
+              <div class="progress-text" id="progress-text-file3">0%</div>
+            </div>
           </label>
         </div>
       </div>

@@ -49,9 +49,9 @@ class Config:
     # Affichage de l'adresse email utilisée pour l'envoi des mails
     print(f"[CONFIG] MAIL_DEFAULT_SENDER utilisé : {MAIL_DEFAULT_SENDER}")
 
-    # Limite de taille des fichiers (5 MB)
-    MAX_CONTENT_LENGTH = 5 * 1024 * 1024  # 5 MB en bytes
-    MAX_FILE_SIZE = 5 * 1024 * 1024  # 5 MB en bytes
+    # Limite de taille des fichiers (500 KB par photo pour plus de stabilité)
+    MAX_CONTENT_LENGTH = 500 * 1024  # 500 KB en bytes
+    MAX_FILE_SIZE = 500 * 1024  # 500 KB en bytes
     
     # Sécurité sessions
     PERMANENT_SESSION_LIFETIME = 3600  # 1 heure

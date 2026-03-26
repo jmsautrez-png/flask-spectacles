@@ -432,7 +432,7 @@ def validate_file_size(file) -> Tuple[bool, Optional[str]]:
     file_size = file.tell()  # Obtenir la taille
     file.seek(0)  # Revenir au début pour pouvoir le sauvegarder après
 
-    max_size = current_app.config.get("MAX_FILE_SIZE", 5 * 1024 * 1024)  # Par défaut 5 MB
+    max_size = current_app.config.get("MAX_FILE_SIZE", 500 * 1024)  # Par défaut 500 KB
 
     if file_size > max_size:
         size_mb = file_size / (1024 * 1024)
@@ -501,13 +501,23 @@ def upload_file_to_s3(file) -> str:
             
         except Exception as e:
             current_app.logger.error(f"[S3] Erreur upload S3, fallback local: {e}")
-            # Fallback to local storage
+            # Fallback to local storage - IMPORTANT: remettre le pointeur au début
+            file.seek(0)
     
     # Fallback: sauvegarde locale
+    # Remettre le pointeur au début au cas où le fichier a été lu ailleurs
+    file.seek(0)
     save_path = _Path(current_app.config["UPLOAD_FOLDER"]) / unique_name
-    file.save(save_path.as_posix())
-    current_app.logger.info(f"[LOCAL] Fichier sauvegardé localement: {unique_name}")
-    return unique_name
+    
+    try:
+        # Vérifier que le dossier existe et le créer si nécessaire
+        save_path.parent.mkdir(parents=True, exist_ok=True)
+        file.save(save_path.as_posix())
+        current_app.logger.info(f"[LOCAL] Fichier sauvegardé localement: {unique_name}")
+        return unique_name
+    except Exception as e:
+        current_app.logger.error(f"[LOCAL] Erreur sauvegarde locale: {e}")
+        raise Exception(f"Impossible de sauvegarder le fichier : {e}")
 
 
 # Alias pour rétrocompatibilité
@@ -1368,8 +1378,13 @@ def register_routes(app: Flask) -> None:
                     return redirect(request.url)
 
                 # Sauvegarde locale du fichier
-                file_name = upload_file_local(file)
-                file_mimetype = file.mimetype
+                try:
+                    file_name = upload_file_local(file)
+                    file_mimetype = file.mimetype
+                except Exception as e:
+                    current_app.logger.error(f"Erreur upload fichier principal: {e}")
+                    flash("Erreur lors de l'enregistrement du fichier. Veuillez réessayer.", "danger")
+                    return redirect(request.url)
 
             # Gestion de la photo 2 pour le diaporama
             file2 = request.files.get("file2")
@@ -1382,7 +1397,12 @@ def register_routes(app: Flask) -> None:
                 if not is_valid2:
                     flash(f"Photo 2 : {error_msg2}", "danger")
                     return redirect(request.url)
-                file_name2 = upload_file_local(file2)
+                try:
+                    file_name2 = upload_file_local(file2)
+                except Exception as e:
+                    current_app.logger.error(f"Erreur upload photo 2: {e}")
+                    flash("Erreur lors de l'enregistrement de la photo 2. Veuillez réessayer.", "danger")
+                    return redirect(request.url)
 
             # Gestion de la photo 3 pour le diaporama
             file3 = request.files.get("file3")
@@ -1395,7 +1415,12 @@ def register_routes(app: Flask) -> None:
                 if not is_valid3:
                     flash(f"Photo 3 : {error_msg3}", "danger")
                     return redirect(request.url)
-                file_name3 = upload_file_local(file3)
+                try:
+                    file_name3 = upload_file_local(file3)
+                except Exception as e:
+                    current_app.logger.error(f"Erreur upload photo 3: {e}")
+                    flash("Erreur lors de l'enregistrement de la photo 3. Veuillez réessayer.", "danger")
+                    return redirect(request.url)
 
             show = Show(
                 raison_sociale=raison_sociale or None,
@@ -1590,9 +1615,14 @@ def register_routes(app: Flask) -> None:
                         pass
 
                 # Upload S3 (fallback local si S3 non configuré)
-                new_name = upload_file_local(file)
-                s.file_name = new_name
-                s.file_mimetype = file.mimetype
+                try:
+                    new_name = upload_file_local(file)
+                    s.file_name = new_name
+                    s.file_mimetype = file.mimetype
+                except Exception as e:
+                    current_app.logger.error(f"Erreur upload fichier principal: {e}")
+                    flash("Erreur lors de l'enregistrement du fichier. Veuillez réessayer.", "danger")
+                    return redirect(request.url)
 
             # Gestion de la photo 2 pour le diaporama
             file2 = request.files.get("file2")
@@ -1612,8 +1642,13 @@ def register_routes(app: Flask) -> None:
                             old_local.unlink()
                     except Exception:
                         pass
-                s.file_name2 = upload_file_local(file2)
-                s.file_mimetype2 = file2.mimetype
+                try:
+                    s.file_name2 = upload_file_local(file2)
+                    s.file_mimetype2 = file2.mimetype
+                except Exception as e:
+                    current_app.logger.error(f"Erreur upload photo 2: {e}")
+                    flash("Erreur lors de l'enregistrement de la photo 2. Veuillez réessayer.", "danger")
+                    return redirect(request.url)
 
             # Gestion de la photo 3 pour le diaporama
             file3 = request.files.get("file3")
@@ -1633,8 +1668,13 @@ def register_routes(app: Flask) -> None:
                             old_local.unlink()
                     except Exception:
                         pass
-                s.file_name3 = upload_file_local(file3)
-                s.file_mimetype3 = file3.mimetype
+                try:
+                    s.file_name3 = upload_file_local(file3)
+                    s.file_mimetype3 = file3.mimetype
+                except Exception as e:
+                    current_app.logger.error(f"Erreur upload photo 3: {e}")
+                    flash("Erreur lors de l'enregistrement de la photo 3. Veuillez réessayer.", "danger")
+                    return redirect(request.url)
 
             db.session.commit()
             flash("Spectacle mis à jour.", "success")
@@ -1735,8 +1775,13 @@ def register_routes(app: Flask) -> None:
                     return redirect(request.url)
 
                 # 🔥 Envoi sur S3 au lieu du disque local
-                file_name = upload_file_local(file)
-                file_mimetype = file.mimetype
+                try:
+                    file_name = upload_file_local(file)
+                    file_mimetype = file.mimetype
+                except Exception as e:
+                    current_app.logger.error(f"Erreur upload fichier principal: {e}")
+                    flash("Erreur lors de l'enregistrement du fichier. Veuillez réessayer.", "danger")
+                    return redirect(request.url)
 
             # Gestion des photos 2 et 3 pour le diaporama
             file2 = request.files.get("file2")
@@ -1751,8 +1796,13 @@ def register_routes(app: Flask) -> None:
                 if not is_valid:
                     flash(f"Photo 2 : {error_msg}", "danger")
                     return redirect(request.url)
-                file_name2 = upload_file_local(file2)
-                file_mimetype2 = file2.mimetype
+                try:
+                    file_name2 = upload_file_local(file2)
+                    file_mimetype2 = file2.mimetype
+                except Exception as e:
+                    current_app.logger.error(f"Erreur upload photo 2: {e}")
+                    flash("Erreur lors de l'enregistrement de la photo 2. Veuillez réessayer.", "danger")
+                    return redirect(request.url)
 
             file3 = request.files.get("file3")
             file_name3 = None
@@ -1766,8 +1816,13 @@ def register_routes(app: Flask) -> None:
                 if not is_valid:
                     flash(f"Photo 3 : {error_msg}", "danger")
                     return redirect(request.url)
-                file_name3 = upload_file_local(file3)
-                file_mimetype3 = file3.mimetype
+                try:
+                    file_name3 = upload_file_local(file3)
+                    file_mimetype3 = file3.mimetype
+                except Exception as e:
+                    current_app.logger.error(f"Erreur upload photo 3: {e}")
+                    flash("Erreur lors de l'enregistrement de la photo 3. Veuillez réessayer.", "danger")
+                    return redirect(request.url)
 
             show = Show(
                 raison_sociale=raison_sociale or None,
@@ -1848,9 +1903,14 @@ def register_routes(app: Flask) -> None:
                         pass
 
                 # Upload S3 (fallback local si S3 non configuré)
-                new_name = upload_file_local(file)
-                show.file_name = new_name
-                show.file_mimetype = file.mimetype
+                try:
+                    new_name = upload_file_local(file)
+                    show.file_name = new_name
+                    show.file_mimetype = file.mimetype
+                except Exception as e:
+                    current_app.logger.error(f"Erreur upload fichier principal: {e}")
+                    flash("Erreur lors de l'enregistrement du fichier. Veuillez réessayer.", "danger")
+                    return redirect(request.url)
 
             # Gestion de la photo 2 pour le diaporama
             file2 = request.files.get("file2")
@@ -1871,8 +1931,13 @@ def register_routes(app: Flask) -> None:
                             old_local.unlink()
                     except Exception:
                         pass
-                show.file_name2 = upload_file_local(file2)
-                show.file_mimetype2 = file2.mimetype
+                try:
+                    show.file_name2 = upload_file_local(file2)
+                    show.file_mimetype2 = file2.mimetype
+                except Exception as e:
+                    current_app.logger.error(f"Erreur upload photo 2: {e}")
+                    flash("Erreur lors de l'enregistrement de la photo 2. Veuillez réessayer.", "danger")
+                    return redirect(request.url)
 
             # Gestion de la photo 3 pour le diaporama
             file3 = request.files.get("file3")
@@ -1893,8 +1958,13 @@ def register_routes(app: Flask) -> None:
                             old_local.unlink()
                     except Exception:
                         pass
-                show.file_name3 = upload_file_local(file3)
-                show.file_mimetype3 = file3.mimetype
+                try:
+                    show.file_name3 = upload_file_local(file3)
+                    show.file_mimetype3 = file3.mimetype
+                except Exception as e:
+                    current_app.logger.error(f"Erreur upload photo 3: {e}")
+                    flash("Erreur lors de l'enregistrement de la photo 3. Veuillez réessayer.", "danger")
+                    return redirect(request.url)
 
             db.session.commit()
             flash("Annonce mise à jour.", "success")

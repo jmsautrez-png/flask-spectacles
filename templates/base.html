@@ -1004,10 +1004,10 @@
 
 
 <script>
-// Validation de la taille des fichiers uploadés (particulièrement important sur mobile)
+// Validation de la taille des fichiers uploadés + barres de progression
 document.addEventListener('DOMContentLoaded', function() {
-    const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5 MB en bytes
-    const MAX_FILE_SIZE_MB = 5;
+    const MAX_FILE_SIZE = 500 * 1024; // 500 KB en bytes
+    const MAX_FILE_SIZE_KB = 500;
     
     // Trouver tous les inputs de type file
     const fileInputs = document.querySelectorAll('input[type="file"]');
@@ -1015,20 +1015,34 @@ document.addEventListener('DOMContentLoaded', function() {
     fileInputs.forEach(function(input) {
         input.addEventListener('change', function(e) {
             const file = e.target.files[0];
+            const inputId = input.id;
+            const progressContainer = document.getElementById('progress-' + inputId);
+            const progressFill = document.getElementById('progress-fill-' + inputId);
+            const progressText = document.getElementById('progress-text-' + inputId);
             
-            if (file && file.size > MAX_FILE_SIZE) {
-                const fileSizeMB = (file.size / (1024 * 1024)).toFixed(2);
+            if (!file) {
+                // Masquer la barre de progression si aucun fichier
+                if (progressContainer) progressContainer.style.display = 'none';
+                return;
+            }
+            
+            // Vérifier la taille du fichier
+            if (file.size > MAX_FILE_SIZE) {
+                const fileSizeKB = (file.size / 1024).toFixed(2);
                 
                 // Message d'erreur clair
                 const message = `❌ La photo "${file.name}" est trop lourde !\n\n` +
-                               `Taille de votre photo : ${fileSizeMB} MB\n` +
-                               `Taille maximale autorisée : ${MAX_FILE_SIZE_MB} MB\n\n` +
+                               `Taille de votre photo : ${fileSizeKB} Ko\n` +
+                               `Taille maximale autorisée : ${MAX_FILE_SIZE_KB} Ko\n\n` +
                                `Veuillez compresser votre photo ou en choisir une plus légère.`;
                 
                 alert(message);
                 
                 // Réinitialiser l'input
                 e.target.value = '';
+                
+                // Masquer la barre de progression
+                if (progressContainer) progressContainer.style.display = 'none';
                 
                 // Message visuel supplémentaire sur mobile
                 if (window.innerWidth <= 768) {
@@ -1052,8 +1066,8 @@ document.addEventListener('DOMContentLoaded', function() {
                     warningDiv.innerHTML = `
                         <div style="font-size: 40px; margin-bottom: 10px;">⚠️</div>
                         <div style="font-weight: bold; margin-bottom: 10px;">Photo trop lourde !</div>
-                        <div>Votre photo fait ${fileSizeMB} MB</div>
-                        <div>Maximum autorisé : ${MAX_FILE_SIZE_MB} MB</div>
+                        <div>Votre photo fait ${fileSizeKB} Ko</div>
+                        <div>Maximum autorisé : ${MAX_FILE_SIZE_KB} Ko</div>
                         <button onclick="this.parentElement.remove()" style="
                             margin-top: 15px;
                             padding: 10px 20px;
@@ -1073,6 +1087,55 @@ document.addEventListener('DOMContentLoaded', function() {
                             warningDiv.remove();
                         }
                     }, 8000);
+                }
+                return;
+            }
+            
+            // Afficher la barre de progression avec animation
+            if (progressContainer && progressFill && progressText) {
+                progressContainer.style.display = 'block';
+                
+                // Simuler le chargement du fichier (lecture locale)
+                let progress = 0;
+                const interval = setInterval(() => {
+                    progress += 10;
+                    if (progress <= 100) {
+                        progressFill.style.width = progress + '%';
+                        progressText.textContent = progress + '%';
+                    } else {
+                        clearInterval(interval);
+                        // Garder à 100% pour montrer que le fichier est prêt
+                        progressText.textContent = '✓ Prêt à envoyer';
+                    }
+                }, 50); // Progression rapide pour meilleure UX
+            }
+        });
+    });
+    
+    // Gérer la soumission du formulaire pour montrer la progression réelle
+    const forms = document.querySelectorAll('form[enctype="multipart/form-data"]');
+    forms.forEach(form => {
+        form.addEventListener('submit', function(e) {
+            const fileInputs = form.querySelectorAll('input[type="file"]');
+            let hasFiles = false;
+            
+            fileInputs.forEach(input => {
+                if (input.files && input.files.length > 0) {
+                    hasFiles = true;
+                    const inputId = input.id;
+                    const progressText = document.getElementById('progress-text-' + inputId);
+                    if (progressText) {
+                        progressText.textContent = '⏳ Envoi en cours...';
+                    }
+                }
+            });
+            
+            // Afficher un message si des fichiers sont en cours d'envoi
+            if (hasFiles) {
+                const submitBtn = form.querySelector('button[type="submit"]');
+                if (submitBtn) {
+                    submitBtn.disabled = true;
+                    submitBtn.textContent = 'Envoi en cours...';
                 }
             }
         });

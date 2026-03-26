@@ -319,22 +319,34 @@
         <div>
           <label>
             <span class="label-text">Photo 1 (principale)</span>
-            <span class="hint">Max 5 MB - PNG, JPG, JPEG, GIF, WEBP, PDF</span>
-            <input type="file" name="file" accept=".png,.jpg,.jpeg,.gif,.webp,.pdf">
+            <span class="hint">Max 500 Ko - PNG, JPG, JPEG, GIF, WEBP, PDF</span>
+            <input type="file" name="file" id="file" accept=".png,.jpg,.jpeg,.gif,.webp,.pdf">
+            <div class="upload-progress" id="progress-file" style="display:none; margin-top:8px;">
+              <div class="progress-bar"><div class="progress-fill" id="progress-fill-file"></div></div>
+              <div class="progress-text" id="progress-text-file">0%</div>
+            </div>
           </label>
         </div>
         <div>
           <label>
             <span class="label-text">Photo 2 (optionnelle)</span>
-            <span class="hint">Max 5 MB - PNG, JPG, JPEG, GIF, WEBP</span>
-            <input type="file" name="file2" accept=".png,.jpg,.jpeg,.gif,.webp">
+            <span class="hint">Max 500 Ko - PNG, JPG, JPEG, GIF, WEBP</span>
+            <input type="file" name="file2" id="file2" accept=".png,.jpg,.jpeg,.gif,.webp">
+            <div class="upload-progress" id="progress-file2" style="display:none; margin-top:8px;">
+              <div class="progress-bar"><div class="progress-fill" id="progress-fill-file2"></div></div>
+              <div class="progress-text" id="progress-text-file2">0%</div>
+            </div>
           </label>
         </div>
         <div>
           <label>
             <span class="label-text">Photo 3 (optionnelle)</span>
-            <span class="hint">Max 5 MB - PNG, JPG, JPEG, GIF, WEBP</span>
-            <input type="file" name="file3" accept=".png,.jpg,.jpeg,.gif,.webp">
+            <span class="hint">Max 500 Ko - PNG, JPG, JPEG, GIF, WEBP</span>
+            <input type="file" name="file3" id="file3" accept=".png,.jpg,.jpeg,.gif,.webp">
+            <div class="upload-progress" id="progress-file3" style="display:none; margin-top:8px;">
+              <div class="progress-bar"><div class="progress-fill" id="progress-fill-file3"></div></div>
+              <div class="progress-text" id="progress-text-file3">0%</div>
+            </div>
           </label>
         </div>
       </div>
