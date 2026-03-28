@@ -1953,8 +1953,18 @@ def register_routes(app: Flask) -> None:
         from datetime import timedelta
         
         # Période sélectionnée (par défaut: 7 derniers jours)
-        days = request.args.get("days", 7, type=int)
-        date_limit = datetime.utcnow() - timedelta(days=days)
+        period = request.args.get("period", "7", type=str)
+        
+        # Calculer la date limite selon la période
+        if period == "today":
+            # Depuis minuit aujourd'hui (00:00:00)
+            date_limit = datetime.utcnow().replace(hour=0, minute=0, second=0, microsecond=0)
+            days = 1
+            period_label = "Aujourd'hui"
+        else:
+            days = int(period)
+            date_limit = datetime.utcnow() - timedelta(days=days)
+            period_label = f"{days} dernier{'s' if days > 1 else ''} jour{'s' if days > 1 else ''}"
         
         # Nombre total de visites sur la période
         total_visits = VisitorLog.query.filter(VisitorLog.visited_at >= date_limit).count()
@@ -2039,7 +2049,9 @@ def register_routes(app: Flask) -> None:
             visits_by_day=visits_by_day,
             recent_visitors=recent_visitors,
             active_users=active_users,
-            days=days
+            days=days,
+            period=period,
+            period_label=period_label
         )
     
     # Route de DEBUG pour voir tous les headers HTTP (TEMPORAIRE)

@@ -15,50 +15,62 @@
     <div class="row mb-4">
         <div class="col-md-12">
             <div class="btn-group" role="group">
-                <a href="{{ url_for('admin_statistics', days=1) }}" class="btn btn-sm {% if days == 1 %}btn-primary{% else %}btn-outline-primary{% endif %}">24h</a>
-                <a href="{{ url_for('admin_statistics', days=7) }}" class="btn btn-sm {% if days == 7 %}btn-primary{% else %}btn-outline-primary{% endif %}">7 jours</a>
-                <a href="{{ url_for('admin_statistics', days=30) }}" class="btn btn-sm {% if days == 30 %}btn-primary{% else %}btn-outline-primary{% endif %}">30 jours</a>
-                <a href="{{ url_for('admin_statistics', days=90) }}" class="btn btn-sm {% if days == 90 %}btn-primary{% else %}btn-outline-primary{% endif %}">90 jours</a>
+                <a href="{{ url_for('admin_statistics', period='today') }}" class="btn btn-sm {% if period == 'today' %}btn-primary{% else %}btn-outline-primary{% endif %}">Aujourd'hui</a>
+                <a href="{{ url_for('admin_statistics', period='1') }}" class="btn btn-sm {% if period == '1' %}btn-primary{% else %}btn-outline-primary{% endif %}">24h</a>
+                <a href="{{ url_for('admin_statistics', period='7') }}" class="btn btn-sm {% if period == '7' %}btn-primary{% else %}btn-outline-primary{% endif %}">7 jours</a>
+                <a href="{{ url_for('admin_statistics', period='30') }}" class="btn btn-sm {% if period == '30' %}btn-primary{% else %}btn-outline-primary{% endif %}">30 jours</a>
+                <a href="{{ url_for('admin_statistics', period='90') }}" class="btn btn-sm {% if period == '90' %}btn-primary{% else %}btn-outline-primary{% endif %}">90 jours</a>
             </div>
         </div>
     </div>
 
-    <!-- Cartes de statistiques -->
+    <!-- Cartes de statistiques principales -->
     <div class="row mb-4">
-        <div class="col-md-3">
-            <div class="card text-white bg-primary">
-                <div class="card-body">
-                    <h5 class="card-title"><i class="fas fa-eye"></i> Visites totales</h5>
-                    <h2>{{ total_visits }}</h2>
-                    <p class="mb-0">{{ days }} derniers jours</p>
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card text-white bg-success h-100">
+                <div class="card-body text-center">
+                    <div style="font-size: 0.9rem; opacity: 0.9;"><i class="fas fa-users"></i> Visiteurs uniques</div>
+                    <h1 class="display-4 my-3">{{ unique_visitors }}</h1>
+                    <p class="mb-0">personnes différentes</p>
                 </div>
             </div>
         </div>
-        <div class="col-md-3">
-            <div class="card text-white bg-success">
-                <div class="card-body">
-                    <h5 class="card-title"><i class="fas fa-users"></i> Visiteurs uniques</h5>
-                    <h2>{{ unique_visitors }}</h2>
-                    <p class="mb-0">Sessions différentes</p>
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card text-white bg-primary h-100">
+                <div class="card-body text-center">
+                    <div style="font-size: 0.9rem; opacity: 0.9;"><i class="fas fa-file-alt"></i> Pages vues</div>
+                    <h1 class="display-4 my-3">{{ total_visits }}</h1>
+                    <p class="mb-0">au total</p>
                 </div>
             </div>
         </div>
-        <div class="col-md-3">
-            <div class="card text-white bg-info">
-                <div class="card-body">
-                    <h5 class="card-title"><i class="fas fa-chart-bar"></i> Moyenne/jour</h5>
-                    <h2>{{ (total_visits / days)|round|int }}</h2>
-                    <p class="mb-0">Visites par jour</p>
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card text-white bg-info h-100">
+                <div class="card-body text-center">
+                    <div style="font-size: 0.9rem; opacity: 0.9;"><i class="fas fa-chart-line"></i> Pages/visiteur</div>
+                    <h1 class="display-4 my-3">{{ (total_visits / unique_visitors)|round(1) if unique_visitors > 0 else 0 }}</h1>
+                    <p class="mb-0">pages en moyenne</p>
                 </div>
             </div>
         </div>
-        <div class="col-md-3">
-            <div class="card text-white bg-warning">
-                <div class="card-body">
-                    <h5 class="card-title"><i class="fas fa-user-check"></i> Utilisateurs actifs</h5>
-                    <h2>{{ active_users|length }}</h2>
-                    <p class="mb-0">Membres connectés</p>
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card text-white bg-warning h-100">
+                <div class="card-body text-center">
+                    <div style="font-size: 0.9rem; opacity: 0.9;"><i class="fas fa-calendar-day"></i> Moyenne/jour</div>
+                    <h1 class="display-4 my-3">{{ (total_visits / days)|round|int }}</h1>
+                    <p class="mb-0">pages par jour</p>
                 </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Période affichée -->
+    <div class="row mb-3">
+        <div class="col-12">
+            <div class="alert alert-info">
+                <i class="fas fa-info-circle"></i> <strong>Période :</strong> {{ period_label }}
+                • <strong>{{ unique_visitors }}</strong> personnes ont visité le site
+                • Chaque personne a vu en moyenne <strong>{{ (total_visits / unique_visitors)|round(1) if unique_visitors > 0 else 0 }}</strong> pages
             </div>
         </div>
     </div>
