@@ -1991,10 +1991,32 @@ def register_routes(app: Flask) -> None:
             group_by(func.date(VisitorLog.visited_at)).\
             order_by('date').all()
         
-        # Dernières visites (50 dernières)
-        recent_visits = VisitorLog.query.\
-            filter(VisitorLog.visited_at >= date_limit).\
-            order_by(VisitorLog.visited_at.desc()).\
+        # Derniers visiteurs uniques (groupés par session)
+        # Chaque ligne = 1 visiteur avec le nombre de pages vues
+        recent_visitors = db.session.query(
+            VisitorLog.session_id,
+            func.min(VisitorLog.visited_at).label('first_visit'),
+            func.max(VisitorLog.visited_at).label('last_visit'),
+            func.count(VisitorLog.id).label('page_count'),
+            VisitorLog.city,
+            VisitorLog.region,
+            VisitorLog.country,
+            VisitorLog.isp,
+            VisitorLog.ip_anonymized,
+            VisitorLog.user_agent,
+            VisitorLog.user_id
+        ).filter(VisitorLog.visited_at >= date_limit).\
+            group_by(
+                VisitorLog.session_id,
+                VisitorLog.city,
+                VisitorLog.region,
+                VisitorLog.country,
+                VisitorLog.isp,
+                VisitorLog.ip_anonymized,
+                VisitorLog.user_agent,
+                VisitorLog.user_id
+            ).\
+            order_by(desc('first_visit')).\
             limit(50).all()
         
         # Utilisateurs connectés actifs
@@ -2015,7 +2037,7 @@ def register_routes(app: Flask) -> None:
             top_pages=top_pages,
             top_referrers=top_referrers,
             visits_by_day=visits_by_day,
-            recent_visits=recent_visits,
+            recent_visitors=recent_visitors,
             active_users=active_users,
             days=days
         )

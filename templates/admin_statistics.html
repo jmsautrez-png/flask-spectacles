@@ -207,7 +207,7 @@
         <div class="col-md-12">
             <div class="card">
                 <div class="card-header">
-                    <h5><i class="fas fa-history"></i> Dernières visites (50 dernières)</h5>
+                    <h5><i class="fas fa-history"></i> Derniers visiteurs uniques (50 derniers)</h5>
                 </div>
                 <div class="card-body">
                     <div class="table-responsive">
@@ -215,39 +215,41 @@
                             <thead>
                                 <tr>
                                     <th>Date/Heure</th>
-                                    <th>Page</th>
+                                    <th>Pages vues</th>
                                     <th>Localisation</th>
                                     <th>Navigateur</th>
                                     <th>Utilisateur</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                {% for visit in recent_visits %}
+                                {% for visitor in recent_visitors %}
                                 <tr>
-                                    <td>{{ visit.visited_at.strftime('%d/%m/%Y %H:%M:%S') }}</td>
-                                    <td><code>{{ visit.page_url }}</code></td>
+                                    <td>{{ visitor.first_visit.strftime('%d/%m/%Y %H:%M:%S') }}</td>
+                                    <td>
+                                        <span class="badge bg-primary">{{ visitor.page_count }} page{{ 's' if visitor.page_count > 1 else '' }}</span>
+                                    </td>
                                     <td>
                                         <small>
-                                            {% if visit.isp and visit.city %}
-                                                <strong>{{ visit.isp }}</strong> {{ visit.city }}
-                                            {% elif visit.isp %}
-                                                <strong>{{ visit.isp }}</strong>
-                                            {% elif visit.city %}
-                                                {{ visit.city }}
+                                            {% if visitor.isp and visitor.city %}
+                                                <strong>{{ visitor.isp }}</strong> {{ visitor.city }}
+                                            {% elif visitor.isp %}
+                                                <strong>{{ visitor.isp }}</strong>
+                                            {% elif visitor.city %}
+                                                {{ visitor.city }}
                                             {% else %}
-                                                {{ visit.ip_anonymized }}
+                                                {{ visitor.ip_anonymized }}
                                             {% endif %}
                                         </small>
                                     </td>
                                     <td>
                                         <small>
-                                            {% if 'Chrome' in visit.user_agent %}
+                                            {% if 'Chrome' in visitor.user_agent %}
                                                 <i class="fab fa-chrome text-warning"></i> Chrome
-                                            {% elif 'Firefox' in visit.user_agent %}
+                                            {% elif 'Firefox' in visitor.user_agent %}
                                                 <i class="fab fa-firefox text-danger"></i> Firefox
-                                            {% elif 'Safari' in visit.user_agent %}
+                                            {% elif 'Safari' in visitor.user_agent %}
                                                 <i class="fab fa-safari text-info"></i> Safari
-                                            {% elif 'Edge' in visit.user_agent %}
+                                            {% elif 'Edge' in visitor.user_agent %}
                                                 <i class="fab fa-edge text-primary"></i> Edge
                                             {% else %}
                                                 <i class="fas fa-browser"></i> Autre
@@ -255,8 +257,8 @@
                                         </small>
                                     </td>
                                     <td>
-                                        {% if visit.user %}
-                                            <span class="badge bg-success">{{ visit.user.username }}</span>
+                                        {% if visitor.user_id %}
+                                            <span class="badge bg-success">Connecté</span>
                                         {% else %}
                                             <span class="badge bg-secondary">Visiteur</span>
                                         {% endif %}
