@@ -302,14 +302,30 @@ def create_app() -> Flask:
         
         try:
             # Récupérer la vraie IP du visiteur (derrière proxy/load balancer)
-            # X-Forwarded-For contient la vraie IP quand on est derrière Render/Cloudflare/etc.
+            # Essayer plusieurs headers dans l'ordre de priorité
+            ip = None
+            
+            # 1. X-Forwarded-For (standard proxy/load balancer)
             forwarded_for = request.headers.get('X-Forwarded-For')
             if forwarded_for:
                 # X-Forwarded-For peut contenir plusieurs IPs séparées par des virgules
                 # La première est l'IP du client réel
                 ip = forwarded_for.split(',')[0].strip()
-            else:
-                # Fallback sur remote_addr si pas de proxy
+            
+            # 2. X-Real-IP (utilisé par Nginx et certains proxies)
+            if not ip or ip.startswith('10.') or ip.startswith('192.168.') or ip.startswith('172.'):
+                real_ip = request.headers.get('X-Real-IP')
+                if real_ip:
+                    ip = real_ip.strip()
+            
+            # 3. CF-Connecting-IP (Cloudflare)
+            if not ip or ip.startswith('10.') or ip.startswith('192.168.') or ip.startswith('172.'):
+                cf_ip = request.headers.get('CF-Connecting-IP')
+                if cf_ip:
+                    ip = cf_ip.strip()
+            
+            # 4. Fallback sur remote_addr si toujours pas d'IP publique
+            if not ip or ip.startswith('10.') or ip.startswith('192.168.') or ip.startswith('172.'):
                 ip = request.remote_addr or '0.0.0.0'
             
             # Anonymiser l'IP (garder seulement les 2 premiers octets) - RGPD compliant
@@ -319,6 +335,10 @@ def create_app() -> Flask:
             else:
                 # IPv6 ou format invalide
                 ip_anonymized = "0.0.0.0"
+            
+            # Log pour debugging (première visite de la session uniquement)
+            if 'visitor_id' not in session:
+                app.logger.info(f"[TRACKING] Nouveau visiteur détecté - IP: {ip_anonymized} (brute: {ip[:15]}...)")
             
             # Créer ou récupérer un identifiant de session anonyme
             if 'visitor_id' not in session:
