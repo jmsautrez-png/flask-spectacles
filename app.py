@@ -66,7 +66,7 @@ print("✓ Flask importé")
 
 from config import Config
 from models import db
-from models.models import User, Show, PageVisit
+from models.models import User, Show, PageVisit, VisitorLog
 
 print("✓ Config et models importés")
 
@@ -290,7 +290,44 @@ def create_app() -> Flask:
     if os.environ.get("FLASK_ENV") == "production":
         app.config["SESSION_COOKIE_SECURE"] = True  # HTTPS uniquement
     
-    # 5. Headers de sécurité additionnels
+    # 5. Tracking des visiteurs (anonymisé, conforme RGPD)
+    @app.before_request
+    def track_visitor():
+        """Enregistre chaque visite de manière anonymisée (conforme RGPD)"""
+        # Ne pas tracker les fichiers statiques et robots
+        if request.path.startswith('/static/') or request.path.startswith('/robots.txt'):
+            return
+        
+        try:
+            # Anonymiser l'IP (garder seulement les 2 premiers octets)
+            ip = request.remote_addr or '0.0.0.0'
+            ip_parts = ip.split('.')
+            ip_anonymized = f"{ip_parts[0]}.{ip_parts[1]}.0.0" if len(ip_parts) == 4 else "0.0.0.0"
+            
+            # Créer ou récupérer un identifiant de session anonyme
+            if 'visitor_id' not in session:
+                session['visitor_id'] = str(uuid.uuid4())
+            
+            # Récupérer l'utilisateur connecté (si applicable)
+            user_id = session.get('user_id')
+            
+            # Enregistrer la visite
+            visitor_log = VisitorLog(
+                page_url=request.path[:300],
+                referrer=request.referrer[:300] if request.referrer else None,
+                user_agent=request.headers.get('User-Agent', '')[:300],
+                ip_anonymized=ip_anonymized,
+                session_id=session.get('visitor_id'),
+                user_id=user_id
+            )
+            db.session.add(visitor_log)
+            db.session.commit()
+        except Exception as e:
+            # Ne pas bloquer le site si le tracking échoue
+            app.logger.warning(f"[TRACKING] Erreur lors de l'enregistrement: {e}")
+            db.session.rollback()
+    
+    # 6. Headers de sécurité additionnels
     @app.after_request
     def set_security_headers(response):
         """Ajoute des headers de sécurité à toutes les réponses"""
@@ -1739,6 +1776,82 @@ def register_routes(app: Flask) -> None:
             shows=shows, 
             pending=pending,
             pagination=pagination
+        )
+    
+    @app.route("/admin/statistiques", endpoint="admin_statistics")
+    @login_required
+    @admin_required
+    def admin_statistics():
+        """Page de statistiques des visiteurs (conforme RGPD - données anonymisées)"""
+        from sqlalchemy import func, desc
+        from datetime import timedelta
+        
+        # Période sélectionnée (par défaut: 7 derniers jours)
+        days = request.args.get("days", 7, type=int)
+        date_limit = datetime.utcnow() - timedelta(days=days)
+        
+        # Nombre total de visites sur la période
+        total_visits = VisitorLog.query.filter(VisitorLog.visited_at >= date_limit).count()
+        
+        # Visiteurs uniques (basé sur session_id)
+        unique_visitors = db.session.query(func.count(func.distinct(VisitorLog.session_id))).\
+            filter(VisitorLog.visited_at >= date_limit).scalar()
+        
+        # Pages les plus visitées
+        top_pages = db.session.query(
+            VisitorLog.page_url,
+            func.count(VisitorLog.id).label('visits')
+        ).filter(VisitorLog.visited_at >= date_limit).\
+            group_by(VisitorLog.page_url).\
+            order_by(desc('visits')).\
+            limit(10).all()
+        
+        # Référents (d'où viennent les visiteurs)
+        top_referrers = db.session.query(
+            VisitorLog.referrer,
+            func.count(VisitorLog.id).label('visits')
+        ).filter(
+            VisitorLog.visited_at >= date_limit,
+            VisitorLog.referrer.isnot(None)
+        ).group_by(VisitorLog.referrer).\
+            order_by(desc('visits')).\
+            limit(10).all()
+        
+        # Visites par jour
+        visits_by_day = db.session.query(
+            func.date(VisitorLog.visited_at).label('date'),
+            func.count(VisitorLog.id).label('visits')
+        ).filter(VisitorLog.visited_at >= date_limit).\
+            group_by(func.date(VisitorLog.visited_at)).\
+            order_by('date').all()
+        
+        # Dernières visites (50 dernières)
+        recent_visits = VisitorLog.query.\
+            filter(VisitorLog.visited_at >= date_limit).\
+            order_by(VisitorLog.visited_at.desc()).\
+            limit(50).all()
+        
+        # Utilisateurs connectés actifs
+        active_users = db.session.query(
+            User.username,
+            func.count(VisitorLog.id).label('visits')
+        ).join(VisitorLog, VisitorLog.user_id == User.id).\
+            filter(VisitorLog.visited_at >= date_limit).\
+            group_by(User.username).\
+            order_by(desc('visits')).\
+            limit(10).all()
+        
+        return render_template(
+            "admin_statistics.html",
+            user=current_user(),
+            total_visits=total_visits,
+            unique_visitors=unique_visitors,
+            top_pages=top_pages,
+            top_referrers=top_referrers,
+            visits_by_day=visits_by_day,
+            recent_visits=recent_visits,
+            active_users=active_users,
+            days=days
         )
 
     @app.route("/admin/shows/new", methods=["GET", "POST"])

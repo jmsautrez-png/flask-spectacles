@@ -1,0 +1,282 @@
+{% extends "base.html" %}
+
+{% block title %}Statistiques des visiteurs{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <h1><i class="fas fa-chart-line"></i> Statistiques des visiteurs</h1>
+            <p class="text-muted">Données anonymisées - Conforme RGPD</p>
+        </div>
+    </div>
+
+    <!-- Filtres de période -->
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <div class="btn-group" role="group">
+                <a href="{{ url_for('admin_statistics', days=1) }}" class="btn btn-sm {% if days == 1 %}btn-primary{% else %}btn-outline-primary{% endif %}">24h</a>
+                <a href="{{ url_for('admin_statistics', days=7) }}" class="btn btn-sm {% if days == 7 %}btn-primary{% else %}btn-outline-primary{% endif %}">7 jours</a>
+                <a href="{{ url_for('admin_statistics', days=30) }}" class="btn btn-sm {% if days == 30 %}btn-primary{% else %}btn-outline-primary{% endif %}">30 jours</a>
+                <a href="{{ url_for('admin_statistics', days=90) }}" class="btn btn-sm {% if days == 90 %}btn-primary{% else %}btn-outline-primary{% endif %}">90 jours</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Cartes de statistiques -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card text-white bg-primary">
+                <div class="card-body">
+                    <h5 class="card-title"><i class="fas fa-eye"></i> Visites totales</h5>
+                    <h2>{{ total_visits }}</h2>
+                    <p class="mb-0">{{ days }} derniers jours</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-white bg-success">
+                <div class="card-body">
+                    <h5 class="card-title"><i class="fas fa-users"></i> Visiteurs uniques</h5>
+                    <h2>{{ unique_visitors }}</h2>
+                    <p class="mb-0">Sessions différentes</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-white bg-info">
+                <div class="card-body">
+                    <h5 class="card-title"><i class="fas fa-chart-bar"></i> Moyenne/jour</h5>
+                    <h2>{{ (total_visits / days)|round|int }}</h2>
+                    <p class="mb-0">Visites par jour</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-white bg-warning">
+                <div class="card-body">
+                    <h5 class="card-title"><i class="fas fa-user-check"></i> Utilisateurs actifs</h5>
+                    <h2>{{ active_users|length }}</h2>
+                    <p class="mb-0">Membres connectés</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Visites par jour -->
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5><i class="fas fa-calendar-alt"></i> Visites par jour</h5>
+                </div>
+                <div class="card-body">
+                    <table class="table table-sm">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Visites</th>
+                                <th>Progression</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for day in visits_by_day %}
+                            <tr>
+                                <td>{{ day.date }}</td>
+                                <td><strong>{{ day.visits }}</strong></td>
+                                <td>
+                                    <div class="progress" style="height: 20px;">
+                                        <div class="progress-bar" role="progressbar" 
+                                             style="width: {{ (day.visits / total_visits * 100)|round }}%">
+                                            {{ (day.visits / total_visits * 100)|round }}%
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pages les plus visitées et Référents -->
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5><i class="fas fa-fire"></i> Pages les plus visitées</h5>
+                </div>
+                <div class="card-body">
+                    <table class="table table-sm table-hover">
+                        <thead>
+                            <tr>
+                                <th>Page</th>
+                                <th>Visites</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for page in top_pages %}
+                            <tr>
+                                <td><code>{{ page.page_url }}</code></td>
+                                <td><span class="badge bg-primary">{{ page.visits }}</span></td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5><i class="fas fa-external-link-alt"></i> D'où viennent les visiteurs</h5>
+                </div>
+                <div class="card-body">
+                    <table class="table table-sm table-hover">
+                        <thead>
+                            <tr>
+                                <th>Source</th>
+                                <th>Visites</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% if top_referrers %}
+                                {% for ref in top_referrers %}
+                                <tr>
+                                    <td>
+                                        {% if 'google' in ref.referrer.lower() %}
+                                            <i class="fab fa-google text-danger"></i> Google
+                                        {% elif 'facebook' in ref.referrer.lower() %}
+                                            <i class="fab fa-facebook text-primary"></i> Facebook
+                                        {% else %}
+                                            <small>{{ ref.referrer[:50] }}...</small>
+                                        {% endif %}
+                                    </td>
+                                    <td><span class="badge bg-success">{{ ref.visits }}</span></td>
+                                </tr>
+                                {% endfor %}
+                            {% else %}
+                                <tr>
+                                    <td colspan="2" class="text-muted text-center">
+                                        <i class="fas fa-info-circle"></i> Aucune donnée de référent
+                                    </td>
+                                </tr>
+                            {% endif %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Utilisateurs connectés actifs -->
+    {% if active_users %}
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5><i class="fas fa-user-friends"></i> Utilisateurs connectés les plus actifs</h5>
+                </div>
+                <div class="card-body">
+                    <table class="table table-sm">
+                        <thead>
+                            <tr>
+                                <th>Utilisateur</th>
+                                <th>Visites</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for user in active_users %}
+                            <tr>
+                                <td><i class="fas fa-user"></i> {{ user.username }}</td>
+                                <td><span class="badge bg-info">{{ user.visits }}</span></td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Dernières visites -->
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5><i class="fas fa-history"></i> Dernières visites (50 dernières)</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-sm table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Date/Heure</th>
+                                    <th>Page</th>
+                                    <th>IP (anonymisée)</th>
+                                    <th>Navigateur</th>
+                                    <th>Utilisateur</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for visit in recent_visits %}
+                                <tr>
+                                    <td>{{ visit.visited_at.strftime('%d/%m/%Y %H:%M:%S') }}</td>
+                                    <td><code>{{ visit.page_url }}</code></td>
+                                    <td><small>{{ visit.ip_anonymized }}</small></td>
+                                    <td>
+                                        <small>
+                                            {% if 'Chrome' in visit.user_agent %}
+                                                <i class="fab fa-chrome text-warning"></i> Chrome
+                                            {% elif 'Firefox' in visit.user_agent %}
+                                                <i class="fab fa-firefox text-danger"></i> Firefox
+                                            {% elif 'Safari' in visit.user_agent %}
+                                                <i class="fab fa-safari text-info"></i> Safari
+                                            {% elif 'Edge' in visit.user_agent %}
+                                                <i class="fab fa-edge text-primary"></i> Edge
+                                            {% else %}
+                                                <i class="fas fa-browser"></i> Autre
+                                            {% endif %}
+                                        </small>
+                                    </td>
+                                    <td>
+                                        {% if visit.user %}
+                                            <span class="badge bg-success">{{ visit.user.username }}</span>
+                                        {% else %}
+                                            <span class="badge bg-secondary">Visiteur</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Note RGPD -->
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <div class="alert alert-info">
+                <i class="fas fa-shield-alt"></i> <strong>Conformité RGPD :</strong>
+                Les adresses IP sont anonymisées (seuls les 2 premiers octets sont conservés).
+                Les données sont automatiquement supprimées après 30 jours.
+                Aucune donnée personnelle n'est collectée pour les visiteurs non connectés.
+            </div>
+        </div>
+    </div>
+
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <a href="{{ url_for('admin_dashboard') }}" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i> Retour au tableau de bord
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

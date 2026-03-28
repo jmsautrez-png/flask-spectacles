@@ -185,3 +185,20 @@ class PageVisit(db.Model):
     page_name = db.Column(db.String(50), nullable=False, unique=True)  # Nom de la page (ex: 'home')
     visit_count = db.Column(db.Integer, default=0)  # Nombre de visites
     last_visit = db.Column(db.DateTime, default=datetime.utcnow)  # Dernière visite
+
+
+# Modèle pour le tracking anonymisé des visiteurs (conforme RGPD)
+class VisitorLog(db.Model):
+    __tablename__ = "visitor_log"
+
+    id = db.Column(db.Integer, primary_key=True)
+    visited_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False, index=True)
+    page_url = db.Column(db.String(300), nullable=False)  # URL de la page visitée
+    referrer = db.Column(db.String(300))  # D'où vient le visiteur
+    user_agent = db.Column(db.String(300))  # Navigateur
+    ip_anonymized = db.Column(db.String(20))  # IP anonymisée (ex: 192.168.0.0)
+    session_id = db.Column(db.String(50), index=True)  # Identifiant de session anonyme
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)  # Si connecté
+    
+    # Relation avec l'utilisateur (optionnel, si connecté)
+    user = db.relationship('User', backref='visit_logs')
