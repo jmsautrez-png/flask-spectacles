@@ -20,35 +20,69 @@
 {# Hide SEO block on detail pages #}
 {% endblock %}
 
-{# Schema.org Event pour les rich snippets Google #}
+{# Schema.org Event enrichi pour les rich snippets Google - optimisé SEO #}
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
   "@type": "Event",
   "name": {{ show.title|tojson }},
-  {% if show.description %}"description": {{ (show.description[:300])|tojson }},{% endif %}
+  {% if show.description %}"description": {{ (show.description[:500])|tojson }},{% endif %}
   {% if show.date %}"startDate": "{{ show.date.isoformat() }}",{% endif %}
   "eventStatus": "https://schema.org/EventScheduled",
   "eventAttendanceMode": "https://schema.org/OfflineEventAttendanceMode",
+  
+  {# Localisation et adresse #}
   "location": {
     "@type": "Place",
     "name": {{ show.location|tojson }},
     "address": {
       "@type": "PostalAddress",
       "addressLocality": {{ show.location|tojson }}
-      {% if show.region %},"addressRegion": {{ show.region|tojson }}{% endif %}
+      {% if show.region %},"addressRegion": {{ show.region|tojson }},"addressCountry": "FR"{% endif %}
     }
   },
+  
+  {# Artiste/Compagnie #}
   "performer": {
     "@type": "PerformingGroup",
     "name": {{ (show.raison_sociale or show.title)|tojson }}
-  }
-  {% if show.has_image() %},"image": "{{ url_for('uploaded_file', filename=show.file_name, _external=True) }}"{% endif %}
-  {% if show.contact_email %},"offers": {
+    {% if show.site_internet %},"url": {{ show.site_internet|tojson }}{% endif %}
+  },
+  
+  {# Organisateur = Spectacle'ment VØtre #}
+  "organizer": {
+    "@type": "Organization",
+    "name": "Spectacle'ment VØtre",
+    "url": "{{ url_for('home', _external=True) }}"
+  },
+  
+  {# Public cible basé sur age_range #}
+  {% if show.age_range %}"audience": {
+    "@type": "Audience",
+    "audienceType": {{ show.age_range|tojson }}
+  },{% endif %}
+  
+  {# Catégories/genres du spectacle #}
+  {% if show.category %}"genre": {{ show.category|tojson }},{% endif %}
+  
+  {# Images (toutes les photos disponibles) #}
+  {% set all_imgs = show.get_all_images() %}
+  {% if all_imgs|length > 0 %}"image": [
+    {% for img in all_imgs %}"{{ url_for('uploaded_file', filename=img, _external=True) }}"{% if not loop.last %},{% endif %}{% endfor %}
+  ],{% endif %}
+  
+  {# Offre de réservation #}
+  "offers": {
     "@type": "Offer",
     "url": "{{ url_for('show_detail', show_id=show.id, _external=True) }}",
-    "availability": "https://schema.org/InStock"
-  }{% endif %}
+    "availability": "https://schema.org/InStock",
+    "priceCurrency": "EUR",
+    "priceRange": "Sur devis",
+    "validFrom": "{{ show.created_at.isoformat() if show.created_at else '' }}"
+  },
+  
+  {# URL de la page #}
+  "url": "{{ url_for('show_detail', show_id=show.id, _external=True) }}"
 }
 </script>
 

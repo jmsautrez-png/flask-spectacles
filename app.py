@@ -481,6 +481,72 @@ def validate_file_size(file) -> Tuple[bool, Optional[str]]:
     return True, None
 
 
+def optimize_image_to_webp(file, quality=85, max_width=1920):
+    """
+    Convertit et compresse une image en WebP.
+    
+    Args:
+        file: Fichier image uploadé (Flask FileStorage)
+        quality: Qualité WebP (0-100, défaut 85)
+        max_width: Largeur maximale en pixels (défaut 1920)
+    
+    Returns:
+        BytesIO contenant l'image WebP optimisée, ou None si erreur
+    """
+    try:
+        from PIL import Image
+        from io import BytesIO
+        
+        # Vérifier si c'est une image
+        if not file.content_type or not file.content_type.startswith('image/'):
+            return None
+        
+        # Ignorer les PDFs
+        if file.content_type == 'application/pdf':
+            return None
+        
+        # Charger l'image
+        file.seek(0)
+        img = Image.open(file)
+        
+        # Convertir en RGB si nécessaire (WebP ne supporte pas tous les modes)
+        if img.mode in ('RGBA', 'LA', 'P'):
+            # Créer un fond blanc pour les images avec transparence
+            background = Image.new('RGB', img.size, (255, 255, 255))
+            if img.mode == 'P':
+                img = img.convert('RGBA')
+            background.paste(img, mask=img.split()[-1] if img.mode in ('RGBA', 'LA') else None)
+            img = background
+        elif img.mode != 'RGB':
+            img = img.convert('RGB')
+        
+        # Redimensionner si trop large (garder proportions)
+        if img.width > max_width:
+            ratio = max_width / img.width
+            new_height = int(img.height * ratio)
+            img = img.resize((max_width, new_height), Image.Resampling.LANCZOS)
+        
+        # Sauvegarder en WebP dans un BytesIO
+        output = BytesIO()
+        img.save(output, format='WebP', quality=quality, method=6)
+        output.seek(0)
+        
+        # Log de la compression
+        original_size = file.tell() if hasattr(file, 'tell') else 0
+        optimized_size = output.getbuffer().nbytes
+        if original_size > 0:
+            reduction = ((original_size - optimized_size) / original_size) * 100
+            current_app.logger.info(f"[WebP] Image optimisée : {original_size/1024:.1f}KB → {optimized_size/1024:.1f}KB (-{reduction:.1f}%)")
+        
+        return output
+        
+    except Exception as e:
+        current_app.logger.warning(f"[WebP] Impossible d'optimiser l'image : {e}")
+        # En cas d'erreur, retourner None pour utiliser le fichier original
+        file.seek(0)
+        return None
+
+
 # Utilitaire : upload d'un fichier sur S3
 def _s3_client():
     """Crée un client S3 si configuré, sinon retourne None."""
@@ -515,9 +581,26 @@ def upload_file_to_s3(file) -> str:
     """
     Upload le fichier sur S3 et retourne le nom unique.
     Fallback sur stockage local si S3 n'est pas configuré.
+    Les images sont automatiquement converties en WebP pour optimisation.
     """
     from pathlib import Path as _Path
-    ext = _Path(file.filename).suffix.lower()
+    
+    # Tentative d'optimisation WebP pour les images
+    optimized_file = optimize_image_to_webp(file)
+    
+    if optimized_file:
+        # Image optimisée en WebP
+        file_to_upload = optimized_file
+        ext = '.webp'
+        content_type = 'image/webp'
+        current_app.logger.info("[WebP] Upload d'une image optimisée en WebP")
+    else:
+        # Fichier original (PDF ou échec d'optimisation)
+        file.seek(0)
+        file_to_upload = file
+        ext = _Path(file.filename).suffix.lower()
+        content_type = file.content_type or "application/octet-stream"
+    
     unique_name = f"{uuid.uuid4().hex}{ext}"
     
     # Vérifier si S3 est configuré
@@ -528,11 +611,11 @@ def upload_file_to_s3(file) -> str:
         try:
             # Upload to S3
             s3_client.upload_fileobj(
-                file,
+                file_to_upload,
                 s3_bucket,
                 unique_name,
                 ExtraArgs={
-                    "ContentType": file.content_type or "application/octet-stream"
+                    "ContentType": content_type
                 }
             )
             current_app.logger.info(f"[S3] Fichier uploadé avec succès: {unique_name}")
@@ -541,17 +624,26 @@ def upload_file_to_s3(file) -> str:
         except Exception as e:
             current_app.logger.error(f"[S3] Erreur upload S3, fallback local: {e}")
             # Fallback to local storage - IMPORTANT: remettre le pointeur au début
-            file.seek(0)
+            file_to_upload.seek(0)
     
     # Fallback: sauvegarde locale
     # Remettre le pointeur au début au cas où le fichier a été lu ailleurs
-    file.seek(0)
+    file_to_upload.seek(0)
     save_path = _Path(current_app.config["UPLOAD_FOLDER"]) / unique_name
     
     try:
         # Vérifier que le dossier existe et le créer si nécessaire
         save_path.parent.mkdir(parents=True, exist_ok=True)
-        file.save(save_path.as_posix())
+        
+        # Sauvegarder selon le type (BytesIO ou FileStorage)
+        if hasattr(file_to_upload, 'save'):
+            # FileStorage original
+            file_to_upload.save(save_path.as_posix())
+        else:
+            # BytesIO (image optimisée)
+            with open(save_path, 'wb') as f:
+                f.write(file_to_upload.getvalue())
+        
         current_app.logger.info(f"[LOCAL] Fichier sauvegardé localement: {unique_name}")
         return unique_name
     except Exception as e:
