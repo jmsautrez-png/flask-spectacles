@@ -200,5 +200,11 @@ class VisitorLog(db.Model):
     session_id = db.Column(db.String(50), index=True)  # Identifiant de session anonyme
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True)  # Si connecté
     
+    # Géolocalisation (RGPD-compliant car basée sur IP anonymisée)
+    city = db.Column(db.String(100), nullable=True)  # Ville (ex: Paris, Lyon)
+    region = db.Column(db.String(100), nullable=True)  # Région (ex: Île-de-France)
+    country = db.Column(db.String(50), nullable=True)  # Pays (ex: France)
+    isp = db.Column(db.String(150), nullable=True)  # Fournisseur (ex: Orange, Free)
+    
     # Relation avec l'utilisateur (optionnel, si connecté)
     user = db.relationship('User', backref='visit_logs')

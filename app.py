@@ -29,6 +29,7 @@ from logging.handlers import RotatingFileHandler
 print("✓ Imports standards OK")
 
 import uuid
+import requests  # Pour l'API de géolocalisation
 
 # Import global de boto3 pour éviter NameError
 try:
@@ -290,6 +291,36 @@ def create_app() -> Flask:
     if os.environ.get("FLASK_ENV") == "production":
         app.config["SESSION_COOKIE_SECURE"] = True  # HTTPS uniquement
     
+    # Fonction de géolocalisation IP (API gratuite ip-api.com)
+    def get_ip_geolocation(ip_address):
+        """
+        Récupère les informations géographiques d'une IP via l'API ip-api.com
+        Retourne un dict avec city, region, country, isp
+        """
+        try:
+            # API gratuite : 45 requêtes/minute sans clé
+            # Format : http://ip-api.com/json/{ip}?fields=city,regionName,country,isp
+            response = requests.get(
+                f"http://ip-api.com/json/{ip_address}",
+                params={"fields": "city,regionName,country,isp,status"},
+                timeout=2  # 2 secondes max
+            )
+            
+            if response.status_code == 200:
+                data = response.json()
+                if data.get('status') == 'success':
+                    return {
+                        'city': data.get('city', ''),
+                        'region': data.get('regionName', ''),
+                        'country': data.get('country', ''),
+                        'isp': data.get('isp', '')
+                    }
+        except Exception as e:
+            app.logger.warning(f"[GEO] Erreur géolocalisation pour {ip_address}: {e}")
+        
+        # En cas d'erreur, retourner des valeurs vides
+        return {'city': None, 'region': None, 'country': None, 'isp': None}
+    
     # 5. Tracking des visiteurs (anonymisé, conforme RGPD)
     @app.before_request
     def track_visitor():
@@ -347,14 +378,21 @@ def create_app() -> Flask:
             # Récupérer l'utilisateur connecté (si applicable)
             user_id = session.get('user_id')
             
-            # Enregistrer la visite
+            # Géolocaliser l'IP (ville, région, FAI)
+            geo_data = get_ip_geolocation(ip)
+            
+            # Enregistrer la visite avec géolocalisation
             visitor_log = VisitorLog(
                 page_url=request.path[:300],
                 referrer=request.referrer[:300] if request.referrer else None,
                 user_agent=request.headers.get('User-Agent', '')[:300],
                 ip_anonymized=ip_anonymized,
                 session_id=session.get('visitor_id'),
-                user_id=user_id
+                user_id=user_id,
+                city=geo_data['city'],
+                region=geo_data['region'],
+                country=geo_data['country'],
+                isp=geo_data['isp']
             )
             db.session.add(visitor_log)
             db.session.commit()

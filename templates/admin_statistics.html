@@ -216,7 +216,7 @@
                                 <tr>
                                     <th>Date/Heure</th>
                                     <th>Page</th>
-                                    <th>IP (anonymisée)</th>
+                                    <th>Localisation</th>
                                     <th>Navigateur</th>
                                     <th>Utilisateur</th>
                                 </tr>
@@ -226,7 +226,19 @@
                                 <tr>
                                     <td>{{ visit.visited_at.strftime('%d/%m/%Y %H:%M:%S') }}</td>
                                     <td><code>{{ visit.page_url }}</code></td>
-                                    <td><small>{{ visit.ip_anonymized }}</small></td>
+                                    <td>
+                                        <small>
+                                            {% if visit.isp and visit.city %}
+                                                <strong>{{ visit.isp }}</strong> {{ visit.city }}
+                                            {% elif visit.isp %}
+                                                <strong>{{ visit.isp }}</strong>
+                                            {% elif visit.city %}
+                                                {{ visit.city }}
+                                            {% else %}
+                                                {{ visit.ip_anonymized }}
+                                            {% endif %}
+                                        </small>
+                                    </td>
                                     <td>
                                         <small>
                                             {% if 'Chrome' in visit.user_agent %}
