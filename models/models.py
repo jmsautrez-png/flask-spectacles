@@ -198,7 +198,7 @@ class VisitorLog(db.Model):
     user_agent = db.Column(db.String(300))  # Navigateur
     ip_anonymized = db.Column(db.String(20))  # IP anonymisée (ex: 192.168.0.0)
     session_id = db.Column(db.String(50), index=True)  # Identifiant de session anonyme
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)  # Si connecté
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True)  # Si connecté
     
     # Relation avec l'utilisateur (optionnel, si connecté)
     user = db.relationship('User', backref='visit_logs')
