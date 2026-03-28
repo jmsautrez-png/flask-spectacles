@@ -294,8 +294,10 @@ def create_app() -> Flask:
     @app.before_request
     def track_visitor():
         """Enregistre chaque visite de manière anonymisée (conforme RGPD)"""
-        # Ne pas tracker les fichiers statiques et robots
-        if request.path.startswith('/static/') or request.path.startswith('/robots.txt'):
+        # Ne pas tracker les fichiers statiques, robots et pages admin
+        if (request.path.startswith('/static/') or 
+            request.path.startswith('/robots.txt') or 
+            request.path.startswith('/admin')):
             return
         
         try:
@@ -1853,6 +1855,51 @@ def register_routes(app: Flask) -> None:
             active_users=active_users,
             days=days
         )
+    
+    @app.route("/change-password", methods=["GET", "POST"])
+    @login_required
+    def change_password():
+        """Permet à tout utilisateur connecté de changer son mot de passe"""
+        user = current_user()
+        
+        if request.method == "POST":
+            old_password = request.form.get("old_password", "").strip()
+            new_password = request.form.get("new_password", "").strip()
+            confirm_password = request.form.get("confirm_password", "").strip()
+            
+            # Vérifications
+            if not old_password or not new_password or not confirm_password:
+                flash("Tous les champs sont obligatoires.", "danger")
+                return render_template("change_password.html", user=user)
+            
+            # Vérifier l'ancien mot de passe
+            if not user.check_password(old_password):
+                flash("L'ancien mot de passe est incorrect.", "danger")
+                return render_template("change_password.html", user=user)
+            
+            # Vérifier que les nouveaux mots de passe correspondent
+            if new_password != confirm_password:
+                flash("Les nouveaux mots de passe ne correspondent pas.", "danger")
+                return render_template("change_password.html", user=user)
+            
+            # Vérifier la longueur minimale
+            if len(new_password) < 6:
+                flash("Le nouveau mot de passe doit contenir au moins 6 caractères.", "danger")
+                return render_template("change_password.html", user=user)
+            
+            # Changer le mot de passe
+            user.set_password(new_password)
+            db.session.commit()
+            
+            flash("Mot de passe modifié avec succès !", "success")
+            
+            # Rediriger selon le type d'utilisateur
+            if user.is_admin:
+                return redirect(url_for("admin_dashboard"))
+            else:
+                return redirect(url_for("company_dashboard"))
+        
+        return render_template("change_password.html", user=user)
 
     @app.route("/admin/shows/new", methods=["GET", "POST"])
     @login_required

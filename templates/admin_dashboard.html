@@ -5,6 +5,15 @@
 
 <h1>Tableau de bord administrateur</h1>
 
+<div style="margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap;">
+  <div style="color: #fff; font-size: 1rem;">
+    Connecté en tant que : <strong>{{ user.username }}</strong>
+  </div>
+  <a href="{{ url_for('change_password') }}" class="btn btn-sm" style="padding:8px 16px; border-radius:6px; font-weight:600; background:#6c757d; color:#fff; text-decoration:none;">
+    🔐 Changer mon mot de passe
+  </a>
+</div>
+
 <div style="margin-bottom: 24px; display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap;">
   <div style="display: flex; gap: 12px; flex-wrap: wrap;">
     <a href="{{ url_for('admin_demandes_animation') }}" class="btn btn-warning" style="padding:10px 18px; border-radius:8px; font-weight:600; background:#ffc107; color:#000; text-decoration:none;">📋 Demandes d'animation</a>

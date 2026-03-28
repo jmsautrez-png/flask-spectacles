@@ -3,11 +3,14 @@
 {% block content %}
 <h1>Mes spectacles</h1>
 
-<p>
+<div style="margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
     <a class="btn publish-btn" href="{{ url_for('publish') }}">
         + Publier un spectacle
     </a>
-</p>
+    <a href="{{ url_for('change_password') }}" class="btn btn-sm" style="padding:8px 16px; border-radius:6px; font-weight:600; background:#6c757d; color:#fff; text-decoration:none; border: none;">
+        🔐 Changer mon mot de passe
+    </a>
+</div>
 
 <div class="cards">
 {% for s in shows %} 
