@@ -301,10 +301,24 @@ def create_app() -> Flask:
             return
         
         try:
-            # Anonymiser l'IP (garder seulement les 2 premiers octets)
-            ip = request.remote_addr or '0.0.0.0'
+            # Récupérer la vraie IP du visiteur (derrière proxy/load balancer)
+            # X-Forwarded-For contient la vraie IP quand on est derrière Render/Cloudflare/etc.
+            forwarded_for = request.headers.get('X-Forwarded-For')
+            if forwarded_for:
+                # X-Forwarded-For peut contenir plusieurs IPs séparées par des virgules
+                # La première est l'IP du client réel
+                ip = forwarded_for.split(',')[0].strip()
+            else:
+                # Fallback sur remote_addr si pas de proxy
+                ip = request.remote_addr or '0.0.0.0'
+            
+            # Anonymiser l'IP (garder seulement les 2 premiers octets) - RGPD compliant
             ip_parts = ip.split('.')
-            ip_anonymized = f"{ip_parts[0]}.{ip_parts[1]}.0.0" if len(ip_parts) == 4 else "0.0.0.0"
+            if len(ip_parts) == 4:
+                ip_anonymized = f"{ip_parts[0]}.{ip_parts[1]}.0.0"
+            else:
+                # IPv6 ou format invalide
+                ip_anonymized = "0.0.0.0"
             
             # Créer ou récupérer un identifiant de session anonyme
             if 'visitor_id' not in session:
