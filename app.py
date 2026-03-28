@@ -1982,6 +1982,143 @@ def register_routes(app: Flask) -> None:
             days=days
         )
     
+    # Route de DEBUG pour voir tous les headers HTTP (TEMPORAIRE)
+    @app.route("/admin/debug-headers")
+    @admin_required
+    def debug_headers():
+        """Page de debug pour diagnostiquer la détection d'IP"""
+        # Récupérer tous les headers
+        all_headers = dict(request.headers)
+        
+        # Tester la détection d'IP
+        forwarded_for = request.headers.get('X-Forwarded-For')
+        real_ip = request.headers.get('X-Real-IP')
+        cf_ip = request.headers.get('CF-Connecting-IP')
+        
+        # Déterminer l'IP utilisée par le code
+        detected_ip = None
+        detection_method = None
+        
+        if forwarded_for:
+            detected_ip = forwarded_for.split(',')[0].strip()
+            detection_method = "X-Forwarded-For"
+        elif real_ip:
+            detected_ip = real_ip.strip()
+            detection_method = "X-Real-IP"
+        elif cf_ip:
+            detected_ip = cf_ip.strip()
+            detection_method = "CF-Connecting-IP"
+        else:
+            detected_ip = request.remote_addr
+            detection_method = "request.remote_addr (fallback)"
+        
+        # Anonymiser comme le code réel
+        ip_parts = detected_ip.split('.')
+        if len(ip_parts) == 4:
+            ip_anonymized = f"{ip_parts[0]}.{ip_parts[1]}.0.0"
+        else:
+            ip_anonymized = "0.0.0.0"
+        
+        # Vérifier si IP publique
+        is_public = not (detected_ip.startswith('10.') or 
+                        detected_ip.startswith('192.168.') or 
+                        detected_ip.startswith('172.'))
+        
+        html = f"""
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <title>Debug Headers IP</title>
+            <style>
+                body {{ font-family: monospace; padding: 20px; background: #1a1a2e; color: #fff; }}
+                h1 {{ color: #6d1313; }}
+                h2 {{ color: #ffc107; margin-top: 30px; }}
+                .box {{ background: #16213e; padding: 15px; border-radius: 8px; margin: 15px 0; border-left: 4px solid #6d1313; }}
+                .success {{ color: #00ff00; }}
+                .error {{ color: #ff0000; }}
+                .warning {{ color: #ffc107; }}
+                table {{ width: 100%; border-collapse: collapse; margin: 10px 0; }}
+                th, td {{ padding: 8px; text-align: left; border-bottom: 1px solid #333; }}
+                th {{ color: #6d1313; }}
+                .highlight {{ background: #2d3561; padding: 10px; border-radius: 4px; }}
+                a {{ color: #6d1313; text-decoration: none; font-weight: bold; }}
+                a:hover {{ text-decoration: underline; }}
+            </style>
+        </head>
+        <body>
+            <h1>🔍 Diagnostic Détection IP Visiteurs</h1>
+            
+            <div class="box">
+                <h2>📊 Résultat de la Détection</h2>
+                <p class="highlight"><strong>Méthode utilisée :</strong> {detection_method}</p>
+                <p class="highlight"><strong>IP détectée (brute) :</strong> {detected_ip}</p>
+                <p class="highlight"><strong>IP anonymisée (stockée) :</strong> {ip_anonymized}</p>
+                <p class="{'success' if is_public else 'error'}">
+                    {'✅ IP PUBLIQUE détectée - CORRECT !' if is_public else '❌ IP PRIVÉE - PROBLÈME : header X-Forwarded-For manquant ou invalide'}
+                </p>
+            </div>
+            
+            <div class="box">
+                <h2>🌐 Headers IP Spécifiques</h2>
+                <table>
+                    <tr>
+                        <th>Header</th>
+                        <th>Valeur</th>
+                        <th>Status</th>
+                    </tr>
+                    <tr>
+                        <td>X-Forwarded-For</td>
+                        <td>{forwarded_for or '<span class="error">NON PRÉSENT</span>'}</td>
+                        <td>{'✅ Utilisé' if detection_method == 'X-Forwarded-For' else '⚪'}</td>
+                    </tr>
+                    <tr>
+                        <td>X-Real-IP</td>
+                        <td>{real_ip or '<span class="error">NON PRÉSENT</span>'}</td>
+                        <td>{'✅ Utilisé' if detection_method == 'X-Real-IP' else '⚪'}</td>
+                    </tr>
+                    <tr>
+                        <td>CF-Connecting-IP</td>
+                        <td>{cf_ip or '<span class="error">NON PRÉSENT</span>'}</td>
+                        <td>{'✅ Utilisé' if detection_method == 'CF-Connecting-IP' else '⚪'}</td>
+                    </tr>
+                    <tr>
+                        <td>request.remote_addr</td>
+                        <td>{request.remote_addr}</td>
+                        <td>{'✅ Utilisé (fallback)' if detection_method.startswith('request.remote_addr') else '⚪'}</td>
+                    </tr>
+                </table>
+            </div>
+            
+            <div class="box">
+                <h2>📋 Tous les Headers HTTP Reçus</h2>
+                <table>
+                    <tr><th>Nom</th><th>Valeur</th></tr>
+                    {''.join(f'<tr><td>{k}</td><td>{v}</td></tr>' for k, v in sorted(all_headers.items()))}
+                </table>
+            </div>
+            
+            <div class="box">
+                <h2>💡 Analyse et Recommandations</h2>
+                {'<p class="success">✅ Le système fonctionne correctement. Les vraies IPs publiques sont détectées.</p>' if is_public else 
+                 '<p class="error">❌ PROBLÈME : Render ne transmet pas les IPs publiques dans les headers.</p>' +
+                 '<p class="warning">⚠️  Solutions possibles :</p>' +
+                 '<ul>' +
+                 '<li>1. Vérifier configuration Render (proxy headers)</li>' +
+                 '<li>2. Contacter support Render</li>' +
+                 '<li>3. Utiliser un CDN (Cloudflare) en amont</li>' +
+                 '<li>4. Accepter que seules les IPs de Render soient visibles (limitation plateforme)</li>' +
+                 '</ul>'}
+            </div>
+            
+            <p style="margin-top: 40px;">
+                <a href="/admin/statistiques">← Retour aux statistiques</a>
+            </p>
+        </body>
+        </html>
+        """
+        
+        return html
+    
     @app.route("/change-password", methods=["GET", "POST"])
     @login_required
     def change_password():
