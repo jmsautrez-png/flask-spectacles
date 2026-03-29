@@ -231,6 +231,28 @@
       box-shadow: 0 4px 15px rgba(0, 172, 193, 0.5);
     }
     
+    .hamburger-menu a.menu-dashboard {
+      background: linear-gradient(135deg, #ff9800, #ff5722);
+      border: 2px solid rgba(255, 255, 255, 0.3);
+    }
+    
+    .hamburger-menu a.menu-dashboard:hover {
+      background: linear-gradient(135deg, #ffab40, #ff6f3c);
+      transform: scale(1.03);
+      box-shadow: 0 4px 15px rgba(255, 152, 0, 0.5);
+    }
+    
+    .hamburger-menu a.menu-mes-appels {
+      background: linear-gradient(135deg, #4caf50, #388e3c);
+      border: 2px solid rgba(255, 255, 255, 0.3);
+    }
+    
+    .hamburger-menu a.menu-mes-appels:hover {
+      background: linear-gradient(135deg, #66bb6a, #43a047);
+      transform: scale(1.03);
+      box-shadow: 0 4px 15px rgba(76, 175, 80, 0.5);
+    }
+    
     @media (max-width: 900px) {
       .hamburger-container {
         right: 0.5rem;
@@ -781,17 +803,22 @@
           </li>
           <li>
             <a href="{{ url_for('admin_dashboard') }}" style="padding:8px 14px; background:#dc3545; color:white; border-radius:6px; font-weight:600; font-size:0.85rem; text-decoration:none; display:inline-block; transition:opacity 0.2s;">
-              🛠️ Admin
+              Admin
+            </a>
+          </li>
+          <li>
+            <a href="{{ url_for('mes_appels_offres') }}" style="padding:8px 14px; background:linear-gradient(135deg, #4caf50, #388e3c); color:white; border-radius:6px; font-weight:600; font-size:0.85rem; text-decoration:none; display:inline-block; transition:opacity 0.2s;">
+              Mes appels d'offres
             </a>
           </li>
           <li>
             <a href="{{ url_for('show_new') }}" style="padding:8px 14px; background:var(--primary); color:white; border-radius:6px; font-weight:600; font-size:0.85rem; text-decoration:none; display:inline-block; transition:opacity 0.2s;">
-              + Ajouter
+              Ajouter un spectacle
             </a>
           </li>
           <li>
             <a href="{{ url_for('admin_create_demande_animation') }}" style="padding:8px 14px; background:#28a745; color:white; border-radius:6px; font-weight:600; font-size:0.85rem; text-decoration:none; display:inline-block; transition:opacity 0.2s;">
-              ➕ Créer une demande
+              Créer une demande
             </a>
           </li>
           <li>
@@ -802,6 +829,16 @@
 
         {# ----- UTILISATEUR CONNECTÉ mais pas admin ----- #}
         {% elif user %}
+          <li>
+            <a href="{{ url_for('company_dashboard') }}" style="padding:8px 14px; background:linear-gradient(135deg, #ff9800, #ff5722); color:white; border-radius:6px; font-weight:600; font-size:0.85rem; text-decoration:none; display:inline-block; transition:opacity 0.2s;">
+              Mon espace
+            </a>
+          </li>
+          <li>
+            <a href="{{ url_for('mes_appels_offres') }}" style="padding:8px 14px; background:linear-gradient(135deg, #4caf50, #388e3c); color:white; border-radius:6px; font-weight:600; font-size:0.85rem; text-decoration:none; display:inline-block; transition:opacity 0.2s;">
+              Mes appels d'offres
+            </a>
+          </li>
           <li>
             <a href="{{ url_for('catalogue') }}" style="padding:8px 14px; background:linear-gradient(135deg, #673ab7, #9c27b0); color:white; border-radius:6px; font-weight:600; font-size:0.85rem; text-decoration:none; display:inline-block; transition:opacity 0.2s;">
               Catalogue
@@ -908,6 +945,10 @@
     <span></span>
   </button>
   <div class="hamburger-menu" id="hamburger-menu">
+    {% if user %}
+    <a href="{{ url_for('admin_dashboard' if user.is_admin else 'company_dashboard') }}" class="menu-dashboard">Mon espace</a>
+    <a href="{{ url_for('mes_appels_offres') }}" class="menu-mes-appels">Mes appels d'offres</a>
+    {% endif %}
     <a href="{{ url_for('catalogue') }}" class="menu-catalogue">Catalogue</a>
     <a href="{{ url_for('demandes_animation') }}" class="menu-appels">Appels d'offres</a>
     <a href="{{ url_for('contact') }}" class="menu-contact">Contact</a>

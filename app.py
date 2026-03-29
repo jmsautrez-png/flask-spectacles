@@ -3013,6 +3013,34 @@ Accessibilité: {accessibilite}
         
         return render_template("demandes_animation.html", demandes=demandes, page=page, nb_pages=nb_pages, total=total, per_page=per_page, user=current_user(), categories=categories, regions=regions, categorie=categorie, region=region, spectacles_une=spectacles_une)
 
+    @app.route("/mes-appels-offres")
+    @login_required
+    def mes_appels_offres():
+        """Page pour les utilisateurs connectés avec toutes les informations visibles"""
+        from models.models import DemandeAnimation
+        page = request.args.get('page', 1, type=int)
+        per_page = 12
+        categorie = request.args.get('categorie', '').strip()
+        region = request.args.get('region', '').strip()
+        
+        # Les utilisateurs connectés voient toutes les demandes publiques avec toutes les infos
+        demandes_query = DemandeAnimation.query.filter(DemandeAnimation.is_private == False).order_by(DemandeAnimation.created_at.desc())
+        
+        if categorie:
+            demandes_query = demandes_query.filter(DemandeAnimation.genre_recherche.ilike(f"%{categorie}%"))
+        if region:
+            demandes_query = demandes_query.filter(DemandeAnimation.lieu_ville.ilike(f"%{region}%"))
+        
+        total = demandes_query.count()
+        demandes = demandes_query.offset((page-1)*per_page).limit(per_page).all()
+        nb_pages = (total // per_page) + (1 if total % per_page > 0 else 0)
+        
+        # Pour le moteur de recherche : liste unique des catégories et régions existantes
+        categories = [c[0] for c in db.session.query(DemandeAnimation.genre_recherche).distinct().all() if c[0]]
+        regions = [r[0] for r in db.session.query(DemandeAnimation.lieu_ville).distinct().all() if r[0]]
+        
+        return render_template("mes_appels_offres.html", demandes=demandes, page=page, nb_pages=nb_pages, total=total, per_page=per_page, user=current_user(), categories=categories, regions=regions, categorie=categorie, region=region)
+
     @app.route("/test-demandes")
     def test_demandes():
         return render_template("test_demandes.html")
