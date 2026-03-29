@@ -78,7 +78,10 @@
         <div class="col-md-12">
             <div class="card">
                 <div class="card-header d-flex justify-content-between align-items-center">
-                    <h5 class="mb-0"><i class="fas fa-chart-line"></i> Évolution des visites</h5>
+                    <h5 class="mb-0">
+                        <i class="fas fa-chart-line"></i> Évolution du compteur de visites
+                        <small class="text-muted ms-2">(Actuellement : {{ current_counter }})</small>
+                    </h5>
                     <div class="btn-group btn-group-sm" role="group">
                         <button type="button" class="btn btn-outline-primary active" onclick="changeChartView('day')" id="btnDay">
                             <i class="fas fa-calendar-day"></i> Jour
@@ -335,13 +338,50 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <script>
 // Données brutes pour le graphique
-const rawDates = [{% for day in visits_by_day %}'{{ day.date }}'{% if not loop.last %}, {% endif %}{% endfor %}];
-const rawVisits = [{% for day in visits_by_day %}{{ day.visits }}{% if not loop.last %}, {% endif %}{% endfor %}];
+const rawDates = [{% for day in visits_counter_by_day %}'{{ day.date }}'{% if not loop.last %}, {% endif %}{% endfor %}];
+const rawCounter = [{% for day in visits_counter_by_day %}{{ day.counter }}{% if not loop.last %}, {% endif %}{% endfor %}];
+const rawVisits = [{% for day in visits_counter_by_day %}{{ day.visits }}{% if not loop.last %}, {% endif %}{% endfor %}];
 
 let currentView = 'day';
 let visitsChart;
 
-// Fonction pour agréger les données par mois
+// Fonction pour agréger les compteurs par mois (prendre le dernier compteur du mois)
+function aggregateCounterByMonth(dates, counters) {
+    const monthlyData = {};
+    
+    dates.forEach((date, index) => {
+        const monthKey = date.substring(0, 7); // YYYY-MM
+        // Prendre le compteur le plus élevé (dernier du mois)
+        if (!monthlyData[monthKey] || counters[index] > monthlyData[monthKey]) {
+            monthlyData[monthKey] = counters[index];
+        }
+    });
+    
+    return {
+        labels: Object.keys(monthlyData).sort(),
+        data: Object.keys(monthlyData).sort().map(key => monthlyData[key])
+    };
+}
+
+// Fonction pour agréger les compteurs par année (prendre le dernier compteur de l'année)
+function aggregateCounterByYear(dates, counters) {
+    const yearlyData = {};
+    
+    dates.forEach((date, index) => {
+        const yearKey = date.substring(0, 4); // YYYY
+        // Prendre le compteur le plus élevé (dernier de l'année)
+        if (!yearlyData[yearKey] || counters[index] > yearlyData[yearKey]) {
+            yearlyData[yearKey] = counters[index];
+        }
+    });
+    
+    return {
+        labels: Object.keys(yearlyData).sort(),
+        data: Object.keys(yearlyData).sort().map(key => yearlyData[key])
+    };
+}
+
+// Fonction pour agréger les données par mois (ANCIEN - pour compatibilité)
 function aggregateByMonth(dates, visits) {
     const monthlyData = {};
     
@@ -392,13 +432,13 @@ function changeChartView(view) {
     
     if (view === 'day') {
         chartLabels = rawDates;
-        chartData = rawVisits;
+        chartData = rawCounter;
     } else if (view === 'month') {
-        const aggregated = aggregateByMonth(rawDates, rawVisits);
+        const aggregated = aggregateCounterByMonth(rawDates, rawCounter);
         chartLabels = aggregated.labels;
         chartData = aggregated.data;
     } else if (view === 'year') {
-        const aggregated = aggregateByYear(rawDates, rawVisits);
+        const aggregated = aggregateCounterByYear(rawDates, rawCounter);
         chartLabels = aggregated.labels;
         chartData = aggregated.data;
     }
@@ -416,8 +456,8 @@ visitsChart = new Chart(ctx, {
     data: {
         labels: rawDates,
         datasets: [{
-            label: 'Pages vues',
-            data: rawVisits,
+            label: 'Nombre de visites',
+            data: rawCounter,
             borderColor: 'rgb(13, 110, 253)',
             backgroundColor: 'rgba(13, 110, 253, 0.1)',
             tension: 0.3,
@@ -447,16 +487,16 @@ visitsChart = new Chart(ctx, {
                 },
                 callbacks: {
                     label: function(context) {
-                        return 'Pages vues : ' + context.parsed.y;
+                        return 'Visites : ' + context.parsed.y;
                     }
                 }
             }
         },
         scales: {
             y: {
-                beginAtZero: true,
+                beginAtZero: false,
                 ticks: {
-                    stepSize: 1,
+                    stepSize: 10,
                     font: {
                         size: 12
                     }
