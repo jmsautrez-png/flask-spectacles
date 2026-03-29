@@ -1993,7 +1993,7 @@ def register_routes(app: Flask) -> None:
             order_by(desc('visits')).\
             limit(10).all()
         
-        # Visites par jour
+        # Visites par jour (nombre de pages vues)
         visits_by_day = db.session.query(
             func.date(VisitorLog.visited_at).label('date'),
             func.count(VisitorLog.id).label('visits')
@@ -2001,26 +2001,13 @@ def register_routes(app: Flask) -> None:
             group_by(func.date(VisitorLog.visited_at)).\
             order_by('date').all()
         
-        # Calculer le compteur cumulé par jour (pour le graphique)
-        visit_counter = PageVisit.query.filter_by(page_name='home').first()
-        current_counter = visit_counter.visit_count if visit_counter else 0
-        
-        # Créer une liste avec le compteur cumulé pour chaque jour
-        visits_counter_by_day = []
-        if visits_by_day:
-            # Calculer le total de visites sur la période
-            total_period_visits = sum(day.visits for day in visits_by_day)
-            
-            # Pour chaque jour, calculer le compteur à cette date
-            cumulative = 0
-            for day in visits_by_day:
-                cumulative += day.visits
-                counter_at_day = current_counter - (total_period_visits - cumulative)
-                visits_counter_by_day.append({
-                    'date': str(day.date),
-                    'counter': counter_at_day,
-                    'visits': day.visits
-                })
+        # Visiteurs uniques par jour (pour le graphique)
+        visitors_by_day = db.session.query(
+            func.date(VisitorLog.visited_at).label('date'),
+            func.count(func.distinct(VisitorLog.session_id)).label('visitors')
+        ).filter(VisitorLog.visited_at >= date_limit).\
+            group_by(func.date(VisitorLog.visited_at)).\
+            order_by('date').all()
         
         # Derniers visiteurs uniques (groupés par session)
         # Chaque ligne = 1 visiteur avec le nombre de pages vues
@@ -2068,8 +2055,7 @@ def register_routes(app: Flask) -> None:
             top_pages=top_pages,
             top_referrers=top_referrers,
             visits_by_day=visits_by_day,
-            visits_counter_by_day=visits_counter_by_day,
-            current_counter=current_counter,
+            visitors_by_day=visitors_by_day,
             recent_visitors=recent_visitors,
             active_users=active_users,
             days=days,

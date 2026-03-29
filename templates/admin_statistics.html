@@ -79,8 +79,7 @@
             <div class="card">
                 <div class="card-header d-flex justify-content-between align-items-center">
                     <h5 class="mb-0">
-                        <i class="fas fa-chart-line"></i> Évolution du compteur de visites
-                        <small class="text-muted ms-2">(Actuellement : {{ current_counter }})</small>
+                        <i class="fas fa-chart-line"></i> Nombre de visiteurs par jour
                     </h5>
                     <div class="btn-group btn-group-sm" role="group">
                         <button type="button" class="btn btn-outline-primary active" onclick="changeChartView('day')" id="btnDay">
@@ -338,51 +337,14 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <script>
 // Données brutes pour le graphique
-const rawDates = [{% for day in visits_counter_by_day %}'{{ day.date }}'{% if not loop.last %}, {% endif %}{% endfor %}];
-const rawCounter = [{% for day in visits_counter_by_day %}{{ day.counter }}{% if not loop.last %}, {% endif %}{% endfor %}];
-const rawVisits = [{% for day in visits_counter_by_day %}{{ day.visits }}{% if not loop.last %}, {% endif %}{% endfor %}];
+const rawDates = [{% for day in visitors_by_day %}'{{ day.date }}'{% if not loop.last %}, {% endif %}{% endfor %}];
+const rawVisitors = [{% for day in visitors_by_day %}{{ day.visitors }}{% if not loop.last %}, {% endif %}{% endfor %}];
 
 let currentView = 'day';
 let visitsChart;
 
-// Fonction pour agréger les compteurs par mois (prendre le dernier compteur du mois)
-function aggregateCounterByMonth(dates, counters) {
-    const monthlyData = {};
-    
-    dates.forEach((date, index) => {
-        const monthKey = date.substring(0, 7); // YYYY-MM
-        // Prendre le compteur le plus élevé (dernier du mois)
-        if (!monthlyData[monthKey] || counters[index] > monthlyData[monthKey]) {
-            monthlyData[monthKey] = counters[index];
-        }
-    });
-    
-    return {
-        labels: Object.keys(monthlyData).sort(),
-        data: Object.keys(monthlyData).sort().map(key => monthlyData[key])
-    };
-}
-
-// Fonction pour agréger les compteurs par année (prendre le dernier compteur de l'année)
-function aggregateCounterByYear(dates, counters) {
-    const yearlyData = {};
-    
-    dates.forEach((date, index) => {
-        const yearKey = date.substring(0, 4); // YYYY
-        // Prendre le compteur le plus élevé (dernier de l'année)
-        if (!yearlyData[yearKey] || counters[index] > yearlyData[yearKey]) {
-            yearlyData[yearKey] = counters[index];
-        }
-    });
-    
-    return {
-        labels: Object.keys(yearlyData).sort(),
-        data: Object.keys(yearlyData).sort().map(key => yearlyData[key])
-    };
-}
-
-// Fonction pour agréger les données par mois (ANCIEN - pour compatibilité)
-function aggregateByMonth(dates, visits) {
+// Fonction pour agréger les visiteurs par mois
+function aggregateVisitorsByMonth(dates, visitors) {
     const monthlyData = {};
     
     dates.forEach((date, index) => {
@@ -390,7 +352,7 @@ function aggregateByMonth(dates, visits) {
         if (!monthlyData[monthKey]) {
             monthlyData[monthKey] = 0;
         }
-        monthlyData[monthKey] += visits[index];
+        monthlyData[monthKey] += visitors[index];
     });
     
     return {
@@ -399,8 +361,8 @@ function aggregateByMonth(dates, visits) {
     };
 }
 
-// Fonction pour agréger les données par année
-function aggregateByYear(dates, visits) {
+// Fonction pour agréger les visiteurs par année
+function aggregateVisitorsByYear(dates, visitors) {
     const yearlyData = {};
     
     dates.forEach((date, index) => {
@@ -408,7 +370,7 @@ function aggregateByYear(dates, visits) {
         if (!yearlyData[yearKey]) {
             yearlyData[yearKey] = 0;
         }
-        yearlyData[yearKey] += visits[index];
+        yearlyData[yearKey] += visitors[index];
     });
     
     return {
@@ -432,13 +394,13 @@ function changeChartView(view) {
     
     if (view === 'day') {
         chartLabels = rawDates;
-        chartData = rawCounter;
+        chartData = rawVisitors;
     } else if (view === 'month') {
-        const aggregated = aggregateCounterByMonth(rawDates, rawCounter);
+        const aggregated = aggregateVisitorsByMonth(rawDates, rawVisitors);
         chartLabels = aggregated.labels;
         chartData = aggregated.data;
     } else if (view === 'year') {
-        const aggregated = aggregateCounterByYear(rawDates, rawCounter);
+        const aggregated = aggregateVisitorsByYear(rawDates, rawVisitors);
         chartLabels = aggregated.labels;
         chartData = aggregated.data;
     }
@@ -456,8 +418,8 @@ visitsChart = new Chart(ctx, {
     data: {
         labels: rawDates,
         datasets: [{
-            label: 'Nombre de visites',
-            data: rawCounter,
+            label: 'Visiteurs uniques',
+            data: rawVisitors,
             borderColor: 'rgb(13, 110, 253)',
             backgroundColor: 'rgba(13, 110, 253, 0.1)',
             tension: 0.3,
@@ -487,16 +449,16 @@ visitsChart = new Chart(ctx, {
                 },
                 callbacks: {
                     label: function(context) {
-                        return 'Visites : ' + context.parsed.y;
+                        return 'Visiteurs : ' + context.parsed.y;
                     }
                 }
             }
         },
         scales: {
             y: {
-                beginAtZero: false,
+                beginAtZero: true,
                 ticks: {
-                    stepSize: 10,
+                    stepSize: 1,
                     font: {
                         size: 12
                     }
