@@ -208,3 +208,15 @@ class VisitorLog(db.Model):
     
     # Relation avec l'utilisateur (optionnel, si connecté)
     user = db.relationship('User', backref='visit_logs')
+
+
+class DailyStats(db.Model):
+    """Statistiques quotidiennes agrégées (conservation long terme)"""
+    __tablename__ = "daily_stats"
+    
+    id = db.Column(db.Integer, primary_key=True)
+    stat_date = db.Column(db.Date, nullable=False, unique=True, index=True)
+    total_visitors = db.Column(db.Integer, default=0)  # Visiteurs uniques (sessions)
+    total_page_views = db.Column(db.Integer, default=0)  # Pages vues totales
+    unique_sessions = db.Column(db.Integer, default=0)  # Sessions uniques
+    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
