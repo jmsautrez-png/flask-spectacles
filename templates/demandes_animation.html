@@ -43,14 +43,14 @@
       <hr style="margin:0.3rem 0 0.7rem 0;">
       <p style="margin:0.2rem 0 0.2rem 0; color:#444; font-size:1em;">et nous recherchons pour notre manifestation</p>
       <p style="margin:0.2rem 0;"><strong>🎭 Genre recherché :</strong> <span style="color:#222;">{{ demande.genre_recherche }}</span></p>
-      {% if user and user.is_abonne %}
+      {% if user %}
         <p style="margin:0.2rem 0;"><strong>👤 Contact :</strong> <span style="color:#222;">{{ demande.nom_contact }}</span></p>
         <p style="margin:0.2rem 0;"><strong>📞 Téléphone :</strong> <span style="color:#222;">{{ demande.telephone_contact }}</span></p>
         <p style="margin:0.2rem 0;"><strong>✉️ Email :</strong> <a href="mailto:{{ demande.email_contact }}" style="background:#1976d2;color:#fff;padding:6px 16px;border-radius:8px;text-decoration:none;font-weight:600;">Répondre</a></p>
       {% else %}
-        <p style="margin:0.2rem 0;"><strong>👤 Contact :</strong> <span style="color:#888; font-style:italic;">(réservé aux abonnés)</span></p>
-        <p style="margin:0.2rem 0;"><strong>📞 Téléphone :</strong> <span style="color:#888; font-style:italic;">(réservé aux abonnés)</span></p>
-        <p style="margin:0.2rem 0;"><strong>✉️ Email :</strong> <span style="color:#888; font-style:italic;">(réservé aux abonnés)</span></p>
+        <p style="margin:0.2rem 0;"><strong>👤 Contact :</strong> <a href="{{ url_for('register') }}" style="color:#888; font-style:italic; text-decoration:underline;" title="Cliquez pour vous inscrire gratuitement">(réservé aux inscrits - gratuit)</a></p>
+        <p style="margin:0.2rem 0;"><strong>📞 Téléphone :</strong> <a href="{{ url_for('register') }}" style="color:#888; font-style:italic; text-decoration:underline;" title="Cliquez pour vous inscrire gratuitement">(réservé aux inscrits - gratuit)</a></p>
+        <p style="margin:0.2rem 0;"><strong>✉️ Email :</strong> <a href="{{ url_for('register') }}" style="color:#888; font-style:italic; text-decoration:underline;" title="Cliquez pour vous inscrire gratuitement">(réservé aux inscrits - gratuit)</a></p>
       {% endif %}
       <p style="margin:0.2rem 0;"><strong>📍 Lieu/Ville :</strong> <span style="color:#222;">{{ demande.lieu_ville }}</span></p>
       <div style="margin:0.5rem 0;">

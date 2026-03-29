@@ -220,6 +220,17 @@
       box-shadow: 0 4px 15px rgba(13, 71, 161, 0.5);
     }
     
+    .hamburger-menu a.menu-appels {
+      background: linear-gradient(135deg, #00acc1, #0097a7);
+      border: 2px solid rgba(255, 255, 255, 0.3);
+    }
+    
+    .hamburger-menu a.menu-appels:hover {
+      background: linear-gradient(135deg, #26c6da, #00bcd4);
+      transform: scale(1.03);
+      box-shadow: 0 4px 15px rgba(0, 172, 193, 0.5);
+    }
+    
     @media (max-width: 900px) {
       .hamburger-container {
         right: 0.5rem;
@@ -812,12 +823,12 @@
           </li>
           <li>
             <a href="{{ url_for('about') }}" style="padding:8px 14px; background:transparent; color:var(--text); border:1px solid var(--border); border-radius:6px; font-weight:500; font-size:0.85rem; text-decoration:none; display:inline-block; transition:background 0.2s;">
-              ℹ️ Qui nous sommes
+              Qui nous sommes
             </a>
           </li>
           <li>
-            <a href="{{ url_for('ecoles_themes') }}" style="padding:8px 14px; background:linear-gradient(135deg, #1a237e, #0d47a1); color:#fff; border-radius:6px; font-weight:600; font-size:0.85rem; text-decoration:none; display:inline-block; transition:opacity 0.2s;">
-              🏫 Intervention pédagogique
+            <a href="{{ url_for('demandes_animation') }}" style="padding:8px 14px; background:linear-gradient(135deg, #00acc1, #0097a7); color:#fff; border-radius:6px; font-weight:600; font-size:0.85rem; text-decoration:none; display:inline-block; transition:opacity 0.2s;">
+              Appels d'offres
             </a>
           </li>
           <li>
@@ -897,10 +908,11 @@
     <span></span>
   </button>
   <div class="hamburger-menu" id="hamburger-menu">
-    <a href="{{ url_for('catalogue') }}" class="menu-catalogue">🎭 Catalogue</a>
-    <a href="{{ url_for('contact') }}" class="menu-contact">📧 Contact</a>
-    <a href="{{ url_for('about') }}" class="menu-about">ℹ️ Qui sommes-nous</a>
-    <a href="{{ url_for('ecoles_themes') }}" class="menu-pedagogique">🎓 Intervention pédagogique</a>
+    <a href="{{ url_for('catalogue') }}" class="menu-catalogue">Catalogue</a>
+    <a href="{{ url_for('demandes_animation') }}" class="menu-appels">Appels d'offres</a>
+    <a href="{{ url_for('contact') }}" class="menu-contact">Contact</a>
+    <a href="{{ url_for('about') }}" class="menu-about">Qui sommes-nous</a>
+    <a href="{{ url_for('ecoles_themes') }}" class="menu-pedagogique">Intervention pédagogique</a>
   </div>
 </div>
 
