@@ -24,53 +24,76 @@
         </div>
     </div>
 
-    <!-- Cartes de statistiques principales -->
+    <!-- Statistiques récapitulatives -->
     <div class="row mb-4">
-        <div class="col-lg-3 col-md-6 mb-3">
-            <div class="card text-white bg-success h-100">
-                <div class="card-body text-center">
-                    <div style="font-size: 0.9rem; opacity: 0.9;"><i class="fas fa-users"></i> Visiteurs uniques</div>
-                    <h1 class="display-4 my-3">{{ unique_visitors }}</h1>
-                    <p class="mb-0">personnes différentes</p>
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0"><i class="fas fa-chart-bar"></i> Statistiques - {{ period_label }}</h5>
                 </div>
-            </div>
-        </div>
-        <div class="col-lg-3 col-md-6 mb-3">
-            <div class="card text-white bg-primary h-100">
-                <div class="card-body text-center">
-                    <div style="font-size: 0.9rem; opacity: 0.9;"><i class="fas fa-file-alt"></i> Pages vues</div>
-                    <h1 class="display-4 my-3">{{ total_visits }}</h1>
-                    <p class="mb-0">au total</p>
-                </div>
-            </div>
-        </div>
-        <div class="col-lg-3 col-md-6 mb-3">
-            <div class="card text-white bg-info h-100">
-                <div class="card-body text-center">
-                    <div style="font-size: 0.9rem; opacity: 0.9;"><i class="fas fa-chart-line"></i> Pages/visiteur</div>
-                    <h1 class="display-4 my-3">{{ (total_visits / unique_visitors)|round(1) if unique_visitors > 0 else 0 }}</h1>
-                    <p class="mb-0">pages en moyenne</p>
-                </div>
-            </div>
-        </div>
-        <div class="col-lg-3 col-md-6 mb-3">
-            <div class="card text-white bg-warning h-100">
-                <div class="card-body text-center">
-                    <div style="font-size: 0.9rem; opacity: 0.9;"><i class="fas fa-calendar-day"></i> Moyenne/jour</div>
-                    <h1 class="display-4 my-3">{{ (total_visits / days)|round|int }}</h1>
-                    <p class="mb-0">pages par jour</p>
+                <div class="card-body p-0">
+                    <table class="table table-hover mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th style="width: 40%;"><i class="fas fa-list"></i> Métrique</th>
+                                <th style="width: 30%;" class="text-end"><i class="fas fa-hashtag"></i> Valeur</th>
+                                <th style="width: 30%;"><i class="fas fa-info-circle"></i> Description</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><i class="fas fa-users text-success"></i> <strong>Visiteurs uniques</strong></td>
+                                <td class="text-end"><span class="badge bg-success fs-5">{{ unique_visitors }}</span></td>
+                                <td><small class="text-muted">Personnes différentes</small></td>
+                            </tr>
+                            <tr>
+                                <td><i class="fas fa-file-alt text-primary"></i> <strong>Pages vues</strong></td>
+                                <td class="text-end"><span class="badge bg-primary fs-5">{{ total_visits }}</span></td>
+                                <td><small class="text-muted">Total de pages consultées</small></td>
+                            </tr>
+                            <tr>
+                                <td><i class="fas fa-chart-line text-info"></i> <strong>Pages par visiteur</strong></td>
+                                <td class="text-end"><span class="badge bg-info fs-5">{{ (total_visits / unique_visitors)|round(1) if unique_visitors > 0 else 0 }}</span></td>
+                                <td><small class="text-muted">Moyenne de pages/personne</small></td>
+                            </tr>
+                            <tr>
+                                <td><i class="fas fa-calendar-day text-warning"></i> <strong>Moyenne quotidienne</strong></td>
+                                <td class="text-end"><span class="badge bg-warning fs-5">{{ (total_visits / days)|round|int }}</span></td>
+                                <td><small class="text-muted">Pages vues par jour</small></td>
+                            </tr>
+                            <tr class="table-active">
+                                <td><i class="fas fa-clock text-secondary"></i> <strong>Période analysée</strong></td>
+                                <td class="text-end"><span class="badge bg-secondary fs-6">{{ days }} jour{{ 's' if days > 1 else '' }}</span></td>
+                                <td><small class="text-muted">{{ period_label }}</small></td>
+                            </tr>
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </div>
     </div>
-    
-    <!-- Période affichée -->
-    <div class="row mb-3">
-        <div class="col-12">
-            <div class="alert alert-info">
-                <i class="fas fa-info-circle"></i> <strong>Période :</strong> {{ period_label }}
-                • <strong>{{ unique_visitors }}</strong> personnes ont visité le site
-                • Chaque personne a vu en moyenne <strong>{{ (total_visits / unique_visitors)|round(1) if unique_visitors > 0 else 0 }}</strong> pages
+
+    <!-- Graphique d'évolution -->
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="fas fa-chart-line"></i> Évolution des visites</h5>
+                    <div class="btn-group btn-group-sm" role="group">
+                        <button type="button" class="btn btn-outline-primary active" onclick="changeChartView('day')" id="btnDay">
+                            <i class="fas fa-calendar-day"></i> Jour
+                        </button>
+                        <button type="button" class="btn btn-outline-primary" onclick="changeChartView('month')" id="btnMonth">
+                            <i class="fas fa-calendar-alt"></i> Mois
+                        </button>
+                        <button type="button" class="btn btn-outline-primary" onclick="changeChartView('year')" id="btnYear">
+                            <i class="fas fa-calendar"></i> Année
+                        </button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <canvas id="visitsChart" style="max-height: 300px;"></canvas>
+                </div>
             </div>
         </div>
     </div>
@@ -305,4 +328,161 @@
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block scripts %}
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
+// Données brutes pour le graphique
+const rawDates = [{% for day in visits_by_day %}'{{ day.date }}'{% if not loop.last %}, {% endif %}{% endfor %}];
+const rawVisits = [{% for day in visits_by_day %}{{ day.visits }}{% if not loop.last %}, {% endif %}{% endfor %}];
+
+let currentView = 'day';
+let visitsChart;
+
+// Fonction pour agréger les données par mois
+function aggregateByMonth(dates, visits) {
+    const monthlyData = {};
+    
+    dates.forEach((date, index) => {
+        const monthKey = date.substring(0, 7); // YYYY-MM
+        if (!monthlyData[monthKey]) {
+            monthlyData[monthKey] = 0;
+        }
+        monthlyData[monthKey] += visits[index];
+    });
+    
+    return {
+        labels: Object.keys(monthlyData).sort(),
+        data: Object.keys(monthlyData).sort().map(key => monthlyData[key])
+    };
+}
+
+// Fonction pour agréger les données par année
+function aggregateByYear(dates, visits) {
+    const yearlyData = {};
+    
+    dates.forEach((date, index) => {
+        const yearKey = date.substring(0, 4); // YYYY
+        if (!yearlyData[yearKey]) {
+            yearlyData[yearKey] = 0;
+        }
+        yearlyData[yearKey] += visits[index];
+    });
+    
+    return {
+        labels: Object.keys(yearlyData).sort(),
+        data: Object.keys(yearlyData).sort().map(key => yearlyData[key])
+    };
+}
+
+// Fonction pour changer la vue du graphique
+function changeChartView(view) {
+    currentView = view;
+    
+    // Mise à jour des boutons
+    document.getElementById('btnDay').classList.remove('active');
+    document.getElementById('btnMonth').classList.remove('active');
+    document.getElementById('btnYear').classList.remove('active');
+    document.getElementById('btn' + view.charAt(0).toUpperCase() + view.slice(1)).classList.add('active');
+    
+    // Préparation des données selon la vue
+    let chartLabels, chartData;
+    
+    if (view === 'day') {
+        chartLabels = rawDates;
+        chartData = rawVisits;
+    } else if (view === 'month') {
+        const aggregated = aggregateByMonth(rawDates, rawVisits);
+        chartLabels = aggregated.labels;
+        chartData = aggregated.data;
+    } else if (view === 'year') {
+        const aggregated = aggregateByYear(rawDates, rawVisits);
+        chartLabels = aggregated.labels;
+        chartData = aggregated.data;
+    }
+    
+    // Mise à jour du graphique
+    visitsChart.data.labels = chartLabels;
+    visitsChart.data.datasets[0].data = chartData;
+    visitsChart.update();
+}
+
+// Initialisation du graphique
+const ctx = document.getElementById('visitsChart').getContext('2d');
+visitsChart = new Chart(ctx, {
+    type: 'line',
+    data: {
+        labels: rawDates,
+        datasets: [{
+            label: 'Pages vues',
+            data: rawVisits,
+            borderColor: 'rgb(13, 110, 253)',
+            backgroundColor: 'rgba(13, 110, 253, 0.1)',
+            tension: 0.3,
+            fill: true,
+            pointRadius: 5,
+            pointHoverRadius: 7,
+            pointBackgroundColor: 'rgb(13, 110, 253)',
+            pointBorderColor: '#fff',
+            pointBorderWidth: 2
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: true,
+        plugins: {
+            legend: {
+                display: false
+            },
+            tooltip: {
+                backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                padding: 12,
+                titleFont: {
+                    size: 14
+                },
+                bodyFont: {
+                    size: 13
+                },
+                callbacks: {
+                    label: function(context) {
+                        return 'Pages vues : ' + context.parsed.y;
+                    }
+                }
+            }
+        },
+        scales: {
+            y: {
+                beginAtZero: true,
+                ticks: {
+                    stepSize: 1,
+                    font: {
+                        size: 12
+                    }
+                },
+                grid: {
+                    color: 'rgba(0, 0, 0, 0.05)'
+                }
+            },
+            x: {
+                ticks: {
+                    font: {
+                        size: 11
+                    },
+                    maxRotation: 45,
+                    minRotation: 0
+                },
+                grid: {
+                    display: false
+                }
+            }
+        },
+        interaction: {
+            intersect: false,
+            mode: 'index'
+        }
+    }
+});
+</script>
 {% endblock %}

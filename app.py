@@ -1951,7 +1951,6 @@ def register_routes(app: Flask) -> None:
         """Page de statistiques des visiteurs (conforme RGPD - données anonymisées)"""
         from sqlalchemy import func, desc
         from datetime import timedelta
-        from models.models import DailyStats
         
         # Période sélectionnée (par défaut: 7 derniers jours)
         period = request.args.get("period", "7", type=str)
@@ -1994,31 +1993,13 @@ def register_routes(app: Flask) -> None:
             order_by(desc('visits')).\
             limit(10).all()
         
-        # Visites par jour - Combinaison de daily_stats (historique) + visitor_log (jour actuel)
-        today = datetime.utcnow().date()
-        date_limit_date = date_limit.date() if hasattr(date_limit, 'date') else date_limit
-        
-        # Récupérer les stats historiques depuis daily_stats (jours passés)
-        historical_stats = db.session.query(
-            DailyStats.stat_date,
-            DailyStats.total_page_views.label('visits')
-        ).filter(
-            DailyStats.stat_date >= date_limit_date,
-            DailyStats.stat_date < today
-        ).order_by(DailyStats.stat_date).all()
-        
-        # Récupérer les stats du jour actuel depuis visitor_log (pas encore agrégé)
-        today_stats = db.session.query(
+        # Visites par jour
+        visits_by_day = db.session.query(
             func.date(VisitorLog.visited_at).label('date'),
             func.count(VisitorLog.id).label('visits')
-        ).filter(
-            func.date(VisitorLog.visited_at) == today
-        ).group_by(func.date(VisitorLog.visited_at)).first()
-        
-        # Combiner historique + aujourd'hui
-        visits_by_day = list(historical_stats)
-        if today_stats:
-            visits_by_day.append(today_stats)
+        ).filter(VisitorLog.visited_at >= date_limit).\
+            group_by(func.date(VisitorLog.visited_at)).\
+            order_by('date').all()
         
         # Derniers visiteurs uniques (groupés par session)
         # Chaque ligne = 1 visiteur avec le nombre de pages vues
