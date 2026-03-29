@@ -450,6 +450,31 @@
   }
 }
 
+@keyframes change-color {
+  0%, 100% {
+    color: #ff5722;
+  }
+  16.66% {
+    color: #e91e63;
+  }
+  33.33% {
+    color: #9c27b0;
+  }
+  50% {
+    color: #3f51b5;
+  }
+  66.66% {
+    color: #00bcd4;
+  }
+  83.33% {
+    color: #4caf50;
+  }
+}
+
+.texte-clignotant {
+  animation: change-color 10s ease-in-out infinite;
+}
+
 .btn-mairie-wrapper {
   position: relative;
   display: inline-block;

@@ -5,23 +5,6 @@
   .cartes-demandes {
     grid-template-columns: 1fr !important;
   }
-  .search-form-responsive {
-    flex-direction: column !important;
-    width: 100% !important;
-    max-width: 100% !important;
-  }
-  .search-form-responsive input {
-    width: 100% !important;
-    flex: none !important;
-    margin-bottom: 8px;
-  }
-  .search-form-responsive .separator {
-    display: none !important;
-  }
-  .search-form-responsive button {
-    width: 100% !important;
-    padding: 12px 18px !important;
-  }
   .header-mobile {
     flex-direction: column !important;
     align-items: flex-start !important;
@@ -33,6 +16,27 @@
 }
 
 @media (max-width: 600px) {
+  .mobile-search-block {
+    flex-direction: column;
+    gap: 8px !important;
+    padding: 14px !important;
+  }
+  
+  .mobile-search-block input {
+    width: 100%;
+    flex: none !important;
+    font-size: 14px !important;
+  }
+  
+  .mobile-search-block span:not([aria-hidden="true"]) {
+    display: none;
+  }
+  
+  .mobile-search-block button {
+    width: 100%;
+    padding: 10px 16px !important;
+    font-size: 1rem !important;
+  }
   .cartes-demandes {
     grid-template-columns: 1fr !important;
     gap: 1.5rem !important;
@@ -40,6 +44,20 @@
   h1 {
     font-size: 1.5rem !important;
   }
+}
+
+.mobile-search-block input::placeholder {
+  color: #aaa;
+  opacity: 1;
+}
+
+.mobile-search-block button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(109,19,19,0.7);
+}
+
+.mobile-search-block button:active {
+  transform: translateY(0);
 }
 </style>
 
@@ -55,15 +73,22 @@
   </div>
 
   <!-- Barre de recherche responsive -->
-  <div class="search-bar d-flex justify-content-center align-items-center mb-4" style="gap: 1rem; flex-wrap: wrap;">
-    <form action="/mes-appels-offres" method="get" class="search-form-responsive" style="display:flex; align-items:center; gap:12px; background:#f8f9fa; border:2px solid #283e5e; padding:10px 16px; border-radius:14px; margin:0 0 20px; box-shadow:0 2px 8px #16244722; color:#888; width:100%; max-width:900px;" role="search" aria-label="Rechercher un appel d'offre">
-      <span aria-hidden="true" style="color:#888;">🔍</span>
-      <input name="categorie" value="{{ categorie }}" placeholder="Catégorie, spectacle, genre..." aria-label="Recherche générale" style="flex:2; border:none; background:transparent; outline:none; font-size:15px; color:#333; min-width:150px;">
-      <span class="separator" style="color:#ccc;">|</span>
-      <input name="region" value="{{ region }}" placeholder="Ville ou région..." style="flex:1; border:none; background:transparent; outline:none; font-size:15px; color:#333; min-width:120px;">
-      <button type="submit" style="border:none; background:#283e5e; color:white; font-weight:600; cursor:pointer; padding:10px 20px; border-radius:8px; white-space:nowrap;">Rechercher</button>
-    </form>
-  </div>
+  <form action="/mes-appels-offres" method="get" class="mobile-search-block"
+        style="display:flex; align-items:center; gap:10px; background:linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); border:2px solid #6d1313; padding:12px 16px; border-radius:16px; margin:0 0 20px; box-shadow:0 4px 12px rgba(109,19,19,0.3); color:#fff;"
+        role="search"
+        aria-label="Rechercher un appel d'offre">
+    <span aria-hidden="true" style="color:#ffc107; font-size:1.2rem;">🔍</span>
+    <input name="categorie" value="{{ categorie }}"
+      placeholder="Catégorie, spectacle, genre..."
+      aria-label="Recherche générale"
+      style="flex:2; border:none; background:rgba(255,255,255,0.1); outline:none; font-size:15px; color:#fff; padding:8px 12px; border-radius:8px;">
+    <span style="color:#6d1313; font-weight:bold;">|</span>
+    <input name="region" value="{{ region }}"
+      placeholder="Ville ou région..."
+      style="flex:1; border:none; background:rgba(255,255,255,0.1); outline:none; font-size:15px; color:#fff; padding:8px 12px; border-radius:8px;">
+    <button type="submit"
+       style="border:none; background:linear-gradient(135deg, #6d1313 0%, #8b1e1e 100%); color:white; font-weight:700; cursor:pointer; padding:8px 16px; border-radius:10px; box-shadow:0 2px 8px rgba(109,19,19,0.5); transition:all 0.3s;">Rechercher</button>
+  </form>
 
   <!-- Grille des demandes -->
   <div class="cartes-demandes" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 450px), 1fr)); gap: 2rem; margin-bottom:2rem;">
