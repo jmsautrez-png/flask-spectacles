@@ -385,9 +385,29 @@
 // Données brutes pour le graphique
 const rawDates = [{% for day in visitors_by_day %}'{{ day.date }}'{% if not loop.last %}, {% endif %}{% endfor %}];
 const rawVisitors = [{% for day in visitors_by_day %}{{ day.visitors }}{% if not loop.last %}, {% endif %}{% endfor %}];
+const isHourly = {{ 'true' if is_hourly else 'false' }};
 
 let currentView = 'day';
 let visitsChart;
+
+// Fonction pour formater les dates/heures
+function formatLabel(dateStr) {
+    if (isHourly) {
+        // Format : "2026-03-30 14:00:00" -> "14:00"
+        const date = new Date(dateStr);
+        return date.getHours().toString().padStart(2, '0') + ':00';
+    } else {
+        // Format : "2026-03-30" -> "30/03"
+        const parts = dateStr.split('-');
+        if (parts.length >= 3) {
+            return parts[2] + '/' + parts[1];
+        }
+        return dateStr;
+    }
+}
+
+// Formater les labels initiaux
+const formattedDates = rawDates.map(formatLabel);
 
 // Fonction pour agréger les visiteurs par mois
 function aggregateVisitorsByMonth(dates, visitors) {
@@ -439,7 +459,7 @@ function changeChartView(view) {
     let chartLabels, chartData;
     
     if (view === 'day') {
-        chartLabels = rawDates;
+        chartLabels = isHourly ? formattedDates : rawDates;
         chartData = rawVisitors;
     } else if (view === 'month') {
         const aggregated = aggregateVisitorsByMonth(rawDates, rawVisitors);
@@ -462,9 +482,9 @@ const ctx = document.getElementById('visitsChart').getContext('2d');
 visitsChart = new Chart(ctx, {
     type: 'line',
     data: {
-        labels: rawDates,
+        labels: isHourly ? formattedDates : rawDates,
         datasets: [{
-            label: 'Visiteurs uniques',
+            label: isHourly ? 'Visiteurs uniques (par heure)' : 'Visiteurs uniques',
             data: rawVisitors,
             borderColor: 'rgb(13, 110, 253)',
             backgroundColor: 'rgba(13, 110, 253, 0.1)',

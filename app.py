@@ -2073,21 +2073,39 @@ def register_routes(app: Flask) -> None:
             order_by(desc('visits')).\
             limit(10).all()
         
-        # Visites par jour (nombre de pages vues)
-        visits_by_day = db.session.query(
-            func.date(VisitorLog.visited_at).label('date'),
-            func.count(VisitorLog.id).label('visits')
-        ).filter(VisitorLog.visited_at >= date_limit).\
-            group_by(func.date(VisitorLog.visited_at)).\
-            order_by('date').all()
-        
-        # Visiteurs uniques par jour (pour le graphique)
-        visitors_by_day = db.session.query(
-            func.date(VisitorLog.visited_at).label('date'),
-            func.count(func.distinct(VisitorLog.session_id)).label('visitors')
-        ).filter(VisitorLog.visited_at >= date_limit).\
-            group_by(func.date(VisitorLog.visited_at)).\
-            order_by('date').all()
+        # Visites par jour/heure (selon la période)
+        if period in ['today', '1']:
+            # Pour 24h : regrouper par heure
+            visits_by_day = db.session.query(
+                func.date_trunc('hour', VisitorLog.visited_at).label('date'),
+                func.count(VisitorLog.id).label('visits')
+            ).filter(VisitorLog.visited_at >= date_limit).\
+                group_by(func.date_trunc('hour', VisitorLog.visited_at)).\
+                order_by('date').all()
+            
+            # Visiteurs uniques par heure (pour le graphique)
+            visitors_by_day = db.session.query(
+                func.date_trunc('hour', VisitorLog.visited_at).label('date'),
+                func.count(func.distinct(VisitorLog.session_id)).label('visitors')
+            ).filter(VisitorLog.visited_at >= date_limit).\
+                group_by(func.date_trunc('hour', VisitorLog.visited_at)).\
+                order_by('date').all()
+        else:
+            # Pour les autres périodes : regrouper par jour
+            visits_by_day = db.session.query(
+                func.date(VisitorLog.visited_at).label('date'),
+                func.count(VisitorLog.id).label('visits')
+            ).filter(VisitorLog.visited_at >= date_limit).\
+                group_by(func.date(VisitorLog.visited_at)).\
+                order_by('date').all()
+            
+            # Visiteurs uniques par jour (pour le graphique)
+            visitors_by_day = db.session.query(
+                func.date(VisitorLog.visited_at).label('date'),
+                func.count(func.distinct(VisitorLog.session_id)).label('visitors')
+            ).filter(VisitorLog.visited_at >= date_limit).\
+                group_by(func.date(VisitorLog.visited_at)).\
+                order_by('date').all()
         
         # Derniers visiteurs uniques (groupés par session)
         # Chaque ligne = 1 visiteur avec le nombre de pages vues
@@ -2145,7 +2163,8 @@ def register_routes(app: Flask) -> None:
             active_users=active_users,
             days=days,
             period=period,
-            period_label=period_label
+            period_label=period_label,
+            is_hourly=(period in ['today', '1'])
         )
     
     # Route temporaire pour migration is_bot (À SUPPRIMER après exécution)
