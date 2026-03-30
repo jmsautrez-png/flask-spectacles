@@ -393,22 +393,36 @@ let visitsChart;
 // Fonction pour formater les dates/heures
 function formatLabel(dateStr) {
     if (isHourly) {
-        // Format : "2026-03-30 14:00:00+00" -> "14h"
-        // Extraire l'heure directement de la chaîne
-        let hour = 0;
-        
-        // Essayer plusieurs formats
-        if (typeof dateStr === 'string') {
-            // Format "2026-03-30 14:00:00" ou "2026-03-30T14:00:00"
-            const match = dateStr.match(/(\d{1,2}):(\d{2}):(\d{2})/);
-            if (match) {
-                hour = parseInt(match[1], 10);
+        // Format : "2026-03-30 14:00:00+00" -> "14h00"
+        // Créer un objet Date pour extraire proprement l'heure
+        try {
+            // Nettoyer le format pour JavaScript Date
+            let cleanDateStr = dateStr;
+            
+            // Si format "2026-03-30 14:00:00+00" ou similaire
+            if (cleanDateStr.includes(' ')) {
+                cleanDateStr = cleanDateStr.replace(' ', 'T');
             }
+            
+            // Créer l'objet Date
+            const date = new Date(cleanDateStr);
+            
+            // Vérifier si la date est valide
+            if (!isNaN(date.getTime())) {
+                const hour = date.getHours();
+                return hour + 'h00';
+            } else {
+                // Fallback : extraire manuellement avec regex
+                const match = dateStr.match(/\s(\d{1,2}):(\d{2})/);
+                if (match) {
+                    return match[1] + 'h' + match[2];
+                }
+            }
+        } catch (e) {
+            console.error('Erreur parsing date:', dateStr, e);
         }
         
-        // Afficher 1h à 24h (au lieu de 0h à 23h)
-        const displayHour = hour === 0 ? 24 : hour;
-        return displayHour + 'h';
+        return dateStr;
     } else {
         // Format : "2026-03-30" -> "30/03"
         const parts = dateStr.split('-');
