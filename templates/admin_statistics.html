@@ -422,17 +422,27 @@ const valueOnBarsPlugin = {
                 meta.data.forEach((bar, index) => {
                     const value = dataset.data[index];
                     
-                    // Dessiner le texte
+                    // Ne rien afficher si la valeur est 0
+                    if (value === 0) return;
+                    
+                    // Dessiner le texte avec plus de contraste
                     ctx.save();
-                    ctx.font = 'bold 12px Arial';
-                    ctx.fillStyle = '#333';
+                    ctx.font = 'bold 14px Arial';
+                    ctx.fillStyle = '#0d6efd'; // Bleu vif pour plus de visibilité
                     ctx.textAlign = 'center';
                     ctx.textBaseline = 'bottom';
                     
                     // Position au-dessus de la barre
                     const x = bar.x;
-                    const y = bar.y - 5;
+                    const y = bar.y - 8;
                     
+                    // Ajouter un fond blanc pour mieux lire
+                    const textWidth = ctx.measureText(value).width;
+                    ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+                    ctx.fillRect(x - textWidth/2 - 4, y - 16, textWidth + 8, 20);
+                    
+                    // Dessiner le texte
+                    ctx.fillStyle = '#0d6efd';
                     ctx.fillText(value, x, y);
                     ctx.restore();
                 });
@@ -452,30 +462,22 @@ let visitsChart;
 // Fonction pour formater les dates/heures
 function formatLabel(dateStr) {
     if (isHourly) {
-        // Format : "2026-03-30 14:00:00+00" -> "14h00"
-        // Créer un objet Date pour extraire proprement l'heure
+        // Format : "2026-03-30 14:00:00+00" -> "14h"
         try {
-            // Nettoyer le format pour JavaScript Date
-            let cleanDateStr = dateStr;
-            
-            // Si format "2026-03-30 14:00:00+00" ou similaire
-            if (cleanDateStr.includes(' ')) {
-                cleanDateStr = cleanDateStr.replace(' ', 'T');
+            // Extraire l'heure avec une regex simple
+            const match = dateStr.match(/(\d{2}):00:00/);
+            if (match) {
+                const hour = parseInt(match[1], 10);
+                return hour + 'h';
             }
             
-            // Créer l'objet Date
+            // Autre tentative : extraire depuis un objet Date
+            let cleanDateStr = dateStr.replace(' ', 'T');
             const date = new Date(cleanDateStr);
             
-            // Vérifier si la date est valide
             if (!isNaN(date.getTime())) {
                 const hour = date.getHours();
-                return hour + 'h00';
-            } else {
-                // Fallback : extraire manuellement avec regex
-                const match = dateStr.match(/\s(\d{1,2}):(\d{2})/);
-                if (match) {
-                    return match[1] + 'h' + match[2];
-                }
+                return hour + 'h';
             }
         } catch (e) {
             console.error('Erreur parsing date:', dateStr, e);
@@ -625,18 +627,37 @@ visitsChart = new Chart(ctx, {
                 },
                 grid: {
                     color: 'rgba(0, 0, 0, 0.05)'
+                },
+                title: {
+                    display: true,
+                    text: 'Nombre de visiteurs',
+                    font: {
+                        size: 13,
+                        weight: 'bold'
+                    }
                 }
             },
             x: {
                 ticks: {
                     font: {
-                        size: 11
+                        size: 12,
+                        weight: 'bold'
                     },
                     maxRotation: 45,
-                    minRotation: 0
+                    minRotation: 0,
+                    color: '#0d6efd' // Bleu pour plus de visibilité
                 },
                 grid: {
                     display: false
+                },
+                title: {
+                    display: true,
+                    text: isHourly ? 'Horaires' : 'Dates',
+                    font: {
+                        size: 13,
+                        weight: 'bold'
+                    },
+                    color: '#0d6efd'
                 }
             }
         },
