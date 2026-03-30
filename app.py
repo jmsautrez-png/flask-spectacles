@@ -2117,7 +2117,7 @@ def register_routes(app: Flask) -> None:
                 func.count(VisitorLog.id).label('visits')
             ).filter(
                 VisitorLog.visited_at >= date_limit,
-                VisitorLog.is_bot == True  # ROBOTS SEULEMENT (TEST INVERSÉ)
+                VisitorLog.is_bot == False  # HUMAINS UNIQUEMENT
             ).group_by(text("DATE_TRUNC('hour', visited_at)")).\
                 order_by(text("DATE_TRUNC('hour', visited_at)")).all()
             
@@ -2127,7 +2127,7 @@ def register_routes(app: Flask) -> None:
                 func.count(func.distinct(VisitorLog.session_id)).label('visitors')
             ).filter(
                 VisitorLog.visited_at >= date_limit,
-                VisitorLog.is_bot == True  # ROBOTS SEULEMENT (TEST INVERSÉ)
+                VisitorLog.is_bot == False  # HUMAINS UNIQUEMENT
             ).group_by(text("DATE_TRUNC('hour', visited_at)")).\
                 order_by(text("DATE_TRUNC('hour', visited_at)")).all()
         else:
@@ -2137,7 +2137,7 @@ def register_routes(app: Flask) -> None:
                 func.count(VisitorLog.id).label('visits')
             ).filter(
                 VisitorLog.visited_at >= date_limit,
-                VisitorLog.is_bot == True  # ROBOTS SEULEMENT (TEST INVERSÉ)
+                VisitorLog.is_bot == False  # HUMAINS UNIQUEMENT
             ).group_by(func.date(VisitorLog.visited_at)).\
                 order_by('date').all()
             
@@ -2147,7 +2147,7 @@ def register_routes(app: Flask) -> None:
                 func.count(func.distinct(VisitorLog.session_id)).label('visitors')
             ).filter(
                 VisitorLog.visited_at >= date_limit,
-                VisitorLog.is_bot == True  # ROBOTS SEULEMENT (TEST INVERSÉ)
+                VisitorLog.is_bot == False  # HUMAINS UNIQUEMENT
             ).group_by(func.date(VisitorLog.visited_at)).\
                 order_by('date').all()
         
