@@ -206,8 +206,8 @@ class VisitorLog(db.Model):
     country = db.Column(db.String(50), nullable=True)  # Pays (ex: France)
     isp = db.Column(db.String(150), nullable=True)  # Fournisseur (ex: Orange, Free)
     
-    # Détection des robots/crawlers (TEMPORAIREMENT COMMENTÉ - réactiver après migration)
-    # is_bot = db.Column(db.Boolean, default=False, nullable=False, index=True)  # True si robot
+    # Détection des robots/crawlers
+    is_bot = db.Column(db.Boolean, default=False, nullable=False, index=True)  # True si robot
     
     # Relation avec l'utilisateur (optionnel, si connecté)
     user = db.relationship('User', backref='visit_logs')

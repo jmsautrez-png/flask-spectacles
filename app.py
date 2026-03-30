@@ -432,10 +432,9 @@ def create_app() -> Flask:
             
             # Détecter si c'est un robot/crawler
             user_agent_str = request.headers.get('User-Agent', '')[:300]
-            # TEMPORAIREMENT DÉSACTIVÉ - Réactiver après migration
-            # is_bot = is_bot_visitor(user_agent_str, geo_data['isp'])
+            is_bot = is_bot_visitor(user_agent_str, geo_data['isp'])
             
-            # Enregistrer la visite avec géolocalisation (sans is_bot temporairement)
+            # Enregistrer la visite avec géolocalisation et détection de bot
             visitor_log = VisitorLog(
                 page_url=request.path[:300],
                 referrer=request.referrer[:300] if request.referrer else None,
@@ -446,7 +445,8 @@ def create_app() -> Flask:
                 city=geo_data['city'],
                 region=geo_data['region'],
                 country=geo_data['country'],
-                isp=geo_data['isp']
+                isp=geo_data['isp'],
+                is_bot=is_bot
             )
             db.session.add(visitor_log)
             db.session.commit()
@@ -2024,16 +2024,34 @@ def register_routes(app: Flask) -> None:
         # Nombre total de visites sur la période
         total_visits = VisitorLog.query.filter(VisitorLog.visited_at >= date_limit).count()
         
-        # TEMPORAIREMENT DÉSACTIVÉ - Statistiques robots/humains
-        # Réactiver après avoir exécuté /admin/migrate-is-bot
-        total_bots = 0
-        total_humans = total_visits
-        unique_bots = 0
-        unique_humans = unique_visitors = db.session.query(func.count(func.distinct(VisitorLog.session_id))).\
+        # Séparation robots vs humains
+        total_bots = VisitorLog.query.filter(
+            VisitorLog.visited_at >= date_limit,
+            VisitorLog.is_bot == True
+        ).count()
+        
+        total_humans = VisitorLog.query.filter(
+            VisitorLog.visited_at >= date_limit,
+            VisitorLog.is_bot == False
+        ).count()
+        
+        # Visiteurs uniques (basé sur session_id)
+        unique_visitors = db.session.query(func.count(func.distinct(VisitorLog.session_id))).\
             filter(VisitorLog.visited_at >= date_limit).scalar()
         
-        # Message d'information
-        migration_needed = True
+        # Visiteurs uniques humains (non-bots)
+        unique_humans = db.session.query(func.count(func.distinct(VisitorLog.session_id))).\
+            filter(
+                VisitorLog.visited_at >= date_limit,
+                VisitorLog.is_bot == False
+            ).scalar()
+        
+        # Visiteurs uniques robots
+        unique_bots = db.session.query(func.count(func.distinct(VisitorLog.session_id))).\
+            filter(
+                VisitorLog.visited_at >= date_limit,
+                VisitorLog.is_bot == True
+            ).scalar()
         
         # Pages les plus visitées
         top_pages = db.session.query(
@@ -2084,8 +2102,8 @@ def register_routes(app: Flask) -> None:
             VisitorLog.isp,
             VisitorLog.ip_anonymized,
             VisitorLog.user_agent,
-            VisitorLog.user_id
-            # TEMPORAIREMENT RETIRÉ: func.max(VisitorLog.is_bot).label('is_bot')
+            VisitorLog.user_id,
+            func.max(VisitorLog.is_bot).label('is_bot')
         ).filter(VisitorLog.visited_at >= date_limit).\
             group_by(
                 VisitorLog.session_id,
@@ -2127,8 +2145,7 @@ def register_routes(app: Flask) -> None:
             active_users=active_users,
             days=days,
             period=period,
-            period_label=period_label,
-            migration_needed=migration_needed
+            period_label=period_label
         )
     
     # Route temporaire pour migration is_bot (À SUPPRIMER après exécution)
