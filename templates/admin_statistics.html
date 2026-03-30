@@ -115,6 +115,27 @@
                 </div>
                 <div class="card-body">
                     <canvas id="visitsChart" style="max-height: 300px;"></canvas>
+                    
+                    <!-- Bandeau récapitulatif du total -->
+                    <div class="mt-3 p-3 bg-light rounded border border-primary" style="text-align: center;">
+                        <div class="row">
+                            <div class="col-md-4">
+                                <i class="fas fa-users text-primary"></i>
+                                <strong>Total visiteurs :</strong>
+                                <span class="badge bg-primary fs-6" id="totalVisitors">{{ visitors_by_day|sum(attribute='visitors') }}</span>
+                            </div>
+                            <div class="col-md-4">
+                                <i class="fas fa-chart-bar text-success"></i>
+                                <strong>Moyenne :</strong>
+                                <span class="badge bg-success fs-6" id="avgVisitors">{{ (visitors_by_day|sum(attribute='visitors') / visitors_by_day|length)|round(1) if visitors_by_day|length > 0 else 0 }}</span>
+                            </div>
+                            <div class="col-md-4">
+                                <i class="fas fa-calendar-check text-info"></i>
+                                <strong>Points de données :</strong>
+                                <span class="badge bg-info fs-6" id="dataPoints">{{ visitors_by_day|length }}</span>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -497,6 +518,16 @@ function changeChartView(view) {
         chartLabels = aggregated.labels;
         chartData = aggregated.data;
     }
+    
+    // Calcul des statistiques pour le bandeau
+    const total = chartData.reduce((sum, val) => sum + val, 0);
+    const average = chartData.length > 0 ? (total / chartData.length).toFixed(1) : 0;
+    const dataPointsCount = chartData.length;
+    
+    // Mise à jour du bandeau récapitulatif
+    document.getElementById('totalVisitors').textContent = total;
+    document.getElementById('avgVisitors').textContent = average;
+    document.getElementById('dataPoints').textContent = dataPointsCount;
     
     // Mise à jour du graphique
     visitsChart.data.labels = chartLabels;
