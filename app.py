@@ -2102,7 +2102,7 @@ def register_routes(app: Flask) -> None:
             VisitorLog.ip_anonymized,
             VisitorLog.user_agent,
             VisitorLog.user_id,
-            VisitorLog.is_bot
+            func.max(VisitorLog.is_bot).label('is_bot')
         ).filter(VisitorLog.visited_at >= date_limit).\
             group_by(
                 VisitorLog.session_id,
@@ -2112,8 +2112,7 @@ def register_routes(app: Flask) -> None:
                 VisitorLog.isp,
                 VisitorLog.ip_anonymized,
                 VisitorLog.user_agent,
-                VisitorLog.user_id,
-                VisitorLog.is_bot
+                VisitorLog.user_id
             ).\
             order_by(desc('first_visit')).\
             limit(50).all()
