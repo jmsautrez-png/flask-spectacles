@@ -99,8 +99,7 @@
             <div class="card">
                 <div class="card-header d-flex justify-content-between align-items-center">
                     <h5 class="mb-0">
-                        <i class="fas fa-chart-line"></i> Affluence des visiteurs humains (par période)
-                        <small class="badge bg-success ms-2">v2.0 - Horaires améliorés</small>
+                        <i class="fas fa-chart-line"></i> Nombre de visiteurs par jour
                     </h5>
                     <div class="btn-group btn-group-sm" role="group">
                         <button type="button" class="btn btn-outline-primary active" onclick="changeChartView('day')" id="btnDay">
@@ -114,37 +113,8 @@
                         </button>
                     </div>
                 </div>
-                <div class="card-body" style="padding-bottom: 30px;">
-                    <canvas id="visitsChart" style="height: 250px;"></canvas>
-                    
-                    <!-- Bandeau récapitulatif du total -->
-                    <div class="mt-3 p-3 bg-light rounded border border-primary" style="text-align: center;">
-                        <div class="row">
-                            <div class="col-md-4">
-                                <i class="fas fa-chart-line text-primary"></i>
-                                <strong>Présences horaires :</strong>
-                                <span class="badge bg-primary fs-6" id="totalVisitors">{{ visitors_by_day|sum(attribute='visitors') }}</span>
-                            </div>
-                            <div class="col-md-4">
-                                <i class="fas fa-chart-bar text-success"></i>
-                                <strong>Moyenne/période :</strong>
-                                <span class="badge bg-success fs-6" id="avgVisitors">{{ (visitors_by_day|sum(attribute='visitors') / visitors_by_day|length)|round(1) if visitors_by_day|length > 0 else 0 }}</span>
-                            </div>
-                            <div class="col-md-4">
-                                <i class="fas fa-calendar-check text-info"></i>
-                                <strong>Périodes :</strong>
-                                <span class="badge bg-info fs-6" id="dataPoints">{{ visitors_by_day|length }}</span>
-                            </div>
-                        </div>
-                        <div class="row mt-2">
-                            <div class="col-12">
-                                <small class="text-muted">
-                                    <i class="fas fa-info-circle"></i> 
-                                    Les présences comptabilisent l'affluence par tranche horaire. Un même visiteur actif sur plusieurs heures apparaît plusieurs fois.
-                                </small>
-                            </div>
-                        </div>
-                    </div>
+                <div class="card-body">
+                    <canvas id="visitsChart" style="max-height: 300px;"></canvas>
                 </div>
             </div>
         </div>
@@ -412,53 +382,6 @@
 <!-- Chart.js -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <script>
-// Plugin personnalisé pour afficher les valeurs au-dessus des barres
-const valueOnBarsPlugin = {
-    id: 'valueOnBars',
-    afterDatasetsDraw(chart) {
-        const { ctx } = chart;
-        chart.data.datasets.forEach((dataset, datasetIndex) => {
-            const meta = chart.getDatasetMeta(datasetIndex);
-            if (!meta.hidden) {
-                meta.data.forEach((bar, index) => {
-                    const value = dataset.data[index];
-                    
-                    // Ne rien afficher si la valeur est 0
-                    if (value === 0) return;
-                    
-                    // Dessiner le texte avec contraste maximal
-                    ctx.save();
-                    ctx.font = 'bold 16px Arial';
-                    ctx.textAlign = 'center';
-                    ctx.textBaseline = 'bottom';
-                    
-                    // Position au-dessus de la barre
-                    const x = bar.x;
-                    const y = bar.y - 10;
-                    
-                    // Mesurer le texte
-                    const textWidth = ctx.measureText(value).width;
-                    const textHeight = 20;
-                    
-                    // Dessiner un fond blanc avec bordure
-                    ctx.fillStyle = 'white';
-                    ctx.fillRect(x - textWidth/2 - 5, y - textHeight + 2, textWidth + 10, textHeight);
-                    
-                    // Ajouter une bordure bleue
-                    ctx.strokeStyle = '#0d6efd';
-                    ctx.lineWidth = 2;
-                    ctx.strokeRect(x - textWidth/2 - 5, y - textHeight + 2, textWidth + 10, textHeight);
-                    
-                    // Dessiner le texte en bleu foncé
-                    ctx.fillStyle = '#0a3a7a';
-                    ctx.fillText(value, x, y);
-                    ctx.restore();
-                });
-            }
-        });
-    }
-};
-
 // Données brutes pour le graphique
 const rawDates = [{% for day in visitors_by_day %}'{{ day.date }}'{% if not loop.last %}, {% endif %}{% endfor %}];
 const rawVisitors = [{% for day in visitors_by_day %}{{ day.visitors }}{% if not loop.last %}, {% endif %}{% endfor %}];
@@ -471,27 +394,21 @@ let visitsChart;
 function formatLabel(dateStr) {
     if (isHourly) {
         // Format : "2026-03-30 14:00:00+00" -> "14h"
-        try {
-            // Extraire l'heure avec une regex simple
-            const match = dateStr.match(/(\d{2}):00:00/);
+        // Extraire l'heure directement de la chaîne
+        let hour = 0;
+        
+        // Essayer plusieurs formats
+        if (typeof dateStr === 'string') {
+            // Format "2026-03-30 14:00:00" ou "2026-03-30T14:00:00"
+            const match = dateStr.match(/(\d{1,2}):(\d{2}):(\d{2})/);
             if (match) {
-                const hour = parseInt(match[1], 10);
-                return hour + 'h';
+                hour = parseInt(match[1], 10);
             }
-            
-            // Autre tentative : extraire depuis un objet Date
-            let cleanDateStr = dateStr.replace(' ', 'T');
-            const date = new Date(cleanDateStr);
-            
-            if (!isNaN(date.getTime())) {
-                const hour = date.getHours();
-                return hour + 'h';
-            }
-        } catch (e) {
-            console.error('Erreur parsing date:', dateStr, e);
         }
         
-        return dateStr;
+        // Afficher 1h à 24h (au lieu de 0h à 23h)
+        const displayHour = hour === 0 ? 24 : hour;
+        return displayHour + 'h';
     } else {
         // Format : "2026-03-30" -> "30/03"
         const parts = dateStr.split('-');
@@ -555,7 +472,7 @@ function changeChartView(view) {
     let chartLabels, chartData;
     
     if (view === 'day') {
-        chartLabels = isHourly ? formattedDates : rawDates;
+        chartLabels = formattedDates;  // Toujours utiliser les labels formatés
         chartData = rawVisitors;
     } else if (view === 'month') {
         const aggregated = aggregateVisitorsByMonth(rawDates, rawVisitors);
@@ -567,16 +484,6 @@ function changeChartView(view) {
         chartData = aggregated.data;
     }
     
-    // Calcul des statistiques pour le bandeau
-    const total = chartData.reduce((sum, val) => sum + val, 0);
-    const average = chartData.length > 0 ? (total / chartData.length).toFixed(1) : 0;
-    const dataPointsCount = chartData.length;
-    
-    // Mise à jour du bandeau récapitulatif
-    document.getElementById('totalVisitors').textContent = total;
-    document.getElementById('avgVisitors').textContent = average;
-    document.getElementById('dataPoints').textContent = dataPointsCount;
-    
     // Mise à jour du graphique
     visitsChart.data.labels = chartLabels;
     visitsChart.data.datasets[0].data = chartData;
@@ -586,32 +493,26 @@ function changeChartView(view) {
 // Initialisation du graphique
 const ctx = document.getElementById('visitsChart').getContext('2d');
 visitsChart = new Chart(ctx, {
-    type: 'bar',
+    type: 'line',
     data: {
-        labels: isHourly ? formattedDates : rawDates,
+        labels: formattedDates,  // Toujours utiliser les labels formatés
         datasets: [{
-            label: isHourly ? 'Affluence humaine (présences par heure)' : 'Affluence humaine (présences par jour)',
+            label: isHourly ? 'Visiteurs humains (par heure)' : 'Visiteurs humains uniques',
             data: rawVisitors,
-            backgroundColor: 'rgba(13, 110, 253, 0.8)',
             borderColor: 'rgb(13, 110, 253)',
-            borderWidth: 1,
-            borderRadius: 4,
-            hoverBackgroundColor: 'rgb(13, 110, 253)',
-            hoverBorderColor: 'rgb(10, 88, 202)',
-            hoverBorderWidth: 2
+            backgroundColor: 'rgba(13, 110, 253, 0.1)',
+            tension: 0.3,
+            fill: true,
+            pointRadius: 5,
+            pointHoverRadius: 7,
+            pointBackgroundColor: 'rgb(13, 110, 253)',
+            pointBorderColor: '#fff',
+            pointBorderWidth: 2
         }]
     },
     options: {
         responsive: true,
-        maintainAspectRatio: false,
-        layout: {
-            padding: {
-                top: 25,
-                bottom: 15,
-                left: 10,
-                right: 10
-            }
-        },
+        maintainAspectRatio: true,
         plugins: {
             legend: {
                 display: false
@@ -635,51 +536,26 @@ visitsChart = new Chart(ctx, {
         scales: {
             y: {
                 beginAtZero: true,
-                suggestedMax: 12,
-                grace: '5%',
                 ticks: {
                     stepSize: 1,
                     font: {
-                        size: 11
+                        size: 12
                     }
                 },
                 grid: {
                     color: 'rgba(0, 0, 0, 0.05)'
-                },
-                title: {
-                    display: true,
-                    text: 'Nombre de visiteurs',
-                    font: {
-                        size: 13,
-                        weight: 'bold'
-                    }
                 }
             },
             x: {
                 ticks: {
                     font: {
-                        size: 13,
-                        weight: 'bold'
+                        size: 11
                     },
-                    maxRotation: 0,
-                    minRotation: 0,
-                    color: '#ffffff',
-                    autoSkip: false,
-                    maxTicksLimit: 25
+                    maxRotation: 45,
+                    minRotation: 0
                 },
                 grid: {
-                    display: true,
-                    color: 'rgba(13, 110, 253, 0.1)'
-                },
-                title: {
-                    display: true,
-                    text: isHourly ? 'Horaires de la journée' : 'Dates',
-                    font: {
-                        size: 14,
-                        weight: 'bold'
-                    },
-                    color: '#ffffff',
-                    padding: 10
+                    display: false
                 }
             }
         },
@@ -687,8 +563,7 @@ visitsChart = new Chart(ctx, {
             intersect: false,
             mode: 'index'
         }
-    },
-    plugins: [valueOnBarsPlugin]
+    }
 });
 
 // Fonction pour filtrer les visiteurs par type (humains/robots/tous)
