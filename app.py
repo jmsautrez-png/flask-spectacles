@@ -60,7 +60,8 @@ from flask import (
     flash,
     session,
     send_from_directory,
-    current_app
+    current_app,
+    abort
 )
 
 print("✓ Flask importé")
@@ -71,6 +72,29 @@ from models.models import User, Show, PageVisit, VisitorLog
 from seo_cities import FRENCH_CITIES, get_city_by_slug, get_all_city_slugs
 
 print("✓ Config et models importés")
+
+# -----------------------------------------------------
+# Constantes SEO
+# -----------------------------------------------------
+SEO_CATEGORIES = {
+    "marionnette": "marionnette",
+    "magie": "magie",
+    "clown": "clown",
+    "theatre": "théâtre",
+    "danse": "danse",
+    "spectacle-enfant": "enfant",
+    "enfant": "enfant",
+    "atelier": "atelier",
+    "concert": "concert",
+    "cirque": "cirque",
+    "spectacle-de-rue": "rue",
+    "rue": "rue",
+    "orchestre": "orchestre",
+    "arbre-de-noel": "arbre de noël",
+    "animation-ecole": "animation école",
+    "fete-de-village": "fête de village",
+    "une": "Spectacle à la une",
+}
 
 # -----------------------------------------------------
 # Logging
@@ -3651,6 +3675,94 @@ L'équipe Spectacle'ment VØtre
             user=current_user()
         )
 
+    # ----------------------------
+    # Routes SEO pour les villes
+    # ----------------------------
+    @app.route("/spectacles-<city_slug>")
+    def city_spectacles(city_slug):
+            """Page SEO dédiée pour chaque ville française avec spectacles locaux"""
+            # Récupérer les données de la ville
+            city = get_city_by_slug(city_slug)
+            
+            # 404 si la ville n'existe pas dans notre liste
+            if not city:
+                abort(404)
+            
+            # Récupérer les filtres optionnels
+            category = request.args.get("category", "", type=str).strip()
+            age_range = request.args.get("age", "", type=str).strip()
+            page = request.args.get("page", 1, type=int)
+            
+            # Construire la requête de base (spectacles approuvés uniquement)
+            shows = Show.query.filter(Show.approved == True)
+            
+            # Filtrer par ville (on cherche dans location et region)
+            # La colonne location peut contenir plusieurs villes séparées par des virgules
+            city_name = city['name']
+            shows = shows.filter(
+                or_(
+                    Show.location.ilike(f"%{city_name}%"),
+                    Show.region.ilike(f"%{city['region']}%")
+                )
+            )
+            
+            # Filtrer par catégorie si spécifiée
+            if category:
+                shows = shows.filter(Show.category.ilike(f"%{category}%"))
+            
+            # Filtrer par âge si spécifié
+            if age_range:
+                shows = shows.filter(Show.age_range.ilike(f"%{age_range}%"))
+            
+            # Trier par ordre d'affichage puis date
+            shows = shows.order_by(Show.display_order.asc(), Show.created_at.desc())
+            
+            # Pagination (12 spectacles par page)
+            per_page = 12
+            shows_paginated = shows.paginate(page=page, per_page=per_page, error_out=False)
+            
+            # Compter le nombre de spectacles pour cette ville
+            total_shows = shows.count()
+            
+            # Générer les méta-données SEO
+            meta_title = f"Spectacles à {city_name} ({city['department']}) - Artistes et Compagnies"
+            meta_description = f"Découvrez {total_shows} spectacles, animations et artistes disponibles à {city_name} en {city['region']}. Théâtre, cirque, magie, clown, concerts pour tous les âges."
+            
+            # Mots-clés SEO pour cette ville
+            meta_keywords = f"spectacle {city_name.lower()}, animation {city_name.lower()}, artiste {city_name.lower()}, compagnie {city_name.lower()}, théâtre {city_name.lower()}, cirque {city_name.lower()}, {city['region'].lower()}"
+            
+            return render_template(
+                "city_spectacles.html",
+                user=current_user(),
+                city=city,
+                shows=shows_paginated.items,
+                pagination=shows_paginated,
+                total_shows=total_shows,
+                category=category,
+                age_range=age_range,
+                meta_title=meta_title,
+                meta_description=meta_description,
+                meta_keywords=meta_keywords
+            )
+
+    # ----------------------------
+    # Routes SEO par catégorie
+    # ----------------------------
+    @app.get("/<category_slug>/")
+    def seo_category(category_slug):
+        if category_slug not in SEO_CATEGORIES:
+            abort(404)
+        return redirect(url_for("catalogue", category=SEO_CATEGORIES[category_slug]), code=301)
+
+    @app.get("/<category_slug>/<city_slug>/")
+    def seo_category_city(category_slug, city_slug):
+        if category_slug not in SEO_CATEGORIES:
+            abort(404)
+        return redirect(
+            url_for("catalogue", category=SEO_CATEGORIES[category_slug], location=city_slug),
+            code=301
+        )
+
 
 # -----------------------------------------------------
 # Entrée
@@ -4100,115 +4212,3 @@ def admin_demande_ecole_notes(demande_id):
     db.session.commit()
     flash("Notes enregistrées.", "success")
     return redirect(url_for("admin_demande_ecole_detail", demande_id=demande_id))
-
-    # ----------------------------
-    # Routes SEO pour les villes
-    # ----------------------------
-    @app.route("/spectacles-<city_slug>")
-    def city_spectacles(city_slug):
-        """Page SEO dédiée pour chaque ville française avec spectacles locaux"""
-        # Récupérer les données de la ville
-        city = get_city_by_slug(city_slug)
-        
-        # 404 si la ville n'existe pas dans notre liste
-        if not city:
-            abort(404)
-        
-        # Récupérer les filtres optionnels
-        category = request.args.get("category", "", type=str).strip()
-        age_range = request.args.get("age", "", type=str).strip()
-        page = request.args.get("page", 1, type=int)
-        
-        # Construire la requête de base (spectacles approuvés uniquement)
-        shows = Show.query.filter(Show.approved == True)
-        
-        # Filtrer par ville (on cherche dans location et region)
-        # La colonne location peut contenir plusieurs villes séparées par des virgules
-        city_name = city['name']
-        shows = shows.filter(
-            or_(
-                Show.location.ilike(f"%{city_name}%"),
-                Show.region.ilike(f"%{city['region']}%")
-            )
-        )
-        
-        # Filtrer par catégorie si spécifiée
-        if category:
-            shows = shows.filter(Show.category.ilike(f"%{category}%"))
-        
-        # Filtrer par âge si spécifié
-        if age_range:
-            shows = shows.filter(Show.age_range.ilike(f"%{age_range}%"))
-        
-        # Trier par ordre d'affichage puis date
-        shows = shows.order_by(Show.display_order.asc(), Show.created_at.desc())
-        
-        # Pagination (12 spectacles par page)
-        per_page = 12
-        shows_paginated = shows.paginate(page=page, per_page=per_page, error_out=False)
-        
-        # Compter le nombre de spectacles pour cette ville
-        total_shows = shows.count()
-        
-        # Générer les méta-données SEO
-        meta_title = f"Spectacles à {city_name} ({city['department']}) - Artistes et Compagnies"
-        meta_description = f"Découvrez {total_shows} spectacles, animations et artistes disponibles à {city_name} en {city['region']}. Théâtre, cirque, magie, clown, concerts pour tous les âges."
-        
-        # Mots-clés SEO pour cette ville
-        meta_keywords = f"spectacle {city_name.lower()}, animation {city_name.lower()}, artiste {city_name.lower()}, compagnie {city_name.lower()}, théâtre {city_name.lower()}, cirque {city_name.lower()}, {city['region'].lower()}"
-        
-        return render_template(
-            "city_spectacles.html",
-            user=current_user(),
-            city=city,
-            shows=shows_paginated.items,
-            pagination=shows_paginated,
-            total_shows=total_shows,
-            category=category,
-            age_range=age_range,
-            meta_title=meta_title,
-            meta_description=meta_description,
-            meta_keywords=meta_keywords
-        )
-
-    # ----------------------------
-    # Routes SEO par catégorie
-    # ----------------------------
-    SEO_CATEGORIES = {
-        "marionnette": "marionnette",
-        "magie": "magie",
-        "clown": "clown",
-        "theatre": "théâtre",
-        "danse": "danse",
-        "spectacle-enfant": "enfant",
-        "enfant": "enfant",
-        "atelier": "atelier",
-        "concert": "concert",
-        "cirque": "cirque",
-        "spectacle-de-rue": "rue",
-        "rue": "rue",
-        "orchestre": "orchestre",
-        "arbre-de-noel": "arbre de noël",
-        "animation-ecole": "animation école",
-        "fete-de-village": "fête de village",
-        "une": "Spectacle à la une",
-    }
-
-    @app.get("/<category_slug>/")
-    def seo_category(category_slug):
-        if category_slug not in SEO_CATEGORIES:
-            abort(404)
-        return redirect(url_for("catalogue", category=SEO_CATEGORIES[category_slug]), code=301)
-
-    @app.get("/<category_slug>/<city_slug>/")
-    def seo_category_city(category_slug, city_slug):
-        if category_slug not in SEO_CATEGORIES:
-            abort(404)
-        return redirect(
-            url_for("catalogue", category=SEO_CATEGORIES[category_slug], location=city_slug),
-            code=301
-        )
-
-if __name__ == "__main__":
-    import os
-    app.run(debug=True, port=int(os.environ.get("PORT", 5000)))
