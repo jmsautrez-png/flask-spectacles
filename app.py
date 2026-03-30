@@ -435,21 +435,44 @@ def create_app() -> Flask:
             is_bot = is_bot_visitor(user_agent_str, geo_data['isp'])
             
             # Enregistrer la visite avec géolocalisation et détection de bot
-            visitor_log = VisitorLog(
-                page_url=request.path[:300],
-                referrer=request.referrer[:300] if request.referrer else None,
-                user_agent=user_agent_str,
-                ip_anonymized=ip_anonymized,
-                session_id=session.get('visitor_id'),
-                user_id=user_id,
-                city=geo_data['city'],
-                region=geo_data['region'],
-                country=geo_data['country'],
-                isp=geo_data['isp'],
-                is_bot=is_bot
-            )
-            db.session.add(visitor_log)
-            db.session.commit()
+            # Vérifier si la colonne is_bot existe (compatibilité migration)
+            try:
+                visitor_log = VisitorLog(
+                    page_url=request.path[:300],
+                    referrer=request.referrer[:300] if request.referrer else None,
+                    user_agent=user_agent_str,
+                    ip_anonymized=ip_anonymized,
+                    session_id=session.get('visitor_id'),
+                    user_id=user_id,
+                    city=geo_data['city'],
+                    region=geo_data['region'],
+                    country=geo_data['country'],
+                    isp=geo_data['isp'],
+                    is_bot=is_bot
+                )
+                db.session.add(visitor_log)
+                db.session.commit()
+            except Exception as insert_error:
+                # Si la colonne is_bot n'existe pas encore, insérer sans ce champ
+                db.session.rollback()
+                if 'is_bot' in str(insert_error).lower() or 'column' in str(insert_error).lower():
+                    app.logger.warning(f"[TRACKING] Colonne is_bot manquante, insertion sans ce champ")
+                    visitor_log = VisitorLog(
+                        page_url=request.path[:300],
+                        referrer=request.referrer[:300] if request.referrer else None,
+                        user_agent=user_agent_str,
+                        ip_anonymized=ip_anonymized,
+                        session_id=session.get('visitor_id'),
+                        user_id=user_id,
+                        city=geo_data['city'],
+                        region=geo_data['region'],
+                        country=geo_data['country'],
+                        isp=geo_data['isp']
+                    )
+                    db.session.add(visitor_log)
+                    db.session.commit()
+                else:
+                    raise insert_error
         except Exception as e:
             # Ne pas bloquer le site si le tracking échoue
             app.logger.warning(f"[TRACKING] Erreur lors de l'enregistrement: {e}")
