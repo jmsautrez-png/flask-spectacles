@@ -2004,6 +2004,7 @@ def register_routes(app: Flask) -> None:
     def admin_statistics():
         """Page de statistiques des visiteurs (conforme RGPD - données anonymisées)"""
         from sqlalchemy import func, desc
+        from sqlalchemy.exc import ProgrammingError
         from datetime import timedelta
         
         # Période sélectionnée (par défaut: 7 derniers jours)
@@ -2022,6 +2023,51 @@ def register_routes(app: Flask) -> None:
         
         # Nombre total de visites sur la période
         total_visits = VisitorLog.query.filter(VisitorLog.visited_at >= date_limit).count()
+        
+        # Vérifier si la colonne is_bot existe (gestion migration)
+        try:
+            # Test de la colonne is_bot
+            test_query = VisitorLog.query.filter(VisitorLog.is_bot == True).limit(1).count()
+            has_is_bot_column = True
+        except ProgrammingError:
+            has_is_bot_column = False
+            db.session.rollback()
+        
+        # Si la colonne n'existe pas, afficher un message au lieu d'une erreur 500
+        if not has_is_bot_column:
+            return f"""
+            <html>
+            <head>
+                <title>Migration requise</title>
+                <style>
+                    body {{ font-family: Arial, sans-serif; padding: 40px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; }}
+                    .container {{ max-width: 600px; margin: 0 auto; background: rgba(255,255,255,0.1); padding: 30px; border-radius: 10px; }}
+                    h1 {{ margin-top: 0; }}
+                    a {{ display: inline-block; margin-top: 20px; padding: 12px 24px; background: #4CAF50; color: white; text-decoration: none; border-radius: 5px; }}
+                    a:hover {{ background: #45a049; }}
+                    .warning {{ background: rgba(255,193,7,0.2); padding: 15px; border-left: 4px solid #FFC107; margin: 20px 0; }}
+                </style>
+            </head>
+            <body>
+                <div class="container">
+                    <h1>⚙️ Migration de base de données requise</h1>
+                    <div class="warning">
+                        <strong>⚠️ Action requise</strong><br>
+                        La colonne 'is_bot' n'existe pas encore dans la table visitor_log.
+                    </div>
+                    <p>Pour activer la détection des robots et afficher les statistiques complètes, vous devez exécuter la migration une seule fois.</p>
+                    <h3>📋 Instructions :</h3>
+                    <ol>
+                        <li>Cliquez sur le bouton ci-dessous</li>
+                        <li>Attendez le message de confirmation</li>
+                        <li>Revenez sur cette page</li>
+                    </ol>
+                    <a href="/admin/migrate-is-bot">🚀 Exécuter la migration</a>
+                    <a href="/admin" style="background: #2196F3;">← Retour admin</a>
+                </div>
+            </body>
+            </html>
+            """
         
         # Séparation robots vs humains
         total_bots = VisitorLog.query.filter(
