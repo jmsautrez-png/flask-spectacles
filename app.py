@@ -2147,6 +2147,97 @@ def register_routes(app: Flask) -> None:
             period_label=period_label
         )
     
+    # Route temporaire pour migration is_bot (À SUPPRIMER après exécution)
+    @app.route("/admin/migrate-is-bot")
+    @login_required
+    @admin_required
+    def migrate_is_bot():
+        """Migration temporaire : Ajoute la colonne is_bot à visitor_log"""
+        from sqlalchemy import text
+        
+        try:
+            # Vérifier si la colonne existe déjà
+            check_query = text("""
+                SELECT column_name 
+                FROM information_schema.columns 
+                WHERE table_name='visitor_log' 
+                AND column_name='is_bot'
+            """)
+            
+            result = db.session.execute(check_query).fetchone()
+            
+            if result:
+                return "<h1>✓ Migration déjà effectuée</h1><p>La colonne 'is_bot' existe déjà dans visitor_log</p><a href='/admin'>Retour admin</a>"
+            
+            # Ajouter la colonne is_bot
+            db.session.execute(text("""
+                ALTER TABLE visitor_log 
+                ADD COLUMN is_bot BOOLEAN DEFAULT FALSE NOT NULL
+            """))
+            
+            # Créer un index
+            db.session.execute(text("""
+                CREATE INDEX IF NOT EXISTS idx_visitor_log_is_bot 
+                ON visitor_log(is_bot)
+            """))
+            
+            # Marquer les bots existants (User-Agent)
+            db.session.execute(text("""
+                UPDATE visitor_log 
+                SET is_bot = TRUE 
+                WHERE LOWER(user_agent) LIKE '%bot%'
+                   OR LOWER(user_agent) LIKE '%crawler%'
+                   OR LOWER(user_agent) LIKE '%spider%'
+                   OR LOWER(user_agent) LIKE '%scraper%'
+                   OR LOWER(user_agent) LIKE '%wget%'
+                   OR LOWER(user_agent) LIKE '%curl%'
+                   OR LOWER(user_agent) LIKE '%python%'
+                   OR LOWER(user_agent) LIKE '%go-http%'
+            """))
+            
+            # Marquer les bots existants (ISP datacenter)
+            db.session.execute(text("""
+                UPDATE visitor_log 
+                SET is_bot = TRUE 
+                WHERE (
+                    LOWER(isp) LIKE '%amazon%'
+                    OR LOWER(isp) LIKE '%aws%'
+                    OR LOWER(isp) LIKE '%google cloud%'
+                    OR LOWER(isp) LIKE '%microsoft corporation%'
+                    OR LOWER(isp) LIKE '%tencent%'
+                    OR LOWER(isp) LIKE '%alibaba%'
+                )
+                AND (
+                    user_agent NOT LIKE '%Chrome%'
+                    AND user_agent NOT LIKE '%Firefox%'
+                    AND user_agent NOT LIKE '%Safari%'
+                    AND user_agent NOT LIKE '%Edge%'
+                )
+            """))
+            
+            db.session.commit()
+            
+            # Statistiques
+            total = db.session.execute(text("SELECT COUNT(*) FROM visitor_log")).scalar()
+            bots = db.session.execute(text("SELECT COUNT(*) FROM visitor_log WHERE is_bot = TRUE")).scalar()
+            humans = total - bots
+            
+            return f"""
+            <h1>✅ Migration réussie !</h1>
+            <h2>📊 Statistiques :</h2>
+            <ul>
+                <li>Total visiteurs: {total}</li>
+                <li>Robots détectés: {bots} ({bots*100//total if total > 0 else 0}%)</li>
+                <li>Humains: {humans} ({humans*100//total if total > 0 else 0}%)</li>
+            </ul>
+            <p><strong>✓ Vous pouvez maintenant accéder aux statistiques avec filtres robots/humains</strong></p>
+            <a href="/admin/statistiques">Voir les statistiques</a> | <a href="/admin">Retour admin</a>
+            """
+            
+        except Exception as e:
+            db.session.rollback()
+            return f"<h1>❌ Erreur lors de la migration</h1><pre>{str(e)}</pre><a href='/admin'>Retour admin</a>"
+    
     # Route de DEBUG pour voir tous les headers HTTP (TEMPORAIRE)
     @app.route("/admin/debug-headers")
     @admin_required
