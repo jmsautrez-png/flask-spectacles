@@ -1,0 +1,814 @@
+{% extends "base.html" %}
+{% block title %}Demande de spectacle pédagogique - {{ theme_label }} - Spectacle'ment VØtre{% endblock %}
+
+{% block meta_description %}Formulaire de demande de spectacle ou animation pédagogique pour votre école. Thème : {{ theme_label }}. Accompagnement personnalisé.{% endblock %}
+
+{% block content %}
+<style>
+  .demande-ecole-wrap {
+    background: linear-gradient(135deg, #1b2a4e 0%, #355c7d 100%);
+    border: 2px solid #355c7d;
+    border-radius: 16px;
+    padding: 32px;
+    margin-bottom: 32px;
+    color: #fff;
+  }
+  
+  .demande-header {
+    background: linear-gradient(90deg, #1a237e 0%, #283e5e 100%);
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 25px;
+    text-align: center;
+  }
+  
+  .demande-header h1 {
+    margin: 0 0 10px 0;
+    font-size: 1.4rem;
+    color: #fff;
+  }
+  
+  .demande-header .theme-badge {
+    display: inline-block;
+    background: #ffc107;
+    color: #000;
+    padding: 8px 20px;
+    border-radius: 20px;
+    font-weight: 700;
+    font-size: 1.1rem;
+  }
+  
+  .demande-section {
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 20px;
+  }
+  
+  .demande-section legend {
+    color: #ffc107;
+    font-weight: 700;
+    font-size: 1.1rem;
+    padding: 0 10px;
+  }
+  
+  .grid-2 {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+  }
+  
+  .grid-3 {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+  }
+  
+  @media (max-width: 600px) {
+    .grid-2, .grid-3 {
+      grid-template-columns: 1fr;
+    }
+    
+    .demande-ecole-wrap {
+      padding: 18px;
+    }
+  }
+  
+  label {
+    display: block;
+    margin-bottom: 16px;
+  }
+  
+  .label-text {
+    display: block;
+    margin-bottom: 6px;
+    font-weight: 600;
+    color: rgba(255,255,255,0.9);
+  }
+  
+  .req {
+    color: #ff6b6b;
+  }
+  
+  @keyframes pulse-empty {
+    0%, 100% { 
+      box-shadow: 0 0 0 0 rgba(255, 82, 82, 0);
+      border-color: rgba(255, 82, 82, 0.4);
+    }
+    50% { 
+      box-shadow: 0 0 12px 3px rgba(255, 82, 82, 0.5);
+      border-color: rgba(255, 82, 82, 0.8);
+    }
+  }
+  
+  .field-empty {
+    animation: pulse-empty 2s ease-in-out infinite;
+  }
+  
+  .field-filled {
+    animation: none;
+    border-color: rgba(76, 175, 80, 0.5) !important;
+    box-shadow: none;
+  }
+  
+  input[type="text"],
+  input[type="email"],
+  input[type="tel"],
+  input[type="number"],
+  select,
+  textarea {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 8px;
+    background: rgba(0,0,0,0.3);
+    color: #fff;
+    font-size: 15px;
+    transition: border-color 0.3s, box-shadow 0.3s;
+  }
+  
+  input:focus, select:focus, textarea:focus {
+    outline: none;
+    border-color: #ffc107;
+    animation: none;
+  }
+  
+  .hint {
+    display: block;
+    margin-top: 4px;
+    font-size: 0.85rem;
+    color: rgba(255,255,255,0.6);
+  }
+  
+  .checkbox-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: 10px;
+  }
+  
+  .checkbox-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 14px;
+    background: rgba(255,255,255,0.1);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  
+  .checkbox-item:hover {
+    background: rgba(255,255,255,0.15);
+  }
+  
+  .checkbox-item input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    accent-color: #ffc107;
+  }
+  
+  .sous-themes-section {
+    background: rgba(255,193,7,0.1);
+    border: 1px solid rgba(255,193,7,0.3);
+    border-radius: 10px;
+    padding: 15px;
+    margin-top: 15px;
+  }
+  
+  .sous-themes-section h4 {
+    color: #ffc107;
+    margin: 0 0 12px 0;
+    font-size: 1rem;
+  }
+  
+  .radio-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  
+  .radio-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 14px;
+    background: rgba(255,255,255,0.1);
+    border-radius: 8px;
+    cursor: pointer;
+  }
+  
+  .radio-item input[type="radio"] {
+    accent-color: #ffc107;
+  }
+  
+  .btn-submit {
+    display: block;
+    width: 100%;
+    padding: 16px;
+    background: linear-gradient(135deg, #ffc107 0%, #ffeb3b 100%);
+    color: #000;
+    border: none;
+    border-radius: 12px;
+    font-size: 1.2rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.3s;
+  }
+  
+  .btn-submit:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 20px rgba(255,193,7,0.4);
+  }
+  
+  .intro-text {
+    background: rgba(255,255,255,0.1);
+    border-left: 4px solid #ffc107;
+    padding: 15px 20px;
+    margin-bottom: 25px;
+    border-radius: 0 8px 8px 0;
+    font-style: italic;
+  }
+  
+  .back-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    color: rgba(255,255,255,0.8);
+    text-decoration: none;
+    margin-bottom: 20px;
+    transition: color 0.2s;
+  }
+  
+  .back-link:hover {
+    color: #ffc107;
+  }
+</style>
+
+<a href="{{ url_for('ecoles_themes') }}" class="back-link">
+  ← Retour aux thèmes
+</a>
+
+<div class="demande-ecole-wrap">
+  <div class="demande-header">
+    {% if theme == 'atelier-divers' %}
+    <h1>🎨 Demande d'atelier pédagogique</h1>
+    {% else %}
+    <h1>📝 Demande de spectacle pédagogique</h1>
+    {% endif %}
+    <span class="theme-badge">{{ theme_emoji }} {{ theme_label }}</span>
+  </div>
+  
+  <div class="intro-text">
+    {% if theme == 'atelier-divers' %}
+    Ce questionnaire nous permet de comprendre précisément votre projet d'atelier pédagogique 
+    afin de vous proposer l'intervenant le plus adapté à vos besoins.
+    {% else %}
+    Ce questionnaire nous permet de comprendre précisément votre projet pédagogique 
+    afin de vous proposer la solution artistique la plus adaptée.
+    {% endif %}
+  </div>
+
+  <form action="{{ url_for('demande_ecole') }}" method="POST" novalidate>
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <input type="hidden" name="auto_datetime" id="auto_datetime" value="">
+    <input type="hidden" name="theme_principal" value="{{ theme }}">
+    
+    <!-- Section 1: Informations sur l'école -->
+    <fieldset class="demande-section">
+      <legend>1️⃣ Votre établissement</legend>
+      
+      <div class="grid-2">
+        <label>
+          <span class="label-text">Nom de l'école <span class="req">*</span></span>
+          <input type="text" name="nom_ecole" required placeholder="École maternelle / primaire..."
+                 value="{{ request.form.get('nom_ecole', '') }}">
+        </label>
+        
+        <label>
+          <span class="label-text">Type d'établissement <span class="req">*</span></span>
+          <select name="type_etablissement" required>
+            <option value="">-- Choisir --</option>
+            <option value="Maternelle" {{ 'selected' if request.form.get('type_etablissement') == 'Maternelle' }}>Maternelle</option>
+            <option value="Primaire" {{ 'selected' if request.form.get('type_etablissement') == 'Primaire' }}>Primaire (élémentaire)</option>
+            <option value="Maternelle et Primaire" {{ 'selected' if request.form.get('type_etablissement') == 'Maternelle et Primaire' }}>Maternelle et Primaire</option>
+            <option value="Mairie" {{ 'selected' if request.form.get('type_etablissement') == 'Mairie' }}>Mairie</option>
+            <option value="MJC" {{ 'selected' if request.form.get('type_etablissement') == 'MJC' }}>MJC</option>
+            <option value="CLSH" {{ 'selected' if request.form.get('type_etablissement') == 'CLSH' }}>CLSH</option>
+            <option value="APE" {{ 'selected' if request.form.get('type_etablissement') == 'APE' }}>APE (Association Parents d'Élèves)</option>
+          </select>
+        </label>
+      </div>
+      
+      <label>
+        <span class="label-text">Adresse de l'école</span>
+        <input type="text" name="adresse" placeholder="Numéro et rue..."
+               value="{{ request.form.get('adresse', '') }}">
+      </label>
+      
+      <div class="grid-2">
+        <label>
+          <span class="label-text">Code postal <span class="req">*</span></span>
+          <input type="text" name="code_postal" required id="code_postal"
+                 pattern="[0-9]{5}" maxlength="5" inputmode="numeric"
+                 placeholder="Ex: 75001"
+                 value="{{ request.form.get('code_postal', '') }}">
+        </label>
+        
+        <label>
+          <span class="label-text">Ville <span class="req">*</span></span>
+          <input type="text" name="ville" required placeholder="Ville..."
+                 value="{{ request.form.get('ville', '') }}">
+        </label>
+      </div>
+      
+      <label>
+        <span class="label-text">Région</span>
+        <input type="text" name="region" id="region" readonly
+               placeholder="Déterminée automatiquement"
+               value="{{ request.form.get('region', '') }}"
+               style="background: rgba(0,0,0,0.5); cursor: not-allowed;">
+      </label>
+    </fieldset>
+    
+    <!-- Section 2: Contact -->
+    <fieldset class="demande-section">
+      <legend>2️⃣ Personne contact</legend>
+      
+      <div class="grid-2">
+        <label>
+          <span class="label-text">Nom et prénom <span class="req">*</span></span>
+          <input type="text" name="nom_contact" required placeholder="Votre nom..."
+                 value="{{ request.form.get('nom_contact', '') }}">
+        </label>
+        
+        <label>
+          <span class="label-text">Fonction</span>
+          <select name="fonction_contact">
+            <option value="">-- Choisir --</option>
+            <option value="Directeur/Directrice" {{ 'selected' if request.form.get('fonction_contact') == 'Directeur/Directrice' }}>Directeur/Directrice</option>
+            <option value="Enseignant(e)" {{ 'selected' if request.form.get('fonction_contact') == 'Enseignant(e)' }}>Enseignant(e)</option>
+            <option value="Parent d'élève" {{ 'selected' if request.form.get('fonction_contact') == "Parent d'élève" }}>Parent d'élève</option>
+            <option value="ATSEM" {{ 'selected' if request.form.get('fonction_contact') == 'ATSEM' }}>ATSEM</option>
+            <option value="Maire" {{ 'selected' if request.form.get('fonction_contact') == 'Maire' }}>Maire</option>
+            <option value="Élu(e)" {{ 'selected' if request.form.get('fonction_contact') == 'Élu(e)' }}>Élu(e)</option>
+            <option value="Autre" {{ 'selected' if request.form.get('fonction_contact') == 'Autre' }}>Autre</option>
+          </select>
+        </label>
+      </div>
+      
+      <div class="grid-2">
+        <label>
+          <span class="label-text">Email <span class="req">*</span></span>
+          <input type="email" name="email" required placeholder="votre@email.fr"
+                 value="{{ request.form.get('email', '') }}">
+        </label>
+        
+        <label>
+          <span class="label-text">Téléphone <span class="req">*</span></span>
+          <input type="tel" name="telephone" required inputmode="tel"
+                 placeholder="06 00 00 00 00"
+                 value="{{ request.form.get('telephone', '') }}">
+        </label>
+      </div>
+    </fieldset>
+    
+    <!-- Section 3: Classes concernées -->
+    <fieldset class="demande-section">
+      <legend>3️⃣ Classes concernées</legend>
+      
+      <div class="grid-2">
+        <label>
+          <span class="label-text">Nombre de classes</span>
+          <input type="text" name="nombre_classes" placeholder="Ex: 5"
+                 value="{{ request.form.get('nombre_classes', '') }}">
+        </label>
+        
+        <label>
+          <span class="label-text">Nombre d'élèves (approximatif)</span>
+          <input type="text" name="nombre_eleves" placeholder="Ex: 120"
+                 value="{{ request.form.get('nombre_eleves', '') }}">
+        </label>
+      </div>
+      
+      <label>
+        <span class="label-text">Niveaux concernés</span>
+        <div class="checkbox-group">
+          <label class="checkbox-item">
+            <input type="checkbox" name="niveaux" value="PS"> PS
+          </label>
+          <label class="checkbox-item">
+            <input type="checkbox" name="niveaux" value="MS"> MS
+          </label>
+          <label class="checkbox-item">
+            <input type="checkbox" name="niveaux" value="GS"> GS
+          </label>
+          <label class="checkbox-item">
+            <input type="checkbox" name="niveaux" value="CP"> CP
+          </label>
+          <label class="checkbox-item">
+            <input type="checkbox" name="niveaux" value="CE1"> CE1
+          </label>
+          <label class="checkbox-item">
+            <input type="checkbox" name="niveaux" value="CE2"> CE2
+          </label>
+          <label class="checkbox-item">
+            <input type="checkbox" name="niveaux" value="CM1"> CM1
+          </label>
+          <label class="checkbox-item">
+            <input type="checkbox" name="niveaux" value="CM2"> CM2
+          </label>
+        </div>
+      </label>
+    </fieldset>
+    
+    <!-- Section 4: Thème et objectifs -->
+    <fieldset class="demande-section">
+      <legend>4️⃣ Objectifs pédagogiques</legend>
+      
+      <p style="color: rgba(255,255,255,0.8); margin-bottom: 15px;">
+        Thème sélectionné : <strong style="color: #ffc107;">{{ theme_label }}</strong>
+      </p>
+      
+      <!-- Sous-thèmes conditionnels selon le thème -->
+      {% if theme == 'ecologie' %}
+      <div class="sous-themes-section">
+        <h4>🌍 Précisez les aspects écologiques qui vous intéressent :</h4>
+        <div class="checkbox-group">
+          <label class="checkbox-item"><input type="checkbox" name="sous_themes" value="Protection de la nature"> Protection de la nature</label>
+          <label class="checkbox-item"><input type="checkbox" name="sous_themes" value="Tri des déchets"> Tri des déchets</label>
+          <label class="checkbox-item"><input type="checkbox" name="sous_themes" value="Économie d'énergie"> Économie d'énergie</label>
+          <label class="checkbox-item"><input type="checkbox" name="sous_themes" value="Biodiversité"> Biodiversité</label>
+          <label class="checkbox-item"><input type="checkbox" name="sous_themes" value="Eau & ressources naturelles"> Eau & ressources naturelles</label>
+          <label class="checkbox-item"><input type="checkbox" name="sous_themes" value="Consommation responsable"> Consommation responsable</label>
+        </div>
+      </div>
+      {% elif theme == 'vivre-ensemble' %}
+      <div class="sous-themes-section">
+        <h4>🤝 Précisez les aspects du vivre ensemble :</h4>
+        <div class="checkbox-group">
+          <label class="checkbox-item"><input type="checkbox" name="sous_themes" value="Prévention du harcèlement"> Prévention du harcèlement</label>
+          <label class="checkbox-item"><input type="checkbox" name="sous_themes" value="Respect & tolérance"> Respect & tolérance</label>
+          <label class="checkbox-item"><input type="checkbox" name="sous_themes" value="Empathie"> Empathie</label>
+          <label class="checkbox-item"><input type="checkbox" name="sous_themes" value="Gestion des conflits"> Gestion des conflits</label>
+          <label class="checkbox-item"><input type="checkbox" name="sous_themes" value="Valeurs citoyennes"> Valeurs citoyennes</label>
+          <label class="checkbox-item"><input type="checkbox" name="sous_themes" value="Inclusion"> Inclusion</label>
+        </div>
+      </div>
+      {% elif theme == 'cultures-monde' %}
+      <div class="sous-themes-section">
+        <h4>🌐 Précisez les aspects culturels :</h4>
+        <div class="checkbox-group">
+          <label class="checkbox-item"><input type="checkbox" name="sous_themes" value="Musiques du monde"> Musiques du monde</label>
+          <label class="checkbox-item"><input type="checkbox" name="sous_themes" value="Contes traditionnels"> Contes traditionnels</label>
+          <label class="checkbox-item"><input type="checkbox" name="sous_themes" value="Danses"> Danses</label>
+          <label class="checkbox-item"><input type="checkbox" name="sous_themes" value="Découverte des pays"> Découverte des pays</label>
+          <label class="checkbox-item"><input type="checkbox" name="sous_themes" value="Instruments"> Instruments</label>
+        </div>
+      </div>
+      {% elif theme == 'prevention' %}
+      <div class="sous-themes-section">
+        <h4>❤️ Précisez les aspects prévention :</h4>
+        <div class="checkbox-group">
+          <label class="checkbox-item"><input type="checkbox" name="sous_themes" value="Sécurité routière"> Sécurité routière</label>
+          <label class="checkbox-item"><input type="checkbox" name="sous_themes" value="Hygiène & santé"> Hygiène & santé</label>
+          <label class="checkbox-item"><input type="checkbox" name="sous_themes" value="Alimentation équilibrée"> Alimentation équilibrée</label>
+          <label class="checkbox-item"><input type="checkbox" name="sous_themes" value="Gestion des émotions"> Gestion des émotions</label>
+          <label class="checkbox-item"><input type="checkbox" name="sous_themes" value="Premiers secours"> Premiers secours</label>
+        </div>
+      </div>
+      {% elif theme == 'atelier-divers' %}
+      <div class="sous-themes-section">
+        <h4>🎨 Quel type d'atelier vous intéresse ?</h4>
+        <div class="checkbox-group">
+          <label class="checkbox-item"><input type="checkbox" name="sous_themes" value="Fabrication de marionnettes"> Fabrication de marionnettes</label>
+          <label class="checkbox-item"><input type="checkbox" name="sous_themes" value="Fabrication d'instruments"> Fabrication d'instruments</label>
+          <label class="checkbox-item"><input type="checkbox" name="sous_themes" value="Initiation musicale"> Initiation musicale</label>
+          <label class="checkbox-item"><input type="checkbox" name="sous_themes" value="Calligraphie"> Calligraphie</label>
+          <label class="checkbox-item"><input type="checkbox" name="sous_themes" value="Théâtre / Expression dramatique"> Théâtre / Expression dramatique</label>
+          <label class="checkbox-item"><input type="checkbox" name="sous_themes" value="Arts plastiques"> Arts plastiques</label>
+          <label class="checkbox-item"><input type="checkbox" name="sous_themes" value="Danse"> Danse</label>
+          <label class="checkbox-item"><input type="checkbox" name="sous_themes" value="Éveil corporel"> Éveil corporel</label>
+          <label class="checkbox-item"><input type="checkbox" name="sous_themes" value="Cirque"> Cirque</label>
+          <label class="checkbox-item"><input type="checkbox" name="sous_themes" value="Conte & Oralité"> Conte & Oralité</label>
+          <label class="checkbox-item"><input type="checkbox" name="sous_themes" value="Autre atelier créatif"> Autre atelier créatif</label>
+        </div>
+      </div>
+      {% endif %}
+      
+      <label style="margin-top: 20px;">
+        <span class="label-text">Décrivez vos objectifs pédagogiques <span class="req">*</span></span>
+        <textarea name="objectifs_pedagogiques" rows="5" required
+                  placeholder="Quels sont vos objectifs ? (sensibilisation, prévention, cohésion, apprentissages...)">{{ request.form.get('objectifs_pedagogiques', '') }}</textarea>
+        <small class="hint">Soyez le plus précis possible pour que nous puissions vous proposer le spectacle idéal.</small>
+      </label>
+    </fieldset>
+    
+    <!-- Section 5: Type d'animation -->
+    <fieldset class="demande-section">
+      {% if theme == 'atelier-divers' %}
+      <legend>5️⃣ Format d'atelier souhaité</legend>
+      
+      <div class="checkbox-group">
+        <label class="checkbox-item"><input type="checkbox" name="types_animation" value="Atelier découverte (1h)"> Atelier découverte (1h)</label>
+        <label class="checkbox-item"><input type="checkbox" name="types_animation" value="Atelier approfondi (2h)"> Atelier approfondi (2h)</label>
+        <label class="checkbox-item"><input type="checkbox" name="types_animation" value="Cycle d'ateliers (plusieurs séances)"> Cycle d'ateliers (plusieurs séances)</label>
+        <label class="checkbox-item"><input type="checkbox" name="types_animation" value="Atelier parent-enfant"> Atelier parent-enfant</label>
+        <label class="checkbox-item"><input type="checkbox" name="types_animation" value="Atelier classe entière"> Atelier classe entière</label>
+        <label class="checkbox-item"><input type="checkbox" name="types_animation" value="Atelier demi-groupe"> Atelier demi-groupe</label>
+        <label class="checkbox-item"><input type="checkbox" name="types_animation" value="Restitution finale"> Avec restitution finale</label>
+      </div>
+      
+      {% elif theme == 'noel' %}
+      <legend>5️⃣ Type d'animation souhaitée</legend>
+      <div class="checkbox-group">
+        <label class="checkbox-item"><input type="checkbox" name="types_animation" value="Spectacle de Noël"> Spectacle de Noël</label>
+        <label class="checkbox-item"><input type="checkbox" name="types_animation" value="Arbre de Noël"> Arbre de Noël</label>
+        <label class="checkbox-item"><input type="checkbox" name="types_animation" value="Magie de Noël"> Magie de Noël</label>
+        <label class="checkbox-item"><input type="checkbox" name="types_animation" value="Conte de Noël"> Conte de Noël</label>
+        <label class="checkbox-item"><input type="checkbox" name="types_animation" value="Spectacle musical festif"> Spectacle musical festif</label>
+        <label class="checkbox-item"><input type="checkbox" name="types_animation" value="Marionnettes de Noël"> Marionnettes de Noël</label>
+        <label class="checkbox-item"><input type="checkbox" name="types_animation" value="Clown / Animation festive"> Clown / Animation festive</label>
+        <label class="checkbox-item"><input type="checkbox" name="types_animation" value="Père Noël"> Venue du Père Noël</label>
+      </div>
+      
+      {% elif theme == 'musique' %}
+      <legend>5️⃣ Type d'animation souhaitée</legend>
+      <div class="checkbox-group">
+        <label class="checkbox-item"><input type="checkbox" name="types_animation" value="Concert pédagogique"> Concert pédagogique</label>
+        <label class="checkbox-item"><input type="checkbox" name="types_animation" value="Spectacle musical"> Spectacle musical</label>
+        <label class="checkbox-item"><input type="checkbox" name="types_animation" value="Conte musical"> Conte musical</label>
+        <label class="checkbox-item"><input type="checkbox" name="types_animation" value="Atelier découverte instruments"> Atelier découverte instruments</label>
+        <label class="checkbox-item"><input type="checkbox" name="types_animation" value="Atelier chant"> Atelier chant</label>
+        <label class="checkbox-item"><input type="checkbox" name="types_animation" value="Éveil musical"> Éveil musical</label>
+        <label class="checkbox-item"><input type="checkbox" name="types_animation" value="Musiques du monde"> Musiques du monde</label>
+      </div>
+      
+      {% elif theme == 'marionnettes' %}
+      <legend>5️⃣ Type d'animation souhaitée</legend>
+      <div class="checkbox-group">
+        <label class="checkbox-item"><input type="checkbox" name="types_animation" value="Spectacle de marionnettes"> Spectacle de marionnettes</label>
+        <label class="checkbox-item"><input type="checkbox" name="types_animation" value="Théâtre d'ombres"> Théâtre d'ombres</label>
+        <label class="checkbox-item"><input type="checkbox" name="types_animation" value="Marionnettes à fils"> Marionnettes à fils</label>
+        <label class="checkbox-item"><input type="checkbox" name="types_animation" value="Marionnettes à gaine"> Marionnettes à gaine</label>
+        <label class="checkbox-item"><input type="checkbox" name="types_animation" value="Atelier fabrication marionnettes"> Atelier fabrication marionnettes</label>
+        <label class="checkbox-item"><input type="checkbox" name="types_animation" value="Conte avec marionnettes"> Conte avec marionnettes</label>
+      </div>
+      
+      {% elif theme == 'theatre' %}
+      <legend>5️⃣ Type d'animation souhaitée</legend>
+      <div class="checkbox-group">
+        <label class="checkbox-item"><input type="checkbox" name="types_animation" value="Pièce de théâtre"> Pièce de théâtre</label>
+        <label class="checkbox-item"><input type="checkbox" name="types_animation" value="Théâtre interactif"> Théâtre interactif</label>
+        <label class="checkbox-item"><input type="checkbox" name="types_animation" value="Conte théâtralisé"> Conte théâtralisé</label>
+        <label class="checkbox-item"><input type="checkbox" name="types_animation" value="Atelier théâtre"> Atelier théâtre</label>
+        <label class="checkbox-item"><input type="checkbox" name="types_animation" value="Improvisation"> Improvisation</label>
+        <label class="checkbox-item"><input type="checkbox" name="types_animation" value="Clown"> Clown</label>
+        <label class="checkbox-item"><input type="checkbox" name="types_animation" value="Mime"> Mime</label>
+      </div>
+      
+      {% elif theme == 'cirque' %}
+      <legend>5️⃣ Type d'animation souhaitée</legend>
+      <div class="checkbox-group">
+        <label class="checkbox-item"><input type="checkbox" name="types_animation" value="Spectacle de cirque"> Spectacle de cirque</label>
+        <label class="checkbox-item"><input type="checkbox" name="types_animation" value="Atelier cirque"> Atelier cirque</label>
+        <label class="checkbox-item"><input type="checkbox" name="types_animation" value="Jonglerie"> Jonglerie</label>
+        <label class="checkbox-item"><input type="checkbox" name="types_animation" value="Acrobaties"> Acrobaties</label>
+        <label class="checkbox-item"><input type="checkbox" name="types_animation" value="Clown"> Clown</label>
+        <label class="checkbox-item"><input type="checkbox" name="types_animation" value="Magie"> Magie</label>
+        <label class="checkbox-item"><input type="checkbox" name="types_animation" value="Équilibre"> Équilibre</label>
+      </div>
+      
+      {% elif theme == 'carnaval' %}
+      <legend>5️⃣ Type d'animation souhaitée</legend>
+      <div class="checkbox-group">
+        <label class="checkbox-item"><input type="checkbox" name="types_animation" value="Spectacle de carnaval"> Spectacle de carnaval</label>
+        <label class="checkbox-item"><input type="checkbox" name="types_animation" value="Défilé costumé"> Défilé costumé</label>
+        <label class="checkbox-item"><input type="checkbox" name="types_animation" value="Animation musicale"> Animation musicale</label>
+        <label class="checkbox-item"><input type="checkbox" name="types_animation" value="Atelier maquillage"> Atelier maquillage</label>
+        <label class="checkbox-item"><input type="checkbox" name="types_animation" value="Batucada / Percussion"> Batucada / Percussion</label>
+        <label class="checkbox-item"><input type="checkbox" name="types_animation" value="Danse"> Danse</label>
+      </div>
+      
+      {% elif theme == 'litterature' %}
+      <legend>5️⃣ Type d'animation souhaitée</legend>
+      <div class="checkbox-group">
+        <label class="checkbox-item"><input type="checkbox" name="types_animation" value="Conte"> Conte</label>
+        <label class="checkbox-item"><input type="checkbox" name="types_animation" value="Lecture théâtralisée"> Lecture théâtralisée</label>
+        <label class="checkbox-item"><input type="checkbox" name="types_animation" value="Atelier écriture"> Atelier écriture</label>
+        <label class="checkbox-item"><input type="checkbox" name="types_animation" value="Spectacle autour d'un livre"> Spectacle autour d'un livre</label>
+        <label class="checkbox-item"><input type="checkbox" name="types_animation" value="Rencontre auteur/illustrateur"> Rencontre auteur/illustrateur</label>
+        <label class="checkbox-item"><input type="checkbox" name="types_animation" value="Atelier illustration"> Atelier illustration</label>
+      </div>
+      
+      {% elif theme == 'cultures-monde' %}
+      <legend>5️⃣ Type d'animation souhaitée</legend>
+      <div class="checkbox-group">
+        <label class="checkbox-item"><input type="checkbox" name="types_animation" value="Spectacle musical du monde"> Spectacle musical du monde</label>
+        <label class="checkbox-item"><input type="checkbox" name="types_animation" value="Contes du monde"> Contes du monde</label>
+        <label class="checkbox-item"><input type="checkbox" name="types_animation" value="Danse traditionnelle"> Danse traditionnelle</label>
+        <label class="checkbox-item"><input type="checkbox" name="types_animation" value="Atelier instruments du monde"> Atelier instruments du monde</label>
+        <label class="checkbox-item"><input type="checkbox" name="types_animation" value="Voyage musical"> Voyage musical</label>
+        <label class="checkbox-item"><input type="checkbox" name="types_animation" value="Découverte d'une culture"> Découverte d'une culture</label>
+      </div>
+      
+      {% else %}
+      <legend>5️⃣ Type d'animation souhaitée</legend>
+      
+      <div class="checkbox-group">
+        <label class="checkbox-item"><input type="checkbox" name="types_animation" value="Spectacle musical"> Spectacle musical</label>
+        <label class="checkbox-item"><input type="checkbox" name="types_animation" value="Théâtre"> Théâtre</label>
+        <label class="checkbox-item"><input type="checkbox" name="types_animation" value="Marionnettes"> Marionnettes</label>
+        <label class="checkbox-item"><input type="checkbox" name="types_animation" value="Conte musical"> Conte musical</label>
+        <label class="checkbox-item"><input type="checkbox" name="types_animation" value="Spectacle interactif"> Spectacle interactif</label>
+        <label class="checkbox-item"><input type="checkbox" name="types_animation" value="Atelier participatif"> Atelier participatif</label>
+        <label class="checkbox-item"><input type="checkbox" name="types_animation" value="Conférence pédagogique"> Conférence / échange pédagogique</label>
+        <label class="checkbox-item"><input type="checkbox" name="types_animation" value="Cirque"> Cirque</label>
+        <label class="checkbox-item"><input type="checkbox" name="types_animation" value="Magie"> Magie</label>
+      </div>
+      {% endif %}
+    </fieldset>
+    
+    <!-- Section 6: Contraintes techniques -->
+    <fieldset class="demande-section">
+      <legend>6️⃣ Contraintes techniques</legend>
+      
+      <div class="grid-2">
+        <label>
+          <span class="label-text">Salle disponible</span>
+          <div class="checkbox-group">
+            <label class="checkbox-item"><input type="checkbox" name="salle_disponible" value="Salle de classe"> Salle de classe</label>
+            <label class="checkbox-item"><input type="checkbox" name="salle_disponible" value="Salle polyvalente"> Salle polyvalente</label>
+            <label class="checkbox-item"><input type="checkbox" name="salle_disponible" value="Salle de sport"> Salle de sport</label>
+            <label class="checkbox-item"><input type="checkbox" name="salle_disponible" value="Préau"> Préau</label>
+            <label class="checkbox-item"><input type="checkbox" name="salle_disponible" value="Extérieur"> Extérieur</label>
+          </div>
+        </label>
+        
+        <label>
+          <span class="label-text">Surface approximative (m²)</span>
+          <input type="text" name="surface_approximative" placeholder="Ex: 100 m²"
+                 value="{{ request.form.get('surface_approximative', '') }}">
+        </label>
+      </div>
+      
+      <label style="margin-top: 10px;">
+        <span class="label-text">Accès électricité</span>
+        <div class="radio-group">
+          <label class="radio-item">
+            <input type="radio" name="acces_electricite" value="1" checked> Oui
+          </label>
+          <label class="radio-item">
+            <input type="radio" name="acces_electricite" value="0"> Non
+          </label>
+        </div>
+      </label>
+    </fieldset>
+    
+    <!-- Section 7: Période et budget -->
+    <fieldset class="demande-section">
+      <legend>7️⃣ Période & Budget</legend>
+      
+      <div class="grid-2">
+        <label>
+          <span class="label-text">Période souhaitée</span>
+          <input type="text" name="periode_souhaitee" placeholder="Ex: Janvier-Mars, Semaine du goût..."
+                 value="{{ request.form.get('periode_souhaitee', '') }}">
+        </label>
+        
+        <label>
+          <span class="label-text">Date précise (si connue)</span>
+          <input type="text" name="date_precise" placeholder="Ex: 15 mars 2026"
+                 value="{{ request.form.get('date_precise', '') }}">
+        </label>
+      </div>
+      
+      <label>
+        <span class="label-text">Budget approximatif</span>
+        <div class="radio-group">
+          <label class="radio-item"><input type="radio" name="budget" value="-500€"> - 500€</label>
+          <label class="radio-item"><input type="radio" name="budget" value="500-800€"> 500 – 800€</label>
+          <label class="radio-item"><input type="radio" name="budget" value="800-1200€"> 800 – 1200€</label>
+          <label class="radio-item"><input type="radio" name="budget" value="+1200€"> + 1200€</label>
+          <label class="radio-item"><input type="radio" name="budget" value="À définir"> À définir</label>
+        </div>
+        <small class="hint">(facultatif mais très utile)</small>
+      </label>
+    </fieldset>
+    
+    <!-- Section 8: Informations complémentaires -->
+    <fieldset class="demande-section">
+      <legend>8️⃣ Informations complémentaires</legend>
+      
+      <label>
+        <span class="label-text">Contraintes particulières, souhaits spécifiques, expériences passées...</span>
+        <textarea name="informations_complementaires" rows="4"
+                  placeholder="Avez-vous des contraintes ou souhaits particuliers ? Avez-vous déjà fait appel à des compagnies ?">{{ request.form.get('informations_complementaires', '') }}</textarea>
+      </label>
+    </fieldset>
+    
+    <button type="submit" class="btn-submit">
+      📨 Envoyer ma demande
+    </button>
+    
+    <p style="text-align: center; margin-top: 15px; color: rgba(255,255,255,0.7); font-size: 0.9rem;">
+      Votre demande sera traitée dans les 48h. Nous vous recontacterons avec une proposition personnalisée.
+    </p>
+  </form>
+</div>
+
+<script>
+// Auto-remplir la date/heure
+document.getElementById('auto_datetime').value = new Date().toLocaleString('fr-FR');
+
+// Auto-remplir la région selon le code postal
+const codePostalInput = document.getElementById('code_postal');
+const regionInput = document.getElementById('region');
+
+const departementToRegion = {
+  '01': 'Auvergne-Rhône-Alpes', '03': 'Auvergne-Rhône-Alpes', '07': 'Auvergne-Rhône-Alpes',
+  '15': 'Auvergne-Rhône-Alpes', '26': 'Auvergne-Rhône-Alpes', '38': 'Auvergne-Rhône-Alpes',
+  '42': 'Auvergne-Rhône-Alpes', '43': 'Auvergne-Rhône-Alpes', '63': 'Auvergne-Rhône-Alpes',
+  '69': 'Auvergne-Rhône-Alpes', '73': 'Auvergne-Rhône-Alpes', '74': 'Auvergne-Rhône-Alpes',
+  '21': 'Bourgogne-Franche-Comté', '25': 'Bourgogne-Franche-Comté', '39': 'Bourgogne-Franche-Comté',
+  '58': 'Bourgogne-Franche-Comté', '70': 'Bourgogne-Franche-Comté', '71': 'Bourgogne-Franche-Comté',
+  '89': 'Bourgogne-Franche-Comté', '90': 'Bourgogne-Franche-Comté',
+  '22': 'Bretagne', '29': 'Bretagne', '35': 'Bretagne', '56': 'Bretagne',
+  '18': 'Centre-Val de Loire', '28': 'Centre-Val de Loire', '36': 'Centre-Val de Loire',
+  '37': 'Centre-Val de Loire', '41': 'Centre-Val de Loire', '45': 'Centre-Val de Loire',
+  '2A': 'Corse', '2B': 'Corse', '20': 'Corse',
+  '08': 'Grand Est', '10': 'Grand Est', '51': 'Grand Est', '52': 'Grand Est',
+  '54': 'Grand Est', '55': 'Grand Est', '57': 'Grand Est', '67': 'Grand Est', '68': 'Grand Est', '88': 'Grand Est',
+  '02': 'Hauts-de-France', '59': 'Hauts-de-France', '60': 'Hauts-de-France', '62': 'Hauts-de-France', '80': 'Hauts-de-France',
+  '75': 'Île-de-France', '77': 'Île-de-France', '78': 'Île-de-France', '91': 'Île-de-France',
+  '92': 'Île-de-France', '93': 'Île-de-France', '94': 'Île-de-France', '95': 'Île-de-France',
+  '14': 'Normandie', '27': 'Normandie', '50': 'Normandie', '61': 'Normandie', '76': 'Normandie',
+  '16': 'Nouvelle-Aquitaine', '17': 'Nouvelle-Aquitaine', '19': 'Nouvelle-Aquitaine',
+  '23': 'Nouvelle-Aquitaine', '24': 'Nouvelle-Aquitaine', '33': 'Nouvelle-Aquitaine',
+  '40': 'Nouvelle-Aquitaine', '47': 'Nouvelle-Aquitaine', '64': 'Nouvelle-Aquitaine',
+  '79': 'Nouvelle-Aquitaine', '86': 'Nouvelle-Aquitaine', '87': 'Nouvelle-Aquitaine',
+  '09': 'Occitanie', '11': 'Occitanie', '12': 'Occitanie', '30': 'Occitanie', '31': 'Occitanie',
+  '32': 'Occitanie', '34': 'Occitanie', '46': 'Occitanie', '48': 'Occitanie', '65': 'Occitanie',
+  '66': 'Occitanie', '81': 'Occitanie', '82': 'Occitanie',
+  '44': 'Pays de la Loire', '49': 'Pays de la Loire', '53': 'Pays de la Loire', '72': 'Pays de la Loire', '85': 'Pays de la Loire',
+  '04': 'Provence-Alpes-Côte d\'Azur', '05': 'Provence-Alpes-Côte d\'Azur', '06': 'Provence-Alpes-Côte d\'Azur',
+  '13': 'Provence-Alpes-Côte d\'Azur', '83': 'Provence-Alpes-Côte d\'Azur', '84': 'Provence-Alpes-Côte d\'Azur',
+  '971': 'Guadeloupe', '972': 'Martinique', '973': 'Guyane', '974': 'La Réunion', '976': 'Mayotte'
+};
+
+codePostalInput.addEventListener('input', function() {
+  const cp = this.value;
+  if (cp.length >= 2) {
+    const dept = cp.substring(0, 2);
+    const deptCorse = cp.substring(0, 3);
+    if (departementToRegion[deptCorse]) {
+      regionInput.value = departementToRegion[deptCorse];
+    } else if (departementToRegion[dept]) {
+      regionInput.value = departementToRegion[dept];
+    }
+  }
+});
+
+// Gestion du clignotement des champs vides
+function checkFieldState(field) {
+  const value = field.value.trim();
+  if (value === '' || value === '-- Choisir --') {
+    field.classList.remove('field-filled');
+    field.classList.add('field-empty');
+  } else {
+    field.classList.remove('field-empty');
+    field.classList.add('field-filled');
+  }
+}
+
+// Initialiser tous les champs du formulaire
+document.addEventListener('DOMContentLoaded', function() {
+  const formFields = document.querySelectorAll('input[type="text"], input[type="email"], input[type="tel"], input[type="number"], select, textarea');
+  
+  formFields.forEach(function(field) {
+    // Vérifier l'état initial
+    checkFieldState(field);
+    
+    // Écouter les changements
+    field.addEventListener('input', function() {
+      checkFieldState(this);
+    });
+    
+    field.addEventListener('change', function() {
+      checkFieldState(this);
+    });
+    
+    // Arrêter l'animation au focus
+    field.addEventListener('focus', function() {
+      this.classList.remove('field-empty');
+    });
+    
+    // Revérifier au blur
+    field.addEventListener('blur', function() {
+      checkFieldState(this);
+    });
+  });
+});
+</script>
+{% endblock %}

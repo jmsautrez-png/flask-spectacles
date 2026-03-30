@@ -45,3 +45,8 @@ logs/
 
 # Backups
 backups/
+
+__pycache__/
+*.pyc
+instance/
+*.db

@@ -1,237 +1,1594 @@
 {% extends "base.html" %}
-{% block title %}Spectacle'ment VØtre - Spectacles et animations pour enfants, entreprises, anniversaires | Artistes professionnels{% endblock %}
-{% block description %}Découvrez des spectacles pour enfants, animations d'entreprise et d'anniversaire. Magie, théâtre, cirque, clowns, marionnettes. Réservez directement avec des artistes professionnels en France.{% endblock %}
+{# Bloc robots : noindex uniquement si recherche textuelle (pas pour pagination ou filtres) #}
+{% block robots %}
+  {% if q %}
+    <meta name="robots" content="noindex,follow">
+  {% else %}
+    <meta name="robots" content="index,follow">
+  {% endif %}
+{% endblock %}
+
+{# Balises rel prev/next pour la pagination #}
+{% if pagination %}
+  {% if pagination.has_prev %}
+    <link rel="prev" href="{{ url_for('home', page=pagination.prev_num, category=request.args.get('category', ''), location=request.args.get('location', ''), _external=True) }}">
+  {% endif %}
+  {% if pagination.has_next %}
+    <link rel="next" href="{{ url_for('home', page=pagination.next_num, category=request.args.get('category', ''), location=request.args.get('location', ''), _external=True) }}">
+  {% endif %}
+{% endif %}
+
+
+
+{# OG URL sans params aussi #}
+{% block og_url %}{{ request.base_url }}{% endblock %}
+{% block title %}Trouver et Réserver un Spectacle pour votre École, Mairie, CSE | +200 Artistes Professionnels{% endblock %}
+{% block description %}Vous cherchez un spectacle pour votre école, mairie, CSE ou association ? Trouvez l'artiste idéal parmi +200 professionnels : magie, cirque, théâtre. Réponse sous 3h. 30 ans d'expérience.{% endblock %}
+
+{% block extra_head %}
+<!-- Données structurées Schema.org pour la page d'accueil -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Service",
+  "serviceType": "Spectacle Animation",
+  "name": "Spectacle'ment VØtre - Spectacles et Animations Haut de Gamme",
+  "description": "Trouvez et réservez votre spectacle professionnel en quelques clics. Plateforme n°1 pour engager +200 artistes vérifiés (magie, cirque, théâtre, clowns, marionnettes). Idéal pour écoles, mairies, CSE, centres culturels. Devis gratuit sous 3h. 30 ans d'expertise.",
+  "provider": {
+    "@type": "Organization",
+    "name": "Spectacle'ment VØtre",
+    "url": "{{ request.url_root }}",
+    "logo": "{{ url_for('static', filename='img/logo_spectaclement_votre.png', _external=True) }}",
+    "contactPoint": {
+      "@type": "ContactPoint",
+      "contactType": "Service Client",
+      "availableLanguage": "French",
+      "areaServed": "FR"
+    }
+  },
+  "areaServed": {
+    "@type": "Country",
+    "name": "France"
+  },
+  "audience": {
+    "@type": "Audience",
+    "audienceType": ["Écoles", "Mairies", "Comités d'entreprise", "Particuliers", "Associations"]
+  },
+  "offers": {
+    "@type": "AggregateOffer",
+    "priceCurrency": "EUR",
+    "lowPrice": "300",
+    "highPrice": "2000",
+    "priceSpecification": {
+      "@type": "PriceSpecification",
+      "priceCurrency": "EUR",
+      "price": "300-2000"
+    }
+  },
+  "hasOfferCatalog": {
+    "@type": "OfferCatalog",
+    "name": "Catalogue Spectacles et Animations",
+    "itemListElement": [
+      {
+        "@type": "Offer",
+        "itemOffered": {
+          "@type": "Service",
+          "name": "Spectacle Animation Enfants",
+          "description": "Spectacles et animations pour enfants : magie, cirque, clowns, marionnettes"
+        }
+      },
+      {
+        "@type": "Offer",
+        "itemOffered": {
+          "@type": "Service",
+          "name": "Animation Scolaire",
+          "description": "Spectacles pédagogiques pour écoles maternelles, primaires et collèges"
+        }
+      },
+      {
+        "@type": "Offer",
+        "itemOffered": {
+          "@type": "Service",
+          "name": "Animation Mairie et CSE",
+          "description": "Spectacles pour fêtes de village, arbres de Noël, événements municipaux"
+        }
+      },
+      {
+        "@type": "Offer",
+        "itemOffered": {
+          "@type": "Service",
+          "name": "Animation Anniversaire",
+          "description": "Animations pour anniversaires d'enfants avec magiciens, clowns, cirque"
+        }
+      }
+    ]
+  }
+}
+</script>
+
+<!-- Données structurées FAQ pour Google -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "Comment trouver un spectacle de qualité pour ma commune ?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Pour trouver un spectacle pour votre mairie, parcourez notre catalogue d'artistes professionnels vérifiés. Filtrez par localisation, catégorie (cirque, théâtre, magie) et budget. Chaque artiste a un profil détaillé avec photos, vidéos et avis. Vous pouvez également publier un appel d'offre gratuit et recevoir plusieurs propositions sous 3h."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Où chercher un artiste professionnel pour l'école ?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Pour chercher un spectacle pour votre école (maternelle, primaire, collège), Spectacle'ment VØtre référence +200 artistes spécialisés dans les animations pédagogiques. Nos spectacles éducatifs sont adaptés aux thèmes scolaires : sciences, environnement, lecture, histoire. Devis gratuit et réponse rapide garantie."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Comment réserver un spectacle pour mon CSE ?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Pour réserver un spectacle pour votre comité d'entreprise, consultez notre catalogue, sélectionnez les artistes qui vous intéressent, et faites une demande de devis en précisant votre date, lieu et nombre de participants. Les artistes vous contactent directement sous 3h avec des propositions détaillées. Sans intermédiaire, sans frais cachés."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Quel spectacle choisir pour une fête de village ?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Pour une fête de village, nous recommandons des spectacles tout public : cirque de rue, théâtre burlesque, concerts, spectacles déambulatoires. Les spectacles en extérieur sont particulièrement appréciés. Consultez nos catégories Spectacle de rue et Cirque pour des propositions adaptées aux événements municipaux."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Qu'est-ce qu'un spectacle animation ?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Un spectacle animation combine une prestation artistique (magie, cirque, théâtre, clown) avec une dimension interactive où les enfants ou le public participent activement. Nos spectacles animations sont conçus pour divertir, éduquer et créer des moments mémorables lors de vos événements (écoles, anniversaires, fêtes de village, arbres de Noël)."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Quels types de spectacles et animations proposez-vous ?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Nous proposons une large gamme de spectacles et animations : magie interactive, clowns professionnels, cirque, marionnettes, théâtre jeune public, contes musicaux, ventriloquie, animations scientifiques, ateliers créatifs. Tous nos artistes de spectacle animation sont professionnels et adaptent leur prestation selon l'âge du public (3-12 ans)."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Combien coûte un spectacle animation pour école ou mairie ?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Le prix d'un spectacle animation varie selon le type de prestation, la durée, le nombre de participants et la localisation. En moyenne, comptez entre 300€ et 800€ pour une animation scolaire, et entre 500€ et 2000€ pour un événement de mairie, CSE ou arbre de Noël."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Comment trouver un magicien pour un anniversaire ?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Pour réserver un magicien pour anniversaire, parcourez notre catégorie 'Magiciens' dans le catalogue, consultez les profils et photos des artistes, puis faites une demande de devis en indiquant la date, le lieu et le nombre d'enfants. Vous recevrez rapidement des propositions personnalisées."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Intervenez-vous dans toute la France ?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Oui ! Notre réseau d'artistes couvre toute la France. Vous pouvez filtrer les spectacles par région et ville dans notre catalogue. Beaucoup d'artistes se déplacent sur plusieurs départements et régions."
+      }
+    }
+  ]
+}
+</script>
+
+<!-- Breadcrumb Schema.org -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [{
+    "@type": "ListItem",
+    "position": 1,
+    "name": "Accueil",
+    "item": "{{ request.url_root }}"
+  }]
+}
+</script>
+{% endblock %}
+
 {% block content %}
 
+<!-- Section Spectacles à la Une -->
+{% if spectacles_une %}
+<style>
+  .spectacles-une-section {
+    max-width: 100%;
+    margin: 32px auto 0 auto;
+    padding: 0;
+  }
+  
+  .spectacles-une-header {
+    text-align: center;
+    margin-bottom: 24px;
+  }
+  
+  .spectacles-une-header-link {
+    display: block;
+    text-decoration: none;
+    color: inherit;
+    padding: 16px;
+    border-radius: 12px;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+  }
+  
+  .spectacles-une-header-link:hover {
+    background-color: rgba(255, 255, 255, 0.05);
+    transform: scale(1.02);
+  }
+  
+  .spectacles-une-header-link:hover h2 {
+    color: var(--primary, #f59e0b);
+  }
+  
+  .spectacles-une-header-link:hover p {
+    color: var(--text);
+  }
+  
+  .spectacles-une-header h2 {
+    font-size: 1.8rem;
+    margin: 0 0 8px 0;
+    color: var(--text);
+    transition: color 0.3s ease;
+  }
+  
+  .spectacles-une-header p {
+    color: var(--muted);
+    font-size: 1rem;
+    margin: 0;
+    transition: color 0.3s ease;
+  }
+</style>
 
-
-<div style="display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:16px;">
-  <h1 style="font-size:1.6rem;margin:0;">Spectacles et Animations Professionnels</h1>
-  <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
-    <a href="{{ url_for('demande_animation') }}" style="background:#ffb347;color:#222;padding:8px 16px;border-radius:22px;font-weight:600;font-size:0.9rem;text-decoration:none;box-shadow:0 2px 8px #0001;transition:background .2s;white-space:nowrap;display:inline-block;">
-      <span style="font-weight:bold;">Mairie, CSE, école, etc.</span> : demandez votre animation
-    </a>
-    <a href="{{ url_for('publish') }}" style="background:var(--primary);color:#fff;padding:8px 16px;border-radius:22px;font-weight:600;font-size:0.9rem;text-decoration:none;box-shadow:0 2px 8px #0001;transition:background .2s;white-space:nowrap;display:inline-block;">
-      <span style="font-weight:bold;">Producteur, compagnie</span> : Publier vØtre spectacle (gratuit)
-    </a>
-  </div>
-</div>
-
-
-<form action="" method="get"
-      style="display:flex; align-items:center; gap:12px; background:var(--panel); border:1px solid var(--border); padding:10px 16px; border-radius:12px; margin:0 0 20px;"
-      role="search"
-      aria-label="Rechercher un spectacle">
-  <span aria-hidden="true" style="color:var(--muted);">🔍</span>
-  <input name="q" value="{{ q or '' }}"
-    placeholder="Recherche catégorie, spectacle, âge..."
-    aria-label="Recherche générale"
-    style="flex:2; border:none; background:transparent; outline:none; font-size:15px; color:var(--text);">
-  <span style="color:var(--border);">|</span>
-  <input name="location" value="{{ location or '' }}"
-    placeholder="Ville ou région..."
-    aria-label="Recherche par ville ou région"
-    style="flex:1; border:none; background:transparent; outline:none; font-size:15px; color:var(--text);">
-  <button type="submit"
-     style="border:none; background:var(--primary); color:white; font-weight:600; cursor:pointer; padding:6px 14px; border-radius:8px;">Rechercher</button>
-</form>
-
-<div class="page-layout">
-  <!-- COLONNE GAUCHE : catalogue -->
-  <div class="page-main">
-    <h2 id="catalogue-title" style="margin-top:0; margin-bottom:16px; font-size:1.3rem;">Catalogue des spectacles</h2>
-    <div class="cards">
-      {% for show in shows or [] %}
-      <article class="card">
-        <a href="{{ url_for('show_detail', show_id=show.id) }}" class="media-link">
-          <div class="media">
-            {% if show.has_image() %}
-              <img src="{{ url_for('uploaded_file', filename=show.file_name) }}" alt="{{ show.title }}">
-            {% elif show.is_pdf() %}
-              <div class="pdf-thumb">
-                <a href="{{ url_for('uploaded_file', filename=show.file_name) }}" target="_blank" rel="noopener">PDF</a>
+<div class="spectacles-une-section">
+  <div class="cards">
+    {% for spectacle in spectacles_une %}
+    <article class="card" style="border:2px solid #222;border-radius:16px;box-shadow:0 2px 12px #0008;padding:0 0 8px 0;transition:box-shadow .2s;color:#fff;">
+      <a href="{{ url_for('show_detail', show_id=spectacle.id) }}" class="media-link">
+        <div class="media">
+          {% set images = spectacle.get_all_images() %}
+          {% if images|length > 1 %}
+            <!-- Diaporama avec plusieurs photos -->
+            <div class="card-carousel" data-carousel>
+              <div class="carousel-slides">
+                {% for img in images %}
+                <div class="carousel-slide">
+                  <img src="{{ url_for('uploaded_file', filename=img) }}" alt="{{ spectacle.title }}{% if loop.index > 1 %} - Photo {{ loop.index }}{% endif %}">
+                </div>
+                {% endfor %}
               </div>
-            {% else %}
-              <div class="placeholder">Aucun fichier</div>
-            {% endif %}
-          </div>
-        </a>
-
-        <a href="{{ url_for('show_detail', show_id=show.id) }}" class="content-link">
-          <div class="content">
-            {% if show.raison_sociale %}
-              <p class="meta" style="font-weight:600; margin-bottom:8px; color:var(--primary); font-size:0.85em;">
-                {{ show.raison_sociale }}
-              </p>
-            {% endif %}
-            <h3 style="margin:0 0 6px 0; line-height:1.2;">{{ show.title }}</h3>
-            
-            <div style="display:flex; flex-direction:column; gap:4px; font-size:0.85em; margin-top:-2px;">
-              {% if show.category %}
-              <div style="display:flex; align-items:center; gap:6px;">
-                <span style="opacity:0.7; min-width:20px;">🎭</span>
-                <span style="color:rgba(255,255,255,0.9);">{{ show.category }}</span>
+              <div class="carousel-indicators">
+                {% for img in images %}
+                <span class="carousel-indicator{% if loop.first %} active{% endif %}" data-slide="{{ loop.index0 }}"></span>
+                {% endfor %}
               </div>
-              {% endif %}
-              
-              {% if show.region or show.location %}
-              <div style="display:flex; align-items:center; gap:6px;">
-                <span style="opacity:0.7; min-width:20px;">📍</span>
-                <span style="color:rgba(255,255,255,0.9);">
-                  {% if show.location %}{{ show.location }}{% endif %}
-                  {% if show.location and show.region %} · {% endif %}
-                  {% if show.region %}{{ show.region }}{% endif %}
-                </span>
-              </div>
-              {% endif %}
-              
-              {% if show.age_range %}
-              <div style="display:flex; align-items:center; gap:6px;">
-                <span style="opacity:0.7; min-width:20px;">👥</span>
-                <span style="color:rgba(255,255,255,0.9);">{{ show.age_range }}</span>
-              </div>
-              {% endif %}
+              <button class="carousel-nav carousel-prev" aria-label="Photo précédente">‹</button>
+              <button class="carousel-nav carousel-next" aria-label="Photo suivante">›</button>
             </div>
-            
-            {% if not show.approved %}
-              <p class="meta" style="color:#ffb347; margin-top:8px; font-size:0.8em;">(En attente de validation)</p>
-            {% endif %}
-          </div>
-        </a>
-
-        {% if user and user.is_admin %}
-        <div class="actions">
-          <a href="{{ url_for('show_edit', show_id=show.id) }}">Modifier</a>
-
-          <form action="{{ url_for('show_delete', show_id=show.id) }}" method="post"
-                onsubmit="return confirm('Supprimer cette annonce ?');">
-            <button type="submit" class="danger">Supprimer</button>
-          </form>
-
-          {% if not show.approved %}
-          <form action="{{ url_for('show_approve', show_id=show.id) }}" method="post">
-            <button type="submit">✅ Valider</button>
-          </form>
+          {% elif spectacle.has_image() %}
+            <img src="{{ url_for('uploaded_file', filename=spectacle.file_name) }}" alt="{{ spectacle.title }}">
+          {% else %}
+            <div class="placeholder">SPECTACLE</div>
           {% endif %}
         </div>
-        {% endif %}
-      </article>
-      {% endfor %}
-    </div>
-
-    {# PAGINATION #}
-    {% if pagination and pagination.pages > 1 %}
-    <nav class="pagination" style="margin: 30px 0; text-align: center;">
-      <div style="display: inline-flex; gap: 8px; align-items: center; flex-wrap: wrap; justify-content: center;">
-        {% if pagination.has_prev %}
-          <a href="{{ url_for('home', page=pagination.prev_num, q=q, category=category, location=location, type=type_filter, sort=sort, date_from=date_from, date_to=date_to) }}"
-             style="padding: 8px 12px; background: var(--primary); color: white; text-decoration: none; border-radius: 4px; font-weight: 600;">
-            ← Précédent
-          </a>
-        {% else %}
-          <span style="padding: 8px 12px; background: #ddd; color: #999; border-radius: 4px; font-weight: 600;">
-            ← Précédent
-          </span>
-        {% endif %}
-
-        {% for p in pagination.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
-          {% if p %}
-            {% if p == pagination.page %}
-              <span style="padding: 8px 12px; background: var(--primary); color: white; border-radius: 4px; font-weight: 600;">
-                {{ p }}
-              </span>
-            {% else %}
-              <a href="{{ url_for('home', page=p, q=q, category=category, location=location, type=type_filter, sort=sort, date_from=date_from, date_to=date_to) }}"
-                 style="padding: 8px 12px; background: #f2f3f7; color: var(--text); text-decoration: none; border-radius: 4px; font-weight: 600;">
-                {{ p }}
-              </a>
-            {% endif %}
-          {% else %}
-            <span style="padding: 8px 12px; color: #999;">...</span>
+      </a>
+      
+      <a href="{{ url_for('show_detail', show_id=spectacle.id) }}" class="content-link">
+        <div class="content">
+          <div style="margin-bottom:6px;">
+            <span class="badge" style="background:linear-gradient(135deg, #ffd700 0%, #ffed4e 100%); color:#222; font-weight:700; border:none; font-size:0.75rem; padding:3px 8px; border-radius:10px;">
+              À la une
+            </span>
+          </div>
+          
+          {% if spectacle.raison_sociale %}
+            <p class="meta" style="font-weight:600; margin-bottom:8px; color:var(--primary); font-size:0.85em;">
+              {{ spectacle.raison_sociale|title }}
+            </p>
           {% endif %}
-        {% endfor %}
-
-        {% if pagination.has_next %}
-          <a href="{{ url_for('home', page=pagination.next_num, q=q, category=category, location=location, type=type_filter, sort=sort, date_from=date_from, date_to=date_to) }}"
-             style="padding: 8px 12px; background: var(--primary); color: white; text-decoration: none; border-radius: 4px; font-weight: 600;">
-            Suivant →
-          </a>
-        {% else %}
-          <span style="padding: 8px 12px; background: #ddd; color: #999; border-radius: 4px; font-weight: 600;">
-            Suivant →
-          </span>
-        {% endif %}
-      </div>
-
-      <p style="margin-top: 16px; color: var(--muted); font-size: 0.9rem;">
-        Page {{ pagination.page }} sur {{ pagination.pages }} ({{ pagination.total }} résultat{{ 's' if pagination.total > 1 else '' }})
-      </p>
-    </nav>
-    {% endif %}
-
+          
+          <h3 style="margin:0 0 6px 0; line-height:1.2;">{{ spectacle.title }}</h3>
+          
+          <div style="display:flex; flex-direction:column; gap:4px; font-size:0.85em; margin-top:-2px;">
+            {% if spectacle.age_range %}
+            <div style="display:flex; align-items:center; gap:6px;">
+              <span style="opacity:0.7; min-width:20px;">Âge:</span>
+              <span style="color:rgba(255,255,255,0.9);">{{ spectacle.age_range|format_age }}</span>
+            </div>
+            {% endif %}
+          </div>
+        </div>
+      </a>
+    </article>
+    {% endfor %}
   </div>
-
-  <!-- COLONNE DROITE : ton nouveau bloc -->
-  <aside class="page-sidebar">
-    <section class="seo-block">
-      <h2>Besoin d’un spectacle&nbsp;?</h2>
-      <p>
-        Retrouvez rapidement un spectacle par thème&nbsp;:
-      </p>
-      <ul style="list-style:none; padding:0; margin:0 0 12px 0;">
-        <li><a href="#" class="theme-btn" data-theme="marionnette" style="color:var(--primary);">Marionnette</a></li>
-        <li><a href="#" class="theme-btn" data-theme="magie" style="color:var(--primary);">Magie</a></li>
-        <li><a href="#" class="theme-btn" data-theme="clown" style="color:var(--primary);">Clown</a></li>
-        <li><a href="#" class="theme-btn" data-theme="théâtre" style="color:var(--primary);">Théâtre</a></li>
-        <li><a href="#" class="theme-btn" data-theme="enfant" style="color:var(--primary);">Spectacle enfant</a></li>
-        <li><a href="#" class="theme-btn" data-theme="atelier" style="color:var(--primary);">Atelier</a></li>
-        <li><a href="#" class="theme-btn" data-theme="concert" style="color:var(--primary);">Concert</a></li>
-        <li><a href="#" class="theme-btn" data-theme="cirque" style="color:var(--primary);">Cirque</a></li>
-        <!-- Ajoutez d'autres thèmes si besoin -->
-      </ul>
-    </section>
-  </aside>
 </div>
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-  // Filtrage dynamique des cartes par thème au clic (figé)
-  const themeBtns = document.querySelectorAll('.theme-btn');
-  const cards = document.querySelectorAll('.card');
-  const catalogueTitle = document.getElementById('catalogue-title');
-  const defaultTitle = 'Catalogue des spectacles';
-  let selectedBtn = null;
+{% endif %}
 
-  function resetAll() {
-    // Redirige vers la page d'accueil sans filtre
-    window.location.href = window.location.pathname;
-    localStorage.removeItem('selectedTheme');
+<!-- Section: Deux blocs principaux côte à côte -->
+<div class="blocs-principaux">
+  <!-- Bloc Collectivités -->
+  <div class="bloc-collectivites">
+    <h2 style="display: flex; align-items: center; justify-content: center; gap: 12px; flex-wrap: wrap;">
+      <span>Mairies, Écoles, CSE</span>
+      <span style="font-size: 0.85em; color: var(--primary); font-weight: 600;">✅ 100% GRATUIT</span>
+    </h2>
+    <p>Vous organisez un événement pour votre commune, école, comité d'entreprise ou association ? Découvrez notre catalogue de spectacles : spectacle enfants, marionnette, théâtre, concerts...</p>
+    
+    <!-- Bandeau intégré -->
+    <div class="bandeau-interne-collectivite">
+      <h3>Appel d'offre GRATUIT - Un gain de temps considérable</h3>
+      <p class="texte-clignotant" style="font-style:italic; margin-top:12px; font-weight:700; font-size:1.1rem;">
+        Vous ne cherchez plus, ce sont les artistes qui viennent à vous !
+      </p>
+      <p style="font-size:1.05rem; line-height:1.6; margin-top:12px;">
+        Publiez gratuitement votre demande de spectacle, animation, clown, magie, etc. et recevez des propositions ciblées d'artistes professionnels 
+        de votre région, correspondant exactement à votre thème et votre budget.
+      </p>
+      <a href="{{ url_for('demande_animation') }}" class="btn-bandeau">Publier ma demande →</a>
+    </div>
+    
+    <div class="recherches-populaires">
+      <ul>
+        <li><a href="{{ url_for('catalogue', category='Spectacle Enfants') }}">Trouver un spectacle pour Enfants</a></li>
+        <li><a href="{{ url_for('catalogue', category='Spectacle de rue') }}">Spectacle de rue pour fête de village</a></li>
+        <li><a href="{{ url_for('catalogue', category='Spectacle Enfants') }}">Spectacle enfant pour centre culturel</a></li>
+        <li><a href="{{ url_for('catalogue') }}">Spectacle bibliothèque APE</a></li>
+        <li><a href="{{ url_for('ecoles_themes') }}">Intervention pédagogique pour votre école</a></li>
+        <li><a href="{{ url_for('catalogue') }}">Spectacle pour arbre de Noël CSE</a></li>
+      </ul>
+    </div>
+    
+    <div class="text-center">
+      <a href="{{ url_for('catalogue') }}" class="btn-catalogue">Parcourir le catalogue</a>
+    </div>
+  </div>
+  
+  <!-- Bloc Artistes -->
+  <div class="bloc-artistes">
+    <h2 style="display: flex; align-items: center; justify-content: center; gap: 12px; flex-wrap: wrap;">
+      <span>Artistes & Compagnies</span>
+      <span style="font-size: 0.85em; color: var(--primary); font-weight: 600;">✅ 100% GRATUIT</span>
+    </h2>
+    
+    <div class="text-center" style="margin: 20px 0;">
+      <a href="{{ url_for('register') }}" class="btn-publier">Publier votre spectacle gratuitement</a>
+    </div>
+    
+    <p>Développez votre visibilité et trouvez de nouveaux contrats grâce à notre plateforme dédiée aux professionnels du spectacle vivant.</p>
+    
+    <div class="avantages-liste">
+      <ul>
+        <li><strong>Publication illimitée</strong> de vos spectacles sur le site</li>
+        <li><strong>Visibilité maximale</strong> auprès de 60 000 contacts (écoles, mairies, CSE)</li>
+        <li><strong>Réception automatique</strong> des appels d'offres selon vos thèmes</li>
+        <li><strong>Réponse directe</strong> aux demandes des organisateurs</li>
+        <li><strong>Contact direct</strong> avec les clients potentiels</li>
+        <li><strong>0% de commission</strong> - Vous négociez vos tarifs librement</li>
+      </ul>
+      
+      <div style="margin: 25px 0 10px; padding: 15px; background: rgba(255, 193, 7, 0.15); border-left: 4px solid #ffc107; border-radius: 6px; transition: all 0.3s ease; cursor: pointer; position: relative;" 
+           onmouseover="this.style.transform='scale(1.08)'; this.style.background='rgba(255, 193, 7, 0.25)'; this.style.boxShadow='0 8px 25px rgba(255, 193, 7, 0.4)'; this.style.borderLeft='6px solid #ffc107';" 
+           onmouseout="this.style.transform='scale(1)'; this.style.background='rgba(255, 193, 7, 0.15)'; this.style.boxShadow='none'; this.style.borderLeft='4px solid #ffc107';">
+        <a href="{{ url_for('abonnement_compagnie') }}" style="color: #ffc107; text-decoration: none; font-size: 1.1rem; font-weight: 600; display: flex; align-items: center; gap: 8px; transition: opacity 0.2s;">
+          <span>💼 Administration compagnie</span>
+          <span style="font-size: 0.75rem; background: #000; padding: 3px 8px; border-radius: 4px; color: #ffc107; font-weight: 700; letter-spacing: 0.5px;">NOUVEAU</span>
+          <span style="font-size: 0.85rem; opacity: 0.85; font-weight: 500;">Abonnement premium</span>
+          <span style="font-size: 0.9rem; opacity: 0.8;">→</span>
+        </a>
+        <p style="margin: 8px 0 0 0; font-size: 0.85rem; color: #fff; line-height: 1.4; font-weight: 700;">
+          Gestion URSSAF, fiches de salaire, contrats, accompagnement juridique
+        </p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Section Qui sommes-nous -->
+<a href="{{ url_for('about') }}" style="display: block; margin: 40px 0; padding: 30px; background: linear-gradient(135deg, rgba(109,19,19,0.08) 0%, rgba(255,193,7,0.08) 100%); border: 2px solid rgba(255,193,7,0.3); border-radius: 16px; text-align: center; transition: all 0.3s ease; box-shadow: 0 2px 12px rgba(255,193,7,0.15); text-decoration: none; cursor: pointer;" onmouseover="this.style.transform='translateY(-4px)'; this.style.boxShadow='0 6px 20px rgba(255,193,7,0.25)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 12px rgba(255,193,7,0.15)';">
+  <h2 style="font-size: 1.8rem; color: #ffc107; font-weight: 700; margin: 0 0 15px 0;">Qui sommes-nous ?</h2>
+  <p style="font-size: 1.05rem; color: rgba(255,255,255,0.9); line-height: 1.6; max-width: 700px; margin: 0 auto 20px; font-weight: 500;">
+    <strong style="color: #ffc107;">33 ans d'expérience</strong> • <strong style="color: #ffc107;">2 700 représentations</strong> • <strong style="color: #ffc107;">Une sélection qualité professionnelle</strong>
+  </p>
+  <p style="font-size: 0.95rem; color: rgba(255,255,255,0.75); max-width: 600px; margin: 0 auto; line-height: 1.5;">
+    Découvrez comment nous sélectionnons rigoureusement les meilleurs artistes pour garantir la qualité de vos événements
+  </p>
+</a>
+
+<!-- Section Hero principale avec H1 et intro SEO -->
+<a href="{{ url_for('demande_animation') }}" style="text-decoration: none; display: block;">
+<section class="hero-intro" style="text-align: center; margin-bottom: 40px; padding: 30px 20px; background: linear-gradient(135deg, rgba(22,36,71,0.8) 0%, rgba(40,62,94,0.8) 100%); border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.3); cursor: pointer; transition: all 0.3s ease; position: relative;" onmouseover="this.style.transform='scale(1.02)'; this.style.boxShadow='0 8px 30px rgba(255,193,7,0.4)'; this.style.background='linear-gradient(135deg, rgba(22,36,71,0.95) 0%, rgba(40,62,94,0.95) 100%)';" onmouseout="this.style.transform='scale(1)'; this.style.boxShadow='0 4px 20px rgba(0,0,0,0.3)'; this.style.background='linear-gradient(135deg, rgba(22,36,71,0.8) 0%, rgba(40,62,94,0.8) 100%)';">
+  <h1 style="font-size: 2.2rem; margin: 0 0 20px 0; color: #ffc107; font-weight: 800; line-height: 1.3; text-shadow: 0 2px 4px rgba(0,0,0,0.3);">
+    Vous Cherchez un Spectacle ? Trouvez l'Artiste Idéal pour votre Établissement
+  </h1>
+  <p style="font-size: 1.1rem; color: #fff; line-height: 1.7; max-width: 900px; margin: 0 auto 15px; opacity: 0.95;">
+    <strong>Réservez le spectacle parfait</strong> pour votre <strong>école</strong>, <strong>mairie</strong>, <strong>CSE</strong>, association ou <strong>centre culturel</strong>. <strong>Spectacle'ment VØtre</strong> vous met en relation avec <strong>+200 artistes professionnels expérimentés</strong> : spectacles pour enfants, animations scolaires, magie, cirque, théâtre, clowns, marionnettes. Trouvez, comparez et engagez l'artiste idéal en toute simplicité.
+  </p>
+  <p style="font-size: 1rem; color: rgba(255,255,255,0.85); max-width: 800px; margin: 0 auto;">
+    • Réponse moyenne sous 3h • 30 ans d'expérience • Toute la France
+  </p>
+  <p style="font-size: 1rem; color: #ffc107; font-weight: 700; margin-top: 15px;">
+    👉 Cliquez ici pour publier votre appel d'offre
+  </p>
+</section>
+</a>
+
+<style>
+@keyframes pulse {
+  0%, 100% {
+    transform: scale(1);
+    box-shadow: 0 4px 15px rgba(109,19,19,0.5);
   }
+  50% {
+    transform: scale(1.05);
+    box-shadow: 0 6px 20px rgba(109,19,19,0.8);
+  }
+}
 
-  themeBtns.forEach(btn => {
-    btn.setAttribute('data-original', btn.textContent);
-    btn.addEventListener('click', function(e) {
-      e.preventDefault();
-      const theme = btn.getAttribute('data-theme').toLowerCase();
-      // Redirige vers la page d'accueil avec le paramètre de filtre
-      const url = new URL(window.location.href);
-      url.searchParams.set('category', theme);
-      url.searchParams.delete('page'); // On revient à la première page
-      window.location.href = url.pathname + url.search;
-      localStorage.setItem('selectedTheme', theme);
+@keyframes border-spin {
+  0% {
+    background-position: 0% 50%;
+  }
+  100% {
+    background-position: 200% 50%;
+  }
+}
+
+@keyframes change-color {
+  0%, 100% {
+    color: #ffffff;
+  }
+  16.66% {
+    color: #ffffff;
+  }
+  33.33% {
+    color: #9c27b0;
+  }
+  50% {
+    color: #3f51b5;
+  }
+  66.66% {
+    color: #00bcd4;
+  }
+  83.33% {
+    color: #4caf50;
+  }
+}
+
+.texte-clignotant {
+  animation: change-color 10s ease-in-out infinite;
+}
+
+.btn-mairie-wrapper {
+  position: relative;
+  display: inline-block;
+  padding: 3px;
+  border-radius: 28px;
+  background: linear-gradient(90deg, #ffc107, #ff5722, #e91e63, #9c27b0, #3f51b5, #2196f3, #00bcd4, #4caf50, #ffc107);
+  background-size: 200% 100%;
+  animation: border-spin 2s linear infinite;
+}
+
+.btn-mairie {
+  display: block;
+  background: #ffc107;
+  color: #000;
+  padding: 12px 24px;
+  border-radius: 25px;
+  font-weight: 700;
+  font-size: 1.1rem;
+  text-decoration: none;
+  white-space: nowrap;
+  letter-spacing: 0.8px;
+  transition: all 0.3s;
+}
+
+.btn-mairie:hover {
+  transform: scale(1.02);
+}
+
+.btn-artiste-wrapper {
+  position: relative;
+  display: inline-block;
+  padding: 3px;
+  border-radius: 28px;
+  background: linear-gradient(90deg, #ffc107, #ffeb3b, #ff9800, #ffd54f, #ffca28, #fff176, #ffc107);
+  background-size: 200% 100%;
+  animation: border-spin 2s linear infinite;
+}
+
+.btn-artiste {
+  display: block;
+  background: linear-gradient(135deg, #ffc107 0%, #ffeb3b 50%, #ffd54f 100%);
+  color: #000;
+  padding: 8px 18px;
+  border-radius: 25px;
+  font-weight: 600;
+  font-size: 0.95rem;
+  text-decoration: none;
+  white-space: nowrap;
+  letter-spacing: 0.5px;
+  transition: all 0.3s;
+}
+
+.btn-artiste:hover {
+  transform: scale(1.02);
+}
+
+.btn-evenement-wrapper {
+  position: relative;
+  display: inline-block;
+  padding: 3px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #0a0a1a 0%, #6d1313 25%, #e91e63 50%, #9c27b0 75%, #0a0a1a 100%);
+  background-size: 300% 300%;
+  animation: header-gradient-btn 8s ease infinite;
+}
+
+@keyframes header-gradient-btn {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+
+.btn-evenement {
+  display: block;
+  background: linear-gradient(135deg, #1a0a0a 0%, #6d1313 30%, #8b1e1e 50%, #6d1313 70%, #1a0a0a 100%);
+  background-size: 300% 300%;
+  animation: header-gradient-btn 8s ease infinite;
+  color: #fff;
+  padding: 12px 28px;
+  border-radius: 10px;
+  font-weight: 700;
+  font-size: 1.08em;
+  text-decoration: none;
+  white-space: nowrap;
+  box-shadow: 0 4px 15px rgba(109, 19, 19, 0.5);
+  transition: all 0.3s;
+}
+
+.btn-evenement:hover {
+  transform: scale(1.03);
+  box-shadow: 0 6px 20px rgba(233, 30, 99, 0.6);
+}
+</style>
+
+<!-- Section Hero : Deux choix principaux -->
+<style>
+  .hero-choice-section {
+    display: -webkit-box;
+    display: -ms-flexbox;
+    display: flex;
+    -ms-flex-wrap: wrap;
+    flex-wrap: wrap;
+    gap: 1.875rem;
+    margin-bottom: 2.8125rem;
+  }
+  
+  .hero-choice-section > a {
+    -webkit-box-flex: 1;
+    -ms-flex: 1 1 calc(50% - 1rem);
+    flex: 1 1 calc(50% - 1rem);
+    min-width: 280px;
+  }
+  
+  @media (max-width: 768px) {
+    .hero-choice-section {
+      gap: 1.25rem;
+    }
+    .hero-choice-section > a {
+      -ms-flex: 1 1 100%;
+      flex: 1 1 100%;
+    }
+  }
+  
+  .hero-choice-card {
+    display: block;
+    background: linear-gradient(135deg, #162447 0%, #1f4068 50%, #283e5e 100%);
+    border: 0.1875rem solid #355c7d;
+    border-radius: 1.25rem;
+    padding: 3.75rem 2.1875rem;
+    text-align: center;
+    text-decoration: none;
+    color: #fff;
+    -webkit-transition: all 0.3s ease;
+    transition: all 0.3s ease;
+    box-shadow: 0 0.5rem 1.875rem rgba(0,0,0,0.3);
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .hero-choice-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 0.25rem;
+    background: linear-gradient(90deg, #ffc107, #ff9800, #ffc107);
+  }
+  
+  .hero-choice-card:hover {
+    -webkit-transform: translateY(-0.5rem);
+    transform: translateY(-0.5rem);
+    border-color: #ffc107;
+    box-shadow: 0 0.9375rem 2.8125rem rgba(255,193,7,0.25);
+  }
+  
+  .hero-choice-card h2 {
+    margin: 0 0 1.125rem 0;
+    font-size: 1.5rem;
+    color: #ffc107 !important;
+    font-weight: 700;
+    text-shadow: 0 0.125rem 0.5rem rgba(0,0,0,0.3);
+    display: block;
+    visibility: visible;
+    opacity: 1;
+  }
+  
+  .hero-choice-card p {
+    margin: 0;
+    font-size: 1rem;
+    color: #fff;
+    line-height: 1.6;
+    text-align: center;
+  }
+  
+  .hero-choice-card .cta-hint {
+    display: inline-block;
+    margin-top: 1.5625rem;
+    padding: 0.75rem 1.75rem;
+    background: #ffc107;
+    border: none;
+    border-radius: 1.5625rem;
+    font-size: 1rem;
+    color: #000;
+    font-weight: 700;
+    -webkit-transition: all 0.3s;
+    transition: all 0.3s;
+  }
+  
+  .hero-choice-card:hover .cta-hint {
+    background: #ffeb3b;
+    -webkit-transform: scale(1.05);
+    transform: scale(1.05);
+  }
+  
+  .hero-choice-card .desc-box {
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 0.625rem;
+    padding: 0.75rem 1.25rem;
+    margin: 0.9375rem auto 0 auto;
+    display: inline-block;
+  }
+  
+  /* Bloc hero artiste/compagnie - pleine largeur */
+  .hero-artiste-card {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1.5rem;
+    width: 100%;
+    background: linear-gradient(135deg, #ffc107 0%, #ff9800 50%, #ffd54f 100%);
+    border: 0.1875rem solid #ff9800;
+    border-radius: 1rem;
+    padding: 1.25rem 2rem;
+    text-align: center;
+    text-decoration: none;
+    color: #000;
+    -webkit-transition: all 0.3s ease;
+    transition: all 0.3s ease;
+    box-shadow: 0 0.375rem 1.25rem rgba(255,152,0,0.4);
+    position: relative;
+    overflow: hidden;
+    margin-top: 1rem;
+  }
+  
+  .hero-artiste-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 0.1875rem;
+    background: linear-gradient(90deg, #fff, #ffc107, #fff);
+  }
+  
+  .hero-artiste-card:hover {
+    -webkit-transform: translateY(-0.25rem);
+    transform: translateY(-0.25rem);
+    border-color: #fff;
+    box-shadow: 0 0.5rem 1.5rem rgba(255,193,7,0.6);
+  }
+  
+  .hero-artiste-card h3 {
+    margin: 0;
+    font-size: 1.2rem;
+    color: #000;
+    font-weight: 700;
+  }
+  
+  .hero-artiste-card .cta-hint-artiste {
+    display: inline-block;
+    padding: 0.5rem 1.25rem;
+    background: #000;
+    border: none;
+    border-radius: 1.25rem;
+    font-size: 0.9rem;
+    color: #ffc107;
+    font-weight: 700;
+    -webkit-transition: all 0.3s;
+    transition: all 0.3s;
+  }
+  
+  .hero-artiste-card:hover .cta-hint-artiste {
+    background: #222;
+    -webkit-transform: scale(1.05);
+    transform: scale(1.05);
+  }
+  
+  @media (max-width: 768px) {
+    .hero-artiste-card {
+      flex-direction: column;
+      gap: 0.75rem;
+      padding: 1rem 1.5rem;
+    }
+    .hero-artiste-card h3 {
+      font-size: 1rem;
+    }
+  }
+</style>
+
+<!-- Section: Vous cherchez un spectacle -->
+<style>
+  .spectacle-card-link {
+    display: block;
+    background: rgba(255,255,255,0.08);
+    padding: 20px;
+    border-radius: 12px;
+    border-left: 4px solid #ffc107;
+    text-decoration: none;
+    color: inherit;
+    transition: all 0.3s ease;
+    cursor: pointer;
+  }
+  
+  .spectacle-card-link:hover {
+    background: rgba(255,193,7,0.15);
+    border-left-color: #fff;
+    transform: translateY(-4px);
+    box-shadow: 0 8px 20px rgba(255,193,7,0.3);
+  }
+  
+  .spectacle-card-link h3 {
+    color: #ffc107;
+    font-size: 1.1rem;
+    margin: 0 0 10px 0;
+    font-weight: 700;
+    transition: color 0.3s ease;
+  }
+  
+  .spectacle-card-link:hover h3 {
+    color: #fff;
+  }
+  
+  .spectacle-card-link p {
+    margin: 0;
+    font-size: 0.95rem;
+    line-height: 1.6;
+    color: rgba(255,255,255,0.9);
+  }
+</style>
+
+<section style="max-width: 1100px; margin: 0 auto 50px; padding: 35px 30px; background: linear-gradient(135deg, rgba(40,62,94,0.9) 0%, rgba(22,36,71,0.9) 100%); border-radius: 16px; border: 2px solid rgba(255,193,7,0.3); box-shadow: 0 4px 20px rgba(0,0,0,0.3);">
+  <h2 style="text-align: center; color: #ffc107; font-size: 1.9rem; margin: 0 0 25px 0; font-weight: 800;">Vous cherchez un spectacle pour votre établissement ?</h2>
+  
+  <div style="color: #fff; line-height: 1.8; font-size: 1.05rem; text-align: center; max-width: 950px; margin: 0 auto;">
+    <p style="margin: 0 0 25px 0;">
+      Que vous souhaitiez <strong>trouver un spectacle pour votre école</strong>, <strong>réserver une animation pour votre mairie</strong>, <strong>engager un artiste pour votre CSE</strong> ou <strong>programmer un spectacle dans votre centre culturel</strong>, Spectacle'ment VØtre simplifie vos recherches.
+    </p>
+    
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 20px; margin: 30px 0; text-align: left;">
+      <a href="{{ url_for('catalogue') }}" class="spectacle-card-link">
+        <h3>Spectacle pour École</h3>
+        <p>
+          Cherchez et trouvez le <strong>spectacle idéal pour votre école maternelle, primaire ou collège</strong>. Animations pédagogiques, spectacles de fin d'année, kermesses.
+        </p>
+      </a>
+      
+      <a href="{{ url_for('catalogue') }}" class="spectacle-card-link">
+        <h3>Spectacle pour Mairie</h3>
+        <p>
+          Réservez un <strong>spectacle pour votre commune</strong> : fête de village, arbre de Noël, 14 juillet, carnaval. Artistes de qualité pour vos événements municipaux.
+        </p>
+      </a>
+      
+      <a href="{{ url_for('catalogue') }}" class="spectacle-card-link">
+        <h3>Spectacle pour CSE</h3>
+        <p>
+          Engagez un artiste professionnel pour votre <strong>comité d'entreprise</strong>. Arbre de Noël, team building, événements salariés. Devis rapide et transparent.
+        </p>
+      </a>
+      
+      <a href="{{ url_for('catalogue') }}" class="spectacle-card-link">
+        <h3>Spectacle pour Centre Culturel</h3>
+        <p>
+          Programmez des <strong>spectacles de qualité</strong> : théâtre contemporain, spectacles du monde, créations originales. Artistes reconnus et expérimentés.
+        </p>
+      </a>
+      
+      <a href="{{ url_for('ecoles_themes') }}" class="spectacle-card-link">
+        <h3>Interventions Pédagogiques</h3>
+        <p>
+          <strong>Spectacles éducatifs sur mesure</strong> pour écoles et médiathèques. Sciences, environnement, lecture, histoire, prévention. Ateliers interactifs animés par des <strong>pédagogues professionnels</strong>.
+        </p>
+      </a>
+      
+      <a href="{{ url_for('catalogue') }}" class="spectacle-card-link">
+        <h3>Arbre de Noël Clé en Main</h3>
+        <p>
+          <strong>Formule tout compris</strong> : location salle, goûter, spectacle, passage du Père Noël. Thèmes au choix : ferme écologique, cirque, fête foraine, magie. Organisation complète pour votre <strong>événement de fin d'année</strong>.
+        </p>
+      </a>
+    </div>
+    
+    <p style="margin: 25px 0 0 0; font-size: 1.05rem; font-weight: 600;">
+      ✓ Recherche simplifiée • ✓ Catalogue de +200 artistes • ✓ Réponse sous 3h • ✓ Sans intermédiaire
+    </p>
+  </div>
+</section>
+
+<!-- Section: Deux blocs principaux côte à côte -->
+<style>
+  .blocs-principaux {
+    display: flex;
+    gap: 30px;
+    margin-bottom: 45px;
+    align-items: stretch;
+  }
+  
+  .blocs-principaux > div {
+    flex: 1;
+    position: relative;
+  }
+  
+  /* Bloc Collectivités (gauche) */
+  .bloc-collectivites {
+    background: linear-gradient(135deg, #162447 0%, #1f4068 50%, #283e5e 100%);
+    border: 3px solid #355c7d;
+    border-radius: 20px;
+    padding: 40px 30px;
+    box-shadow: 0 8px 30px rgba(0,0,0,0.3);
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .bloc-collectivites::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, #ffc107, #ff9800, #ffc107);
+  }
+  
+  .bloc-collectivites h2 {
+    color: #ffc107;
+    font-size: 1.8rem;
+    margin-bottom: 20px;
+    font-weight: 700;
+    text-align: center;
+  }
+  
+  .bloc-collectivites p {
+    color: #fff;
+    font-size: 1rem;
+    line-height: 1.6;
+    margin-bottom: 25px;
+    text-align: center;
+  }
+  
+  /* Bandeau intégré dans le bloc collectivités */
+  .bandeau-interne-collectivite {
+    background: linear-gradient(135deg, #ff6b35 0%, #f7931e 25%, #ffc107 50%, #f7931e 75%, #ff6b35 100%);
+    background-size: 300% 100%;
+    padding: 20px 25px;
+    border-radius: 15px;
+    text-align: center;
+    margin: 25px 0;
+    position: relative;
+    overflow: hidden;
+    border: 3px solid #ff9800;
+    box-shadow: 0 6px 20px rgba(255,107,53,0.4);
+    animation: gradient-pulse 4s ease infinite;
+  }
+  
+  @keyframes gradient-pulse {
+    0%, 100% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+  }
+  
+  .bandeau-interne-collectivite::before {
+    content: '';
+    position: absolute;
+    top: -2px;
+    left: -2px;
+    right: -2px;
+    bottom: -2px;
+    background: linear-gradient(90deg, #fff, #ffc107, #ff6b35, #ffc107, #fff);
+    border-radius: 15px;
+    z-index: -1;
+    opacity: 0;
+    animation: border-glow 3s ease-in-out infinite;
+  }
+  
+  @keyframes border-glow {
+    0%, 100% { opacity: 0; }
+    50% { opacity: 0.6; }
+  }
+  
+  .bandeau-interne-collectivite h3 {
+    color: #000;
+    font-size: 1.3rem;
+    margin: 0 0 12px 0;
+    font-weight: 800;
+    text-shadow: 1px 1px 2px rgba(255,255,255,0.3);
+  }
+  
+  .bandeau-interne-collectivite p {
+    color: #1a1a1a;
+    font-size: 0.95rem;
+    margin: 0 0 15px 0;
+    font-weight: 600;
+    line-height: 1.4;
+  }
+  
+  .bandeau-interne-collectivite .btn-bandeau {
+    display: inline-block;
+    background: #000;
+    color: #ffc107;
+    padding: 12px 28px;
+    border-radius: 25px;
+    text-decoration: none;
+    font-weight: 700;
+    font-size: 0.95rem;
+    transition: all 0.3s ease;
+    border: 2px solid #000;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+  }
+  
+  .bandeau-interne-collectivite .btn-bandeau:hover {
+    background: #222;
+    transform: scale(1.05);
+    box-shadow: 0 6px 20px rgba(255,193,7,0.5);
+  }
+  
+  .bloc-collectivites .btn-catalogue {
+    display: inline-block;
+    background: #ffc107;
+    color: #000;
+    padding: 14px 32px;
+    border-radius: 25px;
+    text-decoration: none;
+    font-weight: 700;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+    margin-top: 10px;
+    border: 2px solid #ffc107;
+    box-shadow: 0 4px 15px rgba(255,193,7,0.4);
+  }
+  
+  .bloc-collectivites .btn-catalogue:hover {
+    background: #ffeb3b;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(255,193,7,0.6);
+  }
+  
+  .bloc-collectivites .recherches-populaires {
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 15px;
+    padding: 20px;
+    margin: 20px 0;
+  }
+  
+  .bloc-collectivites .recherches-populaires ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0 15px;
+  }
+  
+  .bloc-collectivites .recherches-populaires li {
+    color: #fff;
+    padding: 8px 0;
+    padding-left: 30px;
+    position: relative;
+    font-size: 0.9rem;
+    line-height: 1.5;
+  }
+  
+  .bloc-collectivites .recherches-populaires li::before {
+    content: '✓';
+    position: absolute;
+    left: 0;
+    color: #ffc107;
+    font-weight: bold;
+    font-size: 1.2rem;
+  }
+  
+  .bloc-collectivites .recherches-populaires a {
+    color: #fff;
+    text-decoration: none;
+    transition: color 0.3s ease;
+  }
+  
+  .bloc-collectivites .recherches-populaires a:hover {
+    color: #ffc107;
+  }
+  
+  .bloc-collectivites .text-center {
+    text-align: center;
+  }
+  
+  /* Bloc Artistes (droite) */
+  .bloc-artistes {
+    background: linear-gradient(135deg, #162447 0%, #1f4068 50%, #283e5e 100%);
+    border: 3px solid #355c7d;
+    border-radius: 20px;
+    padding: 40px 30px;
+    box-shadow: 0 8px 30px rgba(0,0,0,0.3);
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .bloc-artistes::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, #ffc107, #ff9800, #ffc107);
+  }
+  
+  .bloc-artistes h2 {
+    color: #ffc107;
+    font-size: 1.8rem;
+    margin-bottom: 20px;
+    font-weight: 700;
+    text-align: center;
+  }
+  
+  .bloc-artistes p {
+    color: #fff;
+    font-size: 1rem;
+    line-height: 1.6;
+    margin-bottom: 25px;
+    text-align: center;
+  }
+  
+  .bloc-artistes .avantages-liste {
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 15px;
+    padding: 20px;
+    margin-bottom: 25px;
+  }
+  
+  .bloc-artistes .avantages-liste ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+  
+  .bloc-artistes .avantages-liste li {
+    color: #fff;
+    padding: 10px 0;
+    padding-left: 30px;
+    position: relative;
+    font-size: 0.95rem;
+    line-height: 1.5;
+  }
+  
+  .bloc-artistes .avantages-liste li::before {
+    content: '✓';
+    position: absolute;
+    left: 0;
+    color: #ffc107;
+    font-weight: bold;
+    font-size: 1.2rem;
+  }
+  
+  .bloc-artistes .badges-container {
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+    margin-bottom: 25px;
+    flex-wrap: wrap;
+  }
+  
+  .bloc-artistes .badge {
+    background: rgba(255, 193, 7, 0.15);
+    border: 2px solid #ffc107;
+    color: #ffc107;
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-weight: 600;
+    font-size: 0.85rem;
+    position: relative;
+    animation: badge-pulse 2s ease-in-out infinite;
+  }
+  
+  @keyframes badge-pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+  }
+  
+  .bloc-artistes .btn-publier {
+    display: inline-block;
+    background: #ffc107;
+    color: #000;
+    padding: 14px 32px;
+    border-radius: 25px;
+    text-decoration: none;
+    font-weight: 700;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+    border: 2px solid #ffc107;
+    box-shadow: 0 4px 15px rgba(255,193,7,0.4);
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .bloc-artistes .btn-publier::before {
+    content: '';
+    position: absolute;
+    top: -2px;
+    left: -2px;
+    right: -2px;
+    bottom: -2px;
+    background: linear-gradient(45deg, #ff6b35, #ffc107, #ff6b35);
+    border-radius: 25px;
+    z-index: -1;
+    opacity: 0;
+    animation: border-spin 3s linear infinite;
+  }
+  
+  @keyframes border-spin {
+    0% { transform: rotate(0deg); opacity: 0; }
+    50% { opacity: 0.6; }
+    100% { transform: rotate(360deg); opacity: 0; }
+  }
+  
+  .bloc-artistes .btn-publier:hover {
+    background: #ffeb3b;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(255,193,7,0.6);
+  }
+  
+  .bloc-artistes .text-center {
+    text-align: center;
+  }
+  
+  /* Responsive */
+  @media (max-width: 992px) {
+    .blocs-principaux {
+      flex-direction: column;
+      gap: 25px;
+    }
+  }
+  
+  @media (max-width: 576px) {
+    .bloc-collectivites,
+    .bloc-artistes {
+      padding: 30px 20px;
+    }
+    
+    .bloc-collectivites h2,
+    .bloc-artistes h2 {
+      font-size: 1.5rem;
+    }
+    
+    .bandeau-interne-collectivite h3 {
+      font-size: 1.1rem;
+    }
+    
+    .bandeau-interne-collectivite p {
+      font-size: 0.9rem;
+    }
+    
+    .bloc-collectivites .recherches-populaires ul {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
+
+<!-- Section SEO Spectacle Animation -->
+<style>
+  .animation-card-link {
+    display: block;
+    background: rgba(0,0,0,0.3);
+    padding: 20px;
+    border-radius: 12px;
+    border-left: 4px solid #ffc107;
+    text-decoration: none;
+    color: inherit;
+    transition: all 0.3s ease;
+    cursor: pointer;
+  }
+  
+  .animation-card-link:hover {
+    background: rgba(255,193,7,0.2);
+    border-left-color: #fff;
+    transform: translateY(-4px);
+    box-shadow: 0 8px 25px rgba(255,193,7,0.4);
+  }
+  
+  .animation-card-link h3 {
+    color: #ffc107;
+    font-size: 1.2rem;
+    margin: 0 0 12px 0;
+    transition: color 0.3s ease;
+  }
+  
+  .animation-card-link:hover h3 {
+    color: #fff;
+    text-shadow: 0 2px 8px rgba(255,193,7,0.6);
+  }
+  
+  .animation-card-link p {
+    margin: 0;
+    font-size: 0.95rem;
+    line-height: 1.6;
+    color: rgba(255,255,255,0.95);
+  }
+</style>
+
+<section style="max-width: 1100px; margin: 45px auto; padding: 40px 30px; background: linear-gradient(135deg, #1a0a0a 0%, #6d1313 30%, #8b1e1e 50%, #6d1313 70%, #1a0a0a 100%); border-radius: 16px; box-shadow: 0 6px 25px rgba(109,19,19,0.4); border: 2px solid rgba(233,30,99,0.3);">
+  <h2 style="text-align: center; color: #ffc107; font-size: 2rem; margin: 0 0 25px 0; font-weight: 800; text-shadow: 0 2px 6px rgba(0,0,0,0.5);">Spectacle et Animation : Notre Expertise à Votre Service</h2>
+  
+  <div style="color: #fff; line-height: 1.8; font-size: 1.05rem;">
+    <p style="margin: 0 0 20px 0; text-align: justify;">
+      Depuis <strong>30 ans</strong>, <strong>Spectacle'ment VØtre</strong> est LA référence en matière de <strong>spectacle animation</strong> en France. Nous sommes spécialisés dans l'organisation et la mise en relation entre <strong>artistes professionnels</strong> et organisateurs d'événements pour tous types de manifestations.
+    </p>
+    
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 20px; margin: 30px 0;">
+      <a href="{{ url_for('ecoles_themes') }}" class="animation-card-link">
+        <h3>Spectacle Animation Scolaire</h3>
+        <p>
+          Nos <strong>spectacles pour écoles</strong> (maternelle, primaire, collège) s'adaptent à tous vos projets pédagogiques : sciences, environnement, prévention, lecture. Animations interactives et éducatives approuvées par des milliers d'enseignants.
+        </p>
+      </a>
+      
+      <a href="{{ url_for('catalogue') }}" class="animation-card-link">
+        <h3>Spectacle Animation Mairie & CSE</h3>
+        <p>
+          <strong>Fêtes de village</strong>, arbres de Noël, kermesses, événements municipaux : nous proposons des <strong>spectacles animation</strong> adaptés à tous les budgets et tous les publics. Prix dégressifs pour collectivités.
+        </p>
+      </a>
+      
+      <a href="{{ url_for('catalogue') }}" class="animation-card-link">
+        <h3>Spectacles Qualitatifs pour Centres Culturels</h3>
+        <p>
+          Des <strong>spectacles du monde</strong>, <strong>spectacles contemporains</strong> et créations originales pour vos <strong>centres culturels</strong>. Nos compagnies ont été présentées en <strong>scènes nationales</strong>, théâtres municipaux et festivals reconnus. Programmation artistique de qualité garantie.
+        </p>
+      </a>
+    </div>
+    
+    <p style="margin: 25px 0 0 0; text-align: center; font-weight: 600; font-size: 1.1rem; color: #ffc107;">
+      Plus de <strong>200 artistes référencés</strong> • <strong>180+ spectacles programmés par an</strong> • Satisfaction garantie
+    </p>
+  </div>
+  
+  <div style="text-align: center; margin-top: 30px;">
+    <a href="{{ url_for('catalogue') }}" style="display: inline-block; padding: 16px 40px; background: linear-gradient(135deg, #ffc107 0%, #ffeb3b 100%); color: #000; text-decoration: none; border-radius: 30px; font-weight: 800; font-size: 1.15rem; box-shadow: 0 6px 20px rgba(255,193,7,0.5); transition: all 0.3s ease; border: 2px solid #fff;">
+      Découvrir tous nos spectacles et animations
+    </a>
+  </div>
+</section>
+
+<!-- Section Chiffres Clés avec animation -->
+<section class="stats-section" style="background:linear-gradient(135deg,#162447 0%,#283e5e 100%); border-radius:12px; padding:20px 15px; margin:25px 0; box-shadow:0 2px 12px rgba(22,36,71,0.3);">
+  <h2 style="text-align:center; color:#fff; margin-bottom:15px; font-size:1.1rem;">Nos chiffres clés</h2>
+  <div style="display:flex; flex-wrap:wrap; justify-content:center; gap:15px; max-width:950px; margin:0 auto;">
+    
+    <div style="text-align:center; flex:1; min-width:140px; padding:10px;">
+      <p style="color:#FFDEDE; font-size:0.75rem; margin:0 0 4px 0; line-height:1.3;">d'expérience dans<br>le spectacle</p>
+      <div style="font-size:1.8rem; font-weight:800; color:#ffc107;">
+        <span class="counter" data-target="30">0</span> <span style="font-size:1rem;">ans</span>
+      </div>
+    </div>
+    
+    <div style="text-align:center; flex:1; min-width:140px; padding:10px;">
+      <p style="color:#FFDEDE; font-size:0.75rem; margin:0 0 4px 0; line-height:1.3;">Spectacles<br>programmés/an</p>
+      <div style="font-size:1.8rem; font-weight:800; color:#ffc107;">
+        <span style="font-size:1.2rem;">+</span><span class="counter" data-target="180">0</span>
+      </div>
+    </div>
+    
+    <div style="text-align:center; flex:1; min-width:140px; padding:10px;">
+      <p style="color:#FFDEDE; font-size:0.75rem; margin:0 0 4px 0; line-height:1.3;">Artistes<br>référencés</p>
+      <div style="font-size:1.8rem; font-weight:800; color:#ffc107;">
+        <span style="font-size:1.2rem;">+</span><span class="counter" data-target="200">0</span>
+      </div>
+    </div>
+    
+    <div style="text-align:center; flex:1; min-width:140px; padding:10px;">
+      <p style="color:#FFDEDE; font-size:0.75rem; margin:0 0 4px 0; line-height:1.3;">Réponse moyenne<br>devis</p>
+      <div style="font-size:1.8rem; font-weight:800; color:#ffc107;">
+        <span class="counter" data-target="3">0</span><span style="font-size:1rem;">h</span>
+      </div>
+    </div>
+    
+    <div style="text-align:center; flex:1; min-width:140px; padding:10px;">
+      <p style="color:#FFDEDE; font-size:0.75rem; margin:0 0 4px 0; line-height:1.3;">Visiteurs depuis<br>le lancement</p>
+      <div style="font-size:1.8rem; font-weight:800; color:#ffc107;">
+        <span class="counter" data-target="{{ visit_count }}">0</span>
+      </div>
+    </div>
+    
+  </div>
+</section>
+
+<!-- Section Comment ça marche -->
+<section style="max-width: 1000px; margin: 40px auto; padding: 35px 25px; background: linear-gradient(135deg, rgba(22,36,71,0.6) 0%, rgba(40,62,94,0.6) 100%); border-radius: 16px; border: 2px solid rgba(255,193,7,0.2);">
+  <h2 style="text-align: center; color: #ffc107; font-size: 1.8rem; margin: 0 0 30px 0; font-weight: 700;">Comment réserver un spectacle ?</h2>
+  
+  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 25px; margin-bottom: 25px;">
+    <div style="text-align: center; padding: 20px; background: rgba(255,255,255,0.05); border-radius: 12px; border: 1px solid rgba(255,255,255,0.1);">
+      <div style="width: 60px; height: 60px; margin: 0 auto 15px auto; background: linear-gradient(135deg, #ffc107 0%, #ff9800 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.8rem; font-weight: 800; color: #000; box-shadow: 0 4px 12px rgba(255,193,7,0.4);">1</div>
+      <h3 style="color: #fff; font-size: 1.1rem; margin: 0 0 10px 0;">Parcourez</h3>
+      <p style="color: rgba(255,255,255,0.8); font-size: 0.9rem; margin: 0; line-height: 1.5;">Explorez notre catalogue de spectacles par catégorie : magiciens, clowns, cirque, marionnettes, théâtre...</p>
+    </div>
+    
+    <div style="text-align: center; padding: 20px; background: rgba(255,255,255,0.05); border-radius: 12px; border: 1px solid rgba(255,255,255,0.1);">
+      <div style="width: 60px; height: 60px; margin: 0 auto 15px auto; background: linear-gradient(135deg, #ffc107 0%, #ff9800 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.8rem; font-weight: 800; color: #000; box-shadow: 0 4px 12px rgba(255,193,7,0.4);">2</div>
+      <h3 style="color: #fff; font-size: 1.1rem; margin: 0 0 10px 0;">Demandez</h3>
+      <p style="color: rgba(255,255,255,0.8); font-size: 0.9rem; margin: 0; line-height: 1.5;">Faites une demande de devis gratuite en quelques clics. Précisez votre date, lieu et type d'événement.</p>
+    </div>
+    
+    <div style="text-align: center; padding: 20px; background: rgba(255,255,255,0.05); border-radius: 12px; border: 1px solid rgba(255,255,255,0.1);">
+      <div style="width: 60px; height: 60px; margin: 0 auto 15px auto; background: linear-gradient(135deg, #ffc107 0%, #ff9800 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.8rem; font-weight: 800; color: #000; box-shadow: 0 4px 12px rgba(255,193,7,0.4);">3</div>
+      <h3 style="color: #fff; font-size: 1.1rem; margin: 0 0 10px 0;">Recevez</h3>
+      <p style="color: rgba(255,255,255,0.8); font-size: 0.9rem; margin: 0; line-height: 1.5;">L'artiste vous contacte sous 3h en moyenne avec un devis personnalisé et détaillé.</p>
+    </div>
+    
+    <div style="text-align: center; padding: 20px; background: rgba(255,255,255,0.05); border-radius: 12px; border: 1px solid rgba(255,255,255,0.1);">
+      <div style="width: 60px; height: 60px; margin: 0 auto 15px auto; background: linear-gradient(135deg, #ffc107 0%, #ff9800 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.8rem; font-weight: 800; color: #000; box-shadow: 0 4px 12px rgba(255,193,7,0.4);">4</div>
+      <h3 style="color: #fff; font-size: 1.1rem; margin: 0 0 10px 0;">Profitez</h3>
+      <p style="color: rgba(255,255,255,0.8); font-size: 0.9rem; margin: 0; line-height: 1.5;">Réservez directement avec l'artiste et profitez d'un spectacle professionnel inoubliable !</p>
+    </div>
+  </div>
+  
+  <p style="text-align: center; color: rgba(255,255,255,0.9); font-size: 1rem; margin: 0;">
+    <strong>Service 100% gratuit</strong> pour les organisateurs • Contact direct avec les artistes • Sans intermédiaire
+  </p>
+</section>
+
+<!-- FAQ SEO -->
+<section style="max-width: 900px; margin: 40px auto; padding: 30px 25px; background: rgba(22,36,71,0.4); border-radius: 16px; border: 1px solid rgba(255,193,7,0.15);">
+  <h2 style="text-align: center; color: #ffc107; font-size: 1.7rem; margin: 0 0 25px 0; font-weight: 700;">Questions fréquentes</h2>
+  
+  <div style="display: flex; flex-direction: column; gap: 18px;">
+    <details style="background: rgba(255,255,255,0.05); padding: 18px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.1); cursor: pointer;">
+      <summary style="font-weight: 700; color: #fff; font-size: 1.05rem; cursor: pointer; list-style: none; display: flex; align-items: center; gap: 10px;">
+        <span style="color: #ffc107;">▶</span> Comment trouver un spectacle de qualité pour ma commune ?
+      </summary>
+      <p style="color: rgba(255,255,255,0.85); margin: 15px 0 0 24px; line-height: 1.6; font-size: 0.95rem;">
+        Pour <strong>trouver un spectacle pour votre mairie</strong>, parcourez notre catalogue d'artistes professionnels vérifiés. Filtrez par localisation, catégorie (cirque, théâtre, magie) et budget. Chaque artiste a un profil détaillé avec photos, vidéos et avis. Vous pouvez également publier un appel d'offre gratuit et recevoir plusieurs propositions sous 3h.
+      </p>
+    </details>
+    
+    <details style="background: rgba(255,255,255,0.05); padding: 18px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.1); cursor: pointer;">
+      <summary style="font-weight: 700; color: #fff; font-size: 1.05rem; cursor: pointer; list-style: none; display: flex; align-items: center; gap: 10px;">
+        <span style="color: #ffc107;">▶</span> Où chercher un artiste professionnel pour l'école ?
+      </summary>
+      <p style="color: rgba(255,255,255,0.85); margin: 15px 0 0 24px; line-height: 1.6; font-size: 0.95rem;">
+        Pour <strong>chercher un spectacle pour votre école</strong> (maternelle, primaire, collège), Spectacle'ment VØtre référence +200 artistes spécialisés dans les animations pédagogiques. Nos spectacles éducatifs sont adaptés aux thèmes scolaires : sciences, environnement, lecture, histoire. Devis gratuit et réponse rapide garantie.
+      </p>
+    </details>
+    
+    <details style="background: rgba(255,255,255,0.05); padding: 18px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.1); cursor: pointer;">
+      <summary style="font-weight: 700; color: #fff; font-size: 1.05rem; cursor: pointer; list-style: none; display: flex; align-items: center; gap: 10px;">
+        <span style="color: #ffc107;">▶</span> Comment réserver un spectacle pour mon CSE ?
+      </summary>
+      <p style="color: rgba(255,255,255,0.85); margin: 15px 0 0 24px; line-height: 1.6; font-size: 0.95rem;">
+        Pour <strong>réserver un spectacle pour votre comité d'entreprise</strong>, consultez notre catalogue, sélectionnez les artistes qui vous intéressent, et faites une demande de devis en précisant votre date, lieu et nombre de participants. Les artistes vous contactent directement sous 3h avec des propositions détaillées. Sans intermédiaire, sans frais cachés.
+      </p>
+    </details>
+    
+    <details style="background: rgba(255,255,255,0.05); padding: 18px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.1); cursor: pointer;">
+      <summary style="font-weight: 700; color: #fff; font-size: 1.05rem; cursor: pointer; list-style: none; display: flex; align-items: center; gap: 10px;">
+        <span style="color: #ffc107;">▶</span> Quel spectacle choisir pour une fête de village ?
+      </summary>
+      <p style="color: rgba(255,255,255,0.85); margin: 15px 0 0 24px; line-height: 1.6; font-size: 0.95rem;">
+        Pour une <strong>fête de village</strong>, nous recommandons des spectacles tout public : cirque de rue, théâtre burlesque, concerts, spectacles déambulatoires. Les spectacles en extérieur sont particulièrement appréciés. Consultez nos catégories "Spectacle de rue" et "Cirque" pour des propositions adaptées aux événements municipaux.
+      </p>
+    </details>
+    <details style="background: rgba(255,255,255,0.05); padding: 18px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.1); cursor: pointer;">
+      <summary style="font-weight: 700; color: #fff; font-size: 1.05rem; cursor: pointer; list-style: none; display: flex; align-items: center; gap: 10px;">
+        <span style="color: #ffc107;">▶</span> Qu'est-ce qu'un spectacle animation ?
+      </summary>
+      <p style="color: rgba(255,255,255,0.85); margin: 15px 0 0 24px; line-height: 1.6; font-size: 0.95rem;">
+        Un <strong>spectacle animation</strong> combine une prestation artistique (magie, cirque, théâtre, clown) avec une dimension interactive où les enfants ou le public participent activement. Nos <strong>spectacles animations</strong> sont conçus pour divertir, éduquer et créer des moments mémorables lors de vos événements (écoles, anniversaires, fêtes de village, arbres de Noël).
+      </p>
+    </details>
+    
+    <details style="background: rgba(255,255,255,0.05); padding: 18px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.1); cursor: pointer;">
+      <summary style="font-weight: 700; color: #fff; font-size: 1.05rem; cursor: pointer; list-style: none; display: flex; align-items: center; gap: 10px;">
+        <span style="color: #ffc107;">▶</span> Quels types de spectacles et animations proposez-vous ?
+      </summary>
+      <p style="color: rgba(255,255,255,0.85); margin: 15px 0 0 24px; line-height: 1.6; font-size: 0.95rem;">
+        Nous proposons une large gamme de <strong>spectacles et animations</strong> : magie interactive, clowns professionnels, cirque, marionnettes, théâtre jeune public, contes musicaux, ventriloquie, animations scientifiques, ateliers créatifs. Tous nos artistes de <strong>spectacle animation</strong> sont professionnels et adaptent leur prestation selon l'âge du public (3-12 ans) et le type d'événement.
+      </p>
+    </details>
+    
+    <details style="background: rgba(255,255,255,0.05); padding: 18px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.1); cursor: pointer;">
+      <summary style="font-weight: 700; color: #fff; font-size: 1.05rem; cursor: pointer; list-style: none; display: flex; align-items: center; gap: 10px;">
+        <span style="color: #ffc107;">▶</span> Combien coûte un spectacle animation pour école ou mairie ?
+      </summary>
+      <p style="color: rgba(255,255,255,0.85); margin: 15px 0 0 24px; line-height: 1.6; font-size: 0.95rem;">
+        Le prix d'un <strong>spectacle animation</strong> varie selon le type de prestation, la durée, le nombre de participants et la localisation. En moyenne, comptez entre <strong>300€ et 800€</strong> pour une <strong>animation scolaire</strong>, et entre <strong>500€ et 2000€</strong> pour un événement de mairie, CSE ou arbre de Noël. Demandez des <strong>devis gratuits</strong> pour comparer les offres de nos artistes professionnels.
+      </p>
+    </details>
+    
+    <details style="background: rgba(255,255,255,0.05); padding: 18px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.1); cursor: pointer;">
+      <summary style="font-weight: 700; color: #fff; font-size: 1.05rem; cursor: pointer; list-style: none; display: flex; align-items: center; gap: 10px;">
+        <span style="color: #ffc107;">▶</span> Comment trouver un magicien pour un anniversaire ?
+      </summary>
+      <p style="color: rgba(255,255,255,0.85); margin: 15px 0 0 24px; line-height: 1.6; font-size: 0.95rem;">
+        Pour réserver un <strong>magicien pour anniversaire</strong>, parcourez notre catégorie "Magiciens" dans le catalogue, consultez les profils et photos des artistes, puis faites une demande de devis en indiquant la date, le lieu et le nombre d'enfants. Vous recevrez rapidement des propositions personnalisées.
+      </p>
+    </details>
+    
+    <details style="background: rgba(255,255,255,0.05); padding: 18px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.1); cursor: pointer;">
+      <summary style="font-weight: 700; color: #fff; font-size: 1.05rem; cursor: pointer; list-style: none; display: flex; align-items: center; gap: 10px;">
+        <span style="color: #ffc107;">▶</span> Quel délai pour réserver un spectacle ?
+      </summary>
+      <p style="color: rgba(255,255,255,0.85); margin: 15px 0 0 24px; line-height: 1.6; font-size: 0.95rem;">
+        Nous recommandons de réserver <strong>au moins 4 à 6 semaines à l'avance</strong> pour avoir le meilleur choix d'artistes, surtout pour les périodes de forte demande (Noël, fin d'année scolaire, kermesses). Les artistes répondent généralement sous <strong>3h</strong> à vos demandes.
+      </p>
+    </details>
+    
+    <details style="background: rgba(255,255,255,0.05); padding: 18px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.1); cursor: pointer;">
+      <summary style="font-weight: 700; color: #fff; font-size: 1.05rem; cursor: pointer; list-style: none; display: flex; align-items: center; gap: 10px;">
+        <span style="color: #ffc107;">▶</span> Intervenez-vous dans toute la France ?
+      </summary>
+      <p style="color: rgba(255,255,255,0.85); margin: 15px 0 0 24px; line-height: 1.6; font-size: 0.95rem;">
+        Oui ! Notre réseau d'artistes couvre <strong>toute la France</strong>. Vous pouvez filtrer les spectacles par région et ville dans notre catalogue. Beaucoup d'artistes se déplacent sur plusieurs départements et régions.
+      </p>
+    </details>
+  </div>
+</section>
+
+<style>
+/* Style pour les détails FAQ */
+details[open] summary span {
+  transform: rotate(90deg);
+  transition: transform 0.3s ease;
+}
+details summary span {
+  transition: transform 0.3s ease;
+}
+</style>
+
+<script>
+// Animation des compteurs
+(function() {
+  const counters = document.querySelectorAll('.counter');
+  const speed = 50; // Plus petit = plus rapide
+  
+  const animateCounter = (counter) => {
+    const target = +counter.getAttribute('data-target');
+    const increment = target / 100;
+    let current = 1;
+    
+    const updateCount = () => {
+      if (current < target) {
+        current += increment;
+        if (current > target) current = target;
+        counter.innerText = Math.ceil(current);
+        setTimeout(updateCount, speed);
+      } else {
+        counter.innerText = target;
+      }
+    };
+    
+    updateCount();
+  };
+  
+  // Observer pour déclencher l'animation quand la section est visible
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        counters.forEach(counter => {
+          counter.innerText = '1';
+          animateCounter(counter);
+        });
+        observer.disconnect();
+      }
     });
-  });
+  }, { threshold: 0.3 });
+  
+  const statsSection = document.querySelector('.stats-section');
+  if (statsSection) {
+    observer.observe(statsSection);
+  }
+})();
 
-  // Optionnel : bouton pour réinitialiser le filtre
-  const resetBtn = document.createElement('li');
-  resetBtn.innerHTML = '<a href="#" style="color:var(--primary);font-weight:bold;">Tout</a>';
-  resetBtn.addEventListener('click', function(e) {
-    e.preventDefault();
-    resetAll();
-  });
-  document.querySelector('.seo-block ul').insertBefore(resetBtn, document.querySelector('.seo-block ul').firstChild);
+// Fonction pour initialiser les carousels des spectacles à la une
+(function() {
+  var carousels = document.querySelectorAll('[data-carousel]');
+  
+  carousels.forEach(function(carousel, carouselIndex) {
+    if (carousel.dataset.initialized === 'true') return;
+    carousel.dataset.initialized = 'true';
+    
+    var slidesContainer = carousel.querySelector('.carousel-slides');
+    var allSlides = carousel.querySelectorAll('.carousel-slide');
+    var indicators = carousel.querySelectorAll('.carousel-indicator');
+    var prevBtn = carousel.querySelector('.carousel-prev');
+    var nextBtn = carousel.querySelector('.carousel-next');
+    var totalSlides = allSlides.length;
+    var currentSlide = 0;
+    var isPaused = false;
+    var lastChangeTime = Date.now();
+    var INTERVAL = 6000;
 
-  // Appliquer le filtre mémorisé au chargement (optionnel, mais ici on laisse le backend gérer)
-});
+    if (totalSlides <= 1) return;
+
+    function goToSlide(index) {
+      if (index < 0) index = totalSlides - 1;
+      else if (index >= totalSlides) index = 0;
+      currentSlide = index;
+      if (slidesContainer) {
+        slidesContainer.style.transform = 'translateX(-' + (currentSlide * 100) + '%)';
+      }
+      indicators.forEach(function(ind, i) {
+        ind.classList.toggle('active', i === currentSlide);
+      });
+      lastChangeTime = Date.now();
+    }
+
+    function nextSlide() { goToSlide(currentSlide + 1); }
+    function prevSlide() { goToSlide(currentSlide - 1); }
+
+    function tick() {
+      if (!isPaused && document.body.contains(carousel)) {
+        if (Date.now() - lastChangeTime >= INTERVAL) nextSlide();
+        requestAnimationFrame(tick);
+      }
+    }
+
+    if (prevBtn) prevBtn.addEventListener('click', function(e) { e.preventDefault(); e.stopPropagation(); prevSlide(); });
+    if (nextBtn) nextBtn.addEventListener('click', function(e) { e.preventDefault(); e.stopPropagation(); nextSlide(); });
+    indicators.forEach(function(indicator, i) {
+      indicator.addEventListener('click', function(e) { e.preventDefault(); e.stopPropagation(); goToSlide(i); });
+    });
+
+    requestAnimationFrame(tick);
+  });
+})();
 </script>
 
 {% endblock %}

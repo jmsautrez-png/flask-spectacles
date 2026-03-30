@@ -2,13 +2,21 @@
 {% block title %}Demander une animation pour anniversaire, entreprise, école - Spectacle'ment VØtre{% endblock %}
 
 {% block content %}
-<div class="demande-wrap">
-  <h1 style="margin:0 0 8px 0;">Demande d'animation</h1>
-  <p class="text-muted" style="margin:0 0 24px 0;">
-    Remplissez les informations essentielles. Les champs marqués <span style="color:var(--primary); font-weight:700;">*</span> sont obligatoires.
+<div style="margin-bottom:18px; font-size:1.15em; color:#fff; font-weight:600; text-align:center;">
+  Spectacle'ment VØtre la plateforme qui connecte facilement les organisateurs d’événements avec des artistes et compagnies de spectacle vivant.
+</div>
+<div class="demande-wrap" style="background:linear-gradient(135deg,#1b2a4e 0%,#355c7d 100%); border:2px solid #355c7d; border-radius:16px; padding:32px; margin-bottom:32px; position:relative; overflow:hidden; box-shadow:0 4px 16px #355c7d22; color:#fff;">
+  <div style="background:linear-gradient(90deg,#1b2a4e 0%,#355c7d 100%); color:#fff; border-radius:10px; padding:14px 18px; margin-bottom:18px; text-align:center; font-size:1.18em; font-weight:700; box-shadow:0 2px 8px #1b2a4e33; letter-spacing:0.1px;">
+    Demande d'un devis, d'une animation ou d'un spectacle
+  </div>
+  <p class="text-muted" style="margin:0 0 24px 0; text-align:center;">
+    Remplissez les informations essentielles. Les champs marqués <span style="color:var(--primary); font-weight:700;">*</span> sont obligatoires.<br>
+    <span style="display:block; margin-top:10px; font-size:0.95em; color:hsl(210, 12%, 97%);">Votre demande sera envoyée à tout nos abonnés</span>
   </p>
 
   <form action="{{ url_for('demande_animation') }}" method="POST" class="form demande-form" novalidate>
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+      <input type="hidden" name="auto_datetime" id="auto_datetime" value="">
     
     <fieldset class="demande-section">
       <legend>1) Vos coordonnées</legend>
@@ -46,6 +54,13 @@
                  value="{{ request.form.get('telephone','') }}">
         </label>
       </div>
+
+      <label style="margin-top: 16px;">
+        <span class="label-text">Intitulé de votre demande <span class="req">*</span></span>
+        <textarea id="intitule" name="intitule" rows="4" required maxlength="1000"
+                  placeholder="Décrivez brièvement votre demande (150 mots maximum)...">{{ request.form.get('intitule','') }}</textarea>
+        <small class="hint">Résumez votre demande en quelques phrases (150 mots max).</small>
+      </label>
     </fieldset>
 
     <fieldset class="demande-section">
@@ -69,17 +84,95 @@
 
       <div class="grid-2">
         <label>
+          <span class="label-text">Code postal <span class="req">*</span></span>
+          <input type="text" id="code_postal" name="code_postal" required autocomplete="postal-code"
+                 inputmode="numeric" pattern="[0-9]{5}" maxlength="5"
+                 placeholder="Ex : 75001"
+                 value="{{ request.form.get('code_postal','') }}">
+          <small class="hint">Entrez le code postal pour déterminer automatiquement la région.</small>
+        </label>
+
+        <label>
+          <span class="label-text">Région</span>
+          <input type="text" id="region" name="region" readonly
+                 placeholder="Déterminée automatiquement"
+                 value="{{ request.form.get('region','') }}"
+                 style="background:#1b2a4e; cursor:not-allowed;">
+          <small class="hint">La région est remplie automatiquement selon le code postal.</small>
+        </label>
+      </div>
+
+      <div class="grid-2">
+        <label>
           <span class="label-text">Genre recherché <span class="req">*</span></span>
-          <input type="text" id="genre_recherche" name="genre_recherche" required
-                 placeholder="Magie, théâtre, clown, musique…"
-                 value="{{ request.form.get('genre_recherche','') }}">
+          <select id="genre_recherche" name="genre_recherche" required>
+            <option value="">-- Choisir --</option>
+            <optgroup label="Spectacle et Animation Artistique">
+              <option value="Spectacle Maternelle">Spectacle Maternelle</option>
+              <option value="Spectacle Élémentaire">Spectacle Élémentaire</option>
+              <option value="Spectacle École">Spectacle École</option>
+              <option value="Spectacle CSE">Spectacle CSE</option>
+              <option value="Festival">Festival</option>
+              <option value="Fêtes Foraine">Fête Foraine</option>
+              <option value="Sculpteur de ballons">Sculpteur de ballons</option>
+              <option value="Animation et Atelier Artistique">Animation et Atelier Artistique</option>
+              <option value="Atelier divers">Atelier divers</option>
+              <option value="Atelier maquillage">Atelier maquillage</option>
+              <option value="Caricaturistes et Silhouettiste">Caricaturistes et Silhouettiste</option>
+              <option value="Cirque">Cirque</option>
+              <option value="Clown">Clown</option>
+              <option value="Conte et Théâtre">Conte et Théâtre</option>
+              <option value="Fête de village">Fête de village</option>
+              <option value="Humoriste et Imitateur">Humoriste et Imitateur</option>
+              <option value="Location de stand">Location de stand</option>
+              <option value="Magie et Magicien">Magie et Magicien</option>
+              <option value="Manège">Manège</option>
+              <option value="Marionnettes">Marionnettes</option>
+              <option value="Père Noël">Père Noël</option>
+              <option value="Revue Cabaret et Danse">Revue Cabaret et Danse</option>
+              <option value="Sosie">Sosie</option>
+              <option value="Spectacle à Thèmes">Spectacle à Thèmes</option>
+              <option value="Spectacle Animalier">Spectacle Animalier</option>
+              <option value="Spectacle Arbre de Noël">Spectacle Arbre de Noël</option>
+              <option value="Spectacle de danse">Spectacle de danse</option>
+              <option value="Spectacle de Rue">Spectacle de Rue</option>
+              <option value="Spectacle Enfants">Spectacle Enfants</option>
+              <option value="Spectacle Evénementiel">Spectacle Evénementiel</option>
+              <option value="Spectacle Musical">Spectacle Musical</option>
+              <option value="Ventriloque">Ventriloque</option>
+            </optgroup>
+            <optgroup label="Groupe de Musique et Musicien">
+              <option value="Accordéoniste">Accordéoniste</option>
+              <option value="Animation Musicale">Animation Musicale</option>
+              <option value="Chorale et Gospel">Chorale et Gospel</option>
+              <option value="D.J. et Orchestre">D.J. et Orchestre</option>
+              <option value="Fanfare et Batucada">Fanfare et Batucada</option>
+              <option value="Groupe folklorique">Groupe folklorique</option>
+              <option value="Jazz">Jazz</option>
+              <option value="Musique Classique">Musique Classique</option>
+              <option value="Orgue de Barbarie">Orgue de Barbarie</option>
+              <option value="Pianiste">Pianiste</option>
+              <option value="Rock et Country">Rock et Country</option>
+            </optgroup>
+            <option value="Autre">Autre (précisez ci-dessous)</option>
+          </select>
+        </label>
+
+        <label id="autre_genre_container" style="display:none;">
+          <span class="label-text">Précisez votre demande</span>
+          <input type="text" id="autre_genre" name="autre_genre" placeholder="Décrivez le type de spectacle ou animation recherché">
+          <small class="hint">Ce champ sera utilisé si vous sélectionnez "Autre" ci-dessus.</small>
         </label>
 
         <label>
           <span class="label-text">Tranche d'âge du public <span class="req">*</span></span>
           <select id="age_range" name="age_range" required>
             <option value="">-- Choisir --</option>
+            <option value="familial" {% if request.form.get('age_range','') == 'familial' %}selected{% endif %}>Familial</option>
             <option value="enfant" {% if request.form.get('age_range','') == 'enfant' %}selected{% endif %}>Enfant</option>
+            <option value="enfant_2_6" {% if request.form.get('age_range','') == 'enfant_2_6' %}selected{% endif %}>Enfant (2/6ans)</option>
+            <option value="enfant_5_10" {% if request.form.get('age_range','') == 'enfant_5_10' %}selected{% endif %}>Enfant (5/10ans)</option>
+            <option value="enfants_2_10" {% if request.form.get('age_range','') == 'enfants_2_10' %}selected{% endif %}>Enfants (2/10ans)</option>
             <option value="adulte" {% if request.form.get('age_range','') == 'adulte' %}selected{% endif %}>Adulte</option>
             <option value="tout public" {% if request.form.get('age_range','') == 'tout public' %}selected{% endif %}>Tout public</option>
           </select>
@@ -137,15 +230,260 @@
       <button type="submit" class="publish-btn" style="width:100%; padding:14px; font-size:1rem;">
         Envoyer la demande
       </button>
-      <p class="text-muted" style="margin:12px 0 0 0; font-size:0.85rem; text-align:center;">
-        Réponse rapide — vous serez contacté par e-mail / téléphone.
-      </p>
+      <span style="display:block; margin-top:10px; font-size:0.95em; color:#b0b8d8; text-align:center;">Réponse rapide — vous serez contacté par e-mail / téléphone.</span>
     </div>
   </form>
+
+  <script>
+  // Fonction pour déterminer la région à partir du code postal français
+  function getRegionFromCodePostal(codePostal) {
+    if (!codePostal || codePostal.length < 2) return '';
+    
+    var dept = codePostal.substring(0, 2);
+    var deptNum = parseInt(dept, 10);
+    
+    // Cas particulier pour la Corse (2A, 2B)
+    if (codePostal.startsWith('20')) {
+      var code3 = parseInt(codePostal.substring(0, 3), 10);
+      return 'Corse';
+    }
+    
+    // DOM-TOM
+    if (codePostal.startsWith('971')) return 'Guadeloupe';
+    if (codePostal.startsWith('972')) return 'Martinique';
+    if (codePostal.startsWith('973')) return 'Guyane';
+    if (codePostal.startsWith('974')) return 'La Réunion';
+    if (codePostal.startsWith('976')) return 'Mayotte';
+    
+    // Régions métropolitaines
+    var regions = {
+      // Auvergne-Rhône-Alpes
+      '01': 'Auvergne-Rhône-Alpes', '03': 'Auvergne-Rhône-Alpes', '07': 'Auvergne-Rhône-Alpes',
+      '15': 'Auvergne-Rhône-Alpes', '26': 'Auvergne-Rhône-Alpes', '38': 'Auvergne-Rhône-Alpes',
+      '42': 'Auvergne-Rhône-Alpes', '43': 'Auvergne-Rhône-Alpes', '63': 'Auvergne-Rhône-Alpes',
+      '69': 'Auvergne-Rhône-Alpes', '73': 'Auvergne-Rhône-Alpes', '74': 'Auvergne-Rhône-Alpes',
+      
+      // Bourgogne-Franche-Comté
+      '21': 'Bourgogne-Franche-Comté', '25': 'Bourgogne-Franche-Comté', '39': 'Bourgogne-Franche-Comté',
+      '58': 'Bourgogne-Franche-Comté', '70': 'Bourgogne-Franche-Comté', '71': 'Bourgogne-Franche-Comté',
+      '89': 'Bourgogne-Franche-Comté', '90': 'Bourgogne-Franche-Comté',
+      
+      // Bretagne
+      '22': 'Bretagne', '29': 'Bretagne', '35': 'Bretagne', '56': 'Bretagne',
+      
+      // Centre-Val de Loire
+      '18': 'Centre-Val de Loire', '28': 'Centre-Val de Loire', '36': 'Centre-Val de Loire',
+      '37': 'Centre-Val de Loire', '41': 'Centre-Val de Loire', '45': 'Centre-Val de Loire',
+      
+      // Grand Est
+      '08': 'Grand Est', '10': 'Grand Est', '51': 'Grand Est', '52': 'Grand Est',
+      '54': 'Grand Est', '55': 'Grand Est', '57': 'Grand Est', '67': 'Grand Est',
+      '68': 'Grand Est', '88': 'Grand Est',
+      
+      // Hauts-de-France
+      '02': 'Hauts-de-France', '59': 'Hauts-de-France', '60': 'Hauts-de-France',
+      '62': 'Hauts-de-France', '80': 'Hauts-de-France',
+      
+      // Île-de-France
+      '75': 'Île-de-France', '77': 'Île-de-France', '78': 'Île-de-France',
+      '91': 'Île-de-France', '92': 'Île-de-France', '93': 'Île-de-France',
+      '94': 'Île-de-France', '95': 'Île-de-France',
+      
+      // Normandie
+      '14': 'Normandie', '27': 'Normandie', '50': 'Normandie', '61': 'Normandie', '76': 'Normandie',
+      
+      // Nouvelle-Aquitaine
+      '16': 'Nouvelle-Aquitaine', '17': 'Nouvelle-Aquitaine', '19': 'Nouvelle-Aquitaine',
+      '23': 'Nouvelle-Aquitaine', '24': 'Nouvelle-Aquitaine', '33': 'Nouvelle-Aquitaine',
+      '40': 'Nouvelle-Aquitaine', '47': 'Nouvelle-Aquitaine', '64': 'Nouvelle-Aquitaine',
+      '79': 'Nouvelle-Aquitaine', '86': 'Nouvelle-Aquitaine', '87': 'Nouvelle-Aquitaine',
+      
+      // Occitanie
+      '09': 'Occitanie', '11': 'Occitanie', '12': 'Occitanie', '30': 'Occitanie',
+      '31': 'Occitanie', '32': 'Occitanie', '34': 'Occitanie', '46': 'Occitanie',
+      '48': 'Occitanie', '65': 'Occitanie', '66': 'Occitanie', '81': 'Occitanie', '82': 'Occitanie',
+      
+      // Pays de la Loire
+      '44': 'Pays de la Loire', '49': 'Pays de la Loire', '53': 'Pays de la Loire',
+      '72': 'Pays de la Loire', '85': 'Pays de la Loire',
+      
+      // Provence-Alpes-Côte d'Azur
+      '04': 'Provence-Alpes-Côte d\'Azur', '05': 'Provence-Alpes-Côte d\'Azur',
+      '06': 'Provence-Alpes-Côte d\'Azur', '13': 'Provence-Alpes-Côte d\'Azur',
+      '83': 'Provence-Alpes-Côte d\'Azur', '84': 'Provence-Alpes-Côte d\'Azur'
+    };
+    
+    return regions[dept] || '';
+  }
+
+  // Remplit le champ caché auto_datetime avec la date et l'heure locale au chargement du formulaire
+  document.addEventListener('DOMContentLoaded', function() {
+    var now = new Date();
+    var formatted = now.toLocaleDateString('fr-FR') + ' ' + now.toLocaleTimeString('fr-FR');
+    var input = document.getElementById('auto_datetime');
+    if (input) {
+      input.value = formatted;
+    }
+
+    // Gestion de l'affichage du champ "Autre genre"
+    var genreSelect = document.getElementById('genre_recherche');
+    var autreContainer = document.getElementById('autre_genre_container');
+    var autreInput = document.getElementById('autre_genre');
+    
+    if (genreSelect && autreContainer) {
+      genreSelect.addEventListener('change', function() {
+        if (this.value === 'Autre') {
+          autreContainer.style.display = 'block';
+          autreInput.setAttribute('required', 'required');
+        } else {
+          autreContainer.style.display = 'none';
+          autreInput.removeAttribute('required');
+          autreInput.value = '';
+        }
+      });
+    }
+
+    // Détection automatique de la région en fonction du code postal
+    var codePostalInput = document.getElementById('code_postal');
+    var regionInput = document.getElementById('region');
+    
+    if (codePostalInput && regionInput) {
+      codePostalInput.addEventListener('input', function() {
+        var codePostal = this.value.trim();
+        if (codePostal.length >= 2) {
+          var region = getRegionFromCodePostal(codePostal);
+          regionInput.value = region;
+        } else {
+          regionInput.value = '';
+        }
+      });
+      
+      // Déclencher la détection au chargement si un code postal est déjà présent
+      if (codePostalInput.value) {
+        var region = getRegionFromCodePostal(codePostalInput.value.trim());
+        regionInput.value = region;
+      }
+    }
+  });
+  </script>
 </div>
 
 {# Hide SEO block on this conversion-focused page #}
 <style>
+    .demande-form input,
+    .demande-form textarea,
+    .demande-form select {
+      background:linear-gradient(135deg,#22335a 0%,#2d4263 100%);
+      color:#fff;
+      border:1.5px solid #355c7d;
+      border-radius:8px;
+      font-size:1rem;
+      font-family:inherit;
+      padding:12px 16px;
+      transition:all 0.2s;
+      box-shadow:0 1px 4px #16244722;
+    }
+    .demande-form input:focus,
+    .demande-form textarea:focus,
+    .demande-form select:focus {
+      outline:none;
+      border-color:#1976d2;
+      box-shadow:0 0 0 3px #1976d244;
+    }
+    .demande-form input::placeholder,
+    .demande-form textarea::placeholder {
+      color:#b0b8d8;
+      opacity:0.8;
+    }
   main.container .seo-block { display: none; }
+
+  .une-card {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    height: 100%;
+  }
+
+  .une-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.3) !important;
+  }
+
+  @media (max-width: 768px) {
+    .spectacles-une-grid {
+      grid-template-columns: 1fr !important;
+    }
+  }
 </style>
+
+<!-- Section Spectacles à la Une -->
+{% if spectacles_une %}
+<div style="max-width:100%; margin:48px auto 0 auto; padding:0 20px;">
+  <div style="text-align:center; margin-bottom:32px;">
+    <h2 style="font-size:2rem; margin:0 0 8px 0; color:var(--text);">✨ Spectacles à la Une</h2>
+    <p style="color:var(--muted); font-size:1rem;">Découvrez notre sélection de spectacles exceptionnels</p>
+  </div>
+  
+  <div class="spectacles-une-grid" style="display:grid; grid-template-columns:repeat(8, 1fr); gap:16px;">
+    {% for spectacle in spectacles_une %}
+    <article class="card une-card" style="overflow:hidden; box-shadow:0 4px 16px rgba(0,0,0,0.2);">
+      {% if spectacle.has_image() %}
+        <a href="{{ url_for('show_detail', show_id=spectacle.id) }}" style="display:block;">
+          <div style="aspect-ratio:1/1; overflow:hidden; background:var(--panel);">
+            <img src="{{ url_for('uploaded_file', filename=spectacle.file_name) }}" 
+                 alt="{{ spectacle.title }}"
+                 style="width:100%; height:100%; object-fit:cover; transition:transform 0.3s ease;">
+          </div>
+        </a>
+      {% else %}
+        <div style="aspect-ratio:1/1; display:flex; align-items:center; justify-content:center; background:var(--panel);">
+          <span style="font-size:2rem; opacity:0.3;">🎭</span>
+        </div>
+      {% endif %}
+      
+      <div style="padding:12px;">
+        <div style="margin-bottom:8px;">
+          <span class="badge" style="background:linear-gradient(135deg, #ffd700 0%, #ffed4e 100%); color:#222; font-weight:700; border:none; font-size:0.7rem; padding:4px 8px;">
+            ⭐
+          </span>
+        </div>
+        
+        {% if spectacle.raison_sociale %}
+          <p style="font-size:0.7rem; font-weight:600; color:var(--primary); margin:0 0 6px 0; text-transform:uppercase; letter-spacing:0.3px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
+            {{ spectacle.raison_sociale }}
+          </p>
+        {% endif %}
+        
+        <h3 style="margin:0 0 8px 0; font-size:0.9rem; line-height:1.2; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;">
+          <a href="{{ url_for('show_detail', show_id=spectacle.id) }}" 
+             style="color:var(--text); text-decoration:none; transition:color 0.2s;">
+            {{ spectacle.title }}
+          </a>
+        </h3>
+        
+        <p style="color:var(--muted); font-size:0.75rem; line-height:1.4; margin:0 0 10px 0; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;">
+          {{ spectacle.description[:80] }}{% if spectacle.description|length > 80 %}...{% endif %}
+        </p>
+        
+        <div style="display:flex; flex-direction:column; gap:4px; margin-bottom:10px; font-size:0.7rem;">
+          {% if spectacle.region %}
+            <span style="color:var(--muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
+              <i class="fa fa-map-marker-alt" style="color:var(--primary);"></i> {{ spectacle.region }}
+            </span>
+          {% endif %}
+          {% if spectacle.age_range %}
+            <span style="color:var(--muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
+              <i class="fa fa-child" style="color:var(--primary);"></i> {{ spectacle.age_range|format_age }}
+            </span>
+          {% endif %}
+        </div>
+        
+        <a href="{{ url_for('show_detail', show_id=spectacle.id) }}" 
+           style="display:inline-flex; align-items:center; justify-content:center; gap:6px; padding:8px 12px; background:var(--primary); color:white; text-decoration:none; border-radius:6px; font-weight:600; font-size:0.75rem; transition:all 0.2s ease; width:100%;">
+          <i class="fa fa-eye"></i> Voir
+        </a>
+      </div>
+    </article>
+    {% endfor %}
+  </div>
+</div>
+{% endif %}
 {% endblock %}

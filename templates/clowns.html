@@ -2,13 +2,33 @@
 {% block title %}Clowns - AnimatoSpectacle{% endblock %}
 {% block content %}
 
-<h1>Spectacles de clowns</h1>
+<h1>Spectacles de clowns professionnels - Rires garantis pour tous</h1>
 
-<p style="margin-bottom:24px;">
-  Trouvez les meilleurs <strong>clowns professionnels</strong> pour vos événements : 
-  clowns pour enfants, clowns d'anniversaire, clowns de rue, spectacles de cirque. 
-  Rires et bonne humeur garantis pour petits et grands !
-</p>
+<div style="max-width:900px; margin:0 auto 40px; padding:0 20px;">
+  <p style="margin-bottom:16px; font-size:17px; line-height:1.7;">
+    Trouvez les meilleurs <strong>clowns professionnels</strong> pour vos événements : clowns pour 
+    enfants, clowns d'anniversaire, clowns de rue, spectacles de cirque, clowns burlesques. 
+    Des artistes talentueux qui apportent rires, émotions et bonne humeur à vos fêtes, 
+    festivals et événements familiaux.
+  </p>
+
+  <h2 style="font-size:20px; margin:24px 0 12px; color:var(--primary); font-weight:600;">
+    Des spectacles de clown adaptés à chaque occasion
+  </h2>
+  <ul style="line-height:1.9; margin-bottom:24px; padding-left:0; list-style:none;">
+    <li style="padding-left:24px; position:relative; margin-bottom:8px;"><span style="position:absolute; left:0; color:var(--primary); font-weight:bold;">✓</span> <strong>Anniversaires d'enfants</strong> : Clowns pour animer les goûters d'anniversaire</li>
+    <li style="padding-left:24px; position:relative; margin-bottom:8px;"><span style="position:absolute; left:0; color:var(--primary); font-weight:bold;">✓</span> <strong>Événements municipaux</strong> : Clowns pour fêtes de village et kermesses</li>
+    <li style="padding-left:24px; position:relative; margin-bottom:8px;"><span style="position:absolute; left:0; color:var(--primary); font-weight:bold;">✓</span> <strong>Arbres de Noël</strong> : Spectacles de clown adaptés aux comités d'entreprise</li>
+    <li style="padding-left:24px; position:relative; margin-bottom:8px;"><span style="position:absolute; left:0; color:var(--primary); font-weight:bold;">✓</span> <strong>Festivals et foires</strong> : Clowns de rue et déambulations</li>
+  </ul>
+
+  <p style="font-size:15px; color:#666; margin-bottom:20px; line-height:1.7;">
+    Nos <strong>clowns professionnels</strong> utilisent la comédie physique, le mime, les acrobaties, 
+    la jonglerie et la magie pour créer des spectacles interactifs et joyeux. Adaptés à tous 
+    les âges (de 2 à 102 ans !), leurs prestations durent généralement de 30 minutes à 1 heure. 
+    Réservez dès maintenant pour garantir la présence d'un artiste lors de votre événement.
+  </p>
+</div>
 
 {% if shows %}
 <div class="cards">
@@ -16,10 +36,30 @@
   <article class="card">
     <a href="{{ url_for('demande_animation') }}" class="media-link">
       <div class="media">
-        {% if show.has_image() %}
+        {% set images = show.get_all_images() %}
+        {% if images|length > 1 %}
+          <div class="card-carousel" data-carousel>
+            <div class="carousel-slides">
+              {% for img in images %}
+              <div class="carousel-slide">
+                <img src="{{ url_for('uploaded_file', filename=img) }}" alt="{{ show.title }}{% if loop.index > 1 %} - Photo {{ loop.index }}{% endif %}">
+              </div>
+              {% endfor %}
+            </div>
+            <div class="carousel-indicators">
+              {% for img in images %}
+              <span class="carousel-indicator{% if loop.first %} active{% endif %}" data-slide="{{ loop.index0 }}"></span>
+              {% endfor %}
+            </div>
+            <button class="carousel-nav carousel-prev" aria-label="Photo précédente">‹</button>
+            <button class="carousel-nav carousel-next" aria-label="Photo suivante">›</button>
+          </div>
+        {% elif show.has_image() %}
           <img src="{{ url_for('uploaded_file', filename=show.file_name) }}" alt="{{ show.title }}">
         {% elif show.is_pdf() %}
-          <a class="pdf-thumb" href="{{ url_for('uploaded_file', filename=show.file_name) }}" target="_blank">PDF</a>
+          <div class="pdf-thumb">
+            <a href="{{ url_for('uploaded_file', filename=show.file_name) }}" target="_blank" rel="noopener">PDF</a>
+          </div>
         {% else %}
           <div class="placeholder">Aucun fichier</div>
         {% endif %}
@@ -28,12 +68,12 @@
 
     <a href="{{ url_for('show_detail', show_id=show.id) }}" class="content-link">
       <div class="content">
-        {% if show.raison_sociale %}<p class="meta" style="font-weight:600; margin-bottom:8px; color:var(--primary);">{{ show.raison_sociale }}</p>{% endif %}
+        {% if show.raison_sociale %}<p class="meta" style="font-weight:600; margin-bottom:8px; color:var(--primary);">{{ show.raison_sociale|title }}</p>{% endif %}
         <h3>{{ show.title }}</h3>
         <p class="meta">
-          {{ show.category }}
+          {% if show.age_range %}<span class="badge-age">{{ show.age_range|format_age }}</span>{% endif %}
+          {% if show.category %} • {{ show.category|title }}{% endif %}
           {% if show.location %} • {{ show.location }}{% endif %}
-          {% if show.age_range %} • {{ show.age_range }}{% endif %}
         </p>
         {% if show.description %}<p class="desc">{{ show.description }}</p>{% endif %}
         {% if show.contact_email %}<p class="meta">Contact : {{ show.contact_email }}</p>{% endif %}
@@ -47,6 +87,49 @@
   <p style="margin:0; font-size:16px;">Aucun spectacle de clown n'est disponible pour le moment.</p>
   <p style="margin:12px 0 0 0;">N'hésitez pas à <a href="{{ url_for('demande_animation') }}" style="color:var(--primary); font-weight:600;">nous contacter</a> pour vos besoins spécifiques ou consultez nos <a href="{{ url_for('home') }}" style="color:var(--primary); font-weight:600;">autres spectacles</a>.</p>
 </div>
+
+<script>
+(function() {
+  document.querySelectorAll('[data-carousel]').forEach(function(carousel) {
+    const slides = carousel.querySelector('.carousel-slides');
+    const indicators = carousel.querySelectorAll('.carousel-indicator');
+    const prevBtn = carousel.querySelector('.carousel-prev');
+    const nextBtn = carousel.querySelector('.carousel-next');
+    const totalSlides = carousel.querySelectorAll('.carousel-slide').length;
+    let currentSlide = 0;
+    let autoPlayInterval = null;
+
+    function goToSlide(index) {
+      if (index < 0) index = totalSlides - 1;
+      if (index >= totalSlides) index = 0;
+      currentSlide = index;
+      slides.style.transform = 'translateX(-' + (currentSlide * 100) + '%)';
+      indicators.forEach(function(ind, i) {
+        ind.classList.toggle('active', i === currentSlide);
+      });
+    }
+
+    function nextSlide() { goToSlide(currentSlide + 1); }
+    function prevSlide() { goToSlide(currentSlide - 1); }
+    function startAutoPlay() {
+      if (autoPlayInterval) clearInterval(autoPlayInterval);
+      autoPlayInterval = setInterval(nextSlide, 8000);
+    }
+    function stopAutoPlay() {
+      if (autoPlayInterval) { clearInterval(autoPlayInterval); autoPlayInterval = null; }
+    }
+
+    if (prevBtn) prevBtn.addEventListener('click', function(e) { e.preventDefault(); e.stopPropagation(); prevSlide(); startAutoPlay(); });
+    if (nextBtn) nextBtn.addEventListener('click', function(e) { e.preventDefault(); e.stopPropagation(); nextSlide(); startAutoPlay(); });
+    indicators.forEach(function(indicator, i) {
+      indicator.addEventListener('click', function(e) { e.preventDefault(); e.stopPropagation(); goToSlide(i); startAutoPlay(); });
+    });
+    startAutoPlay();
+    carousel.addEventListener('mouseenter', stopAutoPlay);
+    carousel.addEventListener('mouseleave', startAutoPlay);
+  });
+})();
+</script>
 {% endif %}
 
 {% endblock %}

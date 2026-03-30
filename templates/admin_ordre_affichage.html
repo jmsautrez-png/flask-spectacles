@@ -1,0 +1,250 @@
+{% extends "base.html" %}
+{% block title %}Ordre d'affichage des cartes - Admin{% endblock %}
+
+{% block content %}
+
+<h1>🔢 Gestion de l'ordre d'affichage</h1>
+<p style="color:var(--muted); margin-bottom:24px;">
+  <strong>Glissez-déposez</strong> les cartes pour les réorganiser, ou utilisez les flèches. L'ordre affiché ici = l'ordre sur le site.
+</p>
+
+<div style="margin-bottom:24px; display:flex; gap:12px; flex-wrap:wrap;">
+  <a href="{{ url_for('admin_dashboard') }}" class="btn" style="padding:10px 18px; border-radius:8px; background:var(--primary); color:white; text-decoration:none; font-weight:600;">
+    ← Retour au tableau de bord
+  </a>
+  <button id="save-all-btn" class="btn" style="padding:10px 18px; border-radius:8px; background:#28a745; color:white; border:none; font-weight:600; cursor:pointer; display:none;" onclick="saveAllOrders()">
+    💾 Enregistrer les changements
+  </button>
+</div>
+
+<!-- Liste des spectacles en drag & drop -->
+<div id="sortable-list" style="display:flex; flex-direction:column; gap:8px;">
+  {% for show in shows %}
+  <div class="sortable-item" data-show-id="{{ show.id }}" data-original-order="{{ show.display_order or 0 }}" style="display:flex; align-items:center; gap:12px; background:linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); border:2px solid #283e5e; border-radius:10px; padding:12px; cursor:grab; transition:all 0.2s;">
+    
+    <!-- Numéro de position -->
+    <div class="position-number" style="min-width:40px; height:40px; background:var(--primary); color:white; border-radius:8px; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:1.1rem;">
+      {{ loop.index }}
+    </div>
+    
+    <!-- Icône de drag -->
+    <div style="color:#888; font-size:1.2rem; cursor:grab;">⋮⋮</div>
+    
+    <!-- Photo -->
+    {% if show.file_name and show.has_image() %}
+      <img src="{{ url_for('uploaded_file', filename=show.file_name) }}" 
+           alt="{{ show.title }}" 
+           style="width:50px; height:50px; object-fit:cover; border-radius:6px; flex-shrink:0;">
+    {% else %}
+      <div style="width:50px; height:50px; background:#283e5e; border-radius:6px; display:flex; align-items:center; justify-content:center; color:#888; flex-shrink:0;">
+        📷
+      </div>
+    {% endif %}
+    
+    <!-- Infos -->
+    <div style="flex:1; min-width:0;">
+      <div style="font-weight:600; color:#fff; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
+        {{ show.title }}
+      </div>
+      <div style="font-size:0.85rem; color:#aaa;">
+        {{ show.raison_sociale or 'Sans compagnie' }} • {{ show.category or 'Sans catégorie' }}
+      </div>
+    </div>
+    
+    <!-- Boutons monter/descendre -->
+    <div style="display:flex; gap:4px;">
+      <button onclick="moveItemUp(this)" title="Monter" style="padding:8px 12px; border-radius:6px; border:none; background:#17a2b8; color:#fff; cursor:pointer; font-size:1rem;">⬆️</button>
+      <button onclick="moveItemDown(this)" title="Descendre" style="padding:8px 12px; border-radius:6px; border:none; background:#6c757d; color:#fff; cursor:pointer; font-size:1rem;">⬇️</button>
+      <button onclick="moveToTop(this)" title="Mettre en 1er" style="padding:8px 12px; border-radius:6px; border:none; background:#ffc107; color:#000; cursor:pointer; font-size:0.85rem; font-weight:600;">🔝</button>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+
+<!-- Pagination -->
+{% if pagination and pagination.pages > 1 %}
+<nav class="pagination" style="margin: 30px 0; text-align: center;">
+  <div style="display: inline-flex; gap: 8px; align-items: center; flex-wrap: wrap; justify-content: center;">
+    {% if pagination.has_prev %}
+      <a href="{{ url_for('admin_ordre_affichage', page=pagination.prev_num) }}"
+         style="padding: 8px 12px; background: var(--primary); color: white; text-decoration: none; border-radius: 4px; font-weight: 600;">
+        ← Précédent
+      </a>
+    {% endif %}
+
+    {% for p in pagination.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
+      {% if p %}
+        {% if p == pagination.page %}
+          <span style="padding: 8px 12px; background: var(--primary); color: white; border-radius: 4px; font-weight: 600;">
+            {{ p }}
+          </span>
+        {% else %}
+          <a href="{{ url_for('admin_ordre_affichage', page=p) }}"
+             style="padding: 8px 12px; background: #f2f3f7; color: var(--text); text-decoration: none; border-radius: 4px; font-weight: 600;">
+            {{ p }}
+          </a>
+        {% endif %}
+      {% else %}
+        <span style="padding: 8px 12px; color: #999;">...</span>
+      {% endif %}
+    {% endfor %}
+
+    {% if pagination.has_next %}
+      <a href="{{ url_for('admin_ordre_affichage', page=pagination.next_num) }}"
+         style="padding: 8px 12px; background: var(--primary); color: white; text-decoration: none; border-radius: 4px; font-weight: 600;">
+        Suivant →
+      </a>
+    {% endif %}
+  </div>
+  <p style="margin-top: 16px; color: var(--muted); font-size: 0.9rem;">
+    Page {{ pagination.page }} sur {{ pagination.pages }} ({{ pagination.total }} spectacle{{ 's' if pagination.total > 1 else '' }})
+  </p>
+</nav>
+{% endif %}
+
+<style>
+.sortable-item:hover {
+  border-color: var(--primary);
+  transform: translateX(4px);
+}
+.sortable-item.dragging {
+  opacity: 0.5;
+  border-color: #28a745;
+  background: #1a472a !important;
+}
+.sortable-item.drag-over {
+  border-color: #28a745;
+  border-style: dashed;
+}
+.sortable-item.changed {
+  border-color: #28a745;
+  box-shadow: 0 0 10px rgba(40, 167, 69, 0.3);
+}
+</style>
+
+<script>
+const list = document.getElementById('sortable-list');
+let hasChanges = false;
+
+// Drag & Drop natif
+list.querySelectorAll('.sortable-item').forEach(item => {
+  item.setAttribute('draggable', 'true');
+  
+  item.addEventListener('dragstart', (e) => {
+    item.classList.add('dragging');
+    e.dataTransfer.effectAllowed = 'move';
+  });
+  
+  item.addEventListener('dragend', () => {
+    item.classList.remove('dragging');
+    updatePositionNumbers();
+    markChanges();
+  });
+  
+  item.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    const dragging = document.querySelector('.dragging');
+    if (dragging && dragging !== item) {
+      item.classList.add('drag-over');
+      const rect = item.getBoundingClientRect();
+      const midY = rect.top + rect.height / 2;
+      if (e.clientY < midY) {
+        list.insertBefore(dragging, item);
+      } else {
+        list.insertBefore(dragging, item.nextSibling);
+      }
+    }
+  });
+  
+  item.addEventListener('dragleave', () => {
+    item.classList.remove('drag-over');
+  });
+  
+  item.addEventListener('drop', () => {
+    item.classList.remove('drag-over');
+  });
+});
+
+function moveItemUp(btn) {
+  const item = btn.closest('.sortable-item');
+  const prev = item.previousElementSibling;
+  if (prev) {
+    list.insertBefore(item, prev);
+    updatePositionNumbers();
+    markChanges();
+  }
+}
+
+function moveItemDown(btn) {
+  const item = btn.closest('.sortable-item');
+  const next = item.nextElementSibling;
+  if (next) {
+    list.insertBefore(next, item);
+    updatePositionNumbers();
+    markChanges();
+  }
+}
+
+function moveToTop(btn) {
+  const item = btn.closest('.sortable-item');
+  const first = list.firstElementChild;
+  if (first && first !== item) {
+    list.insertBefore(item, first);
+    updatePositionNumbers();
+    markChanges();
+  }
+}
+
+function updatePositionNumbers() {
+  list.querySelectorAll('.sortable-item').forEach((item, index) => {
+    item.querySelector('.position-number').textContent = index + 1;
+  });
+}
+
+function markChanges() {
+  hasChanges = true;
+  document.getElementById('save-all-btn').style.display = 'inline-block';
+  
+  // Marquer les éléments qui ont changé de position
+  list.querySelectorAll('.sortable-item').forEach((item, index) => {
+    const originalOrder = parseInt(item.dataset.originalOrder) || 0;
+    const newOrder = (index + 1) * 10;
+    if (newOrder !== originalOrder) {
+      item.classList.add('changed');
+    } else {
+      item.classList.remove('changed');
+    }
+  });
+}
+
+function saveAllOrders() {
+  const orders = {};
+  list.querySelectorAll('.sortable-item').forEach((item, index) => {
+    const showId = item.dataset.showId;
+    orders[showId] = (index + 1) * 10;  // Multiples de 10
+  });
+  
+  fetch('{{ url_for("update_shows_orders") }}', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-CSRFToken': '{{ csrf_token() }}'
+    },
+    body: JSON.stringify(orders)
+  })
+  .then(response => response.json())
+  .then(data => {
+    if (data.success) {
+      alert('✅ Ordre sauvegardé !');
+      location.reload();
+    } else {
+      alert('❌ Erreur: ' + data.message);
+    }
+  })
+  .catch(err => {
+    alert('❌ Erreur: ' + err);
+  });
+}
+</script>
+
+{% endblock %}

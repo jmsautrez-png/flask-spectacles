@@ -1,0 +1,533 @@
+{% extends "base.html" %}
+
+{# SEO Meta Tags #}
+{% block title %}{{ meta_title }}{% endblock %}
+{% block description %}{{ meta_description }}{% endblock %}
+
+{% block head_extra %}
+<meta name="keywords" content="{{ meta_keywords }}">
+<meta name="robots" content="index,follow">
+<link rel="canonical" href="{{ url_for('city_spectacles', city_slug=city['slug'], _external=True) }}">
+
+{# Open Graph pour les réseaux sociaux #}
+<meta property="og:title" content="{{ meta_title }}">
+<meta property="og:description" content="{{ meta_description }}">
+<meta property="og:url" content="{{ url_for('city_spectacles', city_slug=city['slug'], _external=True) }}">
+<meta property="og:type" content="website">
+
+{# Pagination SEO #}
+{% if pagination %}
+  {% if pagination.has_prev %}
+    <link rel="prev" href="{{ url_for('city_spectacles', city_slug=city['slug'], page=pagination.prev_num, _external=True) }}">
+  {% endif %}
+  {% if pagination.has_next %}
+    <link rel="next" href="{{ url_for('city_spectacles', city_slug=city['slug'], page=pagination.next_num, _external=True) }}">
+  {% endif %}
+{% endif %}
+
+{# Schema.org Structured Data #}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "ItemList",
+  "name": "Spectacles à {{ city['name'] }}",
+  "description": "{{ meta_description }}",
+  "numberOfItems": {{ total_shows }},
+  "itemListElement": [
+    {% for show in shows %}
+    {
+      "@type": "ListItem",
+      "position": {{ loop.index }},
+      "item": {
+        "@type": "Event",
+        "name": "{{ show.title }}",
+        "description": "{{ show.description[:150] if show.description else show.title }}",
+        "location": {
+          "@type": "Place",
+          "name": "{{ city['name'] }}",
+          "address": {
+            "@type": "PostalAddress",
+            "addressLocality": "{{ city['name'] }}",
+            "addressRegion": "{{ city['region'] }}",
+            "postalCode": "{{ city['department'] }}000",
+            "addressCountry": "FR"
+          }
+        }
+      }
+    }{% if not loop.last %},{% endif %}
+    {% endfor %}
+  ]
+}
+</script>
+
+{# Schema.org BreadcrumbList #}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position": 1,
+      "name": "Accueil",
+      "item": "{{ url_for('home', _external=True) }}"
+    },
+    {
+      "@type": "ListItem",
+      "position": 2,
+      "name": "Catalogue",
+      "item": "{{ url_for('catalogue', _external=True) }}"
+    },
+    {
+      "@type": "ListItem",
+      "position": 3,
+      "name": "Spectacles {{ city['name'] }}",
+      "item": "{{ url_for('city_spectacles', city_slug=city['slug'], _external=True) }}"
+    }
+  ]
+}
+</script>
+{% endblock %}
+
+{% block content %}
+
+<style>
+.city-hero {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: 50px 20px;
+  margin: -20px -20px 30px -20px;
+  border-radius: 0 0 20px 20px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+}
+
+.city-hero h1 {
+  color: #fff;
+  font-size: 2.5em;
+  margin: 0 0 15px 0;
+  text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+}
+
+.city-hero .breadcrumb {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin-bottom: 20px;
+  font-size: 0.9em;
+  color: rgba(255,255,255,0.9);
+}
+
+.city-hero .breadcrumb a {
+  color: #ffc107;
+  text-decoration: none;
+  transition: opacity 0.2s;
+}
+
+.city-hero .breadcrumb a:hover {
+  opacity: 0.8;
+  text-decoration: underline;
+}
+
+.city-hero .city-info {
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+  margin-top: 15px;
+  font-size: 1.1em;
+  color: rgba(255,255,255,0.95);
+}
+
+.city-hero .city-info span {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.seo-content {
+  background: rgba(255,255,255,0.05);
+  border-left: 4px solid #667eea;
+  padding: 20px;
+  margin-bottom: 30px;
+  border-radius: 8px;
+  color: rgba(255,255,255,0.9);
+  line-height: 1.6;
+}
+
+.seo-content h2 {
+  color: #ffc107;
+  font-size: 1.5em;
+  margin: 0 0 15px 0;
+}
+
+.filters-bar {
+  display: flex;
+  gap: 15px;
+  margin-bottom: 30px;
+  flex-wrap: wrap;
+  background: rgba(255,255,255,0.05);
+  padding: 20px;
+  border-radius: 12px;
+}
+
+.filters-bar select,
+.filters-bar button {
+  padding: 10px 20px;
+  border-radius: 8px;
+  border: 1px solid rgba(255,255,255,0.2);
+  background: rgba(255,255,255,0.1);
+  color: #fff;
+  font-size: 1em;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.filters-bar select:hover,
+.filters-bar button:hover {
+  background: rgba(255,255,255,0.2);
+  border-color: #667eea;
+}
+
+.filters-bar button {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border: none;
+  font-weight: 600;
+}
+
+.cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 25px;
+  margin-bottom: 40px;
+}
+
+.card {
+  background: rgba(255,255,255,0.05);
+  border: 2px solid rgba(255,255,255,0.1);
+  border-radius: 16px;
+  overflow: hidden;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+}
+
+.card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+  border-color: #667eea;
+}
+
+.card .media {
+  width: 100%;
+  height: 200px;
+  overflow: hidden;
+  background: #1a1a2e;
+}
+
+.card .media img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.3s;
+}
+
+.card:hover .media img {
+  transform: scale(1.1);
+}
+
+.card .placeholder {
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: #fff;
+  font-weight: 600;
+}
+
+.card .content {
+  padding: 20px;
+}
+
+.card h3 {
+  color: #ffc107;
+  font-size: 1.3em;
+  margin: 0 0 12px 0;
+}
+
+.card .meta {
+  color: rgba(255,255,255,0.7);
+  font-size: 0.9em;
+  margin-bottom: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.card .description {
+  color: rgba(255,255,255,0.85);
+  font-size: 0.95em;
+  line-height: 1.5;
+  margin-top: 12px;
+}
+
+.card .btn-detail {
+  display: inline-block;
+  margin-top: 15px;
+  padding: 10px 24px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: #fff;
+  text-decoration: none;
+  border-radius: 8px;
+  font-weight: 600;
+  transition: all 0.3s;
+}
+
+.card .btn-detail:hover {
+  transform: translateX(5px);
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.5);
+}
+
+.pagination {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin: 40px 0;
+}
+
+.pagination a,
+.pagination span {
+  padding: 10px 18px;
+  background: rgba(255,255,255,0.1);
+  border: 1px solid rgba(255,255,255,0.2);
+  border-radius: 8px;
+  color: #fff;
+  text-decoration: none;
+  transition: all 0.3s;
+}
+
+.pagination a:hover {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-color: #667eea;
+}
+
+.pagination .current {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-color: #667eea;
+  font-weight: 600;
+}
+
+.no-results {
+  text-align: center;
+  padding: 60px 20px;
+  color: rgba(255,255,255,0.7);
+}
+
+.no-results h2 {
+  color: #ffc107;
+  font-size: 2em;
+  margin-bottom: 15px;
+}
+
+@media (max-width: 768px) {
+  .city-hero h1 {
+    font-size: 1.8em;
+  }
+  
+  .city-hero .city-info {
+    font-size: 0.95em;
+  }
+  
+  .cards {
+    grid-template-columns: 1fr;
+  }
+  
+  .filters-bar {
+    flex-direction: column;
+  }
+}
+</style>
+
+{# Hero Section avec informations ville #}
+<div class="city-hero">
+  <div class="breadcrumb">
+    <a href="{{ url_for('home') }}">🏠 Accueil</a>
+    <span>›</span>
+    <a href="{{ url_for('catalogue') }}">📚 Catalogue</a>
+    <span>›</span>
+    <span>{{ city['name'] }}</span>
+  </div>
+  
+  <h1>🎭 Spectacles à {{ city['name'] }}</h1>
+  
+  <div class="city-info">
+    <span>📍 {{ city['region'] }}</span>
+    <span>🏛️ Département {{ city['department'] }}</span>
+    <span>✨ {{ total_shows }} spectacle{{ 's' if total_shows > 1 else '' }} disponible{{ 's' if total_shows > 1 else '' }}</span>
+  </div>
+</div>
+
+{# Contenu SEO descriptif #}
+<div class="seo-content">
+  <h2>Trouvez votre spectacle à {{ city['name'] }} ({{ city['department'] }})</h2>
+  <p>
+    Vous recherchez un <strong>spectacle à {{ city['name'] }}</strong> ? Découvrez notre sélection de {{ total_shows }} 
+    artistes et compagnies professionnelles disponibles pour vos événements dans la région {{ city['region'] }}.
+  </p>
+  <p>
+    Que ce soit pour une <strong>animation d'anniversaire à {{ city['name'] }}</strong>, un <strong>spectacle scolaire</strong>, 
+    un <strong>événement d'entreprise</strong>, une <strong>fête de village</strong> ou un <strong>arbre de Noël</strong>, 
+    notre plateforme vous met en relation directe avec des artistes locaux : magiciens, clowns, théâtre, cirque, 
+    marionnettes, concerts et bien plus encore.
+  </p>
+  <p>
+    Tous les spectacles sont disponibles en <strong>{{ city['region'] }}</strong> et peuvent intervenir à {{ city['name'] }} 
+    et ses environs. Contactez directement les artistes pour obtenir un devis personnalisé.
+  </p>
+</div>
+
+{# Barre de filtres #}
+<form method="get" action="{{ url_for('city_spectacles', city_slug=city['slug']) }}" class="filters-bar">
+  <select name="category" id="category">
+    <option value="">Toutes les catégories</option>
+    <option value="magie" {% if category == 'magie' %}selected{% endif %}>🎩 Magie</option>
+    <option value="clown" {% if category == 'clown' %}selected{% endif %}>🤡 Clown</option>
+    <option value="théâtre" {% if category == 'théâtre' %}selected{% endif %}>🎭 Théâtre</option>
+    <option value="cirque" {% if category == 'cirque' %}selected{% endif %}>🎪 Cirque</option>
+    <option value="marionnette" {% if category == 'marionnette' %}selected{% endif %}>🎎 Marionnettes</option>
+    <option value="concert" {% if category == 'concert' %}selected{% endif %}>🎵 Concert</option>
+    <option value="danse" {% if category == 'danse' %}selected{% endif %}>💃 Danse</option>
+  </select>
+  
+  <select name="age" id="age">
+    <option value="">Tous les âges</option>
+    <option value="enfant" {% if age_range == 'enfant' %}selected{% endif %}>👶 Enfants</option>
+    <option value="tout public" {% if age_range == 'tout public' %}selected{% endif %}>👨‍👩‍👧‍👦 Tout public</option>
+    <option value="adulte" {% if age_range == 'adulte' %}selected{% endif %}>🧑 Adultes</option>
+  </select>
+  
+  <button type="submit">🔍 Filtrer</button>
+  
+  {% if category or age_range %}
+  <a href="{{ url_for('city_spectacles', city_slug=city['slug']) }}" 
+     style="padding:10px 20px; background:#e74c3c; color:#fff; border-radius:8px; text-decoration:none; font-weight:600;">
+    ✖ Réinitialiser
+  </a>
+  {% endif %}
+</form>
+
+{# Liste des spectacles #}
+{% if shows %}
+<div class="cards">
+  {% for show in shows %}
+  <article class="card">
+    <a href="{{ url_for('show_detail', show_id=show.id) }}">
+      <div class="media">
+        {% if show.has_image() %}
+          <img src="{{ url_for('uploaded_file', filename=show.file_name) }}" alt="{{ show.title }} - {{ city['name'] }}">
+        {% else %}
+          <div class="placeholder">🎭 {{ show.title[:20] }}</div>
+        {% endif %}
+      </div>
+    </a>
+    
+    <div class="content">
+      {% if show.raison_sociale %}
+      <p class="meta" style="font-weight:600; color:#667eea; font-size:0.9em;">
+        {{ show.raison_sociale }}
+      </p>
+      {% endif %}
+      
+      <h3>{{ show.title }}</h3>
+      
+      <div class="meta">
+        {% if show.category %}
+        <span>🎪 {{ show.category }}</span>
+        {% endif %}
+        
+        {% if show.age_range %}
+        <span>👥 {{ show.age_range|format_age }}</span>
+        {% endif %}
+        
+        {% if show.location %}
+        <span>📍 {{ show.location }}</span>
+        {% endif %}
+      </div>
+      
+      {% if show.description %}
+      <div class="description">
+        {{ show.description[:150] }}{% if show.description|length > 150 %}...{% endif %}
+      </div>
+      {% endif %}
+      
+      <a href="{{ url_for('show_detail', show_id=show.id) }}" class="btn-detail">
+        Voir les détails →
+      </a>
+    </div>
+  </article>
+  {% endfor %}
+</div>
+
+{# Pagination #}
+{% if pagination.pages > 1 %}
+<div class="pagination">
+  {% if pagination.has_prev %}
+  <a href="{{ url_for('city_spectacles', city_slug=city['slug'], page=pagination.prev_num, category=category, age=age_range) }}">
+    ← Précédent
+  </a>
+  {% endif %}
+  
+  {% for page_num in pagination.iter_pages(left_edge=1, right_edge=1, left_current=1, right_current=2) %}
+    {% if page_num %}
+      {% if page_num == pagination.page %}
+      <span class="current">{{ page_num }}</span>
+      {% else %}
+      <a href="{{ url_for('city_spectacles', city_slug=city['slug'], page=page_num, category=category, age=age_range) }}">
+        {{ page_num }}
+      </a>
+      {% endif %}
+    {% else %}
+      <span>...</span>
+    {% endif %}
+  {% endfor %}
+  
+  {% if pagination.has_next %}
+  <a href="{{ url_for('city_spectacles', city_slug=city['slug'], page=pagination.next_num, category=category, age=age_range) }}">
+    Suivant →
+  </a>
+  {% endif %}
+</div>
+{% endif %}
+
+{% else %}
+<div class="no-results">
+  <h2>😔 Aucun spectacle trouvé</h2>
+  <p>Il n'y a actuellement aucun spectacle disponible à {{ city['name'] }} avec ces critères.</p>
+  <p>
+    <a href="{{ url_for('city_spectacles', city_slug=city['slug']) }}" 
+       style="color:#667eea; text-decoration:underline;">Réinitialiser les filtres</a>
+    ou 
+    <a href="{{ url_for('catalogue') }}" 
+       style="color:#667eea; text-decoration:underline;">voir tous les spectacles</a>
+  </p>
+</div>
+{% endif %}
+
+{# Section SEO additionnelle en bas de page #}
+<div class="seo-content" style="margin-top:50px;">
+  <h2>Pourquoi choisir un artiste à {{ city['name'] }} ?</h2>
+  <p>
+    Faire appel à un <strong>artiste local à {{ city['name'] }}</strong> présente de nombreux avantages :
+  </p>
+  <ul style="line-height:1.8; color:rgba(255,255,255,0.85); margin-left:20px;">
+    <li>✅ <strong>Pas de frais de déplacement</strong> importants pour des artistes de {{ city['region'] }}</li>
+    <li>✅ <strong>Connaissance du territoire</strong> et des lieux d'événements à {{ city['name'] }}</li>
+    <li>✅ <strong>Contact direct</strong> sans intermédiaire avec les compagnies professionnelles</li>
+    <li>✅ <strong>Tarifs compétitifs</strong> adaptés au budget des particuliers, écoles et entreprises</li>
+    <li>✅ <strong>Large choix</strong> de spectacles : magie, clown, cirque, théâtre, marionnettes...</li>
+  </ul>
+  <p style="margin-top:20px;">
+    Tous les artistes référencés sur notre plateforme sont des <strong>professionnels du spectacle vivant</strong> 
+    ayant une expérience confirmée dans l'animation d'événements à {{ city['name'] }} et dans toute la région 
+    {{ city['region'] }}.
+  </p>
+</div>
+
+{% endblock %}

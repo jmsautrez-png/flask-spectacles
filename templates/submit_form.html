@@ -4,9 +4,54 @@
 
 <div class="demande-wrap">
   <h2>Publier votre spectacle</h2>
+  <p style="color:#fff;font-size:1.15em;font-weight:600;margin-bottom:8px;">Spectacle'ment VØtre la plateforme qui connecte facilement les organisateurs d'événements avec des artistes et compagnies de spectacle vivant.</p>
+
   <p style="color:var(--muted); margin-bottom:24px;">Remplissez le formulaire ci-dessous. Votre annonce sera examinée avant publication.</p>
 
   <form method="post" enctype="multipart/form-data" class="demande-form">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+
+    <!-- SECTION: Type d'annonce -->
+    <fieldset class="demande-section" style="background: linear-gradient(135deg, rgba(233,30,99,0.1) 0%, rgba(156,39,176,0.1) 100%); border: 2px solid #e91e63;">
+      <legend style="color: #e91e63;">📌 Type d'annonce</legend>
+      
+      <div style="display:flex; gap:16px; flex-wrap:wrap;">
+        <label style="flex:1; min-width:200px; cursor:pointer;">
+          <div style="background:#1a1a2e; border:2px solid #283e5e; border-radius:12px; padding:16px; transition:all 0.2s;" id="option-catalogue">
+            <input type="radio" name="is_event" value="0" checked style="margin-right:8px;" onchange="updateTypeSelection()">
+            <span style="font-weight:600; color:#fff;">🎭 Ajouter au catalogue</span>
+            <p style="color:var(--muted); font-size:0.85em; margin:8px 0 0 24px;">
+              Votre spectacle sera visible sur la page d'accueil
+            </p>
+          </div>
+        </label>
+        
+        <label style="flex:1; min-width:200px; cursor:pointer;">
+          <div style="background:#1a1a2e; border:2px solid #283e5e; border-radius:12px; padding:16px; transition:all 0.2s;" id="option-event">
+            <input type="radio" name="is_event" value="1" style="margin-right:8px;" onchange="updateTypeSelection()">
+            <span style="font-weight:600; color:#fff;">📅 Annoncer un événement</span>
+            <p style="color:var(--muted); font-size:0.85em; margin:8px 0 0 24px;">
+              Visible uniquement sur la page "Événements annoncés"
+            </p>
+          </div>
+        </label>
+      </div>
+      
+      <script>
+      function updateTypeSelection() {
+        var catalogue = document.getElementById('option-catalogue');
+        var event = document.getElementById('option-event');
+        var isCatalogue = document.querySelector('input[name="is_event"][value="0"]').checked;
+        
+        catalogue.style.borderColor = isCatalogue ? '#43cea2' : '#283e5e';
+        catalogue.style.background = isCatalogue ? 'rgba(67,206,162,0.1)' : '#1a1a2e';
+        
+        event.style.borderColor = !isCatalogue ? '#e91e63' : '#283e5e';
+        event.style.background = !isCatalogue ? 'rgba(233,30,99,0.1)' : '#1a1a2e';
+      }
+      document.addEventListener('DOMContentLoaded', updateTypeSelection);
+      </script>
+    </fieldset>
 
     <!-- SECTION: Informations de la compagnie -->
     <fieldset class="demande-section">
@@ -14,26 +59,26 @@
       
       <div>
         <label>
-          <span class="label-text">Raison sociale</span>
-          <span class="hint">Automatique, non modifiable</span>
-          <input type="text" name="raison_sociale" value="{{ user.username if user else '' }}" readonly style="background-color: #1a1a1f; cursor: not-allowed; opacity: 0.6;">
+          <span class="label-text">Raison sociale <span class="req">*</span></span>
+          <input type="text" name="raison_sociale" placeholder="Nom de votre compagnie" value="{{ user.raison_sociale if user and user.raison_sociale else (user.username if user else '') }}" required>
+          <span class="hint">Nom de votre compagnie ou structure (vous pouvez le modifier pour gérer plusieurs compagnies)</span>
         </label>
       </div>
 
       <div class="grid-2">
         <div>
           <label>
-            <span class="label-text">Votre e-mail</span>
-            <span class="hint">Pour mettre votre adresse courriel <a href="{{ url_for('legal') }}" style="color:var(--primary);text-decoration:underline;">nous contacter</a></span>
-            <input type="email" name="contact_email" value="audition_2020@yahoo.fr" readonly style="background-color: #1a1a1f; cursor: not-allowed; opacity: 0.6;">
+            <span class="label-text">Votre e-mail <span class="req">*</span></span>
+            <input type="email" name="contact_email" placeholder="votre@email.fr" value="{{ request.form.get('contact_email', '') }}" required>
+            <span class="hint">Votre adresse e-mail de contact pour les organisateurs d'événements</span>
           </label>
         </div>
 
         <div>
           <label>
             <span class="label-text">Votre téléphone <span class="req">*</span></span>
-            <span class="hint">Visible uniquement par l'administrateur</span>
             <input type="tel" name="contact_phone" placeholder="06 12 34 56 78" required>
+            <span class="hint">Visible uniquement par l'administrateur</span>
           </label>
         </div>
       </div>
@@ -42,66 +87,273 @@
     <!-- SECTION: Détails du spectacle -->
     <fieldset class="demande-section">
       <legend>Détails du spectacle</legend>
-      
       <div>
         <label>
           <span class="label-text">Titre du spectacle <span class="req">*</span></span>
           <input type="text" name="title" placeholder="Ex: La magie des 4 éléments" required>
         </label>
       </div>
-
       <div>
         <label>
           <span class="label-text">Description <span class="req">*</span></span>
-          <span class="hint">Maximum 200 mots - Décrivez votre spectacle, ses points forts, le message...</span>
           <textarea id="description" name="description" rows="4" placeholder="Décrivez votre spectacle..." required></textarea>
-          <div id="desc-counter" style="font-size:0.85rem; color:var(--muted); margin-top:4px;">0/200 mots</div>
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-top:6px;">
+            <span class="hint" style="margin:0;">Maximum 300 mots - Décrivez votre spectacle, ses points forts, le message...</span>
+            <span id="desc-counter" style="font-size:0.85rem; color:var(--muted); white-space:nowrap; margin-left:12px;">0/300 mots</span>
+          </div>
         </label>
       </div>
-
       <div class="grid-2">
         <div>
           <label>
-            <span class="label-text">Région</span>
-            <input type="text" name="region" placeholder="Ex: Île-de-France, Bretagne">
+            <span class="label-text">Code postal <span class="req">*</span></span>
+            <input type="text" name="code_postal" id="code_postal" required autocomplete="postal-code"
+                   inputmode="numeric" pattern="[0-9]{5}" maxlength="5"
+                   placeholder="Ex : 75001"
+                   value="{{ request.form.get('code_postal','') }}">
+            <span class="hint">Entrez le code postal pour déterminer automatiquement la région.</span>
           </label>
         </div>
-
         <div>
           <label>
-            <span class="label-text">Lieu</span>
-            <input type="text" name="location" placeholder="Ville ou salle">
+            <span class="label-text">Région</span>
+            <input type="text" name="region" id="region-input" readonly
+                   placeholder="Déterminée automatiquement"
+                   value="{{ request.form.get('region','') }}"
+                   style="background:#1a1a2e; cursor:not-allowed;">
+            <span class="hint">La région est remplie automatiquement selon le code postal.</span>
           </label>
         </div>
       </div>
-
+      <div class="grid-2">
+        <div>
+          <label>
+            <span class="label-text">Lieu</span>
+            <input type="text" name="location" id="ville-input" placeholder="Ville ou salle">
+          </label>
+          <div style="background:#e3f2fd; color:#1565c0; border:1px solid #90caf9; border-radius:7px; padding:7px 12px; margin:10px 0 8px 0; font-size:0.97em; font-weight:500;">
+            Cliquez sur une ville pour remplir automatiquement le champ ci-dessus, ou inscrivez votre ville&nbsp;:
+          </div>
+          <div class="ville-buttons" style="display:flex; flex-wrap:wrap; gap:6px; margin-bottom:14px; position:relative;">
+            <div id="ville-hover-banner" style="display:none; position:absolute; left:0; right:0; top:-38px; background:#fffde7; color:#795548; border:1px solid #ffe082; border-radius:7px; padding:7px 12px; font-size:0.97em; font-weight:500; z-index:10; text-align:center; pointer-events:none; transition:opacity 0.2s; opacity:0;">
+              Cliquez pour sélectionner cette ville
+            </div>
+            {% set villes = [
+              'Paris', 'Marseille', 'Lyon', 'Toulouse', 'Nice', 'Nantes', 'Montpellier', 'Strasbourg', 'Bordeaux',
+              'Lille', 'Rennes', 'Reims', 'Le Havre', 'Saint-Étienne', 'Toulon', 'Grenoble', 'Dijon', 'Angers',
+              'Nîmes', 'Villeurbanne'
+            ] %}
+            {% set ville_styles = {
+              'Paris':         'background:#1976d2; color:#fff; border:1px solid #0d47a1;',
+              'Marseille':     'background:#ffb300; color:#fff; border:1px solid #ff6f00;',
+              'Lyon':          'background:#a084ca; color:#fff; border:1px solid #7c5eb6;',
+              'Toulouse':      'background:#e53935; color:#fff; border:1px solid #b71c1c;',
+              'Nice':          'background:#43a047; color:#fff; border:1px solid #2e7d32;',
+              'Nantes':        'background:#00bcd4; color:#fff; border:1px solid #008ba3;',
+              'Montpellier':   'background:#fbc02d; color:#fff; border:1px solid #f9a825;',
+              'Strasbourg':    'background:#607d8b; color:#fff; border:1px solid #455a64;',
+              'Bordeaux':      'background:#6d4c41; color:#fff; border:1px solid #3e2723;',
+              'Lille':         'background:#ec407a; color:#fff; border:1px solid #ad1457;',
+              'Rennes':        'background:#388e3c; color:#fff; border:1px solid #1b5e20;',
+              'Reims':         'background:#b0bec5; color:#263238; border:1px solid #607d8b;',
+              'Le Havre':      'background:#ffe082; color:#6d4c41; border:1px solid #ffb300;',
+              'Saint-Étienne': 'background:#f8bbd0; color:#ad1457; border:1px solid #ec407a;',
+              'Toulon':        'background:#b3e5fc; color:#01579b; border:1px solid #0288d1;',
+              'Grenoble':      'background:#c8e6c9; color:#2e7d32; border:1px solid #43a047;',
+              'Dijon':         'background:#ffe0b2; color:#e65100; border:1px solid #ff9800;',
+              'Angers':        'background:#f0f4c3; color:#827717; border:1px solid #cddc39;',
+              'Nîmes':         'background:#f48fb1; color:#ad1457; border:1px solid #ec407a;',
+              'Villeurbanne':  'background:#b2ebf2; color:#006064; border:1px solid #00bcd4;'
+            } %}
+            {% for ville in villes %}
+              <button type="button" class="btn-ville"
+                style="padding:4px 10px; border-radius:5px; font-size:0.95em; cursor:pointer; margin-bottom:2px; {{ ville_styles[ville]|default('background:#eee; color:#333; border:1px solid #bbb;') }}"
+                onmouseover="document.getElementById('ville-hover-banner').style.display='block'; document.getElementById('ville-hover-banner').style.opacity='1';"
+                onmouseout="document.getElementById('ville-hover-banner').style.opacity='0'; setTimeout(function(){document.getElementById('ville-hover-banner').style.display='none';},200);"
+                 onclick="ajouterVille('{{ ville }}')"
+              >{{ ville }}</button>
+            {% endfor %}
+          </div>
+            <script>
+            function ajouterVille(ville) {
+              var input = document.getElementById('ville-input');
+              var villes = input.value.split(',').map(function(v) { return v.trim(); }).filter(function(v) { return v.length > 0; });
+              if (villes.indexOf(ville) === -1) {
+                villes.push(ville);
+                input.value = villes.join(' | ');
+              }
+            }
+            </script>
+        </div>
+      </div>
       <div class="grid-2">
         <div>
           <label>
             <span class="label-text">Catégorie</span>
-            <input type="text" name="category" placeholder="Ex: Magie, Théâtre, Clown">
+            <select name="category">
+              <option value="">-- Choisir --</option>
+              <optgroup label="Spectacle et Animation Artistique">
+                <option value="Spectacle Maternelle">Spectacle Maternelle</option>
+                <option value="Spectacle Élémentaire">Spectacle Élémentaire</option>
+                <option value="Spectacle École">Spectacle École</option>
+                <option value="Spectacle CSE">Spectacle CSE</option>
+                <option value="Festival">Festival</option>
+                <option value="Fête Foraine">Fête Foraine</option>
+                <option value="Sculpteur de ballons">Sculpteur de ballons</option>
+                <option value="Animation et Atelier Artistique">Animation et Atelier Artistique</option>
+                <option value="Atelier divers">Atelier divers</option>
+                <option value="Atelier maquillage">Atelier maquillage</option>
+                <option value="Caricaturistes et Silhouettiste">Caricaturistes et Silhouettiste</option>
+                <option value="Cirque">Cirque</option>
+                <option value="Clown">Clown</option>
+                <option value="Conte et Théâtre">Conte et Théâtre</option>
+                <option value="Fête de village">Fête de village</option>
+                <option value="Humoriste et Imitateur">Humoriste et Imitateur</option>
+                <option value="Location de stand">Location de stand</option>
+                <option value="Magie et Magicien">Magie et Magicien</option>
+                <option value="Manège">Manège</option>
+                <option value="Marionnettes">Marionnettes</option>
+                <option value="Père Noël">Père Noël</option>
+                <option value="Revue Cabaret et Danse">Revue Cabaret et Danse</option>
+                <option value="Sosie">Sosie</option>
+                <option value="Spectacle à Thèmes">Spectacle à Thèmes</option>
+                <option value="Spectacle Animalier">Spectacle Animalier</option>
+                <option value="Spectacle Arbre de Noël">Spectacle Arbre de Noël</option>
+                <option value="Spectacle de danse">Spectacle de danse</option>
+                <option value="Spectacle de Rue">Spectacle de Rue</option>
+                <option value="Spectacle Enfants">Spectacle Enfants</option>
+                <option value="Spectacle Evénementiel">Spectacle Evénementiel</option>
+                <option value="Spectacle Musical">Spectacle Musical</option>
+                <option value="Ventriloque">Ventriloque</option>
+              </optgroup>
+              <optgroup label="Groupe de Musique et Musicien">
+                <option value="Accordéoniste">Accordéoniste</option>
+                <option value="Animation Musicale">Animation Musicale</option>
+                <option value="Chorale et Gospel">Chorale et Gospel</option>
+                <option value="D.J. et Orchestre">D.J. et Orchestre</option>
+                <option value="Fanfare et Batucada">Fanfare et Batucada</option>
+                <option value="Groupe folklorique">Groupe folklorique</option>
+                <option value="Jazz">Jazz</option>
+                <option value="Musique Classique">Musique Classique</option>
+                <option value="Orgue de Barbarie">Orgue de Barbarie</option>
+                <option value="Pianiste">Pianiste</option>
+                <option value="Rock et Country">Rock et Country</option>
+              </optgroup>
+              <option value="Autre">Autre (précisez ci-dessous)</option>
+            </select>
           </label>
+          <label id="autre_category_container" style="display:none; margin-top:10px;">
+            <span class="label-text">Précisez votre catégorie</span>
+            <input type="text" id="autre_category" name="autre_category" placeholder="Décrivez votre type de spectacle">
+          </label>
+          <div style="display:none; background:#e3f2fd; color:#1565c0; border:1px solid #90caf9; border-radius:7px; padding:7px 12px; margin:10px 0 8px 0; font-size:0.97em; font-weight:500;">
+            Cliquez sur une catégorie pour remplir automatiquement le champ ci-dessus&nbsp;:
+          </div>
+          <div class="category-buttons" style="display:none; flex-wrap:wrap; gap:6px; margin-bottom:14px; position:relative;">
+            <div id="category-hover-banner" style="display:none; position:absolute; left:0; right:0; top:-38px; background:#fffde7; color:#795548; border:1px solid #ffe082; border-radius:7px; padding:7px 12px; font-size:0.97em; font-weight:500; z-index:10; text-align:center; pointer-events:none; transition:opacity 0.2s; opacity:0;">
+              Cliquez pour sélectionner cette catégorie
+            </div>
+            <script>
+            function ajouterCategorie(cat) {
+                var input = document.getElementById('category-input');
+                var cats = input.value.split(',').map(function(c) { return c.trim(); }).filter(function(c) { return c.length > 0; });
+                if (cats.indexOf(cat) === -1) {
+                    cats.push(cat);
+                    input.value = cats.join(' | ');
+                }
+            }
+            </script>
+            {% set categories = [
+              'Marionnette', 'Magie', 'Clown', 'Théâtre', 'Spectacle enfant', 'Atelier', 'Concert', 'Cirque',
+              'Spectacle de rue', 'Orchestre', 'Arbre de Noël', 'Animation école', 'Fête de village', 'Danse'
+            ] %}
+            {% set cat_styles = {
+              'Marionnette':   'background:#a084ca; color:#fff; border:1px solid #7c5eb6;',
+              'Magie':         'background:#1976d2; color:#fff; border:1px solid #1565c0;',
+              'Clown':         'background:#ff9800; color:#fff; border:1px solid #f57c00;',
+              'Théâtre':       'background:#8d6e63; color:#fff; border:1px solid #6d4c41;',
+              'Spectacle enfant': 'background:#43a047; color:#fff; border:1px solid #2e7d32;',
+              'Atelier':       'background:#00bcd4; color:#fff; border:1px solid #008ba3;',
+              'Concert':       'background:#e53935; color:#fff; border:1px solid #b71c1c;',
+              'Cirque':        'background:#fbc02d; color:#fff; border:1px solid #f9a825;',
+              'Spectacle de rue': 'background:#607d8b; color:#fff; border:1px solid #455a64;',
+              'Orchestre':     'background:#6d4c41; color:#fff; border:1px solid #3e2723;',
+              'Arbre de Noël': 'background:#388e3c; color:#fff; border:1px solid #1b5e20;',
+              'Animation école': 'background:#ec407a; color:#fff; border:1px solid #ad1457;',
+              'Fête de village': 'background:#ffb300; color:#fff; border:1px solid #ff6f00;',
+              'Danse': 'background:#ab47bc; color:#fff; border:1px solid #7c43bd;'
+            } %}
+            {% for cat in categories %}
+              <button type="button" class="btn-category"
+                style="padding:4px 10px; border-radius:5px; font-size:0.95em; cursor:pointer; margin-bottom:2px; {{ cat_styles[cat] }}"
+                onmouseover="document.getElementById('category-hover-banner').style.display='block'; document.getElementById('category-hover-banner').style.opacity='1';"
+                onmouseout="document.getElementById('category-hover-banner').style.opacity='0'; setTimeout(function(){document.getElementById('category-hover-banner').style.display='none';},200);"
+                onclick="ajouterCategorie('{{ cat }}')"
+              >{{ cat }}</button>
+            {% endfor %}
+          </div>
         </div>
-
         <div>
           <label>
             <span class="label-text">Âge / Public</span>
-            <input type="text" name="age_range" placeholder="Ex: 3-6 ans, Tout public, Adulte">
+            <select name="age_range" required>
+              <option value="">-- Choisir --</option>
+              <option value="familial">Familial</option>
+              <option value="enfant">Enfant</option>
+              <option value="enfant_2_6">Enfant (2/6 ans)</option>
+              <option value="enfant_6_10">Enfant (6/10 ans)</option>
+              <option value="enfant_2_10">Enfant (2/10 ans)</option>
+              <option value="adolescent">Adolescent</option>
+              <option value="adulte">Adulte</option>
+              <option value="tout public">Tout public</option>
+            </select>
           </label>
         </div>
       </div>
     </fieldset>
 
-    <!-- SECTION: Fichier -->
+    <!-- SECTION: Photos -->
     <fieldset class="demande-section">
-      <legend>Affiche ou document</legend>
+      <legend>📷 Photos du spectacle (jusqu'à 3)</legend>
+      <p style="color:var(--muted); font-size:0.9em; margin-bottom:16px;">Ajoutez jusqu'à 3 photos pour créer un diaporama attractif sur votre fiche.</p>
       
-      <div>
-        <label>
-          <span class="label-text">Image ou PDF</span>
-          <span class="hint">Taille max : 5 MB - Formats acceptés : PNG, JPG, JPEG, GIF, WEBP, PDF</span>
-          <input type="file" name="file" accept=".png,.jpg,.jpeg,.gif,.webp,.pdf">
-        </label>
+      <div class="grid-3" style="display:grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap:16px;">
+        <div>
+          <label>
+            <span class="label-text">Photo 1 (principale)</span>
+            <input type="file" name="file" id="file" accept=".png,.jpg,.jpeg,.gif,.webp,.pdf">
+            <span class="hint">Max 500 Ko - PNG, JPG, JPEG, GIF, WEBP, PDF</span>
+            <button type="button" onclick="clearFileInput('file')" id="clear-file" style="display:none; margin-top:8px; padding:6px 12px; background:#e74c3c; color:#fff; border:none; border-radius:6px; cursor:pointer; font-size:0.85rem;">🗑️ Retirer</button>
+            <div class="upload-progress" id="progress-file" style="display:none; margin-top:8px;">
+              <div class="progress-bar"><div class="progress-fill" id="progress-fill-file"></div></div>
+              <div class="progress-text" id="progress-text-file">0%</div>
+            </div>
+          </label>
+        </div>
+        <div>
+          <label>
+            <span class="label-text">Photo 2 (optionnelle)</span>
+            <input type="file" name="file2" id="file2" accept=".png,.jpg,.jpeg,.gif,.webp">
+            <span class="hint">Max 500 Ko - PNG, JPG, JPEG, GIF, WEBP</span>
+            <button type="button" onclick="clearFileInput('file2')" id="clear-file2" style="display:none; margin-top:8px; padding:6px 12px; background:#e74c3c; color:#fff; border:none; border-radius:6px; cursor:pointer; font-size:0.85rem;">🗑️ Retirer</button>
+            <div class="upload-progress" id="progress-file2" style="display:none; margin-top:8px;">
+              <div class="progress-bar"><div class="progress-fill" id="progress-fill-file2"></div></div>
+              <div class="progress-text" id="progress-text-file2">0%</div>
+            </div>
+          </label>
+        </div>
+        <div>
+          <label>
+            <span class="label-text">Photo 3 (optionnelle)</span>
+            <input type="file" name="file3" id="file3" accept=".png,.jpg,.jpeg,.gif,.webp">
+            <span class="hint">Max 500 Ko - PNG, JPG, JPEG, GIF, WEBP</span>
+            <button type="button" onclick="clearFileInput('file3')" id="clear-file3" style="display:none; margin-top:8px; padding:6px 12px; background:#e74c3c; color:#fff; border:none; border-radius:6px; cursor:pointer; font-size:0.85rem;">🗑️ Retirer</button>
+            <div class="upload-progress" id="progress-file3" style="display:none; margin-top:8px;">
+              <div class="progress-bar"><div class="progress-fill" id="progress-fill-file3"></div></div>
+              <div class="progress-text" id="progress-text-file3">0%</div>
+            </div>
+          </label>
+        </div>
       </div>
     </fieldset>
 
@@ -122,19 +374,124 @@
   </form>
 </div>
 
-<!-- Limiteur 200 mots (front) -->
+              <script>
+              // Fonction pour déterminer la région à partir du code postal français
+              function getRegionFromCodePostal(codePostal) {
+                if (!codePostal || codePostal.length < 2) return '';
+                
+                var dept = codePostal.substring(0, 2);
+                var deptNum = parseInt(dept, 10);
+                
+                // Cas particulier pour la Corse (2A, 2B)
+                if (codePostal.startsWith('20')) {
+                  return 'Corse';
+                }
+                
+                // DOM-TOM
+                if (codePostal.startsWith('971')) return 'Guadeloupe';
+                if (codePostal.startsWith('972')) return 'Martinique';
+                if (codePostal.startsWith('973')) return 'Guyane';
+                if (codePostal.startsWith('974')) return 'La Réunion';
+                if (codePostal.startsWith('976')) return 'Mayotte';
+                
+                // Régions métropolitaines
+                var regions = {
+                  // Auvergne-Rhône-Alpes
+                  '01': 'Auvergne-Rhône-Alpes', '03': 'Auvergne-Rhône-Alpes', '07': 'Auvergne-Rhône-Alpes',
+                  '15': 'Auvergne-Rhône-Alpes', '26': 'Auvergne-Rhône-Alpes', '38': 'Auvergne-Rhône-Alpes',
+                  '42': 'Auvergne-Rhône-Alpes', '43': 'Auvergne-Rhône-Alpes', '63': 'Auvergne-Rhône-Alpes',
+                  '69': 'Auvergne-Rhône-Alpes', '73': 'Auvergne-Rhône-Alpes', '74': 'Auvergne-Rhône-Alpes',
+                  
+                  // Bourgogne-Franche-Comté
+                  '21': 'Bourgogne-Franche-Comté', '25': 'Bourgogne-Franche-Comté', '39': 'Bourgogne-Franche-Comté',
+                  '58': 'Bourgogne-Franche-Comté', '70': 'Bourgogne-Franche-Comté', '71': 'Bourgogne-Franche-Comté',
+                  '89': 'Bourgogne-Franche-Comté', '90': 'Bourgogne-Franche-Comté',
+                  
+                  // Bretagne
+                  '22': 'Bretagne', '29': 'Bretagne', '35': 'Bretagne', '56': 'Bretagne',
+                  
+                  // Centre-Val de Loire
+                  '18': 'Centre-Val de Loire', '28': 'Centre-Val de Loire', '36': 'Centre-Val de Loire',
+                  '37': 'Centre-Val de Loire', '41': 'Centre-Val de Loire', '45': 'Centre-Val de Loire',
+                  
+                  // Grand Est
+                  '08': 'Grand Est', '10': 'Grand Est', '51': 'Grand Est', '52': 'Grand Est',
+                  '54': 'Grand Est', '55': 'Grand Est', '57': 'Grand Est', '67': 'Grand Est',
+                  '68': 'Grand Est', '88': 'Grand Est',
+                  
+                  // Hauts-de-France
+                  '02': 'Hauts-de-France', '59': 'Hauts-de-France', '60': 'Hauts-de-France',
+                  '62': 'Hauts-de-France', '80': 'Hauts-de-France',
+                  
+                  // Île-de-France
+                  '75': 'Île-de-France', '77': 'Île-de-France', '78': 'Île-de-France',
+                  '91': 'Île-de-France', '92': 'Île-de-France', '93': 'Île-de-France',
+                  '94': 'Île-de-France', '95': 'Île-de-France',
+                  
+                  // Normandie
+                  '14': 'Normandie', '27': 'Normandie', '50': 'Normandie', '61': 'Normandie', '76': 'Normandie',
+                  
+                  // Nouvelle-Aquitaine
+                  '16': 'Nouvelle-Aquitaine', '17': 'Nouvelle-Aquitaine', '19': 'Nouvelle-Aquitaine',
+                  '23': 'Nouvelle-Aquitaine', '24': 'Nouvelle-Aquitaine', '33': 'Nouvelle-Aquitaine',
+                  '40': 'Nouvelle-Aquitaine', '47': 'Nouvelle-Aquitaine', '64': 'Nouvelle-Aquitaine',
+                  '79': 'Nouvelle-Aquitaine', '86': 'Nouvelle-Aquitaine', '87': 'Nouvelle-Aquitaine',
+                  
+                  // Occitanie
+                  '09': 'Occitanie', '11': 'Occitanie', '12': 'Occitanie', '30': 'Occitanie',
+                  '31': 'Occitanie', '32': 'Occitanie', '34': 'Occitanie', '46': 'Occitanie',
+                  '48': 'Occitanie', '65': 'Occitanie', '66': 'Occitanie', '81': 'Occitanie', '82': 'Occitanie',
+                  
+                  // Pays de la Loire
+                  '44': 'Pays de la Loire', '49': 'Pays de la Loire', '53': 'Pays de la Loire',
+                  '72': 'Pays de la Loire', '85': 'Pays de la Loire',
+                  
+                  // Provence-Alpes-Côte d'Azur
+                  '04': 'Provence-Alpes-Côte d\'Azur', '05': 'Provence-Alpes-Côte d\'Azur',
+                  '06': 'Provence-Alpes-Côte d\'Azur', '13': 'Provence-Alpes-Côte d\'Azur',
+                  '83': 'Provence-Alpes-Côte d\'Azur', '84': 'Provence-Alpes-Côte d\'Azur'
+                };
+                
+                return regions[dept] || '';
+              }
+
+              // Détection automatique de la région en fonction du code postal
+              document.addEventListener('DOMContentLoaded', function() {
+                var codePostalInput = document.getElementById('code_postal');
+                var regionInput = document.getElementById('region-input');
+                
+                if (codePostalInput && regionInput) {
+                  codePostalInput.addEventListener('input', function() {
+                    var codePostal = this.value.trim();
+                    if (codePostal.length >= 2) {
+                      var region = getRegionFromCodePostal(codePostal);
+                      regionInput.value = region;
+                    } else {
+                      regionInput.value = '';
+                    }
+                  });
+                  
+                  // Déclencher la détection au chargement si un code postal est déjà présent
+                  if (codePostalInput.value) {
+                    var region = getRegionFromCodePostal(codePostalInput.value.trim());
+                    regionInput.value = region;
+                  }
+                }
+              });
+              </script>
+<!-- Limiteur 300 mots (front) -->
 <script>
 (function () {
   const ta = document.getElementById('description');
   const counter = document.getElementById('desc-counter');
-  const MAX = 200;
+  const MAX = 300;
 
   if (!ta || !counter) return;
 
   function update() {
     const words = ta.value.trim().split(/\s+/).filter(Boolean);
     if (words.length > MAX) {
-      // tronque au-delà de 200 mots
+      // tronque au-delà de 300 mots
       ta.value = words.slice(0, MAX).join(' ');
     }
     const count = ta.value.trim() ? ta.value.trim().split(/\s+/).length : 0;
@@ -144,16 +501,67 @@
   ta.addEventListener('input', update);
   update();
 
+  // Gestion de l'affichage du champ "Autre catégorie"
+  var categorySelect = document.querySelector('select[name="category"]');
+  var autreContainer = document.getElementById('autre_category_container');
+  var autreInput = document.getElementById('autre_category');
+  
+  if (categorySelect && autreContainer) {
+    categorySelect.addEventListener('change', function() {
+      if (this.value === 'Autre') {
+        autreContainer.style.display = 'block';
+      } else {
+        autreContainer.style.display = 'none';
+        if (autreInput) autreInput.value = '';
+      }
+    });
+  }
+
   // Sécurité supplémentaire à la soumission
   document.querySelectorAll('form').forEach(form => {
     form.addEventListener('submit', (e) => {
       const words = ta.value.trim().split(/\s+/).filter(Boolean);
       if (words.length > MAX) {
         e.preventDefault();
-        alert('La description ne doit pas dépasser 200 mots.');
+        alert('La description ne doit pas dépasser 300 mots.');
       }
     });
   });
 })();
+
+// Fonction pour réinitialiser un input de fichier
+function clearFileInput(inputId) {
+  const input = document.getElementById(inputId);
+  const clearBtn = document.getElementById('clear-' + inputId);
+  const progressContainer = document.getElementById('progress-' + inputId);
+  
+  if (input) {
+    input.value = '';
+  }
+  if (clearBtn) {
+    clearBtn.style.display = 'none';
+  }
+  if (progressContainer) {
+    progressContainer.style.display = 'none';
+  }
+}
+
+// Afficher/masquer les boutons "Retirer" selon la sélection de fichiers
+document.addEventListener('DOMContentLoaded', function() {
+  ['file', 'file2', 'file3'].forEach(function(inputId) {
+    const input = document.getElementById(inputId);
+    const clearBtn = document.getElementById('clear-' + inputId);
+    
+    if (input && clearBtn) {
+      input.addEventListener('change', function() {
+        if (this.files && this.files.length > 0) {
+          clearBtn.style.display = 'inline-block';
+        } else {
+          clearBtn.style.display = 'none';
+        }
+      });
+    }
+  });
+});
 </script>
 {% endblock %}

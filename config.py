@@ -1,7 +1,7 @@
 # ---------------------------------------------
 # Adresse email admin utilisée pour l'envoi des mails
 # Toutes les notifications administratives seront envoyées à :
-# artemisiacompagnie@gmail.com
+# contac@spectacleanimation.fr
 # ---------------------------------------------
 import os
 from pathlib import Path
@@ -16,7 +16,8 @@ class Config:
     )
 
     ADMIN_USERNAME = os.environ.get("ADMIN_USERNAME", "admin")
-    ADMIN_PASSWORD = os.environ.get("ADMIN_PASSWORD", "admin")
+    # SÉCURITÉ : Obligatoire - doit être défini dans .env ou variables d'environnement
+    ADMIN_PASSWORD = os.environ.get("ADMIN_PASSWORD")
 
     BASE_DIR = Path(__file__).resolve().parent
     
@@ -36,22 +37,21 @@ class Config:
         "pool_recycle": 300,     # Recycle les connexions après 5 minutes
     }
 
-    # Configuration Email (variables d'environnement OBLIGATOIRES en production)
-    MAIL_SERVER = os.environ.get("MAIL_SERVER", "smtp.gmail.com")
+    # Configuration Email OVH Zimbra
+    MAIL_SERVER = os.environ.get("MAIL_SERVER", "ssl0.ovh.net")
     MAIL_PORT = int(os.environ.get("MAIL_PORT", 587))
     MAIL_USE_TLS = os.environ.get("MAIL_USE_TLS", "True") == "True"
     MAIL_USE_SSL = os.environ.get("MAIL_USE_SSL", "False") == "True"
-    # IMPORTANT: ne jamais stocker de secrets dans le code.
-    # Configurer ces variables sur Render / en local via .env
-    MAIL_USERNAME = os.environ.get("MAIL_USERNAME")
+    MAIL_USERNAME = os.environ.get("MAIL_USERNAME", "contact@spectacleanimation.fr")
+    # SÉCURITÉ : Ne JAMAIS mettre de mot de passe par défaut
     MAIL_PASSWORD = os.environ.get("MAIL_PASSWORD")
-    MAIL_DEFAULT_SENDER = os.environ.get("MAIL_DEFAULT_SENDER") or MAIL_USERNAME
+    MAIL_DEFAULT_SENDER = os.environ.get("MAIL_DEFAULT_SENDER", "contact@spectacleanimation.fr")
     # Affichage de l'adresse email utilisée pour l'envoi des mails
     print(f"[CONFIG] MAIL_DEFAULT_SENDER utilisé : {MAIL_DEFAULT_SENDER}")
 
-    # Limite de taille des fichiers (5 MB)
-    MAX_CONTENT_LENGTH = 5 * 1024 * 1024  # 5 MB en bytes
-    MAX_FILE_SIZE = 5 * 1024 * 1024  # 5 MB en bytes
+    # Limite de taille des fichiers (500 KB par photo pour plus de stabilité)
+    MAX_CONTENT_LENGTH = 500 * 1024  # 500 KB en bytes
+    MAX_FILE_SIZE = 500 * 1024  # 500 KB en bytes
     
     # Sécurité sessions
     PERMANENT_SESSION_LIFETIME = 3600  # 1 heure

@@ -20,19 +20,110 @@
 {# Hide SEO block on detail pages #}
 {% endblock %}
 
+{# Schema.org Event enrichi pour les rich snippets Google - optimisé SEO #}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Event",
+  "name": {{ show.title|tojson }},
+  {% if show.description %}"description": {{ (show.description[:500])|tojson }},{% endif %}
+  {% if show.date %}"startDate": "{{ show.date.isoformat() }}",{% endif %}
+  "eventStatus": "https://schema.org/EventScheduled",
+  "eventAttendanceMode": "https://schema.org/OfflineEventAttendanceMode",
+  
+  {# Localisation et adresse #}
+  "location": {
+    "@type": "Place",
+    "name": {{ show.location|tojson }},
+    "address": {
+      "@type": "PostalAddress",
+      "addressLocality": {{ show.location|tojson }}
+      {% if show.region %},"addressRegion": {{ show.region|tojson }},"addressCountry": "FR"{% endif %}
+    }
+  },
+  
+  {# Artiste/Compagnie #}
+  "performer": {
+    "@type": "PerformingGroup",
+    "name": {{ (show.raison_sociale or show.title)|tojson }}
+    {% if show.site_internet %},"url": {{ show.site_internet|tojson }}{% endif %}
+  },
+  
+  {# Organisateur = Spectacle'ment VØtre #}
+  "organizer": {
+    "@type": "Organization",
+    "name": "Spectacle'ment VØtre",
+    "url": "{{ url_for('home', _external=True) }}"
+  },
+  
+  {# Public cible basé sur age_range #}
+  {% if show.age_range %}"audience": {
+    "@type": "Audience",
+    "audienceType": {{ show.age_range|tojson }}
+  },{% endif %}
+  
+  {# Catégories/genres du spectacle #}
+  {% if show.category %}"genre": {{ show.category|tojson }},{% endif %}
+  
+  {# Images (toutes les photos disponibles) #}
+  {% set all_imgs = show.get_all_images() %}
+  {% if all_imgs|length > 0 %}"image": [
+    {% for img in all_imgs %}"{{ url_for('uploaded_file', filename=img, _external=True) }}"{% if not loop.last %},{% endif %}{% endfor %}
+  ],{% endif %}
+  
+  {# Offre de réservation #}
+  "offers": {
+    "@type": "Offer",
+    "url": "{{ url_for('show_detail', show_id=show.id, _external=True) }}",
+    "availability": "https://schema.org/InStock",
+    "priceCurrency": "EUR",
+    "priceRange": "Sur devis",
+    "validFrom": "{{ show.created_at.isoformat() if show.created_at else '' }}"
+  },
+  
+  {# URL de la page #}
+  "url": "{{ url_for('show_detail', show_id=show.id, _external=True) }}"
+}
+</script>
+
 {% block content %}
 
 <div style="max-width:900px; margin:0 auto;">
   <!-- Back Button -->
-  <a href="{{ url_for('home') }}" class="back-link" style="display:inline-flex; align-items:center; gap:8px; margin-bottom:24px; padding:10px 16px; color:var(--text); text-decoration:none; background:var(--panel); border:1px solid var(--border); border-radius:8px; font-weight:500; transition:all 0.2s ease;">
+  <a href="{{ url_for('catalogue') }}" class="back-link" style="display:inline-flex; align-items:center; gap:8px; margin-bottom:24px; padding:10px 16px; color:var(--text); text-decoration:none; background:var(--panel); border:1px solid var(--border); border-radius:8px; font-weight:500; transition:all 0.2s ease;">
     <span>←</span> Retour aux spectacles
   </a>
   
   <article class="card" style="max-width:none; box-shadow:0 4px 16px rgba(0,0,0,0.2);">
-    {% if show.has_image() or show.is_pdf() %}
-      <div class="media" style="aspect-ratio:16/9; max-height:450px;">
-        {% if show.has_image() %}
-          <img src="{{ url_for('uploaded_file', filename=show.file_name) }}" alt="{{ show.title }}" style="width:100%; height:100%; object-fit:cover;">
+    {% set all_images = show.get_all_images() %}
+    {% if all_images|length > 0 or show.is_pdf() %}
+      <div class="media" style="aspect-ratio:16/9; max-height:450px; position:relative;">
+        {% if all_images|length > 0 %}
+          <!-- Diaporama des photos -->
+          <div class="detail-carousel" data-carousel>
+            <div class="carousel-slides">
+              {% for img in all_images %}
+              <div class="carousel-slide {% if loop.first %}active{% endif %}">
+                <img src="{{ url_for('uploaded_file', filename=img) }}" alt="{{ show.title }} - Photo {{ loop.index }}" style="width:100%; height:100%; object-fit:contain; background:#162447;">
+              </div>
+              {% endfor %}
+            </div>
+            {% if all_images|length > 1 %}
+            <!-- Indicateurs -->
+            <div class="carousel-indicators" style="position:absolute; bottom:15px; left:50%; transform:translateX(-50%); display:flex; gap:8px; z-index:10;">
+              {% for img in all_images %}
+              <button class="carousel-dot {% if loop.first %}active{% endif %}" data-index="{{ loop.index0 }}" style="width:12px; height:12px; border-radius:50%; border:2px solid white; background:{% if loop.first %}white{% else %}transparent{% endif %}; cursor:pointer; transition:all 0.3s;"></button>
+              {% endfor %}
+            </div>
+            <!-- Navigation -->
+            <button class="carousel-prev" style="position:absolute; left:15px; top:50%; transform:translateY(-50%); background:rgba(0,0,0,0.5); color:white; border:none; width:40px; height:40px; border-radius:50%; cursor:pointer; font-size:1.2rem; z-index:10;">❮</button>
+            <button class="carousel-next" style="position:absolute; right:15px; top:50%; transform:translateY(-50%); background:rgba(0,0,0,0.5); color:white; border:none; width:40px; height:40px; border-radius:50%; cursor:pointer; font-size:1.2rem; z-index:10;">❯</button>
+            <!-- Compteur -->
+            <div class="photo-count" style="position:absolute; top:15px; right:15px; background:rgba(0,0,0,0.6); color:white; padding:5px 12px; border-radius:15px; font-size:0.85rem; z-index:10;">
+              <span class="current-photo">1</span>/{{ all_images|length }}
+            </div>
+            {% endif %}
+          </div>
         {% elif show.is_pdf() %}
           <a class="pdf-thumb" href="{{ url_for('uploaded_file', filename=show.file_name) }}" target="_blank" style="font-size:2rem;">📄 Voir le PDF</a>
         {% endif %}
@@ -42,7 +133,7 @@
     <div class="content" style="padding:32px;">
       <!-- Company Name -->
       {% if show.raison_sociale %}
-        <p style="font-size:1.15rem; font-weight:700; color:var(--primary); margin:0 0 12px 0; text-transform:uppercase; letter-spacing:0.5px;">{{ show.raison_sociale }}</p>
+        <p style="font-size:1.15rem; font-weight:700; color:var(--primary); margin:0 0 12px 0; text-transform:uppercase; letter-spacing:0.5px;">{{ show.raison_sociale|title }}</p>
       {% endif %}
       
       <!-- Title -->
@@ -51,10 +142,14 @@
       <!-- Badges -->
       <div style="display:flex; gap:10px; flex-wrap:wrap; margin-bottom:32px;">
         {% if show.category %}
-          <span class="badge badge-category">{{ show.category }}</span>
+          <span class="badge badge-category">{{ show.category|title }}</span>
         {% endif %}
         {% if show.age_range %}
-          <span class="badge">👶 {{ show.age_range }}</span>
+          {% if 'enfant' in show.age_range|lower %}
+            <span class="badge">👶 ({{ show.age_range|format_age }})</span>
+          {% else %}
+            <span class="badge">({{ show.age_range|format_age }})</span>
+          {% endif %}
         {% endif %}
         {% if show.region %}
           <span class="badge">🗺️ {{ show.region }}</span>
@@ -66,7 +161,6 @@
           <span class="badge">📅 {{ show.date.strftime('%d/%m/%Y') }}</span>
         {% endif %}
       </div>
-
       <!-- Description -->
       {% if show.description %}
         <div style="margin-bottom:32px; padding:20px; background:rgba(255,255,255,0.02); border-left:3px solid var(--primary); border-radius:8px;">
@@ -114,18 +208,46 @@
         </div>
       {% endif %}
 
-      <!-- Download File -->
-      {% if show.file_name %}
-        <a href="{{ url_for('uploaded_file', filename=show.file_name) }}" target="_blank" style="display:inline-flex; align-items:center; gap:10px; padding:14px 20px; background:var(--primary); color:white; text-decoration:none; border-radius:10px; font-weight:600; transition:all 0.2s ease; box-shadow:0 2px 8px rgba(220,38,38,0.3);">
-          <span style="font-size:1.2rem;">📎</span>
-          Télécharger le fichier
-        </a>
-      {% endif %}
+      <!-- Download File supprimé -->
+    </div>
+    {% if show.created_at %}
+    <div style="width:100%; text-align:center; margin-top:18px;">
+      <span style="color:#b0b8d8; font-size:0.95em;">publié le {{ show.created_at.strftime('%d/%m/%Y %H:%M') }}</span>
+    </div>
+    {% endif %}
+    {% if show.auto_datetime %}
+    <div style="margin-top:32px; padding:16px; background:#f8f9fa; color:#222; border-radius:10px; text-align:center; font-size:1.05em;">
+      <strong>Date de création de la demande :</strong> {{ show.auto_datetime }}
+    </div>
+    {% endif %}
+    <!-- Réseaux sociaux en bas de fiche -->
+    <div style="display:flex; flex-direction:row; align-items:flex-start; gap:12px; margin:32px 0 0 0; flex-wrap:wrap;">
+      <a class="social-bandeau youtube" href="#" title="Notre chaîne YouTube" target="_blank">
+        <i class="fa fa-youtube"></i> <span>YouTube</span>
+      </a>
+      <a class="social-bandeau facebook" href="#" title="Notre page Facebook" target="_blank">
+        <i class="fa fa-facebook"></i> <span>Facebook</span>
+      </a>
+      <a class="social-bandeau twitter" href="#" title="Artémisia sur Twitter" target="_blank">
+        <i class="fa fa-twitter"></i> <span>Twitter</span>
+      </a>
+      <a class="btn-demande" href="{{ url_for('demande_animation') }}" style="display:flex; align-items:center; gap:8px; padding:10px 22px; border-radius:8px; background:linear-gradient(90deg,#43a047 60%,#388e3c 100%); color:#fff; font-weight:700; font-size:1.08em; text-decoration:none; box-shadow:0 2px 8px rgba(0,0,0,0.08); transition:box-shadow 0.2s,transform 0.2s;">
+        <i class="fa fa-magic"></i> <span>Demande de spectacle</span>
+      </a>
     </div>
   </article>
 </div>
 
 <style>
+a.btn-demande {
+  border: none;
+  cursor: pointer;
+}
+a.btn-demande:hover {
+  box-shadow: 0 4px 16px rgba(67,160,71,0.18);
+  transform: translateY(-2px) scale(1.03);
+  background: linear-gradient(90deg,#388e3c 60%,#43a047 100%);
+}
 .badge {
   display: inline-flex;
   align-items: center;
@@ -163,5 +285,196 @@ a[href*="uploaded_file"]:hover {
   transform: translateY(-2px);
   box-shadow: 0 4px 16px rgba(220,38,38,0.4) !important;
 }
+a.social-bandeau {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 18px;
+  border-radius: 8px;
+  font-size: 1.08em;
+  font-weight: 600;
+  text-decoration: none;
+  margin-bottom: 2px;
+  transition: box-shadow 0.2s, transform 0.2s;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+a.social-bandeau.youtube {
+  background: linear-gradient(90deg,#c4302b 60%,#e52d27 100%);
+  color: #fff;
+}
+a.social-bandeau.facebook {
+  background: linear-gradient(90deg,#3b5998 60%,#4267B2 100%);
+  color: #fff;
+}
+a.social-bandeau.twitter {
+  background: linear-gradient(90deg,#1da1f2 60%,#0a95dd 100%);
+  color: #fff;
+}
+a.social-bandeau.email {
+  background: linear-gradient(90deg,#222 60%,#555 100%);
+  color: #fff;
+}
+a.social-bandeau:hover {
+  box-shadow: 0 4px 16px rgba(0,0,0,0.18);
+  transform: translateY(-2px) scale(1.03);
+}
+
+.une-card {
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  height: 100%;
+}
+
+.une-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.3) !important;
+}
+@media (max-width: 768px) {
+  .spectacles-une-grid {
+    grid-template-columns: 1fr !important;
+  }
+}</style>
+
+<!-- Section Spectacles à la Une -->
+{% if spectacles_une %}
+<div style="max-width:100%; margin:48px auto 0 auto; padding:0 20px;">
+  <div style="text-align:center; margin-bottom:32px;">
+    <h2 style="font-size:2rem; margin:0 0 8px 0; color:var(--text);">✨ Spectacles à la Une</h2>
+    <p style="color:var(--muted); font-size:1rem;">Découvrez notre sélection de spectacles exceptionnels</p>
+  </div>
+  
+  <div class="spectacles-une-grid" style="display:grid; grid-template-columns:repeat(8, 1fr); gap:16px;">
+    {% for spectacle in spectacles_une %}
+    <article class="card une-card" style="overflow:hidden; box-shadow:0 4px 16px rgba(0,0,0,0.2);">
+      {% if spectacle.has_image() %}
+        <a href="{{ url_for('show_detail', show_id=spectacle.id) }}" style="display:block;">
+          <div style="aspect-ratio:1/1; overflow:hidden; background:var(--panel);">
+            <img src="{{ url_for('uploaded_file', filename=spectacle.file_name) }}" 
+                 alt="{{ spectacle.title }}"
+                 style="width:100%; height:100%; object-fit:cover; transition:transform 0.3s ease;">
+          </div>
+        </a>
+      {% else %}
+        <div style="aspect-ratio:1/1; display:flex; align-items:center; justify-content:center; background:var(--panel);">
+          <span style="font-size:2rem; opacity:0.3;">🎭</span>
+        </div>
+      {% endif %}
+      
+      <div style="padding:12px;">
+        <div style="margin-bottom:8px;">
+          <span class="badge" style="background:linear-gradient(135deg, #ffd700 0%, #ffed4e 100%); color:#222; font-weight:700; border:none; font-size:0.7rem; padding:4px 8px;">
+            ⭐
+          </span>
+        </div>
+        
+        {% if spectacle.raison_sociale %}
+          <p style="font-size:0.7rem; font-weight:600; color:var(--primary); margin:0 0 6px 0; text-transform:uppercase; letter-spacing:0.3px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
+            {{ spectacle.raison_sociale }}
+          </p>
+        {% endif %}
+        
+        <h3 style="margin:0 0 8px 0; font-size:0.9rem; line-height:1.2; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;">
+          <a href="{{ url_for('show_detail', show_id=spectacle.id) }}" 
+             style="color:var(--text); text-decoration:none; transition:color 0.2s;">
+            {{ spectacle.title }}
+          </a>
+        </h3>
+        
+        <p style="color:var(--muted); font-size:0.75rem; line-height:1.4; margin:0 0 10px 0; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;">
+          {{ spectacle.description[:80] }}{% if spectacle.description|length > 80 %}...{% endif %}
+        </p>
+        
+        <div style="display:flex; flex-direction:column; gap:4px; margin-bottom:10px; font-size:0.7rem;">
+          {% if spectacle.region %}
+            <span style="color:var(--muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
+              <i class="fa fa-map-marker-alt" style="color:var(--primary);"></i> {{ spectacle.region }}
+            </span>
+          {% endif %}
+          {% if spectacle.age_range %}
+            <span style="color:var(--muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
+              <i class="fa fa-child" style="color:var(--primary);"></i> {{ spectacle.age_range|format_age }}
+            </span>
+          {% endif %}
+        </div>
+        
+        <a href="{{ url_for('show_detail', show_id=spectacle.id) }}" 
+           style="display:inline-flex; align-items:center; justify-content:center; gap:6px; padding:8px 12px; background:var(--primary); color:white; text-decoration:none; border-radius:6px; font-weight:600; font-size:0.75rem; transition:all 0.2s ease; width:100%;">
+          <i class="fa fa-eye"></i> Voir
+        </a>
+      </div>
+    </article>
+    {% endfor %}
+  </div>
+</div>
+{% endif %}
+
+<!-- JavaScript pour le diaporama de la page détail -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const carousel = document.querySelector('.detail-carousel');
+  if (!carousel) return;
+  
+  const slides = carousel.querySelectorAll('.carousel-slide');
+  const dots = carousel.querySelectorAll('.carousel-dot');
+  const prevBtn = carousel.querySelector('.carousel-prev');
+  const nextBtn = carousel.querySelector('.carousel-next');
+  const counter = carousel.querySelector('.current-photo');
+  
+  if (slides.length <= 1) return;
+  
+  let currentIndex = 0;
+  let autoPlayInterval;
+  
+  function showSlide(index) {
+    slides.forEach((slide, i) => {
+      slide.classList.toggle('active', i === index);
+    });
+    dots.forEach((dot, i) => {
+      dot.classList.toggle('active', i === index);
+      dot.style.background = i === index ? 'white' : 'transparent';
+    });
+    if (counter) counter.textContent = index + 1;
+    currentIndex = index;
+  }
+  
+  function nextSlide() {
+    showSlide((currentIndex + 1) % slides.length);
+  }
+  
+  function prevSlide() {
+    showSlide((currentIndex - 1 + slides.length) % slides.length);
+  }
+  
+  function startAutoPlay() {
+    stopAutoPlay();
+    autoPlayInterval = setInterval(nextSlide, 10000); // Toutes les 10 secondes
+  }
+  
+  function stopAutoPlay() {
+    if (autoPlayInterval) clearInterval(autoPlayInterval);
+  }
+  
+  // Navigation
+  if (nextBtn) nextBtn.addEventListener('click', function() { nextSlide(); startAutoPlay(); });
+  if (prevBtn) prevBtn.addEventListener('click', function() { prevSlide(); startAutoPlay(); });
+  
+  // Indicateurs
+  dots.forEach((dot, i) => {
+    dot.addEventListener('click', function() { showSlide(i); startAutoPlay(); });
+  });
+  
+  // Démarrer l'auto-play
+  startAutoPlay();
+});
+</script>
+
+<style>
+.detail-carousel { position: relative; width: 100%; height: 100%; }
+.detail-carousel .carousel-slides { position: relative; width: 100%; height: 100%; }
+.detail-carousel .carousel-slide { position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: 0; transition: opacity 0.5s ease; }
+.detail-carousel .carousel-slide.active { opacity: 1; z-index: 1; }
+.detail-carousel .carousel-prev:hover,
+.detail-carousel .carousel-next:hover { background: rgba(0,0,0,0.8); }
+.detail-carousel .carousel-dot:hover { background: rgba(255,255,255,0.5) !important; }
 </style>
+
 {% endblock %}

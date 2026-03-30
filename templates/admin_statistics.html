@@ -1,0 +1,731 @@
+{% extends "base.html" %}
+
+{% block title %}Statistiques des visiteurs{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <h1><i class="fas fa-chart-line"></i> Statistiques des visiteurs</h1>
+            <p class="text-muted">Données anonymisées - Conforme RGPD</p>
+        </div>
+    </div>
+
+    <!-- Filtres de période -->
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <div class="btn-group" role="group">
+                <a href="{{ url_for('admin_statistics', period='today') }}" class="btn btn-sm {% if period == 'today' %}btn-primary{% else %}btn-outline-primary{% endif %}">Aujourd'hui</a>
+                <a href="{{ url_for('admin_statistics', period='1') }}" class="btn btn-sm {% if period == '1' %}btn-primary{% else %}btn-outline-primary{% endif %}">24h</a>
+                <a href="{{ url_for('admin_statistics', period='7') }}" class="btn btn-sm {% if period == '7' %}btn-primary{% else %}btn-outline-primary{% endif %}">7 jours</a>
+                <a href="{{ url_for('admin_statistics', period='30') }}" class="btn btn-sm {% if period == '30' %}btn-primary{% else %}btn-outline-primary{% endif %}">30 jours</a>
+                <a href="{{ url_for('admin_statistics', period='90') }}" class="btn btn-sm {% if period == '90' %}btn-primary{% else %}btn-outline-primary{% endif %}">90 jours</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Statistiques récapitulatives -->
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0"><i class="fas fa-chart-bar"></i> Statistiques - {{ period_label }}</h5>
+                </div>
+                <div class="card-body p-0">
+                    <table class="table table-hover mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th style="width: 40%;"><i class="fas fa-list"></i> Métrique</th>
+                                <th style="width: 30%;" class="text-end"><i class="fas fa-hashtag"></i> Valeur</th>
+                                <th style="width: 30%;"><i class="fas fa-info-circle"></i> Description</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><i class="fas fa-users text-success"></i> <strong>Visiteurs uniques</strong></td>
+                                <td class="text-end"><span class="badge bg-success fs-5">{{ unique_visitors }}</span></td>
+                                <td><small class="text-muted">Personnes différentes</small></td>
+                            </tr>
+                            <tr>
+                                <td><i class="fas fa-user text-info"></i> <strong>Visiteurs humains</strong></td>
+                                <td class="text-end"><span class="badge bg-info fs-5">{{ unique_humans }}</span></td>
+                                <td><small class="text-muted">Vrais visiteurs ({{ (unique_humans * 100 / unique_visitors)|round|int if unique_visitors > 0 else 0 }}%)</small></td>
+                            </tr>
+                            <tr>
+                                <td><i class="fas fa-robot text-secondary"></i> <strong>Robots/Crawlers</strong></td>
+                                <td class="text-end"><span class="badge bg-secondary fs-5">{{ unique_bots }}</span></td>
+                                <td><small class="text-muted">Indexation moteurs ({{ (unique_bots * 100 / unique_visitors)|round|int if unique_visitors > 0 else 0 }}%)</small></td>
+                            </tr>
+                            <tr>
+                                <td><i class="fas fa-file-alt text-primary"></i> <strong>Pages vues</strong></td>
+                                <td class="text-end"><span class="badge bg-primary fs-5">{{ total_visits }}</span></td>
+                                <td><small class="text-muted">Total de pages consultées</small></td>
+                            </tr>
+                            <tr>
+                                <td style="padding-left: 2rem;"><i class="fas fa-eye text-info"></i> Pages vues par humains</td>
+                                <td class="text-end"><span class="badge bg-info">{{ total_humans }}</span></td>
+                                <td><small class="text-muted">{{ (total_humans * 100 / total_visits)|round|int if total_visits > 0 else 0 }}%</small></td>
+                            </tr>
+                            <tr>
+                                <td style="padding-left: 2rem;"><i class="fas fa-robot text-secondary"></i> Pages vues par robots</td>
+                                <td class="text-end"><span class="badge bg-secondary">{{ total_bots }}</span></td>
+                                <td><small class="text-muted">{{ (total_bots * 100 / total_visits)|round|int if total_visits > 0 else 0 }}%</small></td>
+                            </tr>
+                            <tr>
+                                <td><i class="fas fa-chart-line text-warning"></i> <strong>Pages par visiteur</strong></td>
+                                <td class="text-end"><span class="badge bg-warning fs-5">{{ (total_visits / unique_visitors)|round(1) if unique_visitors > 0 else 0 }}</span></td>
+                                <td><small class="text-muted">Moyenne de pages/personne</small></td>
+                            </tr>
+                            <tr>
+                                <td><i class="fas fa-calendar-day text-dark"></i> <strong>Moyenne quotidienne</strong></td>
+                                <td class="text-end"><span class="badge bg-dark fs-5">{{ (total_visits / days)|round|int }}</span></td>
+                                <td><small class="text-muted">Pages vues par jour</small></td>
+                            </tr>
+                            <tr class="table-active">
+                                <td><i class="fas fa-clock text-secondary"></i> <strong>Période analysée</strong></td>
+                                <td class="text-end"><span class="badge bg-secondary fs-6">{{ days }} jour{{ 's' if days > 1 else '' }}</span></td>
+                                <td><small class="text-muted">{{ period_label }}</small></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Graphique d'évolution -->
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">
+                        <i class="fas fa-chart-line"></i> Affluence des visiteurs humains (par période)
+                        <small class="badge bg-success ms-2">v2.0 - Horaires améliorés</small>
+                    </h5>
+                    <div class="btn-group btn-group-sm" role="group">
+                        <button type="button" class="btn btn-outline-primary active" onclick="changeChartView('day')" id="btnDay">
+                            <i class="fas fa-calendar-day"></i> Jour
+                        </button>
+                        <button type="button" class="btn btn-outline-primary" onclick="changeChartView('month')" id="btnMonth">
+                            <i class="fas fa-calendar-alt"></i> Mois
+                        </button>
+                        <button type="button" class="btn btn-outline-primary" onclick="changeChartView('year')" id="btnYear">
+                            <i class="fas fa-calendar"></i> Année
+                        </button>
+                    </div>
+                </div>
+                <div class="card-body" style="padding-bottom: 30px;">
+                    <canvas id="visitsChart" style="height: 250px;"></canvas>
+                    
+                    <!-- Bandeau récapitulatif du total -->
+                    <div class="mt-3 p-3 bg-light rounded border border-primary" style="text-align: center;">
+                        <div class="row">
+                            <div class="col-md-4">
+                                <i class="fas fa-chart-line text-primary"></i>
+                                <strong>Présences horaires :</strong>
+                                <span class="badge bg-primary fs-6" id="totalVisitors">{{ visitors_by_day|sum(attribute='visitors') }}</span>
+                            </div>
+                            <div class="col-md-4">
+                                <i class="fas fa-chart-bar text-success"></i>
+                                <strong>Moyenne/période :</strong>
+                                <span class="badge bg-success fs-6" id="avgVisitors">{{ (visitors_by_day|sum(attribute='visitors') / visitors_by_day|length)|round(1) if visitors_by_day|length > 0 else 0 }}</span>
+                            </div>
+                            <div class="col-md-4">
+                                <i class="fas fa-calendar-check text-info"></i>
+                                <strong>Périodes :</strong>
+                                <span class="badge bg-info fs-6" id="dataPoints">{{ visitors_by_day|length }}</span>
+                            </div>
+                        </div>
+                        <div class="row mt-2">
+                            <div class="col-12">
+                                <small class="text-muted">
+                                    <i class="fas fa-info-circle"></i> 
+                                    Les présences comptabilisent l'affluence par tranche horaire. Un même visiteur actif sur plusieurs heures apparaît plusieurs fois.
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Visites par jour -->
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5><i class="fas fa-calendar-alt"></i> Visites par jour</h5>
+                </div>
+                <div class="card-body">
+                    <table class="table table-sm">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Visites</th>
+                                <th>Progression</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for day in visits_by_day %}
+                            <tr>
+                                <td>{{ day.date }}</td>
+                                <td><strong>{{ day.visits }}</strong></td>
+                                <td>
+                                    <div class="progress" style="height: 20px;">
+                                        <div class="progress-bar" role="progressbar" 
+                                             style="width: {{ (day.visits / total_visits * 100)|round }}%">
+                                            {{ (day.visits / total_visits * 100)|round }}%
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pages les plus visitées et Référents -->
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5><i class="fas fa-fire"></i> Pages les plus visitées</h5>
+                </div>
+                <div class="card-body">
+                    <table class="table table-sm table-hover">
+                        <thead>
+                            <tr>
+                                <th>Page</th>
+                                <th>Visites</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for page in top_pages %}
+                            <tr>
+                                <td><code>{{ page.page_url }}</code></td>
+                                <td><span class="badge bg-primary">{{ page.visits }}</span></td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5><i class="fas fa-external-link-alt"></i> D'où viennent les visiteurs</h5>
+                </div>
+                <div class="card-body">
+                    <table class="table table-sm table-hover">
+                        <thead>
+                            <tr>
+                                <th>Source</th>
+                                <th>Visites</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% if top_referrers %}
+                                {% for ref in top_referrers %}
+                                <tr>
+                                    <td>
+                                        {% if 'google' in ref.referrer.lower() %}
+                                            <i class="fab fa-google text-danger"></i> Google
+                                        {% elif 'facebook' in ref.referrer.lower() %}
+                                            <i class="fab fa-facebook text-primary"></i> Facebook
+                                        {% else %}
+                                            <small>{{ ref.referrer[:50] }}...</small>
+                                        {% endif %}
+                                    </td>
+                                    <td><span class="badge bg-success">{{ ref.visits }}</span></td>
+                                </tr>
+                                {% endfor %}
+                            {% else %}
+                                <tr>
+                                    <td colspan="2" class="text-muted text-center">
+                                        <i class="fas fa-info-circle"></i> Aucune donnée de référent
+                                    </td>
+                                </tr>
+                            {% endif %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Utilisateurs connectés actifs -->
+    {% if active_users %}
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5><i class="fas fa-user-friends"></i> Utilisateurs connectés les plus actifs</h5>
+                </div>
+                <div class="card-body">
+                    <table class="table table-sm">
+                        <thead>
+                            <tr>
+                                <th>Utilisateur</th>
+                                <th>Visites</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for user in active_users %}
+                            <tr>
+                                <td><i class="fas fa-user"></i> {{ user.username }}</td>
+                                <td><span class="badge bg-info">{{ user.visits }}</span></td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Dernières visites -->
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="fas fa-history"></i> Derniers visiteurs uniques (50 derniers)</h5>
+                    <div class="btn-group btn-group-sm" role="group">
+                        <button class="btn btn-outline-primary active" onclick="filterVisitors('all')" id="btnAll">
+                            <i class="fas fa-globe"></i> Tous ({{ recent_visitors|length }})
+                        </button>
+                        <button class="btn btn-outline-info" onclick="filterVisitors('humans')" id="btnHumans">
+                            <i class="fas fa-user"></i> Humains ({{ unique_humans }})
+                        </button>
+                        <button class="btn btn-outline-secondary" onclick="filterVisitors('bots')" id="btnBots">
+                            <i class="fas fa-robot"></i> Robots ({{ unique_bots }})
+                        </button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-sm table-striped" id="visitorsTable">
+                            <thead>
+                                <tr>
+                                    <th>Type</th>
+                                    <th>Date/Heure</th>
+                                    <th>Pages vues</th>
+                                    <th>Localisation</th>
+                                    <th>Navigateur</th>
+                                    <th>Utilisateur</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for visitor in recent_visitors %}
+                                <tr class="visitor-row {% if visitor.is_bot %}visitor-bot{% else %}visitor-human{% endif %}">
+                                    <td>
+                                        {% if visitor.is_bot %}
+                                            <span class="badge bg-secondary" title="Robot/Crawler détecté">
+                                                <i class="fas fa-robot"></i> Robot
+                                            </span>
+                                        {% else %}
+                                            <span class="badge bg-success" title="Visiteur humain">
+                                                <i class="fas fa-user"></i> Humain
+                                            </span>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ visitor.first_visit.strftime('%d/%m/%Y %H:%M:%S') }}</td>
+                                    <td>
+                                        <span class="badge bg-primary">{{ visitor.page_count }} page{{ 's' if visitor.page_count > 1 else '' }}</span>
+                                    </td>
+                                    <td>
+                                        <small>
+                                            {% if visitor.country and visitor.country != 'France' %}
+                                                <span class="badge bg-warning text-dark" title="Visiteur étranger">{{ visitor.country }}</span>
+                                            {% endif %}
+                                            {% if visitor.isp and visitor.city %}
+                                                <strong>{{ visitor.isp }}</strong> {{ visitor.city }}
+                                            {% elif visitor.isp %}
+                                                <strong>{{ visitor.isp }}</strong>
+                                            {% elif visitor.city %}
+                                                {{ visitor.city }}
+                                            {% else %}
+                                                {{ visitor.ip_anonymized }}
+                                            {% endif %}
+                                        </small>
+                                    </td>
+                                    <td>
+                                        <small>
+                                            {% if 'Chrome' in visitor.user_agent %}
+                                                <i class="fab fa-chrome text-warning"></i> Chrome
+                                            {% elif 'Firefox' in visitor.user_agent %}
+                                                <i class="fab fa-firefox text-danger"></i> Firefox
+                                            {% elif 'Safari' in visitor.user_agent %}
+                                                <i class="fab fa-safari text-info"></i> Safari
+                                            {% elif 'Edge' in visitor.user_agent %}
+                                                <i class="fab fa-edge text-primary"></i> Edge
+                                            {% else %}
+                                                <i class="fas fa-browser"></i> Autre
+                                            {% endif %}
+                                        </small>
+                                    </td>
+                                    <td>
+                                        {% if visitor.user_id %}
+                                            <span class="badge bg-success">Connecté</span>
+                                        {% else %}
+                                            <span class="badge bg-secondary">Visiteur</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Note RGPD -->
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <div class="alert alert-info">
+                <i class="fas fa-shield-alt"></i> <strong>Conformité RGPD :</strong>
+                Les adresses IP sont anonymisées (seuls les 2 premiers octets sont conservés).
+                Les données sont automatiquement supprimées après 30 jours.
+                Aucune donnée personnelle n'est collectée pour les visiteurs non connectés.
+            </div>
+        </div>
+    </div>
+
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <a href="{{ url_for('admin_dashboard') }}" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i> Retour au tableau de bord
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
+// Plugin personnalisé pour afficher les valeurs au-dessus des barres
+const valueOnBarsPlugin = {
+    id: 'valueOnBars',
+    afterDatasetsDraw(chart) {
+        const { ctx } = chart;
+        chart.data.datasets.forEach((dataset, datasetIndex) => {
+            const meta = chart.getDatasetMeta(datasetIndex);
+            if (!meta.hidden) {
+                meta.data.forEach((bar, index) => {
+                    const value = dataset.data[index];
+                    
+                    // Ne rien afficher si la valeur est 0
+                    if (value === 0) return;
+                    
+                    // Dessiner le texte avec contraste maximal
+                    ctx.save();
+                    ctx.font = 'bold 16px Arial';
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'bottom';
+                    
+                    // Position au-dessus de la barre
+                    const x = bar.x;
+                    const y = bar.y - 10;
+                    
+                    // Mesurer le texte
+                    const textWidth = ctx.measureText(value).width;
+                    const textHeight = 20;
+                    
+                    // Dessiner un fond blanc avec bordure
+                    ctx.fillStyle = 'white';
+                    ctx.fillRect(x - textWidth/2 - 5, y - textHeight + 2, textWidth + 10, textHeight);
+                    
+                    // Ajouter une bordure bleue
+                    ctx.strokeStyle = '#0d6efd';
+                    ctx.lineWidth = 2;
+                    ctx.strokeRect(x - textWidth/2 - 5, y - textHeight + 2, textWidth + 10, textHeight);
+                    
+                    // Dessiner le texte en bleu foncé
+                    ctx.fillStyle = '#0a3a7a';
+                    ctx.fillText(value, x, y);
+                    ctx.restore();
+                });
+            }
+        });
+    }
+};
+
+// Données brutes pour le graphique
+const rawDates = [{% for day in visitors_by_day %}'{{ day.date }}'{% if not loop.last %}, {% endif %}{% endfor %}];
+const rawVisitors = [{% for day in visitors_by_day %}{{ day.visitors }}{% if not loop.last %}, {% endif %}{% endfor %}];
+const isHourly = {{ 'true' if is_hourly else 'false' }};
+
+let currentView = 'day';
+let visitsChart;
+
+// Fonction pour formater les dates/heures
+function formatLabel(dateStr) {
+    if (isHourly) {
+        // Format : "2026-03-30 14:00:00+00" -> "14h"
+        try {
+            // Extraire l'heure avec une regex simple
+            const match = dateStr.match(/(\d{2}):00:00/);
+            if (match) {
+                const hour = parseInt(match[1], 10);
+                return hour + 'h';
+            }
+            
+            // Autre tentative : extraire depuis un objet Date
+            let cleanDateStr = dateStr.replace(' ', 'T');
+            const date = new Date(cleanDateStr);
+            
+            if (!isNaN(date.getTime())) {
+                const hour = date.getHours();
+                return hour + 'h';
+            }
+        } catch (e) {
+            console.error('Erreur parsing date:', dateStr, e);
+        }
+        
+        return dateStr;
+    } else {
+        // Format : "2026-03-30" -> "30/03"
+        const parts = dateStr.split('-');
+        if (parts.length >= 3) {
+            return parts[2] + '/' + parts[1];
+        }
+        return dateStr;
+    }
+}
+
+// Formater les labels initiaux
+const formattedDates = rawDates.map(formatLabel);
+
+// Fonction pour agréger les visiteurs par mois
+function aggregateVisitorsByMonth(dates, visitors) {
+    const monthlyData = {};
+    
+    dates.forEach((date, index) => {
+        const monthKey = date.substring(0, 7); // YYYY-MM
+        if (!monthlyData[monthKey]) {
+            monthlyData[monthKey] = 0;
+        }
+        monthlyData[monthKey] += visitors[index];
+    });
+    
+    return {
+        labels: Object.keys(monthlyData).sort(),
+        data: Object.keys(monthlyData).sort().map(key => monthlyData[key])
+    };
+}
+
+// Fonction pour agréger les visiteurs par année
+function aggregateVisitorsByYear(dates, visitors) {
+    const yearlyData = {};
+    
+    dates.forEach((date, index) => {
+        const yearKey = date.substring(0, 4); // YYYY
+        if (!yearlyData[yearKey]) {
+            yearlyData[yearKey] = 0;
+        }
+        yearlyData[yearKey] += visitors[index];
+    });
+    
+    return {
+        labels: Object.keys(yearlyData).sort(),
+        data: Object.keys(yearlyData).sort().map(key => yearlyData[key])
+    };
+}
+
+// Fonction pour changer la vue du graphique
+function changeChartView(view) {
+    currentView = view;
+    
+    // Mise à jour des boutons
+    document.getElementById('btnDay').classList.remove('active');
+    document.getElementById('btnMonth').classList.remove('active');
+    document.getElementById('btnYear').classList.remove('active');
+    document.getElementById('btn' + view.charAt(0).toUpperCase() + view.slice(1)).classList.add('active');
+    
+    // Préparation des données selon la vue
+    let chartLabels, chartData;
+    
+    if (view === 'day') {
+        chartLabels = isHourly ? formattedDates : rawDates;
+        chartData = rawVisitors;
+    } else if (view === 'month') {
+        const aggregated = aggregateVisitorsByMonth(rawDates, rawVisitors);
+        chartLabels = aggregated.labels;
+        chartData = aggregated.data;
+    } else if (view === 'year') {
+        const aggregated = aggregateVisitorsByYear(rawDates, rawVisitors);
+        chartLabels = aggregated.labels;
+        chartData = aggregated.data;
+    }
+    
+    // Calcul des statistiques pour le bandeau
+    const total = chartData.reduce((sum, val) => sum + val, 0);
+    const average = chartData.length > 0 ? (total / chartData.length).toFixed(1) : 0;
+    const dataPointsCount = chartData.length;
+    
+    // Mise à jour du bandeau récapitulatif
+    document.getElementById('totalVisitors').textContent = total;
+    document.getElementById('avgVisitors').textContent = average;
+    document.getElementById('dataPoints').textContent = dataPointsCount;
+    
+    // Mise à jour du graphique
+    visitsChart.data.labels = chartLabels;
+    visitsChart.data.datasets[0].data = chartData;
+    visitsChart.update();
+}
+
+// Initialisation du graphique
+const ctx = document.getElementById('visitsChart').getContext('2d');
+visitsChart = new Chart(ctx, {
+    type: 'bar',
+    data: {
+        labels: isHourly ? formattedDates : rawDates,
+        datasets: [{
+            label: isHourly ? 'Affluence humaine (présences par heure)' : 'Affluence humaine (présences par jour)',
+            data: rawVisitors,
+            backgroundColor: 'rgba(13, 110, 253, 0.8)',
+            borderColor: 'rgb(13, 110, 253)',
+            borderWidth: 1,
+            borderRadius: 4,
+            hoverBackgroundColor: 'rgb(13, 110, 253)',
+            hoverBorderColor: 'rgb(10, 88, 202)',
+            hoverBorderWidth: 2
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        layout: {
+            padding: {
+                top: 25,
+                bottom: 15,
+                left: 10,
+                right: 10
+            }
+        },
+        plugins: {
+            legend: {
+                display: false
+            },
+            tooltip: {
+                backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                padding: 12,
+                titleFont: {
+                    size: 14
+                },
+                bodyFont: {
+                    size: 13
+                },
+                callbacks: {
+                    label: function(context) {
+                        return 'Visiteurs : ' + context.parsed.y;
+                    }
+                }
+            }
+        },
+        scales: {
+            y: {
+                beginAtZero: true,
+                suggestedMax: 12,
+                grace: '5%',
+                ticks: {
+                    stepSize: 1,
+                    font: {
+                        size: 11
+                    }
+                },
+                grid: {
+                    color: 'rgba(0, 0, 0, 0.05)'
+                },
+                title: {
+                    display: true,
+                    text: 'Nombre de visiteurs',
+                    font: {
+                        size: 13,
+                        weight: 'bold'
+                    }
+                }
+            },
+            x: {
+                ticks: {
+                    font: {
+                        size: 13,
+                        weight: 'bold'
+                    },
+                    maxRotation: 0,
+                    minRotation: 0,
+                    color: '#ffffff',
+                    autoSkip: false,
+                    maxTicksLimit: 25
+                },
+                grid: {
+                    display: true,
+                    color: 'rgba(13, 110, 253, 0.1)'
+                },
+                title: {
+                    display: true,
+                    text: isHourly ? 'Horaires de la journée' : 'Dates',
+                    font: {
+                        size: 14,
+                        weight: 'bold'
+                    },
+                    color: '#ffffff',
+                    padding: 10
+                }
+            }
+        },
+        interaction: {
+            intersect: false,
+            mode: 'index'
+        }
+    },
+    plugins: [valueOnBarsPlugin]
+});
+
+// Fonction pour filtrer les visiteurs par type (humains/robots/tous)
+function filterVisitors(type) {
+    const rows = document.querySelectorAll('.visitor-row');
+    const btnAll = document.getElementById('btnAll');
+    const btnHumans = document.getElementById('btnHumans');
+    const btnBots = document.getElementById('btnBots');
+    
+    // Réinitialiser les boutons
+    btnAll.classList.remove('active');
+    btnHumans.classList.remove('active');
+    btnBots.classList.remove('active');
+    
+    // Activer le bouton correspondant
+    if (type === 'all') {
+        btnAll.classList.add('active');
+        rows.forEach(row => row.style.display = '');
+    } else if (type === 'humans') {
+        btnHumans.classList.add('active');
+        rows.forEach(row => {
+            if (row.classList.contains('visitor-human')) {
+                row.style.display = '';
+            } else {
+                row.style.display = 'none';
+            }
+        });
+    } else if (type === 'bots') {
+        btnBots.classList.add('active');
+        rows.forEach(row => {
+            if (row.classList.contains('visitor-bot')) {
+                row.style.display = '';
+            } else {
+                row.style.display = 'none';
+            }
+        });
+    }
+}
+</script>
+{% endblock %}

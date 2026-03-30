@@ -2,13 +2,33 @@
 {% block title %}Animations entreprises - AnimatoSpectacle{% endblock %}
 {% block content %}
 
-<h1>Animations pour entreprises</h1>
+<h1>Animations pour entreprises - Événements corporate réussis</h1>
 
-<p style="margin-bottom:24px;">
-  Organisez des <strong>animations d'entreprise</strong> mémorables : spectacles pour 
-  événements corporate, team building, soirées d'entreprise, comités d'entreprise (CSE). 
-  Des prestations professionnelles adaptées à vos besoins.
-</p>
+<div style="max-width:900px; margin:0 auto 40px; padding:0 20px;">
+  <p style="margin-bottom:16px; font-size:17px; line-height:1.7;">
+    Organisez des <strong>animations d'entreprise</strong> mémorables avec nos artistes professionnels : 
+    spectacles pour événements corporate, team building créatif, soirées d'entreprise, arbres de Noël 
+    CSE, séminaires, inaugurations, journées portes ouvertes. Des prestations haut de gamme qui 
+    marquent les esprits et renforcent la cohésion de vos équipes.
+  </p>
+
+  <h2 style="font-size:20px; margin:24px 0 12px; color:var(--primary); font-weight:600;">
+    Solutions d'animation adaptées à votre entreprise
+  </h2>
+  <ul style="line-height:1.9; margin-bottom:24px; padding-left:0; list-style:none;">
+    <li style="padding-left:24px; position:relative; margin-bottom:8px;"><span style="position:absolute; left:0; color:var(--primary); font-weight:bold;">✓</span> <strong>Arbres de Noël CSE</strong> : Spectacles famille avec Père Noël, magie, cirque</li>
+    <li style="padding-left:24px; position:relative; margin-bottom:8px;"><span style="position:absolute; left:0; color:var(--primary); font-weight:bold;">✓</span> <strong>Soirées d'entreprise</strong> : Animations cocktail, close-up, mentalisme</li>
+    <li style="padding-left:24px; position:relative; margin-bottom:8px;"><span style="position:absolute; left:0; color:var(--primary); font-weight:bold;">✓</span> <strong>Séminaires</strong> : Conférences inspirantes, théâtre d'entreprise, teambuilding</li>
+    <li style="padding-left:24px; position:relative; margin-bottom:8px;"><span style="position:absolute; left:0; color:var(--primary); font-weight:bold;">✓</span> <strong>Événements clients</strong> : Animations sur-mesure pour salons, lancements produits</li>
+  </ul>
+
+  <p style="font-size:15px; color:#666; margin-bottom:20px; line-height:1.7;">
+    Nos <strong>compagnies spécialisées en événementiel d'entreprise</strong> comprennent vos enjeux 
+    professionnels : respect des horaires, discrétion, adaptabilité, factures avec TVA. 
+    Bénéficiez d'un contact direct avec les artistes pour co-créer une prestation sur-mesure 
+    qui reflète les valeurs de votre entreprise et ravit vos collaborateurs ou clients.
+  </p>
+</div>
 
 {% if shows %}
 <div class="cards">
@@ -16,10 +36,30 @@
   <article class="card">
     <a href="{{ url_for('demande_animation') }}" class="media-link">
       <div class="media">
-        {% if show.has_image() %}
+        {% set images = show.get_all_images() %}
+        {% if images|length > 1 %}
+          <div class="card-carousel" data-carousel>
+            <div class="carousel-slides">
+              {% for img in images %}
+              <div class="carousel-slide">
+                <img src="{{ url_for('uploaded_file', filename=img) }}" alt="{{ show.title }}{% if loop.index > 1 %} - Photo {{ loop.index }}{% endif %}">
+              </div>
+              {% endfor %}
+            </div>
+            <div class="carousel-indicators">
+              {% for img in images %}
+              <span class="carousel-indicator{% if loop.first %} active{% endif %}" data-slide="{{ loop.index0 }}"></span>
+              {% endfor %}
+            </div>
+            <button class="carousel-nav carousel-prev" aria-label="Photo précédente">‹</button>
+            <button class="carousel-nav carousel-next" aria-label="Photo suivante">›</button>
+          </div>
+        {% elif show.has_image() %}
           <img src="{{ url_for('uploaded_file', filename=show.file_name) }}" alt="{{ show.title }}">
         {% elif show.is_pdf() %}
-          <a class="pdf-thumb" href="{{ url_for('uploaded_file', filename=show.file_name) }}" target="_blank">PDF</a>
+          <div class="pdf-thumb">
+            <a href="{{ url_for('uploaded_file', filename=show.file_name) }}" target="_blank" rel="noopener">PDF</a>
+          </div>
         {% else %}
           <div class="placeholder">Aucun fichier</div>
         {% endif %}
@@ -31,9 +71,9 @@
         {% if show.raison_sociale %}<p class="meta" style="font-weight:600; margin-bottom:8px; color:var(--primary);">{{ show.raison_sociale }}</p>{% endif %}
         <h3>{{ show.title }}</h3>
         <p class="meta">
-          {{ show.category }}
+          {% if show.age_range %}<span class="badge-age">{{ show.age_range|format_age }}</span>{% endif %}
+          {% if show.category %} • {{ show.category|title }}{% endif %}
           {% if show.location %} • {{ show.location }}{% endif %}
-          {% if show.age_range %} • {{ show.age_range }}{% endif %}
         </p>
         {% if show.description %}<p class="desc">{{ show.description }}</p>{% endif %}
         {% if show.contact_email %}<p class="meta">Contact : {{ show.contact_email }}</p>{% endif %}
@@ -47,6 +87,49 @@
   <p style="margin:0; font-size:16px;">Aucune animation pour entreprises n'est disponible pour le moment.</p>
   <p style="margin:12px 0 0 0;">N'hésitez pas à <a href="{{ url_for('demande_animation') }}" style="color:var(--primary); font-weight:600;">nous contacter</a> pour vos besoins spécifiques ou consultez nos <a href="{{ url_for('home') }}" style="color:var(--primary); font-weight:600;">autres spectacles</a>.</p>
 </div>
+
+<script>
+(function() {
+  document.querySelectorAll('[data-carousel]').forEach(function(carousel) {
+    const slides = carousel.querySelector('.carousel-slides');
+    const indicators = carousel.querySelectorAll('.carousel-indicator');
+    const prevBtn = carousel.querySelector('.carousel-prev');
+    const nextBtn = carousel.querySelector('.carousel-next');
+    const totalSlides = carousel.querySelectorAll('.carousel-slide').length;
+    let currentSlide = 0;
+    let autoPlayInterval = null;
+
+    function goToSlide(index) {
+      if (index < 0) index = totalSlides - 1;
+      if (index >= totalSlides) index = 0;
+      currentSlide = index;
+      slides.style.transform = 'translateX(-' + (currentSlide * 100) + '%)';
+      indicators.forEach(function(ind, i) {
+        ind.classList.toggle('active', i === currentSlide);
+      });
+    }
+
+    function nextSlide() { goToSlide(currentSlide + 1); }
+    function prevSlide() { goToSlide(currentSlide - 1); }
+    function startAutoPlay() {
+      if (autoPlayInterval) clearInterval(autoPlayInterval);
+      autoPlayInterval = setInterval(nextSlide, 8000);
+    }
+    function stopAutoPlay() {
+      if (autoPlayInterval) { clearInterval(autoPlayInterval); autoPlayInterval = null; }
+    }
+
+    if (prevBtn) prevBtn.addEventListener('click', function(e) { e.preventDefault(); e.stopPropagation(); prevSlide(); startAutoPlay(); });
+    if (nextBtn) nextBtn.addEventListener('click', function(e) { e.preventDefault(); e.stopPropagation(); nextSlide(); startAutoPlay(); });
+    indicators.forEach(function(indicator, i) {
+      indicator.addEventListener('click', function(e) { e.preventDefault(); e.stopPropagation(); goToSlide(i); startAutoPlay(); });
+    });
+    startAutoPlay();
+    carousel.addEventListener('mouseenter', stopAutoPlay);
+    carousel.addEventListener('mouseleave', startAutoPlay);
+  });
+})();
+</script>
 {% endif %}
 
 {% endblock %}

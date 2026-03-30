@@ -1,0 +1,68 @@
+-- ======================================================
+-- MIGRATIONS SQL POUR PRODUCTION (PostgreSQL)
+-- A executer dans l'ordre via psql ou Render Shell
+-- ======================================================
+
+-- Migration 1: Ajouter colonne is_private a demande_animation
+ALTER TABLE demande_animation ADD COLUMN IF NOT EXISTS is_private BOOLEAN DEFAULT FALSE;
+
+-- Migration 2: Ajouter colonne email a users
+ALTER TABLE users ADD COLUMN IF NOT EXISTS email VARCHAR(255);
+
+-- Migration 3: Ajouter colonne created_at a users
+ALTER TABLE users ADD COLUMN IF NOT EXISTS created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP;
+
+-- Migration 4: Etendre colonne location a 500 caracteres
+ALTER TABLE shows ALTER COLUMN location TYPE VARCHAR(500);
+
+-- Migration 5: Etendre colonne category a 500 caracteres
+ALTER TABLE shows ALTER COLUMN category TYPE VARCHAR(500);
+
+-- Migration 6: Ajouter colonne is_event pour distinguer catalogue/evenements
+ALTER TABLE shows ADD COLUMN IF NOT EXISTS is_event BOOLEAN DEFAULT FALSE;
+
+-- Migration 7: Ajouter colonne is_subscribed a users
+ALTER TABLE users ADD COLUMN IF NOT EXISTS is_subscribed BOOLEAN DEFAULT FALSE;
+
+-- Migration 8: Ajouter colonne telephone a users
+ALTER TABLE users ADD COLUMN IF NOT EXISTS telephone VARCHAR(50);
+
+-- Migration 9: Ajouter colonne region a users
+ALTER TABLE users ADD COLUMN IF NOT EXISTS region VARCHAR(200);
+
+-- Migration 10: Ajouter colonne intitule a demande_animation
+ALTER TABLE demande_animation ADD COLUMN IF NOT EXISTS intitule TEXT;
+
+-- Migration 11: Ajouter colonne code_postal a demande_animation
+ALTER TABLE demande_animation ADD COLUMN IF NOT EXISTS code_postal VARCHAR(10);
+
+-- Migration 12: Ajouter colonne region a demande_animation
+ALTER TABLE demande_animation ADD COLUMN IF NOT EXISTS region VARCHAR(100);
+
+-- Migration 13: Ajouter colonne display_order pour gerer l'ordre d'affichage des cartes
+ALTER TABLE shows ADD COLUMN IF NOT EXISTS display_order INTEGER DEFAULT 0;
+
+-- Migration 14: Ajouter colonne site_internet à users
+ALTER TABLE users ADD COLUMN IF NOT EXISTS site_internet VARCHAR(255);
+
+-- ======================================================
+-- VERIFICATION (optionnel)
+-- ======================================================
+
+-- Verifier les colonnes users
+SELECT column_name, data_type, character_maximum_length 
+FROM information_schema.columns 
+WHERE table_name = 'users' 
+ORDER BY column_name;
+
+-- Verifier les colonnes demande_animation
+SELECT column_name, data_type 
+FROM information_schema.columns 
+WHERE table_name = 'demande_animation' 
+ORDER BY column_name;
+
+-- Verifier les colonnes shows
+SELECT column_name, character_maximum_length 
+FROM information_schema.columns 
+WHERE table_name = 'shows' 
+AND column_name IN ('location', 'category');

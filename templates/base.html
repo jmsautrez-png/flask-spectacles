@@ -1,34 +1,83 @@
 <!doctype html>
 <html lang="fr">
 <head>
+    <!-- Données structurées pour le logo Google Search -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Organization",
+      "name": "Spectacle'ment VØtre",
+      "alternateName": "Spectaclement Votre",
+      "url": "{{ request.url_root }}",
+      "logo": {
+        "@type": "ImageObject",
+        "url": "{{ url_for('static', filename='img/logo_spectaclement_votre.png', _external=True) }}",
+        "width": 512,
+        "height": 512,
+        "caption": "Logo Spectacle'ment VØtre"
+      },
+      "image": "{{ url_for('static', filename='img/logo_spectaclement_votre.png', _external=True) }}",
+      "description": "Plateforme de mise en relation entre artistes professionnels et organisateurs d'événements. Spectacles pour enfants, animations entreprise, anniversaires.",
+      "sameAs": []
+    }
+    </script>
+    <!-- Données structurées WebSite pour Google Search -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebSite",
+      "name": "Spectacle'ment VØtre",
+      "url": "{{ request.url_root }}",
+      "potentialAction": {
+        "@type": "SearchAction",
+        "target": "{{ request.url_root }}catalogue?q={search_term_string}",
+        "query-input": "required name=search_term_string"
+      }
+    }
+    </script>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <!-- Mobile-first viewport avec protection contre zoom involontaire mais en permettant le pinch-zoom -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes" />
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="theme-color" content="#0a1833">
   
+  <!-- Favicon pour Google et navigateurs -->
+  <link rel="icon" type="image/png" href="{{ url_for('static', filename='img/logo_spectaclement_votre.png') }}">
   <!-- SEO Meta Tags -->
+  <meta name="google-site-verification" content="DZKMjg5Bg9kINMqvtvfGvOYdb-YE-V88zZdJqFsWDqg" />
   <title>{% block title %}Spectacle'ment VØtre - Artistes, spectacles, animations la plateforme qui met en scène vos animations{% endblock %}</title>
   <meta name="description" content="{% block description %}Trouvez des spectacles et animations pour enfants, entreprises, anniversaires. Théâtre, magie, cirque, clowns, marionnettes. Mise en relation directe avec des compagnies professionnelles.{% endblock %}">
-  <meta name="keywords" content="spectacle enfants, animation entreprise, animation anniversaire, magie, théâtre jeune public, cirque, clowns, marionnettes, conteurs, spectacle école, animation événementielle, artistes professionnels">
   <meta name="author" content="Spectacle'ment VØtre">
-  <meta name="robots" content="index, follow">
+  {# Robots: surchargeable par page (noindex si filtres secondaires) #}
+  {% block robots %}
+  <meta name="robots" content="index,follow">
+  {% endblock %}
   
   <!-- Open Graph / Facebook -->
   <meta property="og:type" content="website">
   <meta property="og:title" content="{% block og_title %}Spectacle'ment VØtre - Spectacles et animations professionnels{% endblock %}">
   <meta property="og:description" content="{% block og_description %}Plateforme de mise en relation entre artistes professionnels et organisateurs d'événements. Spectacles pour enfants, animations entreprise, anniversaires et plus.{% endblock %}">
-  <meta property="og:url" content="{{ request.url }}">
+  {# OG URL sans params aussi (plus propre) #}
+  <meta property="og:url" content="{% block og_url %}{{ request.base_url }}{% endblock %}">
   <meta property="og:site_name" content="Spectacle'ment VØtre">
-  <meta property="og:image" content="{% block og_image %}{{ url_for('static', filename='img/default-og.svg', _external=True) }}{% endblock %}">
-  <meta property="og:image:width" content="1200">
-  <meta property="og:image:height" content="630">
+  <meta property="og:image" content="{% block og_image %}{{ url_for('static', filename='img/logo_spectaclement_votre.png', _external=True) }}{% endblock %}">
+  <meta property="og:image:width" content="512">
+  <meta property="og:image:height" content="512">
+  <meta property="og:image:alt" content="Logo Spectacle'ment VØtre">
+  <meta property="og:locale" content="fr_FR">
   
   <!-- Twitter Card -->
-  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:card" content="summary">
   <meta name="twitter:title" content="{% block twitter_title %}Spectacle'ment VØtre - Spectacles et animations{% endblock %}">
   <meta name="twitter:description" content="{% block twitter_description %}Trouvez l'animation parfaite pour votre événement{% endblock %}">
-  <meta name="twitter:image" content="{% block twitter_image %}{{ url_for('static', filename='img/default-og.svg', _external=True) }}{% endblock %}">
+  <meta name="twitter:image" content="{% block twitter_image %}{{ url_for('static', filename='img/logo_spectaclement_votre.png', _external=True) }}{% endblock %}">
+  <meta name="twitter:image:alt" content="Logo Spectacle'ment VØtre">
   
   <!-- Canonical URL -->
-  <link rel="canonical" href="{{ request.url }}">
+  {# Canonical sans paramètres (évite ?page= ?q= etc.) #}
+  <link rel="canonical" href="{% block canonical %}{{ request.base_url }}{% endblock %}">
   
   <!-- Favicon (SVG) -->
   <link rel="icon" href="{{ url_for('static', filename='img/favicon.svg') }}" type="image/svg+xml">
@@ -39,6 +88,181 @@
   <style>body{background:#0f0f12;color:#f5f6f8;}</style>
   <!-- Stylesheet -->
   <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  
+  <!-- Hamburger Menu CSS -->
+  <style>
+    .hamburger-container {
+      position: fixed;
+      right: 1.5rem;
+      top: 1rem;
+      z-index: 9999;
+    }
+    
+    .hamburger-btn {
+      display: flex;
+      flex-direction: column;
+      justify-content: space-around;
+      width: 3.2rem;
+      height: 2.8rem;
+      background: linear-gradient(135deg, #6d1313, #8b1e1e);
+      border: 3px solid #ffc107;
+      border-radius: 10px;
+      cursor: pointer;
+      padding: 0.5rem;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4), 0 0 10px rgba(255, 193, 7, 0.3);
+    }
+    
+    .hamburger-btn:hover {
+      background: linear-gradient(135deg, #8b1e1e, #a52a2a);
+      border-color: #ffca28;
+      box-shadow: 0 6px 25px rgba(0, 0, 0, 0.5), 0 0 25px rgba(255, 193, 7, 0.6);
+      transform: scale(1.08);
+    }
+    
+    .hamburger-btn span {
+      display: block;
+      width: 100%;
+      height: 4px;
+      background: #ffc107;
+      border-radius: 3px;
+      transition: all 0.3s ease;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+    }
+    
+    .hamburger-btn:hover span {
+      background: #ffeb3b;
+      box-shadow: 0 0 8px rgba(255, 235, 59, 0.8);
+    }
+    
+    .hamburger-menu {
+      position: absolute;
+      top: calc(100% + 0.8rem);
+      right: 0;
+      background: linear-gradient(135deg, #1a0a0a 0%, #2d1515 50%, #1a0a0a 100%);
+      border: 3px solid #ffc107;
+      border-radius: 14px;
+      padding: 1rem;
+      min-width: 240px;
+      box-shadow: 0 12px 40px rgba(0, 0, 0, 0.7), 0 0 30px rgba(255, 193, 7, 0.3);
+      opacity: 0;
+      visibility: hidden;
+      transform: translateY(-10px);
+      transition: all 0.3s ease;
+    }
+    
+    .hamburger-menu.active {
+      opacity: 1;
+      visibility: visible;
+      transform: translateY(0);
+    }
+    
+    .hamburger-menu a {
+      display: block;
+      padding: 0.85rem 1.2rem;
+      color: #fff;
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 1rem;
+      border-radius: 10px;
+      margin-bottom: 0.6rem;
+      transition: all 0.3s ease;
+      text-align: center;
+    }
+    
+    .hamburger-menu a:last-child {
+      margin-bottom: 0;
+    }
+    
+    .hamburger-menu a.menu-catalogue {
+      background: linear-gradient(135deg, #ff5722, #ff9800);
+      border: 2px solid rgba(255, 255, 255, 0.3);
+      color: #333;
+    }
+    
+    .hamburger-menu a.menu-catalogue:hover {
+      background: linear-gradient(135deg, #ff6f3c, #ffab40);
+      transform: scale(1.03);
+      box-shadow: 0 4px 15px rgba(255, 87, 34, 0.5);
+      color: #222;
+    }
+    
+    .hamburger-menu a.menu-contact {
+      background: linear-gradient(135deg, #28a745, #20c997);
+      border: 2px solid rgba(255, 255, 255, 0.3);
+    }
+    
+    .hamburger-menu a.menu-contact:hover {
+      background: linear-gradient(135deg, #34ce57, #2ed8a8);
+      transform: scale(1.03);
+      box-shadow: 0 4px 15px rgba(40, 167, 69, 0.5);
+    }
+    
+    .hamburger-menu a.menu-about {
+      background: linear-gradient(135deg, #6f42c1, #9c27b0);
+      border: 2px solid rgba(255, 255, 255, 0.3);
+    }
+    
+    .hamburger-menu a.menu-about:hover {
+      background: linear-gradient(135deg, #7e4fd4, #ab47bc);
+      transform: scale(1.03);
+      box-shadow: 0 4px 15px rgba(111, 66, 193, 0.5);
+    }
+    
+    .hamburger-menu a.menu-pedagogique {
+      background: linear-gradient(135deg, #1a237e, #0d47a1);
+      border: 2px solid rgba(255, 255, 255, 0.3);
+    }
+    
+    .hamburger-menu a.menu-pedagogique:hover {
+      background: linear-gradient(135deg, #283593, #1565c0);
+      transform: scale(1.03);
+      box-shadow: 0 4px 15px rgba(13, 71, 161, 0.5);
+    }
+    
+    .hamburger-menu a.menu-appels {
+      background: linear-gradient(135deg, #00acc1, #0097a7);
+      border: 2px solid rgba(255, 255, 255, 0.3);
+    }
+    
+    .hamburger-menu a.menu-appels:hover {
+      background: linear-gradient(135deg, #26c6da, #00bcd4);
+      transform: scale(1.03);
+      box-shadow: 0 4px 15px rgba(0, 172, 193, 0.5);
+    }
+    
+    .hamburger-menu a.menu-dashboard {
+      background: linear-gradient(135deg, #ff9800, #ff5722);
+      border: 2px solid rgba(255, 255, 255, 0.3);
+    }
+    
+    .hamburger-menu a.menu-dashboard:hover {
+      background: linear-gradient(135deg, #ffab40, #ff6f3c);
+      transform: scale(1.03);
+      box-shadow: 0 4px 15px rgba(255, 152, 0, 0.5);
+    }
+    
+    .hamburger-menu a.menu-mes-appels {
+      background: linear-gradient(135deg, #4caf50, #388e3c);
+      border: 2px solid rgba(255, 255, 255, 0.3);
+    }
+    
+    .hamburger-menu a.menu-mes-appels:hover {
+      background: linear-gradient(135deg, #66bb6a, #43a047);
+      transform: scale(1.03);
+      box-shadow: 0 4px 15px rgba(76, 175, 80, 0.5);
+    }
+    
+    @media (max-width: 900px) {
+      .hamburger-container {
+        right: 0.5rem;
+        top: 0.5rem;
+      }
+      .hamburger-menu {
+        min-width: 200px;
+      }
+    }
+  </style>
   
   <!-- Smooth scroll script -->
   <script>
@@ -75,38 +299,530 @@
     }
   }
   </script>
+  
+  <!-- Bloc pour des balises meta ou scripts additionnels par page -->
+  {% block extra_head %}{% endblock %}
 </head>
 <body>
 
 <header class="site-header">
-  <div class="container header-grid">
-    <a href="{{ url_for('home') }}" class="brand" id="brand-logo">
-      <div style="display:flex; align-items:center; gap:14px;">
-        <div style="width:4px; height:40px; background:var(--primary); border-radius:2px;"></div>
-        <div>
-          <div style="font-weight:700; font-size:1.5rem; color:var(--primary); letter-spacing:-0.5px;">Spectacle'ment VØtre</div>
-          <div style="font-size:0.75rem; color:var(--muted); line-height:1.3; margin-top:2px;">Artistes, spectacles & animations</div>
-        </div>
+  <!-- Rideau de théâtre gauche -->
+  <div class="curtain curtain-left">
+    <svg viewBox="0 0 120 100" preserveAspectRatio="none">
+      <defs>
+        <linearGradient id="curtainGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+          <stop offset="0%" style="stop-color:#8b0000;stop-opacity:1" />
+          <stop offset="50%" style="stop-color:#dc143c;stop-opacity:1" />
+          <stop offset="100%" style="stop-color:#6d1313;stop-opacity:1" />
+        </linearGradient>
+      </defs>
+      <path d="M0,0 Q30,20 20,50 Q10,80 30,100 L0,100 Z" fill="url(#curtainGrad)"/>
+      <path d="M20,0 Q50,25 40,55 Q30,85 50,100 L20,100 L20,0 Z" fill="url(#curtainGrad)" opacity="0.7"/>
+    </svg>
+  </div>
+  
+  <!-- Rideau de théâtre droit -->
+  <div class="curtain curtain-right">
+    <svg viewBox="0 0 120 100" preserveAspectRatio="none">
+      <path d="M120,0 Q90,20 100,50 Q110,80 90,100 L120,100 Z" fill="url(#curtainGrad)"/>
+      <path d="M100,0 Q70,25 80,55 Q90,85 70,100 L100,100 L100,0 Z" fill="url(#curtainGrad)" opacity="0.7"/>
+    </svg>
+  </div>
+  
+  <!-- Projecteurs -->
+  <div class="spotlights">
+    <div class="spotlight spotlight-1"></div>
+    <div class="spotlight spotlight-2"></div>
+    <div class="spotlight spotlight-3"></div>
+  </div>
+  
+  <!-- Étoiles décoratives -->
+  <div class="header-stars">
+    <svg class="star star-1" viewBox="0 0 24 24"><path fill="#ffc107" d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+    <svg class="star star-2" viewBox="0 0 24 24"><path fill="#ffd54f" d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+    <svg class="star star-3" viewBox="0 0 24 24"><path fill="#ffeb3b" d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+    <svg class="star star-4" viewBox="0 0 24 24"><path fill="#ffc107" d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+    <svg class="star star-5" viewBox="0 0 24 24"><path fill="#fff176" d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+  </div>
+  
+  <!-- Masques de théâtre -->
+  <div class="theater-masks">
+    <svg class="mask mask-happy" viewBox="0 0 24 24">
+      <circle cx="12" cy="12" r="10" fill="#ffd700" opacity="0.9"/>
+      <circle cx="8" cy="10" r="1.5" fill="#333"/>
+      <circle cx="16" cy="10" r="1.5" fill="#333"/>
+      <path d="M8 15 Q12 19 16 15" stroke="#333" stroke-width="1.5" fill="none"/>
+    </svg>
+    <svg class="mask mask-sad" viewBox="0 0 24 24">
+      <circle cx="12" cy="12" r="10" fill="#87ceeb" opacity="0.9"/>
+      <circle cx="8" cy="10" r="1.5" fill="#333"/>
+      <circle cx="16" cy="10" r="1.5" fill="#333"/>
+      <path d="M8 17 Q12 13 16 17" stroke="#333" stroke-width="1.5" fill="none"/>
+    </svg>
+  </div>
+  
+  <style>
+    .site-header {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      background: linear-gradient(135deg, #0a0a1a 0%, #1a0a0a 20%, #6d1313 50%, #1a0a0a 80%, #0a0a1a 100%);
+      background-size: 300% 300%;
+      animation: header-gradient 15s ease infinite;
+      border-bottom: 3px solid;
+      border-image: linear-gradient(90deg, #ffc107, #ff5722, #e91e63, #9c27b0, #ffc107) 1;
+      box-shadow: 0 4px 30px rgba(109, 19, 19, 0.7), 0 0 60px rgba(255, 193, 7, 0.15);
+      overflow: hidden;
+      min-height: 7.875rem; /* 126px en rem */
+    }
+    
+    /* ============================================
+       BRAND positionné à gauche (comme le diaporama)
+       ============================================ */
+    .header-brand-box {
+      position: absolute;
+      left: 4.375rem; /* 70px - même position que le diaporama */
+      top: 50%;
+      -webkit-transform: translateY(-50%);
+      -ms-transform: translateY(-50%);
+      transform: translateY(-50%);
+      text-decoration: none;
+      z-index: 5;
+      max-width: 35rem;
+    }
+    
+    @media (max-width: 1280px) {
+      .header-brand-box {
+        left: 1rem;
+      }
+    }
+    
+    @media (max-width: 768px) {
+      .header-brand-box {
+        position: relative;
+        left: auto;
+        top: auto;
+        transform: none;
+        padding: 0.5rem 1rem;
+        max-width: 100%;
+      }
+    }
+    
+    .brand-inner {
+      display: flex;
+      align-items: center;
+      gap: 0.875rem; /* 14px */
+    }
+    
+    .brand-logo-img {
+      width: 4rem; /* 64px */
+      height: 4rem;
+      border-radius: 0.5rem;
+      object-fit: cover;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+      border: 2px solid rgba(255,193,7,0.5);
+    }
+    
+    .brand-title {
+      font-weight: 700;
+      font-size: 1.95rem;
+      color: #ffe4e1;
+      letter-spacing: -0.5px;
+    }
+    
+    .brand-subtitle {
+      font-size: 0.975rem;
+      color: #FFDEDE;
+      line-height: 1.3;
+      margin-top: 0.125rem;
+      max-width: 35rem;
+    }
+    
+    .header-nav {
+      display: flex;
+      gap: 0.5rem;
+      align-items: center;
+      list-style: none;
+      margin: 0;
+      padding: 0;
+    }
+    
+    .header-nav li a {
+      padding: 0.5rem 0.875rem;
+      font-size: 0.85rem;
+      border-radius: 0.375rem;
+      text-decoration: none;
+      display: inline-block;
+      transition: opacity 0.2s, background 0.2s;
+    }
+    
+    @keyframes header-gradient {
+      0%, 100% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+    }
+    
+    /* Rideaux de théâtre */
+    .curtain {
+      position: absolute;
+      top: 0;
+      height: 100%;
+      width: 80px;
+      pointer-events: none;
+      opacity: 0.6;
+    }
+    .curtain-left { left: 0; }
+    .curtain-right { right: 0; }
+    .curtain svg { width: 100%; height: 100%; }
+    .curtain-left { animation: curtain-sway-left 8s ease-in-out infinite; }
+    .curtain-right { animation: curtain-sway-right 8s ease-in-out infinite; }
+    
+    @keyframes curtain-sway-left {
+      0%, 100% { transform: skewY(0deg); }
+      50% { transform: skewY(2deg); }
+    }
+    @keyframes curtain-sway-right {
+      0%, 100% { transform: skewY(0deg); }
+      50% { transform: skewY(-2deg); }
+    }
+    
+    /* Projecteurs */
+    .spotlights {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      overflow: hidden;
+    }
+    .spotlight {
+      position: absolute;
+      top: -50%;
+      width: 150px;
+      height: 200%;
+      background: linear-gradient(180deg, rgba(255,215,0,0.3) 0%, transparent 60%);
+      transform-origin: top center;
+      opacity: 0.4;
+    }
+    .spotlight-1 { left: 15%; animation: spotlight-sweep 6s ease-in-out infinite; }
+    .spotlight-2 { left: 50%; animation: spotlight-sweep 6s ease-in-out infinite 2s; }
+    .spotlight-3 { left: 80%; animation: spotlight-sweep 6s ease-in-out infinite 4s; }
+    
+    @keyframes spotlight-sweep {
+      0%, 100% { transform: rotate(-15deg); opacity: 0.2; }
+      50% { transform: rotate(15deg); opacity: 0.5; }
+    }
+    
+    /* Étoiles */
+    .header-stars {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+    }
+    .star {
+      position: absolute;
+      width: 20px;
+      height: 20px;
+      animation: star-twinkle 2s ease-in-out infinite;
+    }
+    .star-1 { top: 15%; left: 10%; animation-delay: 0s; }
+    .star-2 { top: 60%; left: 25%; animation-delay: 0.4s; width: 15px; height: 15px; }
+    .star-3 { top: 25%; left: 75%; animation-delay: 0.8s; }
+    .star-4 { top: 70%; left: 88%; animation-delay: 1.2s; width: 12px; height: 12px; }
+    .star-5 { top: 40%; left: 60%; animation-delay: 1.6s; width: 16px; height: 16px; }
+    
+    @keyframes star-twinkle {
+      0%, 100% { opacity: 0.3; transform: scale(0.8) rotate(0deg); }
+      50% { opacity: 1; transform: scale(1.2) rotate(20deg); }
+    }
+    
+    /* Masques de théâtre */
+    .theater-masks {
+      position: absolute;
+      top: 50%;
+      right: 100px;
+      transform: translateY(-50%);
+      display: flex;
+      gap: 8px;
+      pointer-events: none;
+      opacity: 0.5;
+    }
+    .mask {
+      width: 28px;
+      height: 28px;
+      animation: mask-float 4s ease-in-out infinite;
+    }
+    .mask-happy { animation-delay: 0s; }
+    .mask-sad { animation-delay: 2s; }
+    
+    @keyframes mask-float {
+      0%, 100% { transform: translateY(0) rotate(-5deg); }
+      50% { transform: translateY(-5px) rotate(5deg); }
+    }
+    
+    /* Effet de brillance */
+    .site-header::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 50%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+      animation: header-shine 8s ease-in-out infinite;
+    }
+    
+    @keyframes header-shine {
+      0% { left: -50%; }
+      50%, 100% { left: 150%; }
+    }
+    
+    .site-header .brand:hover {
+      -webkit-transform: scale(1.01);
+      transform: scale(1.01);
+      -webkit-transition: transform 0.3s ease;
+      transition: transform 0.3s ease;
+    }
+    
+    /* Responsive: cacher diaporama sur écrans < 1280px */
+    @media (max-width: 1280px) {
+      .header-slideshow { display: none; }
+      .brand { margin-left: 1rem !important; }
+    }
+    
+    /* Responsive: cacher certains éléments sur mobile */
+    @media (max-width: 768px) {
+      .curtain { width: 2.5rem; opacity: 0.4; }
+      .theater-masks { display: none; }
+      .spotlight { width: 5rem; }
+      .brand { margin-left: 0.5rem !important; }
+    }
+    
+    /* Diaporama header à DROITE - dans le flux après les boutons */
+    .header-slideshow-right {
+      display: inline-block;
+      width: 11.25rem; /* 180px */
+      height: 5.9375rem; /* 95px */
+      border-radius: 0.625rem;
+      overflow: hidden;
+      box-shadow: 0 0.25rem 0.9375rem rgba(0,0,0,0.5), 0 0 1.25rem rgba(255,193,7,0.3);
+      border: 0.125rem solid rgba(255,193,7,0.6);
+      margin-left: 1rem;
+      vertical-align: middle;
+      position: relative;
+      /* Fix Edge rendu */
+      -webkit-backface-visibility: hidden;
+      backface-visibility: hidden;
+      -webkit-transition: all 0.3s ease;
+      transition: all 0.3s ease;
+      cursor: pointer;
+    }
+    
+    .header-slideshow-right:hover {
+      -webkit-transform: scale(1.05);
+      transform: scale(1.05);
+      box-shadow: 0 6px 25px rgba(0,0,0,0.6), 0 0 35px rgba(255,193,7,0.5);
+      border-color: rgba(255,193,7,1);
+    }
+    
+    @media (max-width: 1280px) {
+      .header-slideshow-right { display: none; }
+    }
+    
+    .slideshow-container {
+      position: relative;
+      width: 100%;
+      height: 100%;
+    }
+    
+    .slideshow-slide {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      opacity: 0;
+      -webkit-transition: opacity 1s ease-in-out;
+      -ms-transition: opacity 1s ease-in-out;
+      transition: opacity 1s ease-in-out;
+      -webkit-backface-visibility: hidden;
+      backface-visibility: hidden;
+    }
+    
+    .slideshow-slide.active {
+      opacity: 1;
+    }
+    
+    .slideshow-slide img {
+      width: 100%;
+      height: 100%;
+      -o-object-fit: contain;
+      object-fit: contain;
+      background: linear-gradient(135deg, #1a0a0a, #2a1515);
+      /* Fix Edge rendu image */
+      -ms-interpolation-mode: bicubic;
+      image-rendering: -webkit-optimize-contrast;
+      image-rendering: crisp-edges;
+    }
+    
+    .slideshow-label {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: linear-gradient(transparent, rgba(0,0,0,0.8));
+      color: #ffc107;
+      font-size: 0.65rem;
+      padding: 12px 6px 4px;
+      text-align: center;
+      font-weight: 600;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    
+    .slideshow-badge {
+      position: absolute;
+      top: 4px;
+      right: 4px;
+      background: linear-gradient(135deg, #ffc107, #ff9800);
+      color: #000;
+      font-size: 0.5rem;
+      padding: 2px 5px;
+      border-radius: 8px;
+      font-weight: 700;
+      text-transform: uppercase;
+      animation: badge-pulse 2s ease-in-out infinite;
+    }
+    
+    @keyframes badge-pulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.05); }
+    }
+    
+    /* Effet survol diaporama */
+    .header-slideshow:hover {
+      -webkit-transform: translateY(-50%) scale(1.05);
+      -ms-transform: translateY(-50%) scale(1.05);
+      transform: translateY(-50%) scale(1.05);
+      box-shadow: 0 6px 25px rgba(0,0,0,0.6), 0 0 35px rgba(255,193,7,0.5);
+      border-color: rgba(255,193,7,1);
+    }
+    
+    .header-slideshow {
+      -webkit-transition: all 0.3s ease;
+      -ms-transition: all 0.3s ease;
+      transition: all 0.3s ease;
+      cursor: pointer;
+    }
+    
+    .slideshow-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0,0,0,0.7);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+      z-index: 10;
+    }
+    
+    .header-slideshow:hover .slideshow-overlay {
+      opacity: 1;
+    }
+    
+    .slideshow-overlay-text {
+      color: #ffc107;
+      font-weight: 700;
+      font-size: 0.75rem;
+      text-align: center;
+      text-shadow: 0 2px 4px rgba(0,0,0,0.8);
+      padding: 8px;
+      line-height: 1.3;
+    }
+    
+    /* Responsive header-grid et navigation */
+    .header-grid {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end; /* Navigation à droite */
+      flex-wrap: wrap;
+      gap: 0.625rem;
+      padding: 1rem 0;
+    }
+    
+    .header-grid nav ul {
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+    
+    /* Le responsive est géré par le font-size du html dans style.css */
+    /* Seul breakpoint mobile nécessaire */
+    @media (max-width: 900px) {
+      .header-grid {
+        justify-content: center;
+        text-align: center;
+        padding: 0.625rem 0;
+      }
+      .header-nav {
+        justify-content: center;
+      }
+    }
+  </style>
+  
+  {% set current_path = request.path %}
+  
+  <!-- Brand positionné à gauche -->
+  <a href="{{ url_for('home') }}" class="header-brand-box" id="brand-logo">
+    <div class="brand-inner">
+      <img src="{{ url_for('static', filename='img/logo_spectaclement_votre.png') }}" alt="Logo Spectacle'ment VØtre" class="brand-logo-img">
+      <div class="brand-text">
+        <div class="brand-title">Spectacle'ment VØtre</div>
+        <div class="brand-subtitle">la plateforme qui connecte facilement les organisateurs d'événements avec des artistes et compagnies de spectacle vivant.</div>
       </div>
-    </a>
-
+    </div>
+  </a>
+  
+  <div class="container header-grid">
     <nav>
-      <ul class="nav" style="display:flex; gap:8px; align-items:center; list-style:none; margin:0; padding:0;">
+      <ul class="nav header-nav">
 
         {# ----- ADMIN CONNECTÉ ----- #}
         {% if user and user.is_admin %}
           <li>
+            <a href="{{ url_for('catalogue') }}" style="padding:8px 14px; background:linear-gradient(135deg, #673ab7, #9c27b0); color:white; border-radius:6px; font-weight:600; font-size:0.85rem; text-decoration:none; display:inline-block; transition:opacity 0.2s;">
+              Catalogue
+            </a>
+          </li>
+          <li>
+            <a href="{{ url_for('admin_dashboard') }}" style="padding:8px 14px; background:#dc3545; color:white; border-radius:6px; font-weight:600; font-size:0.85rem; text-decoration:none; display:inline-block; transition:opacity 0.2s;">
+              Admin
+            </a>
+          </li>
+          <li>
+            <a href="{{ url_for('mes_appels_offres') }}" style="padding:8px 14px; background:linear-gradient(135deg, #4caf50, #388e3c); color:white; border-radius:6px; font-weight:600; font-size:0.85rem; text-decoration:none; display:inline-block; transition:opacity 0.2s;">
+              Mes appels d'offres
+            </a>
+          </li>
+          <li>
             <a href="{{ url_for('show_new') }}" style="padding:8px 14px; background:var(--primary); color:white; border-radius:6px; font-weight:600; font-size:0.85rem; text-decoration:none; display:inline-block; transition:opacity 0.2s;">
-              + Ajouter
+              Ajouter un spectacle
             </a>
           </li>
           <li>
-            <a href="{{ url_for('demande_animation') }}" style="padding:8px 14px; background:transparent; color:var(--text); border:1px solid var(--border); border-radius:6px; font-weight:500; font-size:0.85rem; text-decoration:none; display:inline-block; transition:background 0.2s;">
-              Demandes
+            <a href="{{ url_for('admin_create_demande_animation') }}" style="padding:8px 14px; background:#28a745; color:white; border-radius:6px; font-weight:600; font-size:0.85rem; text-decoration:none; display:inline-block; transition:opacity 0.2s;">
+              Créer une demande
             </a>
           </li>
           <li>
-            <a href="{{ url_for('logout') }}" style="padding:8px 14px; background:transparent; color:var(--muted); font-weight:500; font-size:0.85rem; text-decoration:none; display:inline-block; transition:color 0.2s;">
+            <a href="{{ url_for('logout') }}" style="padding:8px 14px; background:transparent; color:#fff; font-weight:500; font-size:0.85rem; text-decoration:none; display:inline-block; transition:color 0.2s;">
               Déconnexion ({{ user.username }})
             </a>
           </li>
@@ -114,12 +830,23 @@
         {# ----- UTILISATEUR CONNECTÉ mais pas admin ----- #}
         {% elif user %}
           <li>
-            <a href="{{ url_for('demande_animation') }}" style="padding:8px 14px; background:var(--primary); color:white; border-radius:6px; font-weight:600; font-size:0.85rem; text-decoration:none; display:inline-block; transition:opacity 0.2s;">
-              Demande d'animation
+            <a href="{{ url_for('company_dashboard') }}" style="padding:8px 14px; background:linear-gradient(135deg, #ff9800, #ff5722); color:white; border-radius:6px; font-weight:600; font-size:0.85rem; text-decoration:none; display:inline-block; transition:opacity 0.2s;">
+              Mon espace
             </a>
           </li>
           <li>
-            <a href="{{ url_for('logout') }}" style="padding:8px 14px; background:transparent; color:var(--muted); font-weight:500; font-size:0.85rem; text-decoration:none; display:inline-block; transition:color 0.2s;">
+            <a href="{{ url_for('mes_appels_offres') }}" style="padding:8px 14px; background:linear-gradient(135deg, #4caf50, #388e3c); color:white; border-radius:6px; font-weight:600; font-size:0.85rem; text-decoration:none; display:inline-block; transition:opacity 0.2s;">
+              Mes appels d'offres
+            </a>
+          </li>
+          <li>
+            <a href="{{ url_for('catalogue') }}" style="padding:8px 14px; background:linear-gradient(135deg, #673ab7, #9c27b0); color:white; border-radius:6px; font-weight:600; font-size:0.85rem; text-decoration:none; display:inline-block; transition:opacity 0.2s;">
+              Catalogue
+            </a>
+          </li>
+          {# Bouton Demande d'animation supprimé #}
+          <li>
+            <a href="{{ url_for('logout') }}" style="padding:8px 14px; background:transparent; color:#fff; font-weight:500; font-size:0.85rem; text-decoration:none; display:inline-block; transition:color 0.2s;">
               Déconnexion
             </a>
           </li>
@@ -127,26 +854,129 @@
         {# ----- VISITEUR ----- #}
         {% else %}
           <li>
-            <a href="{{ url_for('login') }}" style="padding:8px 14px; background:transparent; color:var(--text); border:1px solid var(--border); border-radius:6px; font-weight:500; font-size:0.85rem; text-decoration:none; display:inline-block; transition:background 0.2s;">
-              Se connecter
+            <a href="{{ url_for('catalogue') }}" style="padding:8px 14px; background:linear-gradient(135deg, #673ab7, #9c27b0); color:white; border-radius:6px; font-weight:600; font-size:0.85rem; text-decoration:none; display:inline-block; transition:opacity 0.2s;">
+              Catalogue
             </a>
           </li>
           <li>
-            <a href="{{ url_for('register') }}" style="padding:8px 14px; background:var(--primary); color:white; border-radius:6px; font-weight:600; font-size:0.85rem; text-decoration:none; display:inline-block; transition:opacity 0.2s;">
-              S'inscrire
+            <a href="{{ url_for('about') }}" style="padding:8px 14px; background:transparent; color:var(--text); border:1px solid var(--border); border-radius:6px; font-weight:500; font-size:0.85rem; text-decoration:none; display:inline-block; transition:background 0.2s;">
+              Qui nous sommes
             </a>
           </li>
           <li>
-            <a href="{{ url_for('demande_animation') }}" style="padding:8px 14px; background:transparent; color:var(--muted); font-weight:500; font-size:0.85rem; text-decoration:none; display:inline-block; transition:color 0.2s;">
-              Demande d'animation
+            <a href="{{ url_for('demandes_animation') }}" style="padding:8px 14px; background:linear-gradient(135deg, #00acc1, #0097a7); color:#fff; border-radius:6px; font-weight:600; font-size:0.85rem; text-decoration:none; display:inline-block; transition:opacity 0.2s;">
+              Appels d'offres
             </a>
           </li>
+          <li>
+            <a href="{{ url_for('login') }}" style="padding:8px 14px; background:#FFDEDE; color:#8b1e1e; border-radius:6px; font-weight:600; font-size:0.85rem; text-decoration:none; display:inline-block; transition:opacity 0.2s;">
+              Se connecter (Artiste Compagnie)
+            </a>
+          </li>
+          {# Bouton Demande d'animation supprimé #}
         {% endif %}
 
       </ul>
     </nav>
+    
+    <!-- Diaporama à droite après les boutons -->
+    <a href="{{ url_for('seo_category', category_slug='une') }}" class="header-slideshow-right" title="Voir tous les spectacles à la une">
+      <div class="slideshow-overlay">
+        <span class="slideshow-overlay-text">⭐ Voir tous les<br>spectacles à la une</span>
+      </div>
+      <div class="slideshow-container">
+        {% if header_featured_shows and header_featured_shows|length > 0 %}
+          {% set ns = namespace(first_slide=true) %}
+          {% for show in header_featured_shows %}
+            {% set all_images = show.get_all_images() %}
+            {% if all_images|length > 0 %}
+              {% for img in all_images %}
+              <div class="slideshow-slide {% if ns.first_slide %}active{% endif %}">
+                <img src="{{ url_for('uploaded_file', filename=img) }}" alt="{{ show.title }}{% if loop.index > 1 %} - Photo {{ loop.index }}{% endif %}">
+                <span class="slideshow-label">{{ show.title[:20] }}{% if show.title|length > 20 %}...{% endif %}</span>
+                <span class="slideshow-badge">⭐ À la une</span>
+              </div>
+              {% set ns.first_slide = false %}
+              {% endfor %}
+            {% else %}
+              {% if show.file_name %}
+              <div class="slideshow-slide {% if ns.first_slide %}active{% endif %}">
+                <img src="{{ url_for('uploaded_file', filename=show.file_name) }}" alt="{{ show.title }}">
+                <span class="slideshow-label">{{ show.title[:20] }}{% if show.title|length > 20 %}...{% endif %}</span>
+                <span class="slideshow-badge">⭐ À la une</span>
+              </div>
+              {% set ns.first_slide = false %}
+              {% endif %}
+            {% endif %}
+          {% endfor %}
+        {% else %}
+          <div class="slideshow-slide active">
+            <div style="width:100%;height:100%;background:linear-gradient(135deg,#6d1313,#ffc107);display:flex;align-items:center;justify-content:center;">
+              <span style="font-size:2rem;">🎭</span>
+            </div>
+            <span class="slideshow-label">Découvrir les spectacles</span>
+            <span class="slideshow-badge">⭐ À la une</span>
+          </div>
+        {% endif %}
+      </div>
+    </a>
+    {% if header_featured_shows and header_featured_shows|length >= 1 %}
+    <script>
+      document.addEventListener('DOMContentLoaded', function() {
+        var slides = document.querySelectorAll('.header-slideshow-right .slideshow-slide');
+        if (slides.length <= 1) return;
+        var current = 0;
+        window.setInterval(function() {
+          slides[current].classList.remove('active');
+          current = (current + 1) % slides.length;
+          slides[current].classList.add('active');
+        }, 5000);
+      });
+    </script>
+    {% endif %}
   </div>
 </header>
+
+<!-- Hamburger Menu fixe en haut à droite -->
+<div class="hamburger-container">
+  <button class="hamburger-btn" id="hamburger-btn" aria-label="Menu">
+    <span></span>
+    <span></span>
+    <span></span>
+  </button>
+  <div class="hamburger-menu" id="hamburger-menu">
+    {% if user %}
+    <a href="{{ url_for('admin_dashboard' if user.is_admin else 'company_dashboard') }}" class="menu-dashboard">Mon espace</a>
+    <a href="{{ url_for('mes_appels_offres') }}" class="menu-mes-appels">Mes appels d'offres</a>
+    {% endif %}
+    <a href="{{ url_for('catalogue') }}" class="menu-catalogue">Catalogue</a>
+    <a href="{{ url_for('demandes_animation') }}" class="menu-appels">Appels d'offres</a>
+    <a href="{{ url_for('contact') }}" class="menu-contact">Contact</a>
+    <a href="{{ url_for('about') }}" class="menu-about">Qui sommes-nous</a>
+    <a href="{{ url_for('ecoles_themes') }}" class="menu-pedagogique">Intervention pédagogique</a>
+  </div>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    var hamburgerBtn = document.getElementById('hamburger-btn');
+    var hamburgerMenu = document.getElementById('hamburger-menu');
+    
+    hamburgerBtn.addEventListener('click', function(e) {
+      e.stopPropagation();
+      hamburgerBtn.classList.toggle('active');
+      hamburgerMenu.classList.toggle('active');
+    });
+    
+    // Fermer le menu en cliquant ailleurs
+    document.addEventListener('click', function(e) {
+      if (!hamburgerBtn.contains(e.target) && !hamburgerMenu.contains(e.target)) {
+        hamburgerBtn.classList.remove('active');
+        hamburgerMenu.classList.remove('active');
+      }
+    });
+  });
+</script>
 
 <main class="container">
 
@@ -167,27 +997,31 @@
   {% block seo_block %}
   {# ----- Bloc SEO / présentation ----- #}
   <section class="seo-block" style="margin-top:26px;padding:16px;border:1px solid var(--border);border-radius:12px;background:var(--panel)">
-    <h2 style="margin-top:0">Spectacle'ment VØtre</h2>
-    <p style="font-size:1.1rem;margin-top:8px;"><strong>Artistes, spectacles, animations la plateforme qui met en scène vos manifestations</strong></p>
+  
 
-    <p>
-      <strong>Spectacle'ment VØtre</strong> présente des <strong>spectacles jeune public, animations entreprise, animations anniversaire, animations événementielles</strong> et met en relation les <strong>compagnies professionnelles, artistes et animateurs</strong> avec les futurs programmateurs
-      (mairies, écoles, centres culturels, CSE, comités d'entreprise, médiathèques, associations, particuliers…).
-    </p>
-
-    <p>
-      Le catalogue propose des <strong>animations pour enfants, animations familiales, spectacles d'entreprise, théâtre, marionnettes, contes, magie, cirque, musique, danse, clowns, spectacles de rue</strong> et plus encore.
-      Que ce soit pour une <strong>fête d'anniversaire, un événement d'entreprise, une animation scolaire, une fête de village</strong> ou tout autre événement, chaque spectacle est accompagné d'informations claires pour faciliter la prise de contact.
-    </p>
-
-    <p>
-      Que vous soyez <strong>compagnie artistique, artiste indépendant, animateur professionnel, entreprise, collectivité, association</strong> ou <strong>particulier</strong>,
-      la plateforme simplifie la mise en relation pour tous vos projets d'<strong>animations et spectacles</strong> <strong>entièrement gratuitement</strong>.
-    </p> 
-
-  <p style="margin-top:12px;font-weight:bold;">
-    👉 Trouvez l'animation parfaite pour vØtre événement : anniversaire, entreprise, école, festival, mariage, fête de village... Spectacle'ment VØtre simplifie la mise en relation !
+  <p style="font-size:1.15rem;margin-top:8px;">
+    <strong>Plateforme de mise en relation entre organisateurs (mairies, écoles, CSE) et artistes / compagnies de spectacle vivant.</strong>
   </p>
+
+  <p style="font-size:1.05rem;">
+    <strong>Spectacle'ment VØtre</strong> vous aide à trouver rapidement un <strong>spectacle</strong> ou une <strong>animation</strong> adapté(e) à votre public et à votre événement,
+    <strong>partout en France</strong> : <strong>spectacle enfant</strong>, <strong>spectacle de Noël</strong>, <strong>marionnettes</strong>, <strong>magie</strong>, <strong>cirque</strong>, <strong>clown</strong>, <strong>théâtre</strong>, <strong>concert</strong> ou <strong>atelier</strong>.
+  </p>
+
+  <p style="font-size:1.05rem;">
+    Que vous organisiez une <strong>animation pour mairie</strong>, une <strong>animation scolaire</strong> (maternelle / primaire), une <strong>animation CSE</strong> ou une <strong>fête de village</strong>,
+    vous pouvez consulter le catalogue, comparer les propositions et <strong>contacter directement</strong> les artistes et compagnies.
+  </p>
+
+  <p style="font-size:1.05rem;">
+    Chaque annonce présente les informations essentielles (public, âge, format, localisation, documents) pour faciliter la programmation de vos événements.
+    La plateforme est pensée pour les <strong>collectivités</strong>, <strong>associations</strong>, <strong>entreprises</strong> et <strong>particuliers</strong>.
+  </p>
+
+  <p style="margin-top:12px;font-weight:bold;font-size:1.1rem;">
+    👉 Trouvez un spectacle ou une animation en quelques minutes : mairie, école, CSE, arbre de Noël, festival, anniversaire, fête de village… et recevez des propositions d’artistes partout en France.
+  </p>
+</section>
 </section>
   {% endblock %}
 
@@ -205,10 +1039,164 @@
     <a href="{{ url_for('legal') }}" style="display:inline-block;padding:10px 16px;background:transparent;color:var(--text);border:1px solid var(--border);border-radius:6px;font-weight:bold;text-decoration:none;">
       Contact / Mentions légales
     </a>
+    <a href="{{ url_for('ecoles_themes') }}" style="display:inline-block;padding:10px 16px;background:#4CAF50;color:white;border-radius:6px;font-weight:bold;text-decoration:none;">
+      🎓 Intervention pédagogique
+    </a>
+    <!-- Boutons réseaux sociaux -->
+    <a class="social-bandeau facebook" href="#" title="Notre page Facebook" target="_blank" style="display:inline-flex;align-items:center;gap:8px;padding:10px 16px;border-radius:6px;font-size:1em;font-weight:600;text-decoration:none;background:linear-gradient(90deg,#3b5998 60%,#4267B2 100%);color:#fff;margin-left:6px;">
+      <i class="fa fa-facebook"></i> <span>Facebook</span>
+    </a>
+    <a class="social-bandeau instagram" href="#" title="Instagram (lien en attente)" target="_blank" style="display:inline-flex;align-items:center;gap:8px;padding:10px 16px;border-radius:6px;font-size:1em;font-weight:600;text-decoration:none;background:linear-gradient(90deg,#e1306c 60%,#fd1d1d 100%);color:#fff;margin-left:6px;">
+      <i class="fa fa-instagram"></i> <span>Instagram</span>
+    </a>
   </div>
 </footer>
 
 </main>
+
+
+
+<script>
+// Validation de la taille des fichiers uploadés + barres de progression
+document.addEventListener('DOMContentLoaded', function() {
+    const MAX_FILE_SIZE = 500 * 1024; // 500 KB en bytes
+    const MAX_FILE_SIZE_KB = 500;
+    
+    // Trouver tous les inputs de type file
+    const fileInputs = document.querySelectorAll('input[type="file"]');
+    
+    fileInputs.forEach(function(input) {
+        input.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            const inputId = input.id;
+            const progressContainer = document.getElementById('progress-' + inputId);
+            const progressFill = document.getElementById('progress-fill-' + inputId);
+            const progressText = document.getElementById('progress-text-' + inputId);
+            
+            if (!file) {
+                // Masquer la barre de progression si aucun fichier
+                if (progressContainer) progressContainer.style.display = 'none';
+                return;
+            }
+            
+            // Vérifier la taille du fichier
+            if (file.size > MAX_FILE_SIZE) {
+                const fileSizeKB = (file.size / 1024).toFixed(2);
+                
+                // Message d'erreur clair
+                const message = `❌ La photo "${file.name}" est trop lourde !\n\n` +
+                               `Taille de votre photo : ${fileSizeKB} Ko\n` +
+                               `Taille maximale autorisée : ${MAX_FILE_SIZE_KB} Ko\n\n` +
+                               `Veuillez compresser votre photo ou en choisir une plus légère.`;
+                
+                alert(message);
+                
+                // Réinitialiser l'input
+                e.target.value = '';
+                
+                // Masquer la barre de progression
+                if (progressContainer) progressContainer.style.display = 'none';
+                
+                // Message visuel supplémentaire sur mobile
+                if (window.innerWidth <= 768) {
+                    const warningDiv = document.createElement('div');
+                    warningDiv.style.cssText = `
+                        position: fixed;
+                        top: 50%;
+                        left: 50%;
+                        transform: translate(-50%, -50%);
+                        background: #ef4444;
+                        color: white;
+                        padding: 20px;
+                        border-radius: 12px;
+                        box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+                        z-index: 10000;
+                        max-width: 90%;
+                        text-align: center;
+                        font-size: 16px;
+                        line-height: 1.5;
+                    `;
+                    warningDiv.innerHTML = `
+                        <div style="font-size: 40px; margin-bottom: 10px;">⚠️</div>
+                        <div style="font-weight: bold; margin-bottom: 10px;">Photo trop lourde !</div>
+                        <div>Votre photo fait ${fileSizeKB} Ko</div>
+                        <div>Maximum autorisé : ${MAX_FILE_SIZE_KB} Ko</div>
+                        <button onclick="this.parentElement.remove()" style="
+                            margin-top: 15px;
+                            padding: 10px 20px;
+                            background: white;
+                            color: #ef4444;
+                            border: none;
+                            border-radius: 6px;
+                            font-weight: bold;
+                            font-size: 14px;
+                        ">OK, compris</button>
+                    `;
+                    document.body.appendChild(warningDiv);
+                    
+                    // Auto-remove après 8 secondes
+                    setTimeout(() => {
+                        if (warningDiv.parentElement) {
+                            warningDiv.remove();
+                        }
+                    }, 8000);
+                }
+                return;
+            }
+            
+            // Afficher la barre de progression avec animation
+            if (progressContainer && progressFill && progressText) {
+                progressContainer.style.display = 'block';
+                
+                // Simuler le chargement du fichier (lecture locale)
+                let progress = 0;
+                const interval = setInterval(() => {
+                    progress += 10;
+                    if (progress <= 100) {
+                        progressFill.style.width = progress + '%';
+                        progressText.textContent = progress + '%';
+                    } else {
+                        clearInterval(interval);
+                        // Garder à 100% pour montrer que le fichier est prêt
+                        progressText.textContent = '✓ Prêt à envoyer';
+                    }
+                }, 50); // Progression rapide pour meilleure UX
+            }
+        });
+    });
+    
+    // Gérer la soumission du formulaire pour montrer la progression réelle
+    const forms = document.querySelectorAll('form[enctype="multipart/form-data"]');
+    forms.forEach(form => {
+        form.addEventListener('submit', function(e) {
+            const fileInputs = form.querySelectorAll('input[type="file"]');
+            let hasFiles = false;
+            
+            fileInputs.forEach(input => {
+                if (input.files && input.files.length > 0) {
+                    hasFiles = true;
+                    const inputId = input.id;
+                    const progressText = document.getElementById('progress-text-' + inputId);
+                    if (progressText) {
+                        progressText.textContent = '⏳ Envoi en cours...';
+                    }
+                }
+            });
+            
+            // Afficher un message si des fichiers sont en cours d'envoi
+            if (hasFiles) {
+                const submitBtn = form.querySelector('button[type="submit"]');
+                if (submitBtn) {
+                    submitBtn.disabled = true;
+                    submitBtn.textContent = 'Envoi en cours...';
+                }
+            }
+        });
+    });
+});
+</script>
+
+{% block scripts %}{% endblock %}
 
 </body>
 </html>

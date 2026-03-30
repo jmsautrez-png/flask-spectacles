@@ -5,16 +5,17 @@
 
 <h1>Tableau de bord administrateur</h1>
 
-<h2>📌 Annonces en attente de validation</h2>
+
 {% if pending %}
     <div class="cards">
     {% for show in pending %}
         <article class="card">
             <h3>{{ show.title }}</h3>
-            <p>{{ show.category }} • {{ show.location }}</p>
+            <p>{{ show.category|title }} • {{ show.location|title }}</p>
             <p>{{ show.age_range }}</p>
 
             <form action="{{ url_for('show_approve', show_id=show.id) }}" method="post">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                 <button type="submit">✅ Valider</button>
             </form>
 
@@ -22,6 +23,7 @@
 
             <form action="{{ url_for('show_delete', show_id=show.id) }}" method="post"
                   onsubmit="return confirm('Supprimer ?');">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                 <button type="submit" class="danger">Supprimer</button>
             </form>
         </article>
@@ -64,6 +66,7 @@
 
         <form action="{{ url_for('show_delete', show_id=show.id) }}" method="post"
               onsubmit="return confirm('Supprimer ?');">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
             <button type="submit" class="danger">Supprimer</button>
         </form>
     </article>

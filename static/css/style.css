@@ -1,7 +1,14 @@
+/* Tous les champs du formulaire demande_animation en blanc */
+.demande-form input,
+.demande-form select,
+.demande-form textarea {
+  background: #fff !important;
+  color: #222 !important;
+}
 /* thème */
 :root{
   --bg:#0f0f12;
-  --panel:#17171b;
+  --panel:#162447;
   --muted:#8b8b94;
   --text:#f5f6f8;
   --primary:#dc2626;
@@ -13,11 +20,35 @@
   --secondary:#3b3b47;
   --secondary-hover:#4a4a5a;
 }
+
+/* ============================================
+   NORMALISATION POUR TOUS LES ÉCRANS ET NAVIGATEURS
+   ============================================ */
+html {
+  /* Taille de base fixe - identique partout */
+  font-size: 16px;
+  /* Normalisation du rendu texte pour Edge/Chrome/Firefox */
+  -webkit-text-size-adjust: 100%;
+  -ms-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+  /* Empêcher le zoom automatique sur certains éléments */
+  -webkit-tap-highlight-color: transparent;
+}
+
 *{ box-sizing:border-box; }
-body{ margin:0; font-family:system-ui,Segoe UI,Roboto,Arial; color:var(--text); background:var(--bg); min-height:100vh; }
-.container{ width:min(1540px,94%); margin:0 auto; }
-.site-header{ background:rgba(23,23,27,.85); border-bottom:1px solid var(--border); position:sticky; top:0; backdrop-filter:blur(12px); z-index:10; box-shadow:0 2px 8px rgba(0,0,0,0.1); }
-.header-grid{ display:flex; align-items:center; justify-content:space-between; padding:16px 0; }
+body{
+  margin:0;
+  font-family:system-ui,-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Oxygen,Ubuntu,Cantarell,Arial,sans-serif;
+  color:var(--text);
+  background:#000A68;
+  min-height:100vh;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+.container{ max-width: 1540px; width: 94%; margin:0 auto; }
+.site-header{ background:rgba(23,23,27,.85); border-bottom:1px solid var(--border); position:sticky; top:0; backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px); z-index:10; box-shadow:0 2px 8px rgba(0,0,0,0.1); }
+.header-grid{ display:-webkit-box; display:-ms-flexbox; display:flex; -webkit-box-align:center; -ms-flex-align:center; align-items:center; -webkit-box-pack:justify; -ms-flex-pack:justify; justify-content:space-between; padding:16px 0; }
 
 /* Main content spacing below header */
 main.container {
@@ -95,25 +126,7 @@ main.container {
 }
 
 /* ALL inputs must be identical width */
-.demande-form input[type="text"],
-.demande-form input[type="email"],
-.demande-form input[type="tel"],
-.demande-form input[type="number"],
-.demande-form input[type="url"],
-.demande-form select,
-.demande-form textarea {
-  width: 100% !important;
-  max-width: 100% !important;
-  box-sizing: border-box !important;
-  padding: 12px !important;
-  border-radius: 8px;
-  border: 1px solid var(--border);
-  background: #121218;
-  color: var(--text);
-  font-size: 0.95rem;
-  font-family: inherit;
-  margin: 0;
-}
+/* Annulation fond blanc sur tous les champs demande-form */
 
 .demande-form input::placeholder,
 .demande-form textarea::placeholder {
@@ -183,7 +196,7 @@ main.container {
   margin-top: 8px;
 }
 
-/* Responsive: stack on mobile */
+/* Responsive: stack on mobile avec meilleure UX */
 @media (max-width: 700px) {
   .demande-form .grid-2 {
     grid-template-columns: 1fr !important;
@@ -192,6 +205,28 @@ main.container {
   
   .demande-section {
     padding: 16px;
+  }
+  
+  .demande-form input,
+  .demande-form select,
+  .demande-form textarea {
+    font-size: 16px; /* Évite zoom automatique sur iOS */
+    padding: 12px;
+  }
+  
+  .demande-form textarea {
+    min-height: 120px;
+  }
+  
+  .demande-form button[type="submit"] {
+    width: 100%;
+    padding: 14px;
+    font-size: 1.05rem;
+    min-height: 48px;
+  }
+  
+  .demande-wrap {
+    width: 98%;
   }
 }
 .brand{ color:var(--text); text-decoration:none; font-weight:700; font-size:1.15rem; display:flex; align-items:center; gap:8px; transition:opacity 0.2s; }
@@ -246,11 +281,32 @@ main.container {
 /* ============================================
    CARDS GRID - Improved sizing
    ============================================ */
+/* Affichage par rangées de six cartes */
+/* Grille fixe : 6 cartes par rangée, 3 rangées (18 cartes max par page) */
 .cards {
   display: grid;
-  gap: 20px;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));  /* Auto-fill based on space */
+  gap: 18px;
+  grid-template-columns: repeat(8, 1fr);
+  grid-auto-rows: 1fr;
+  max-width: 100%;
 }
+
+@media (max-width: 1200px) {
+  .cards {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+@media (max-width: 800px) {
+  .cards {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+@media (max-width: 500px) {
+  .cards {
+    grid-template-columns: 1fr;
+  }
+}
+
 
 .card {
   background: var(--panel);
@@ -281,14 +337,131 @@ main.container {
   overflow: hidden;
   position: relative;
   width: 100%;
+  /* Fix pour Safari/iOS */
+  -webkit-overflow-scrolling: touch;
 }
 
 .card img {
   width: 100%;
   height: 100%;
+  max-width: 100%;  /* Empêche le débordement sur mobile */
   object-fit: cover;
+  /* max-height retiré, retour à la taille d'origine */
   object-position: center center;  /* Center the image instead of 30% from top */
   display: block;
+}
+
+/* ============================================
+   DIAPORAMA / CAROUSEL pour les cartes
+   ============================================ */
+.card-carousel {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+.card-carousel .carousel-slides {
+  display: flex;
+  width: 100%;
+  height: 100%;
+  transition: transform 0.5s ease-in-out;
+}
+
+.card-carousel .carousel-slide {
+  flex: 0 0 100%;
+  width: 100%;
+  height: 100%;
+}
+
+.card-carousel .carousel-slide img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center center;
+  display: block;
+}
+
+/* Indicateurs (points) du carousel */
+.card-carousel .carousel-indicators {
+  position: absolute;
+  bottom: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 6px;
+  z-index: 5;
+}
+
+.card-carousel .carousel-indicator {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.8);
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.card-carousel .carousel-indicator.active {
+  background: var(--primary);
+  border-color: var(--primary);
+  transform: scale(1.2);
+}
+
+.card-carousel .carousel-indicator:hover {
+  background: rgba(255, 255, 255, 0.8);
+}
+
+/* Boutons de navigation du carousel (optionnel, au hover) */
+.card-carousel .carousel-nav {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.5);
+  color: white;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  z-index: 5;
+  font-size: 14px;
+}
+
+.card-carousel:hover .carousel-nav {
+  opacity: 1;
+}
+
+.card-carousel .carousel-nav:hover {
+  background: rgba(0, 0, 0, 0.8);
+}
+
+.card-carousel .carousel-prev {
+  left: 8px;
+}
+
+.card-carousel .carousel-next {
+  right: 8px;
+}
+
+/* Badge nombre de photos */
+.card-carousel .photo-count {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background: rgba(0, 0, 0, 0.6);
+  color: white;
+  padding: 3px 8px;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  z-index: 5;
 }
 
 .media-link {
@@ -483,7 +656,7 @@ main.container {
 .actions button,
 .actions .btn-secondary {
   padding: 10px 16px;
-  border-radius: 10px;
+  --panel:#000000;
   border: none;
   background: var(--primary);
   color: white;
@@ -632,7 +805,7 @@ a[href*="edit"]:hover {
 }
 
 .seo-block ul li {
-  padding: 4px 0;
+  padding: 0,1px 0;
 }
 
 .seo-block ul li a {
@@ -642,23 +815,20 @@ a[href*="edit"]:hover {
   transition: background 0.15s ease;
 }
 
-.seo-block ul li a:hover {
-  background: rgba(220, 38, 38, 0.15);
-}
+
 
 .theme-btn {
   transition: all 0.2s ease;
   font-weight: 500;
 }
 
-.theme-btn:hover {
-  color: var(--primary-hover) !important;
-  transform: translateX(4px);
-}
+
 
 /* ============================================
-   RESPONSIVE BREAKPOINTS
+   RESPONSIVE BREAKPOINTS - MOBILE OPTIMIZED
    ============================================ */
+
+/* Tablettes et petits écrans (< 960px) */
 @media (max-width: 960px) {
   .page-layout {
     flex-direction: column;
@@ -673,24 +843,295 @@ a[href*="edit"]:hover {
   .cards {
     grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
   }
+  
+  .container {
+    width: 96%;
+  }
 }
 
+/* Mobile (< 768px) */
+@media (max-width: 768px) {
+  /* Header mobile */
+  .header-grid {
+    flex-direction: column;
+    gap: 12px;
+    padding: 12px 0;
+  }
+  
+  .brand {
+    font-size: 1rem;
+  }
+  
+  .nav {
+    flex-direction: column;
+    width: 100%;
+    gap: 8px;
+  }
+  
+  .nav a {
+    padding: 10px 16px;
+    text-align: center;
+    border: 1px solid var(--border);
+  }
+  
+  /* Boutons CTA plus grands pour le tactile */
+  a[style*="background:linear-gradient"],
+  button[type="submit"],
+  .btn {
+    padding: 12px 20px !important;
+    font-size: 1rem !important;
+    min-height: 44px; /* Taille recommandée pour le tactile */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  /* Formulaire de recherche responsive */
+  form[role="search"] {
+    flex-direction: column !important;
+    padding: 12px !important;
+  }
+  
+  form[role="search"] input {
+    width: 100%;
+    padding: 12px;
+    font-size: 16px; /* Évite le zoom automatique sur iOS */
+  }
+  
+  form[role="search"] button {
+    width: 100%;
+    padding: 12px;
+  }
+  
+  /* H1 plus petit sur mobile */
+  h1 {
+    font-size: 1.1rem !important;
+    line-height: 1.4 !important;
+  }
+  
+  /* Pagination mobile */
+  .pagination {
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  
+  .pagination a,
+  .pagination span {
+    min-width: 40px;
+    padding: 8px;
+  }
+}
+
+/* Petits mobiles (< 600px) - 2 cartes par ligne style eBay */
 @media (max-width: 600px) {
+  /* Réorganisation mobile : moteur de recherche en premier */
+  .mobile-content-wrapper {
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .mobile-search-block {
+    order: 1;
+    margin-bottom: 15px !important;
+  }
+  
+  .mobile-cta-block {
+    order: 2;
+    margin-top: 0px !important;
+    margin-bottom: 15px !important;
+  }
+  
+  .page-layout {
+    order: 3;
+  }
+  
+  .page-sidebar {
+    order: 10;  /* Sidebar en dernier sur mobile */
+  }
+  
   .cards {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
   }
   
   .card {
     min-height: auto;
+    border-radius: 10px !important;
+    padding: 0 0 6px 0 !important;
+  }
+  
+  /* Contenu de la carte compact */
+  .card .content {
+    padding: 8px 10px;
+  }
+  
+  .card .content h3 {
+    font-size: 0.85rem !important;
+    line-height: 1.25;
+    margin: 0 0 4px 0 !important;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  
+  .card .content .meta {
+    font-size: 0.75em !important;
+    margin-bottom: 4px !important;
+  }
+  
+  .card .content > div {
+    font-size: 0.75em !important;
   }
   
   .grid-2 {
     grid-template-columns: 1fr;
   }
   
+  /* Images responsive sur mobile - fix iPhone */
+  .card .media {
+    aspect-ratio: 1/1;
+    min-height: unset;
+    max-height: none;
+    height: auto;
+    width: 100%;
+    border-radius: 10px 10px 0 0;
+  }
+  
+  .card .media img,
+  .card-carousel .carousel-slide img {
+    width: 100%;
+    height: auto;
+    max-width: 100%;
+    object-fit: cover;
+    object-position: center center;
+  }
+  
+  /* Badge photo count plus petit */
+  .card-carousel .photo-count {
+    font-size: 0.65rem;
+    padding: 2px 6px;
+  }
+  
+  /* Navigation carousel plus petite */
+  .card-carousel .carousel-nav {
+    width: 22px;
+    height: 22px;
+    font-size: 12px;
+  }
+  
+  /* Indicateurs plus petits */
+  .card-carousel .carousel-indicator {
+    width: 6px;
+    height: 6px;
+  }
+  
+  /* Espacement réduit */
+  main.container {
+    padding-top: 12px;
+    padding-bottom: 20px;
+  }
+  
+  .demande-section {
+    padding: 14px !important;
+  }
+  
+  /* Boutons empilés verticalement */
+  div[style*="display:flex"] > a {
+    flex: 1 1 100%;
+    min-width: 100% !important;
+  }
+}
+
+/* Très petits écrans (< 400px) - iPhone SE, anciens modèles */
+@media (max-width: 400px) {
+  .container {
+    width: 99%;
+  }
+  
+  /* Garder 2 colonnes mais réduire l'espacement */
+  .cards {
+    gap: 6px;
+  }
+  
+  .brand {
+    font-size: 0.95rem;
+  }
+  
+  /* Cartes encore plus compactes */
+  .card {
+    border-radius: 8px !important;
+  }
+  
+  .card .content {
+    padding: 6px 8px;
+  }
+  
+  .card .content h3 {
+    font-size: 0.78rem !important;
+  }
+  
+  /* Images des cartes - très petits écrans */
+  .card .media {
+    aspect-ratio: 1/1;
+    min-height: unset;
+    max-height: none;
+    border-radius: 8px 8px 0 0;
+  }
+  
+  .card .media img,
+  .card-carousel .carousel-slide img {
+    width: 100%;
+    height: auto;
+    max-width: 100%;
+  }
+  
+  /* Texte plus petit pour éviter le débordement */
+  body {
+    font-size: 14px;
+  }
+  
+  h1 {
+    font-size: 1rem !important;
+  }
+  
+  .badge {
+    font-size: 0.7rem;
+    padding: 3px 8px;
+  }
+}
+
+/* Optimisations tactiles générales */
+@media (hover: none) and (pointer: coarse) {
+  /* Appareil tactile détecté */
+  
+  /* Augmenter la zone de touch */
+  a, button, input[type="submit"], input[type="button"] {
+    min-height: 44px;
+    min-width: 44px;
+  }
+  
+  /* Supprimer les effets hover sur tactile */
+  .card:hover {
+    transform: none;
+  }
+  
+  /* Feedback tactile */
+  a:active, button:active {
+    opacity: 0.7;
+    transform: scale(0.98);
+  }
+}
+
+/* Mode paysage mobile */
+@media (max-width: 900px) and (orientation: landscape) {
   .header-grid {
-    flex-direction: column;
-    gap: 12px;
+    flex-direction: row;
+    justify-content: space-between;
+  }
+  
+  .nav {
+    flex-direction: row;
   }
 }
 

@@ -1,0 +1,454 @@
+{% extends "base.html" %}
+{% block title %}Votre projet pédagogique - Spectacles pour écoles - Spectacle'ment VØtre{% endblock %}
+
+{% block meta_description %}Accompagnez votre projet pédagogique avec des spectacles et animations adaptés aux thèmes de l'année. Noël, écologie, vivre ensemble, cultures du monde... Nous sélectionnons les meilleures compagnies pour vos élèves.{% endblock %}
+
+{% block content %}
+<style>
+  @keyframes border-spin {
+    0% { background-position: 0% 50%; }
+    100% { background-position: 200% 50%; }
+  }
+  
+  .hero-wrapper {
+    position: relative;
+    padding: 2px;
+    border-radius: 24px;
+    background: linear-gradient(90deg, #ffc107, #ff9800, #ffc107, #ffeb3b, #ffc107);
+    background-size: 200% 100%;
+    animation: border-spin 4s linear infinite;
+    margin-bottom: 30px;
+  }
+  
+  .hero-ecoles {
+    background: linear-gradient(135deg, #1a237e 0%, #283e5e 50%, #0d47a1 100%);
+    border-radius: 20px;
+    padding: 40px 30px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .hero-ecoles::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(255,255,255,0.05) 0%, transparent 70%);
+    animation: pulse-bg 8s ease-in-out infinite;
+  }
+  
+  @keyframes pulse-bg {
+    0%, 100% { transform: scale(1); opacity: 0.5; }
+    50% { transform: scale(1.1); opacity: 0.8; }
+  }
+  
+  .hero-ecoles h1 {
+    color: #fff;
+    font-size: 1.8rem;
+    margin-bottom: 15px;
+    position: relative;
+    z-index: 1;
+  }
+  
+  .hero-ecoles p {
+    color: rgba(255,255,255,0.9);
+    font-size: 1.1rem;
+    max-width: 700px;
+    margin: 0 auto;
+    position: relative;
+    z-index: 1;
+  }
+  
+  .mission-block {
+    background: linear-gradient(135deg, #162447 0%, #1f4068 100%);
+    border: 2px solid #283e5e;
+    border-radius: 16px;
+    padding: 25px;
+    margin-bottom: 30px;
+  }
+  
+  .mission-block h2 {
+    color: #ffc107;
+    margin-top: 0;
+    font-size: 1.3rem;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  
+  .valeur-list {
+    list-style: none;
+    padding: 0;
+    margin: 15px 0 0 0;
+  }
+  
+  .valeur-list li {
+    padding: 8px 0;
+    color: rgba(255,255,255,0.9);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  
+  .valeur-list li::before {
+    content: '✓';
+    color: #4caf50;
+    font-weight: bold;
+  }
+  
+  .themes-section h2 {
+    text-align: center;
+    color: #ffc107;
+    margin-bottom: 25px;
+    font-size: 1.5rem;
+  }
+  
+  .themes-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 16px;
+    margin-bottom: 40px;
+  }
+  
+  .theme-card {
+    background: linear-gradient(145deg, #1e3a5f 0%, #162447 100%);
+    border: 2px solid #355c7d;
+    border-radius: 16px;
+    padding: 25px 15px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-decoration: none;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+  }
+  
+  .theme-card:hover {
+    transform: translateY(-5px);
+    border-color: #ffc107;
+    box-shadow: 0 8px 25px rgba(255,193,7,0.2);
+  }
+  
+  .theme-card .emoji {
+    font-size: 3rem;
+    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
+  }
+  
+  .theme-card .theme-name {
+    color: #fff;
+    font-weight: 600;
+    font-size: 0.95rem;
+    line-height: 1.3;
+  }
+  
+  .theme-card .theme-desc {
+    color: rgba(255,255,255,0.7);
+    font-size: 0.8rem;
+    margin-top: -5px;
+  }
+  
+  .fonctionnement {
+    background: linear-gradient(135deg, #0d47a1 0%, #1565c0 100%);
+    border-radius: 16px;
+    padding: 30px;
+    margin: 30px 0;
+  }
+  
+  .fonctionnement h2 {
+    color: #fff;
+    text-align: center;
+    margin-bottom: 25px;
+    font-size: 1.6rem;
+  }
+  
+  .etapes {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 20px;
+  }
+  
+  .etape {
+    text-align: center;
+    padding: 15px;
+  }
+  
+  .etape-link {
+    text-decoration: none;
+    display: block;
+    padding: 15px;
+    border-radius: 12px;
+    transition: all 0.3s ease;
+    color: #fff;
+  }
+  
+  .etape-link h3 {
+    color: #fff;
+    font-size: 1.15rem;
+  }
+  
+  .etape-link p {
+    color: rgba(255,255,255,0.8);
+    font-size: 1rem;
+  }
+  
+  .etape-link:hover {
+    background: rgba(255,193,7,0.15);
+    transform: translateY(-3px);
+  }
+  
+  .etape-link:hover .etape-num {
+    transform: scale(1.1);
+    box-shadow: 0 4px 15px rgba(255,193,7,0.4);
+  }
+  
+  .etape-link:hover h3 {
+    color: #fff;
+  }
+  
+  .etape-num {
+    width: 50px;
+    height: 50px;
+    background: #ffc107;
+    color: #000;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 1.4rem;
+    margin: 0 auto 12px;
+  }
+  
+  .etape h3 {
+    color: #fff;
+    font-size: 1.15rem;
+    margin-bottom: 8px;
+  }
+  
+  .etape p {
+    color: rgba(255,255,255,0.8);
+    font-size: 1rem;
+    margin: 0;
+  }
+  
+  .cta-bottom {
+    text-align: center;
+    padding: 30px;
+    background: linear-gradient(135deg, #2e7d32 0%, #388e3c 100%);
+    border-radius: 16px;
+    margin-top: 30px;
+  }
+  
+  .cta-bottom h3 {
+    color: #fff;
+    margin-bottom: 15px;
+  }
+  
+  .cta-bottom a {
+    display: inline-block;
+    background: #fff;
+    color: #2e7d32;
+    padding: 14px 35px;
+    border-radius: 30px;
+    font-weight: 700;
+    font-size: 1.1rem;
+    text-decoration: none;
+    transition: all 0.3s;
+  }
+  
+  .cta-bottom a:hover {
+    transform: scale(1.05);
+    box-shadow: 0 5px 20px rgba(0,0,0,0.3);
+  }
+  
+  @media (max-width: 600px) {
+    .hero-ecoles {
+      padding: 25px 18px;
+    }
+    
+    .hero-ecoles h1 {
+      font-size: 1.3rem;
+    }
+    
+    .themes-grid {
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+    }
+    
+    .theme-card {
+      padding: 18px 10px;
+    }
+    
+    .theme-card .emoji {
+      font-size: 2.2rem;
+    }
+    
+    .theme-card .theme-name {
+      font-size: 0.85rem;
+    }
+    
+    .etapes {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
+
+<!-- Hero Section -->
+<div class="hero-wrapper">
+  <div class="hero-ecoles">
+    <h1>Votre projet pédagogique</h1>
+    <p style="font-size: 1.15rem; margin-bottom: 15px;">Spectacles & animations pédagogiques adaptés à votre thème d'année – Qualité artistique garantie</p>
+    <div style="background: rgba(255,193,7,0.15); border: 1px solid rgba(255,193,7,0.4); border-radius: 12px; padding: 15px 20px; max-width: 850px; margin: 0 auto;">
+      <p style="font-size: 1.15rem; margin: 0; color: #fff; line-height: 1.6;">
+        <strong style="color: #ffc107; font-size: 1.25rem;">Notre mission :</strong> Accompagner les écoles maternelles et primaires dans la recherche, la sélection et l'organisation de leur thème pédagogique et ainsi leur éviter l'écueil de spectacles de fortune du marché, en garantissant un <strong>bon niveau artistique et éducatif</strong>, grâce à <strong>30 ans d'expérience</strong> dans le spectacle vivant.
+      </p>
+    </div>
+  </div>
+</div>
+
+<!-- Thèmes proposés -->
+<section class="themes-section">
+  <h2>🎨 Choisissez votre thème pédagogique</h2>
+  <p style="text-align: center; color: rgba(255,255,255,0.8); margin-bottom: 25px;">
+    Cliquez sur un thème pour découvrir nos propositions et faire votre demande
+  </p>
+  
+  <div class="themes-grid">
+    <a href="{{ url_for('demande_ecole', theme='noel') }}" class="theme-card">
+      <span class="emoji">🎄</span>
+      <span class="theme-name">Noël & Fêtes</span>
+      <span class="theme-desc">Arbre de Noël, spectacles festifs</span>
+    </a>
+    
+    <a href="{{ url_for('demande_ecole', theme='ecologie') }}" class="theme-card">
+      <span class="emoji">🌍</span>
+      <span class="theme-name">Écologie & Développement durable</span>
+      <span class="theme-desc">Nature, environnement</span>
+    </a>
+    
+    <a href="{{ url_for('demande_ecole', theme='vivre-ensemble') }}" class="theme-card">
+      <span class="emoji">🤝</span>
+      <span class="theme-name">Vivre ensemble & Citoyenneté</span>
+      <span class="theme-desc">Harcèlement, respect, tolérance</span>
+    </a>
+    
+    <a href="{{ url_for('demande_ecole', theme='musique') }}" class="theme-card">
+      <span class="emoji">🎵</span>
+      <span class="theme-name">Musique & Chant</span>
+      <span class="theme-desc">Découverte musicale</span>
+    </a>
+    
+    <a href="{{ url_for('demande_ecole', theme='litterature') }}" class="theme-card">
+      <span class="emoji">📚</span>
+      <span class="theme-name">Langage & Littérature</span>
+      <span class="theme-desc">Contes, lecture, écriture</span>
+    </a>
+    
+    <a href="{{ url_for('demande_ecole', theme='marionnettes') }}" class="theme-card">
+      <span class="emoji">🎭</span>
+      <span class="theme-name">Marionnettes</span>
+      <span class="theme-desc">Théâtre de marionnettes</span>
+    </a>
+    
+    <a href="{{ url_for('demande_ecole', theme='inclusion') }}" class="theme-card">
+      <span class="emoji">🌈</span>
+      <span class="theme-name">Différences & Inclusion</span>
+      <span class="theme-desc">Handicap, diversité</span>
+    </a>
+    
+    <a href="{{ url_for('demande_ecole', theme='theatre') }}" class="theme-card">
+      <span class="emoji">🎪</span>
+      <span class="theme-name">Théâtre</span>
+      <span class="theme-desc">Expression dramatique</span>
+    </a>
+    
+    <a href="{{ url_for('demande_ecole', theme='cultures-monde') }}" class="theme-card">
+      <span class="emoji">🌐</span>
+      <span class="theme-name">Cultures du monde</span>
+      <span class="theme-desc">Voyages, traditions</span>
+    </a>
+    
+    <a href="{{ url_for('demande_ecole', theme='prevention') }}" class="theme-card">
+      <span class="emoji">❤️</span>
+      <span class="theme-name">Prévention & Bien-être</span>
+      <span class="theme-desc">Santé, émotions</span>
+    </a>
+    
+    <a href="{{ url_for('demande_ecole', theme='cirque') }}" class="theme-card">
+      <span class="emoji">🎪</span>
+      <span class="theme-name">Cirque</span>
+      <span class="theme-desc">Arts du cirque</span>
+    </a>
+    
+    <a href="{{ url_for('demande_ecole', theme='carnaval') }}" class="theme-card">
+      <span class="emoji">🎭</span>
+      <span class="theme-name">Carnaval</span>
+      <span class="theme-desc">Fête, déguisements</span>
+    </a>
+    
+    <a href="{{ url_for('demande_ecole', theme='atelier-divers') }}" class="theme-card">
+      <span class="emoji">🎨</span>
+      <span class="theme-name">Ateliers Créatifs</span>
+      <span class="theme-desc">Fabrication marionnettes, instruments, calligraphie, théâtre, musique...</span>
+    </a>
+    
+    <a href="{{ url_for('demande_ecole', theme='autre') }}" class="theme-card" style="border: 2px dashed #ffc107;">
+      <span class="emoji">📝</span>
+      <span class="theme-name">Autre thème</span>
+      <span class="theme-desc">Demande personnalisée</span>
+    </a>
+  </div>
+</section>
+
+<!-- Fonctionnement -->
+<div class="fonctionnement">
+  <h2>🎯 Notre fonctionnement</h2>
+  <div class="etapes">
+    <a href="{{ url_for('demande_ecole', theme='autre') }}" class="etape-link">
+      <div class="etape-num">1</div>
+      <h3>Vous nous indiquez vos besoins</h3>
+      <p>Remplissez le formulaire avec votre thème et vos contraintes</p>
+    </a>
+    <div class="etape">
+      <div class="etape-num">2</div>
+      <h3>Nous vous proposons un concept</h3>
+      <p>+ une compagnie sélectionnée adaptée à vos besoins</p>
+    </div>
+    <div class="etape">
+      <div class="etape-num">3</div>
+      <h3>Nous organisons la prestation</h3>
+      <p>De A à Z, sans stress pour vous</p>
+    </div>
+    <div class="etape">
+      <div class="etape-num">4</div>
+      <h3>Spectacle clé en main</h3>
+      <p>Vous bénéficiez d'un spectacle de qualité</p>
+    </div>
+  </div>
+</div>
+
+<!-- Notre mission -->
+<div class="mission-block">
+  <h2>🎯 Notre mission</h2>
+  <p style="color: rgba(255,255,255,0.9); margin-bottom: 15px; font-size: 1.1rem;">
+    Accompagner les écoles maternelles et primaires dans la <strong>recherche, la sélection et l'organisation</strong> 
+    de spectacles pédagogiques de qualité, en garantissant un <strong>bon niveau artistique et éducatif</strong>, 
+    grâce à <strong>30 ans d'expérience</strong> dans le spectacle vivant.
+  </p>
+  
+  <h2 style="margin-top: 25px;">🌟 Notre valeur ajoutée</h2>
+  <ul class="valeur-list" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px 20px;">
+    <li style="font-size: 1.05rem;">Sélection rigoureuse des compagnies</li>
+    <li style="font-size: 1.05rem;">Qualité artistique garantie</li>
+    <li style="font-size: 1.05rem;">Adaptation aux programmes scolaires</li>
+    <li style="font-size: 1.05rem;">Projets clé en main</li>
+    <li style="font-size: 1.05rem;">Accompagnement personnalisé</li>
+  </ul>
+</div>
+
+{% endblock %}

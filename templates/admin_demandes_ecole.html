@@ -1,0 +1,368 @@
+{% extends "base.html" %}
+{% block title %}Admin - Demandes des écoles - Spectacle'ment VØtre{% endblock %}
+
+{% block content %}
+<style>
+  .admin-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 25px;
+    flex-wrap: wrap;
+    gap: 15px;
+  }
+  
+  .admin-header h1 {
+    color: #ffc107;
+    margin: 0;
+    font-size: 1.5rem;
+  }
+  
+  .stats-bar {
+    display: flex;
+    gap: 15px;
+    flex-wrap: wrap;
+    margin-bottom: 25px;
+  }
+  
+  .stat-card {
+    background: linear-gradient(135deg, #162447 0%, #1f4068 100%);
+    border: 1px solid #355c7d;
+    border-radius: 12px;
+    padding: 15px 25px;
+    text-align: center;
+    min-width: 120px;
+  }
+  
+  .stat-card .number {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #ffc107;
+  }
+  
+  .stat-card .label {
+    font-size: 0.85rem;
+    color: rgba(255,255,255,0.7);
+  }
+  
+  .filter-bar {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+  }
+  
+  .filter-bar select {
+    padding: 10px 15px;
+    border-radius: 8px;
+    border: 1px solid #355c7d;
+    background: #1f4068;
+    color: #fff;
+    font-size: 0.9rem;
+  }
+  
+  .demandes-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+  }
+  
+  .demandes-table th {
+    background: linear-gradient(135deg, #1a237e 0%, #283e5e 100%);
+    padding: 14px 12px;
+    text-align: left;
+    color: #ffc107;
+    font-weight: 600;
+    font-size: 0.85rem;
+    white-space: nowrap;
+  }
+  
+  .demandes-table td {
+    padding: 14px 12px;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+    font-size: 0.9rem;
+    vertical-align: top;
+  }
+  
+  .demandes-table tr:hover {
+    background: rgba(255,255,255,0.05);
+  }
+  
+  .badge {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+  }
+  
+  .badge-nouvelle {
+    background: #4caf50;
+    color: #fff;
+  }
+  
+  .badge-en_cours {
+    background: #ff9800;
+    color: #000;
+  }
+  
+  .badge-traitee {
+    background: #2196f3;
+    color: #fff;
+  }
+  
+  .badge-annulee {
+    background: #9e9e9e;
+    color: #fff;
+  }
+  
+  .theme-badge {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 0.8rem;
+    background: rgba(255,193,7,0.2);
+    color: #ffc107;
+    font-weight: 600;
+  }
+  
+  .action-btns {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  
+  .btn-action {
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 0.8rem;
+    text-decoration: none;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  
+  .btn-view {
+    background: #2196f3;
+    color: #fff;
+  }
+  
+  .btn-edit {
+    background: #ff9800;
+    color: #000;
+  }
+  
+  .btn-delete {
+    background: #f44336;
+    color: #fff;
+  }
+  
+  .btn-action:hover {
+    transform: scale(1.05);
+  }
+  
+  .demande-card {
+    background: linear-gradient(135deg, #162447 0%, #1f4068 100%);
+    border: 1px solid #355c7d;
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 15px;
+  }
+  
+  .demande-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 12px;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  
+  .demande-card h3 {
+    margin: 0;
+    color: #fff;
+    font-size: 1.1rem;
+  }
+  
+  .demande-card-meta {
+    display: flex;
+    gap: 15px;
+    color: rgba(255,255,255,0.7);
+    font-size: 0.85rem;
+    margin-bottom: 12px;
+    flex-wrap: wrap;
+  }
+  
+  .demande-card-body {
+    color: rgba(255,255,255,0.9);
+    font-size: 0.9rem;
+  }
+  
+  .demande-card-body p {
+    margin: 5px 0;
+  }
+  
+  .empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    color: rgba(255,255,255,0.6);
+  }
+  
+  .empty-state .emoji {
+    font-size: 4rem;
+    margin-bottom: 15px;
+  }
+  
+  @media (max-width: 768px) {
+    .demandes-table {
+      display: none;
+    }
+    
+    .mobile-cards {
+      display: block;
+    }
+  }
+  
+  @media (min-width: 769px) {
+    .mobile-cards {
+      display: none;
+    }
+  }
+</style>
+
+<div class="admin-header">
+  <h1>📚 Demandes des écoles</h1>
+  <a href="{{ url_for('admin_dashboard') }}" style="color: #ffc107; text-decoration: none;">
+    ← Retour au dashboard
+  </a>
+</div>
+
+<!-- Statistiques -->
+<div class="stats-bar">
+  <div class="stat-card">
+    <div class="number">{{ stats.total }}</div>
+    <div class="label">Total</div>
+  </div>
+  <div class="stat-card">
+    <div class="number" style="color: #4caf50;">{{ stats.nouvelles }}</div>
+    <div class="label">Nouvelles</div>
+  </div>
+  <div class="stat-card">
+    <div class="number" style="color: #ff9800;">{{ stats.en_cours }}</div>
+    <div class="label">En cours</div>
+  </div>
+  <div class="stat-card">
+    <div class="number" style="color: #2196f3;">{{ stats.traitees }}</div>
+    <div class="label">Traitées</div>
+  </div>
+</div>
+
+<!-- Filtres -->
+<form class="filter-bar" method="GET">
+  <select name="statut">
+    <option value="">Tous les statuts</option>
+    <option value="nouvelle" {{ 'selected' if request.args.get('statut') == 'nouvelle' }}>Nouvelles</option>
+    <option value="en_cours" {{ 'selected' if request.args.get('statut') == 'en_cours' }}>En cours</option>
+    <option value="traitee" {{ 'selected' if request.args.get('statut') == 'traitee' }}>Traitées</option>
+    <option value="annulee" {{ 'selected' if request.args.get('statut') == 'annulee' }}>Annulées</option>
+  </select>
+  <select name="theme">
+    <option value="">Tous les thèmes</option>
+    <option value="noel" {{ 'selected' if request.args.get('theme') == 'noel' }}>Noël</option>
+    <option value="ecologie" {{ 'selected' if request.args.get('theme') == 'ecologie' }}>Écologie</option>
+    <option value="vivre-ensemble" {{ 'selected' if request.args.get('theme') == 'vivre-ensemble' }}>Vivre ensemble</option>
+    <option value="musique" {{ 'selected' if request.args.get('theme') == 'musique' }}>Musique</option>
+    <option value="litterature" {{ 'selected' if request.args.get('theme') == 'litterature' }}>Littérature</option>
+    <option value="cultures-monde" {{ 'selected' if request.args.get('theme') == 'cultures-monde' }}>Cultures du monde</option>
+  </select>
+  <button type="submit" class="btn-action btn-view">Filtrer</button>
+</form>
+
+{% if demandes %}
+  <!-- Vue tableau (desktop) -->
+  <table class="demandes-table">
+    <thead>
+      <tr>
+        <th>Date</th>
+        <th>École</th>
+        <th>Ville</th>
+        <th>Thème</th>
+        <th>Contact</th>
+        <th>Statut</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for d in demandes %}
+      <tr>
+        <td>{{ d.created_at.strftime('%d/%m/%Y') if d.created_at else 'N/A' }}</td>
+        <td>
+          <strong>{{ d.nom_ecole }}</strong><br>
+          <small style="color: rgba(255,255,255,0.6);">{{ d.type_etablissement }}</small>
+        </td>
+        <td>{{ d.ville }} ({{ d.code_postal[:2] }})</td>
+        <td><span class="theme-badge">{{ d.theme_principal }}</span></td>
+        <td>
+          {{ d.nom_contact }}<br>
+          <small>{{ d.email }}</small>
+        </td>
+        <td>
+          <span class="badge badge-{{ d.statut }}">{{ d.statut.replace('_', ' ') }}</span>
+        </td>
+        <td>
+          <div class="action-btns">
+            <a href="{{ url_for('admin_demande_ecole_detail', demande_id=d.id) }}" class="btn-action btn-view">Voir</a>
+            <form action="{{ url_for('admin_demande_ecole_statut', demande_id=d.id) }}" method="POST" style="display:inline;">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+              <select name="statut" onchange="this.form.submit()" style="padding: 4px 8px; border-radius: 4px; font-size: 0.75rem; background: #1f4068; color: #fff; border: 1px solid #355c7d;">
+                <option value="nouvelle" {{ 'selected' if d.statut == 'nouvelle' }}>Nouvelle</option>
+                <option value="en_cours" {{ 'selected' if d.statut == 'en_cours' }}>En cours</option>
+                <option value="traitee" {{ 'selected' if d.statut == 'traitee' }}>Traitée</option>
+                <option value="annulee" {{ 'selected' if d.statut == 'annulee' }}>Annulée</option>
+              </select>
+            </form>
+          </div>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <!-- Vue cartes (mobile) -->
+  <div class="mobile-cards">
+    {% for d in demandes %}
+    <div class="demande-card">
+      <div class="demande-card-header">
+        <div>
+          <h3>{{ d.nom_ecole }}</h3>
+          <span class="theme-badge">{{ d.theme_principal }}</span>
+        </div>
+        <span class="badge badge-{{ d.statut }}">{{ d.statut.replace('_', ' ') }}</span>
+      </div>
+      <div class="demande-card-meta">
+        <span>📍 {{ d.ville }}</span>
+        <span>📅 {{ d.created_at.strftime('%d/%m/%Y') if d.created_at else 'N/A' }}</span>
+        <span>👤 {{ d.nom_contact }}</span>
+      </div>
+      <div class="demande-card-body">
+        <p><strong>Type :</strong> {{ d.type_etablissement }}</p>
+        <p><strong>Email :</strong> {{ d.email }}</p>
+        <p><strong>Tél :</strong> {{ d.telephone }}</p>
+      </div>
+      <div class="action-btns" style="margin-top: 12px;">
+        <a href="{{ url_for('admin_demande_ecole_detail', demande_id=d.id) }}" class="btn-action btn-view">Voir détails</a>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+
+{% else %}
+  <div class="empty-state">
+    <div class="emoji">📭</div>
+    <h3>Aucune demande pour le moment</h3>
+    <p>Les demandes des écoles apparaîtront ici.</p>
+  </div>
+{% endif %}
+
+{% endblock %}

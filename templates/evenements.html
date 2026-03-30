@@ -1,0 +1,204 @@
+{% extends "base.html" %}
+{% block title %}Événements annoncés - Spectacle'ment VØtre{% endblock %}
+{% block description %}Découvrez les spectacles et événements annoncés par nos artistes. Réservez directement avec des professionnels du spectacle en France.{% endblock %}
+
+{% block content %}
+<style>
+.event-hero {
+    background: linear-gradient(135deg, #e91e63 0%, #9c27b0 100%);
+    border-radius: 16px;
+    padding: 32px;
+    margin-bottom: 32px;
+    text-align: center;
+    box-shadow: 0 4px 20px rgba(156, 39, 176, 0.3);
+}
+
+.event-hero h1 {
+    color: #fff;
+    font-size: 2rem;
+    margin: 0 0 12px 0;
+}
+
+.event-hero p {
+    color: rgba(255,255,255,0.9);
+    font-size: 1.1rem;
+    margin: 0;
+}
+
+.event-badge {
+    display: inline-block;
+    background: rgba(255,255,255,0.2);
+    color: #fff;
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-weight: 600;
+    margin-top: 16px;
+    font-size: 1rem;
+}
+
+.back-link {
+    color: #e91e63;
+    text-decoration: none;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 20px;
+}
+
+.back-link:hover {
+    text-decoration: underline;
+}
+</style>
+
+<div class="event-hero">
+    <h1>📅 Événements annoncés</h1>
+    <p>Découvrez les spectacles et événements programmés par nos artistes</p>
+    <span class="event-badge">{{ shows|length }} événement{{ 's' if shows|length > 1 else '' }}</span>
+</div>
+
+<a href="{{ url_for('catalogue') }}" class="back-link">
+    ← Retour au catalogue
+</a>
+
+{% if shows %}
+<div class="cards">
+    {% for show in shows %}
+    <article class="card" style="border:2px solid #222;border-radius:16px;box-shadow:0 2px 12px #0008;padding:0 0 8px 0;transition:box-shadow .2s;color:#fff;">
+        <a href="{{ url_for('show_detail', show_id=show.id) }}" class="media-link">
+            <div class="media">
+                {% set images = show.get_all_images() %}
+                {% if images|length > 1 %}
+                  <div class="card-carousel" data-carousel>
+                    <div class="carousel-slides">
+                      {% for img in images %}
+                      <div class="carousel-slide">
+                        <img src="{{ url_for('uploaded_file', filename=img) }}" alt="{{ show.title }}{% if loop.index > 1 %} - Photo {{ loop.index }}{% endif %}">
+                      </div>
+                      {% endfor %}
+                    </div>
+                    <div class="carousel-indicators">
+                      {% for img in images %}
+                      <span class="carousel-indicator{% if loop.first %} active{% endif %}" data-slide="{{ loop.index0 }}"></span>
+                      {% endfor %}
+                    </div>
+                    <button class="carousel-nav carousel-prev" aria-label="Photo précédente">‹</button>
+                    <button class="carousel-nav carousel-next" aria-label="Photo suivante">›</button>
+                  </div>
+                {% elif show.has_image() %}
+                    <img src="{{ url_for('uploaded_file', filename=show.file_name) }}" alt="{{ show.title }}">
+                {% elif show.is_pdf() %}
+                    <div class="pdf-thumb">
+                        <a href="{{ url_for('uploaded_file', filename=show.file_name) }}" target="_blank" rel="noopener">PDF</a>
+                    </div>
+                {% else %}
+                    <div class="placeholder" style="display:flex;align-items:center;justify-content:center;height:180px;background:linear-gradient(135deg,#1a1a2e 0%,#16213e 100%);">
+                        <span style="font-size:3rem;">🎭</span>
+                    </div>
+                {% endif %}
+            </div>
+        </a>
+
+        <a href="{{ url_for('show_detail', show_id=show.id) }}" class="content-link">
+            <div class="content">
+                {% if show.raison_sociale %}
+                    <p class="meta" style="font-weight:600; margin-bottom:8px; color:#e91e63; font-size:0.85em;">
+                        {{ show.raison_sociale|title }}
+                    </p>
+                {% endif %}
+                <h3 style="margin:0 0 6px 0; line-height:1.2;">{{ show.title }}</h3>
+                
+                <div style="display:flex; flex-direction:column; gap:4px; font-size:0.85em; margin-top:8px;">
+                    {% if show.date %}
+                    <div style="display:flex; align-items:center; gap:6px;">
+                        <span style="opacity:0.7; min-width:20px;">📅</span>
+                        <span style="color:rgba(255,255,255,0.9);">{{ show.date.strftime('%d/%m/%Y') }}</span>
+                    </div>
+                    {% endif %}
+                    
+                    {% if show.location %}
+                    <div style="display:flex; align-items:center; gap:6px;">
+                        <span style="opacity:0.7; min-width:20px;">📍</span>
+                        <span style="color:rgba(255,255,255,0.9);">{{ show.location }}</span>
+                    </div>
+                    {% endif %}
+                    
+                    {% if show.age_range %}
+                    <div style="display:flex; align-items:center; gap:6px;">
+                        <span style="opacity:0.7; min-width:20px;">👥</span>
+                        <span style="color:rgba(255,255,255,0.9);">{{ show.age_range|format_age }}</span>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </a>
+
+        {% if user and user.is_admin %}
+        <div class="actions">
+            <a href="{{ url_for('show_edit', show_id=show.id) }}">Modifier</a>
+            <form action="{{ url_for('show_delete', show_id=show.id) }}" method="post"
+                  onsubmit="return confirm('Supprimer cette annonce ?');">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                <button type="submit" class="danger">Supprimer</button>
+            </form>
+        </div>
+        {% endif %}
+    </article>
+    {% endfor %}
+</div>
+{% else %}
+<div style="text-align:center; padding:60px 20px; color:#fff;">
+    <h2 style="color:#e91e63; margin-bottom:16px;">Aucun événement annoncé</h2>
+    <p>Les artistes n'ont pas encore annoncé d'événements.</p>
+    <p style="margin-top:16px;">
+        <a href="{{ url_for('publish') }}" style="display:inline-block; background:linear-gradient(135deg, #e91e63 0%, #9c27b0 100%); color:#fff; padding:12px 28px; border-radius:25px; text-decoration:none; font-weight:600;">
+            Annoncer votre événement
+        </a>
+    </p>
+</div>
+
+<script>
+(function() {
+  document.querySelectorAll('[data-carousel]').forEach(function(carousel) {
+    const slides = carousel.querySelector('.carousel-slides');
+    const indicators = carousel.querySelectorAll('.carousel-indicator');
+    const prevBtn = carousel.querySelector('.carousel-prev');
+    const nextBtn = carousel.querySelector('.carousel-next');
+    const totalSlides = carousel.querySelectorAll('.carousel-slide').length;
+    let currentSlide = 0;
+    let autoPlayInterval = null;
+
+    function goToSlide(index) {
+      if (index < 0) index = totalSlides - 1;
+      if (index >= totalSlides) index = 0;
+      currentSlide = index;
+      slides.style.transform = 'translateX(-' + (currentSlide * 100) + '%)';
+      indicators.forEach(function(ind, i) {
+        ind.classList.toggle('active', i === currentSlide);
+      });
+    }
+
+    function nextSlide() { goToSlide(currentSlide + 1); }
+    function prevSlide() { goToSlide(currentSlide - 1); }
+    function startAutoPlay() {
+      if (autoPlayInterval) clearInterval(autoPlayInterval);
+      autoPlayInterval = setInterval(nextSlide, 8000);
+    }
+    function stopAutoPlay() {
+      if (autoPlayInterval) { clearInterval(autoPlayInterval); autoPlayInterval = null; }
+    }
+
+    if (prevBtn) prevBtn.addEventListener('click', function(e) { e.preventDefault(); e.stopPropagation(); prevSlide(); startAutoPlay(); });
+    if (nextBtn) nextBtn.addEventListener('click', function(e) { e.preventDefault(); e.stopPropagation(); nextSlide(); startAutoPlay(); });
+    indicators.forEach(function(indicator, i) {
+      indicator.addEventListener('click', function(e) { e.preventDefault(); e.stopPropagation(); goToSlide(i); startAutoPlay(); });
+    });
+    startAutoPlay();
+    carousel.addEventListener('mouseenter', stopAutoPlay);
+    carousel.addEventListener('mouseleave', startAutoPlay);
+  });
+})();
+</script>
+{% endif %}
+
+{% endblock %}
