@@ -2073,38 +2073,46 @@ def register_routes(app: Flask) -> None:
             order_by(desc('visits')).\
             limit(10).all()
         
-        # Visites par jour/heure (selon la période)
+        # Visites par jour/heure (selon la période) - HUMAINS UNIQUEMENT pour le graphique
         if period in ['today', '1']:
             # Pour 24h : regrouper par heure (PostgreSQL)
             visits_by_day = db.session.query(
                 text("DATE_TRUNC('hour', visited_at) as date"),
                 func.count(VisitorLog.id).label('visits')
-            ).filter(VisitorLog.visited_at >= date_limit).\
-                group_by(text("DATE_TRUNC('hour', visited_at)")).\
+            ).filter(
+                VisitorLog.visited_at >= date_limit,
+                VisitorLog.is_bot == False  # Humains uniquement
+            ).group_by(text("DATE_TRUNC('hour', visited_at)")).\
                 order_by(text("DATE_TRUNC('hour', visited_at)")).all()
             
-            # Visiteurs uniques par heure (pour le graphique)
+            # Visiteurs uniques par heure (pour le graphique) - HUMAINS UNIQUEMENT
             visitors_by_day = db.session.query(
                 text("DATE_TRUNC('hour', visited_at) as date"),
                 func.count(func.distinct(VisitorLog.session_id)).label('visitors')
-            ).filter(VisitorLog.visited_at >= date_limit).\
-                group_by(text("DATE_TRUNC('hour', visited_at)")).\
+            ).filter(
+                VisitorLog.visited_at >= date_limit,
+                VisitorLog.is_bot == False  # Humains uniquement
+            ).group_by(text("DATE_TRUNC('hour', visited_at)")).\
                 order_by(text("DATE_TRUNC('hour', visited_at)")).all()
         else:
-            # Pour les autres périodes : regrouper par jour
+            # Pour les autres périodes : regrouper par jour - HUMAINS UNIQUEMENT
             visits_by_day = db.session.query(
                 func.date(VisitorLog.visited_at).label('date'),
                 func.count(VisitorLog.id).label('visits')
-            ).filter(VisitorLog.visited_at >= date_limit).\
-                group_by(func.date(VisitorLog.visited_at)).\
+            ).filter(
+                VisitorLog.visited_at >= date_limit,
+                VisitorLog.is_bot == False  # Humains uniquement
+            ).group_by(func.date(VisitorLog.visited_at)).\
                 order_by('date').all()
             
-            # Visiteurs uniques par jour (pour le graphique)
+            # Visiteurs uniques par jour (pour le graphique) - HUMAINS UNIQUEMENT
             visitors_by_day = db.session.query(
                 func.date(VisitorLog.visited_at).label('date'),
                 func.count(func.distinct(VisitorLog.session_id)).label('visitors')
-            ).filter(VisitorLog.visited_at >= date_limit).\
-                group_by(func.date(VisitorLog.visited_at)).\
+            ).filter(
+                VisitorLog.visited_at >= date_limit,
+                VisitorLog.is_bot == False  # Humains uniquement
+            ).group_by(func.date(VisitorLog.visited_at)).\
                 order_by('date').all()
         
         # Derniers visiteurs uniques (groupés par session)

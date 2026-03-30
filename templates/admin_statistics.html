@@ -393,9 +393,22 @@ let visitsChart;
 // Fonction pour formater les dates/heures
 function formatLabel(dateStr) {
     if (isHourly) {
-        // Format : "2026-03-30 14:00:00" -> "14:00"
-        const date = new Date(dateStr);
-        return date.getHours().toString().padStart(2, '0') + ':00';
+        // Format : "2026-03-30 14:00:00+00" -> "14h"
+        // Extraire l'heure directement de la chaîne
+        let hour = 0;
+        
+        // Essayer plusieurs formats
+        if (typeof dateStr === 'string') {
+            // Format "2026-03-30 14:00:00" ou "2026-03-30T14:00:00"
+            const match = dateStr.match(/(\d{1,2}):(\d{2}):(\d{2})/);
+            if (match) {
+                hour = parseInt(match[1], 10);
+            }
+        }
+        
+        // Afficher 1h à 24h (au lieu de 0h à 23h)
+        const displayHour = hour === 0 ? 24 : hour;
+        return displayHour + 'h';
     } else {
         // Format : "2026-03-30" -> "30/03"
         const parts = dateStr.split('-');
@@ -484,7 +497,7 @@ visitsChart = new Chart(ctx, {
     data: {
         labels: isHourly ? formattedDates : rawDates,
         datasets: [{
-            label: isHourly ? 'Visiteurs uniques (par heure)' : 'Visiteurs uniques',
+            label: isHourly ? 'Visiteurs humains (par heure)' : 'Visiteurs humains uniques',
             data: rawVisitors,
             borderColor: 'rgb(13, 110, 253)',
             backgroundColor: 'rgba(13, 110, 253, 0.1)',
