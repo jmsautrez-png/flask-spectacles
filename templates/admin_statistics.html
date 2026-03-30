@@ -411,6 +411,36 @@
 <!-- Chart.js -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <script>
+// Plugin personnalisé pour afficher les valeurs au-dessus des barres
+const valueOnBarsPlugin = {
+    id: 'valueOnBars',
+    afterDatasetsDraw(chart) {
+        const { ctx } = chart;
+        chart.data.datasets.forEach((dataset, datasetIndex) => {
+            const meta = chart.getDatasetMeta(datasetIndex);
+            if (!meta.hidden) {
+                meta.data.forEach((bar, index) => {
+                    const value = dataset.data[index];
+                    
+                    // Dessiner le texte
+                    ctx.save();
+                    ctx.font = 'bold 12px Arial';
+                    ctx.fillStyle = '#333';
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'bottom';
+                    
+                    // Position au-dessus de la barre
+                    const x = bar.x;
+                    const y = bar.y - 5;
+                    
+                    ctx.fillText(value, x, y);
+                    ctx.restore();
+                });
+            }
+        });
+    }
+};
+
 // Données brutes pour le graphique
 const rawDates = [{% for day in visitors_by_day %}'{{ day.date }}'{% if not loop.last %}, {% endif %}{% endfor %}];
 const rawVisitors = [{% for day in visitors_by_day %}{{ day.visitors }}{% if not loop.last %}, {% endif %}{% endfor %}];
@@ -614,7 +644,8 @@ visitsChart = new Chart(ctx, {
             intersect: false,
             mode: 'index'
         }
-    }
+    },
+    plugins: [valueOnBarsPlugin]
 });
 
 // Fonction pour filtrer les visiteurs par type (humains/robots/tous)
