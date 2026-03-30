@@ -1,6 +1,11 @@
 #!/usr/bin/env bash
 # Script de démarrage pour Render
 
+# Nettoyer le cache Python pour forcer le rechargement du code
+echo "🧹 Nettoyage du cache Python..."
+find . -type d -name "__pycache__" -exec rm -rf {} + 2>/dev/null || true
+find . -type f -name "*.pyc" -delete 2>/dev/null || true
+
 # Créer le dossier uploads s'il n'existe pas
 mkdir -p static/uploads
 

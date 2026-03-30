@@ -928,25 +928,24 @@ def register_error_handlers(app: Flask) -> None:
     def page_not_found(e):
         return render_template("404.html", user=current_user()), 404
     
-    # TEMPORAIRE : Désactivé pour voir les vraies erreurs
-    # @app.errorhandler(500)
-    # def internal_server_error(e):
-    #     # Rollback en cas d'erreur pour libérer la transaction PostgreSQL
-    #     try:
-    #         db.session.rollback()
-    #     except Exception:
-    #         pass
-    #     return render_template("500.html", user=current_user()), 500
+    @app.errorhandler(500)
+    def internal_server_error(e):
+        # Rollback en cas d'erreur pour libérer la transaction PostgreSQL
+        try:
+            db.session.rollback()
+        except Exception:
+            pass
+        return render_template("500.html", user=current_user()), 500
     
-    # @app.errorhandler(Exception)
-    # def handle_exception(e):
-    #     # Rollback global pour toute exception non gérée
-    #     try:
-    #         db.session.rollback()
-    #     except Exception:
-    #         pass
-    #     app.logger.exception("Erreur non gérée: %s", e)
-    #     return render_template("500.html", user=current_user()), 500
+    @app.errorhandler(Exception)
+    def handle_exception(e):
+        # Rollback global pour toute exception non gérée
+        try:
+            db.session.rollback()
+        except Exception:
+            pass
+        app.logger.exception("Erreur non gérée: %s", e)
+        return render_template("500.html", user=current_user()), 500
 
 # -----------------------------------------------------
 # Routes
@@ -2110,53 +2109,27 @@ def register_routes(app: Flask) -> None:
             order_by(desc('visits')).\
             limit(10).all()
         
-        # Visites par jour/heure (selon lapériode) - HUMAINS UNIQUEMENT pour le graphique
+        # Visites par jour/heure (selon la période) - HUMAINS UNIQUEMENT pour le graphique
         if period in ['today', '1']:
-            # Pour 24h : regrouper par heure
-            # Détection du type de base de données
-            db_uri = app.config.get('SQLALCHEMY_DATABASE_URI', '')
-            is_postgres = 'postgresql' in db_uri
+            # Pour 24h : regrouper par heure (PostgreSQL)
+            visits_by_day = db.session.query(
+                text("DATE_TRUNC('hour', visited_at) as date"),
+                func.count(VisitorLog.id).label('visits')
+            ).filter(
+                VisitorLog.visited_at >= date_limit,
+                VisitorLog.is_bot == True  # ROBOTS SEULEMENT (TEST INVERSÉ)
+            ).group_by(text("DATE_TRUNC('hour', visited_at)")).\
+                order_by(text("DATE_TRUNC('hour', visited_at)")).all()
             
-            if is_postgres:
-                # PostgreSQL : utiliser DATE_TRUNC
-                visits_by_day = db.session.query(
-                    func.date_trunc('hour', VisitorLog.visited_at).label('date'),
-                    func.count(VisitorLog.id).label('visits')
-                ).filter(
-                    VisitorLog.visited_at >= date_limit,
-                    VisitorLog.is_bot == False  # HUMAINS UNIQUEMENT
-                ).group_by(func.date_trunc('hour', VisitorLog.visited_at)).\
-                    order_by(func.date_trunc('hour', VisitorLog.visited_at)).all()
-                
-                # Visiteurs uniques par heure (pour le graphique) - HUMAINS UNIQUEMENT
-                visitors_by_day = db.session.query(
-                    func.date_trunc('hour', VisitorLog.visited_at).label('date'),
-                    func.count(func.distinct(VisitorLog.session_id)).label('visitors')
-                ).filter(
-                    VisitorLog.visited_at >= date_limit,
-                    VisitorLog.is_bot == False  # HUMAINS UNIQUEMENT
-                ).group_by(func.date_trunc('hour', VisitorLog.visited_at)).\
-                    order_by(func.date_trunc('hour', VisitorLog.visited_at)).all()
-            else:
-                # SQLite : utiliser strftime
-                visits_by_day = db.session.query(
-                    func.strftime('%Y-%m-%d %H:00:00', VisitorLog.visited_at).label('date'),
-                    func.count(VisitorLog.id).label('visits')
-                ).filter(
-                    VisitorLog.visited_at >= date_limit,
-                    VisitorLog.is_bot == False  # HUMAINS UNIQUEMENT
-                ).group_by(func.strftime('%Y-%m-%d %H:00:00', VisitorLog.visited_at)).\
-                    order_by(func.strftime('%Y-%m-%d %H:00:00', VisitorLog.visited_at)).all()
-                
-                # Visiteurs uniques par heure (pour le graphique) - HUMAINS UNIQUEMENT
-                visitors_by_day = db.session.query(
-                    func.strftime('%Y-%m-%d %H:00:00', VisitorLog.visited_at).label('date'),
-                    func.count(func.distinct(VisitorLog.session_id)).label('visitors')
-                ).filter(
-                    VisitorLog.visited_at >= date_limit,
-                    VisitorLog.is_bot == False  # HUMAINS UNIQUEMENT
-                ).group_by(func.strftime('%Y-%m-%d %H:00:00', VisitorLog.visited_at)).\
-                    order_by(func.strftime('%Y-%m-%d %H:00:00', VisitorLog.visited_at)).all()
+            # Visiteurs uniques par heure (pour le graphique) - HUMAINS UNIQUEMENT
+            visitors_by_day = db.session.query(
+                text("DATE_TRUNC('hour', visited_at) as date"),
+                func.count(func.distinct(VisitorLog.session_id)).label('visitors')
+            ).filter(
+                VisitorLog.visited_at >= date_limit,
+                VisitorLog.is_bot == True  # ROBOTS SEULEMENT (TEST INVERSÉ)
+            ).group_by(text("DATE_TRUNC('hour', visited_at)")).\
+                order_by(text("DATE_TRUNC('hour', visited_at)")).all()
         else:
             # Pour les autres périodes : regrouper par jour - HUMAINS UNIQUEMENT
             visits_by_day = db.session.query(
@@ -2164,7 +2137,7 @@ def register_routes(app: Flask) -> None:
                 func.count(VisitorLog.id).label('visits')
             ).filter(
                 VisitorLog.visited_at >= date_limit,
-                VisitorLog.is_bot == False  # HUMAINS UNIQUEMENT
+                VisitorLog.is_bot == True  # ROBOTS SEULEMENT (TEST INVERSÉ)
             ).group_by(func.date(VisitorLog.visited_at)).\
                 order_by('date').all()
             
@@ -2174,28 +2147,47 @@ def register_routes(app: Flask) -> None:
                 func.count(func.distinct(VisitorLog.session_id)).label('visitors')
             ).filter(
                 VisitorLog.visited_at >= date_limit,
-                VisitorLog.is_bot == False  # HUMAINS UNIQUEMENT
+                VisitorLog.is_bot == True  # ROBOTS SEULEMENT (TEST INVERSÉ)
             ).group_by(func.date(VisitorLog.visited_at)).\
                 order_by('date').all()
         
         # Derniers visiteurs uniques (groupés par session)
         # Chaque ligne = 1 visiteur avec le nombre de pages vues
-        recent_visitors = db.session.query(
-            VisitorLog.session_id,
-            func.min(VisitorLog.visited_at).label('first_visit'),
-            func.max(VisitorLog.visited_at).label('last_visit'),
-            func.count(VisitorLog.id).label('page_count'),
-            VisitorLog.city,
-            VisitorLog.region,
-            VisitorLog.country,
-            VisitorLog.isp,
-            VisitorLog.ip_anonymized,
-            VisitorLog.user_agent,
-            VisitorLog.user_id,
-            func.max(VisitorLog.is_bot).label('is_bot')  # max() compatible SQLite et PostgreSQL
-        ).filter(VisitorLog.visited_at >= date_limit).\
-            group_by(
+        try:
+            recent_visitors = db.session.query(
                 VisitorLog.session_id,
+                func.min(VisitorLog.visited_at).label('first_visit'),
+                func.max(VisitorLog.visited_at).label('last_visit'),
+                func.count(VisitorLog.id).label('page_count'),
+                VisitorLog.city,
+                VisitorLog.region,
+                VisitorLog.country,
+                VisitorLog.isp,
+                VisitorLog.ip_anonymized,
+                VisitorLog.user_agent,
+                VisitorLog.user_id,
+                func.bool_or(VisitorLog.is_bot).label('is_bot')  # bool_or pour PostgreSQL
+            ).filter(VisitorLog.visited_at >= date_limit).\
+                group_by(
+                    VisitorLog.session_id,
+                    VisitorLog.city,
+                    VisitorLog.region,
+                    VisitorLog.country,
+                    VisitorLog.isp,
+                    VisitorLog.ip_anonymized,
+                    VisitorLog.user_agent,
+                    VisitorLog.user_id
+                ).\
+                order_by(desc('first_visit')).\
+                limit(50).all()
+        except ProgrammingError as e:
+            # Fallback si la colonne is_bot n'existe pas encore ou autre erreur SQL
+            print(f"⚠️ Erreur SQL dans recent_visitors: {e}")
+            recent_visitors = db.session.query(
+                VisitorLog.session_id,
+                func.min(VisitorLog.visited_at).label('first_visit'),
+                func.max(VisitorLog.visited_at).label('last_visit'),
+                func.count(VisitorLog.id).label('page_count'),
                 VisitorLog.city,
                 VisitorLog.region,
                 VisitorLog.country,
@@ -2203,9 +2195,20 @@ def register_routes(app: Flask) -> None:
                 VisitorLog.ip_anonymized,
                 VisitorLog.user_agent,
                 VisitorLog.user_id
-            ).\
-            order_by(desc('first_visit')).\
-            limit(50).all()
+            ).filter(VisitorLog.visited_at >= date_limit).\
+                group_by(
+                    VisitorLog.session_id,
+                    VisitorLog.city,
+                    VisitorLog.region,
+                    VisitorLog.country,
+                    VisitorLog.isp,
+                    VisitorLog.ip_anonymized,
+                    VisitorLog.user_agent,
+                    VisitorLog.user_id
+                ).\
+                order_by(desc('first_visit')).\
+                limit(50).all()
+            db.session.rollback()  # Important pour éviter que la session reste en erreur
         
         # Utilisateurs connectés actifs
         active_users = db.session.query(
@@ -4239,19 +4242,3 @@ def admin_demande_ecole_notes(demande_id):
     db.session.commit()
     flash("Notes enregistrées.", "success")
     return redirect(url_for("admin_demande_ecole_detail", demande_id=demande_id))
-
-# Point d'entrée pour lancer le serveur
-if __name__ == "__main__":
-    print("\n" + "="*70)
-    print("🌟 SERVEUR FLASK PRÊT")
-    print("="*70)
-    print(f"📍 URL: http://127.0.0.1:5000")
-    print(f"🔧 Mode Debug: {app.config.get('DEBUG', False)}")
-    print("="*70 + "\n")
-    
-    app.run(
-        host="127.0.0.1",
-        port=5000,
-        debug=True,
-        use_reloader=True
-    )
