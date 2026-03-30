@@ -2003,7 +2003,7 @@ def register_routes(app: Flask) -> None:
     @admin_required
     def admin_statistics():
         """Page de statistiques des visiteurs (conforme RGPD - données anonymisées)"""
-        from sqlalchemy import func, desc
+        from sqlalchemy import func, desc, text
         from sqlalchemy.exc import ProgrammingError
         from datetime import timedelta
         
@@ -2075,21 +2075,21 @@ def register_routes(app: Flask) -> None:
         
         # Visites par jour/heure (selon la période)
         if period in ['today', '1']:
-            # Pour 24h : regrouper par heure
+            # Pour 24h : regrouper par heure (PostgreSQL)
             visits_by_day = db.session.query(
-                func.date_trunc('hour', VisitorLog.visited_at).label('date'),
+                text("DATE_TRUNC('hour', visited_at) as date"),
                 func.count(VisitorLog.id).label('visits')
             ).filter(VisitorLog.visited_at >= date_limit).\
-                group_by(func.date_trunc('hour', VisitorLog.visited_at)).\
-                order_by('date').all()
+                group_by(text("DATE_TRUNC('hour', visited_at)")).\
+                order_by(text("DATE_TRUNC('hour', visited_at)")).all()
             
             # Visiteurs uniques par heure (pour le graphique)
             visitors_by_day = db.session.query(
-                func.date_trunc('hour', VisitorLog.visited_at).label('date'),
+                text("DATE_TRUNC('hour', visited_at) as date"),
                 func.count(func.distinct(VisitorLog.session_id)).label('visitors')
             ).filter(VisitorLog.visited_at >= date_limit).\
-                group_by(func.date_trunc('hour', VisitorLog.visited_at)).\
-                order_by('date').all()
+                group_by(text("DATE_TRUNC('hour', visited_at)")).\
+                order_by(text("DATE_TRUNC('hour', visited_at)")).all()
         else:
             # Pour les autres périodes : regrouper par jour
             visits_by_day = db.session.query(
