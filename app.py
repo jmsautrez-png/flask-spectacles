@@ -291,6 +291,55 @@ def create_app() -> Flask:
     if os.environ.get("FLASK_ENV") == "production":
         app.config["SESSION_COOKIE_SECURE"] = True  # HTTPS uniquement
     
+    # Fonction de détection des robots/crawlers
+    def is_bot_visitor(user_agent: str, isp: str = None) -> bool:
+        """Détecte si un visiteur est un robot/crawler basé sur le User-Agent et l'ISP
+        
+        Retourne True si c'est un robot, False sinon.
+        """
+        if not user_agent:
+            return False
+        
+        user_agent_lower = user_agent.lower()
+        
+        # Liste des patterns de robots connus
+        bot_patterns = [
+            'bot', 'crawler', 'spider', 'scraper', 'slurp', 'mediapartners',
+            'googlebot', 'bingbot', 'yandexbot', 'baiduspider', 'facebookexternalhit',
+            'twitterbot', 'linkedinbot', 'whatsapp', 'telegrambot', 'discordbot',
+            'slackbot', 'pinterestbot', 'applebot', 'duckduckbot', 'ahrefsbot',
+            'semrushbot', 'mj12bot', 'dotbot', 'rogerbot', 'exabot', 'sogou', 
+            'archive.org', 'wget', 'curl', 'python-requests', 'java/', 'go-http',
+            'phantom', 'headless', 'selenium', 'webdriver', 'prerender'
+        ]
+        
+        # Vérifier si un pattern de bot est présent dans le User-Agent
+        for pattern in bot_patterns:
+            if pattern in user_agent_lower:
+                return True
+        
+        # ISPs connus pour héberger principalement des bots/crawlers
+        if isp:
+            isp_lower = isp.lower()
+            bot_isps = [
+                'amazon', 'aws', 'google cloud', 'microsoft corporation',
+                'tencent', 'alibaba', 'digitalocean', 'ovh', 'hetzner',
+                'linode', 'vultr', 'cloudflare', 'fastly'
+            ]
+            
+            # Si ISP datacenter ET pas de navigateur reconnu dans User-Agent
+            for bot_isp in bot_isps:
+                if bot_isp in isp_lower:
+                    # Vérifier que ce n'est pas un humain via un VPN
+                    human_browsers = ['chrome', 'firefox', 'safari', 'edge', 'opera']
+                    has_human_browser = any(browser in user_agent_lower for browser in human_browsers)
+                    
+                    # Si pas de navigateur humain reconnu, probablement un bot
+                    if not has_human_browser:
+                        return True
+        
+        return False
+    
     # Fonction de géolocalisation IP (API gratuite ip-api.com)
     def get_ip_geolocation(ip_address):
         """
@@ -321,7 +370,7 @@ def create_app() -> Flask:
         # En cas d'erreur, retourner des valeurs vides
         return {'city': None, 'region': None, 'country': None, 'isp': None}
     
-    # 5. Tracking des visiteurs (anonymisé, conforme RGPD)
+    # 6. Tracking des visiteurs (anonymisé, conforme RGPD)
     @app.before_request
     def track_visitor():
         """Enregistre chaque visite de manière anonymisée (conforme RGPD)"""
@@ -381,18 +430,23 @@ def create_app() -> Flask:
             # Géolocaliser l'IP (ville, région, FAI)
             geo_data = get_ip_geolocation(ip)
             
-            # Enregistrer la visite avec géolocalisation
+            # Détecter si c'est un robot/crawler
+            user_agent_str = request.headers.get('User-Agent', '')[:300]
+            is_bot = is_bot_visitor(user_agent_str, geo_data['isp'])
+            
+            # Enregistrer la visite avec géolocalisation et détection de bot
             visitor_log = VisitorLog(
                 page_url=request.path[:300],
                 referrer=request.referrer[:300] if request.referrer else None,
-                user_agent=request.headers.get('User-Agent', '')[:300],
+                user_agent=user_agent_str,
                 ip_anonymized=ip_anonymized,
                 session_id=session.get('visitor_id'),
                 user_id=user_id,
                 city=geo_data['city'],
                 region=geo_data['region'],
                 country=geo_data['country'],
-                isp=geo_data['isp']
+                isp=geo_data['isp'],
+                is_bot=is_bot
             )
             db.session.add(visitor_log)
             db.session.commit()
@@ -401,7 +455,7 @@ def create_app() -> Flask:
             app.logger.warning(f"[TRACKING] Erreur lors de l'enregistrement: {e}")
             db.session.rollback()
     
-    # 6. Headers de sécurité additionnels
+    # 7. Headers de sécurité additionnels
     @app.after_request
     def set_security_headers(response):
         """Ajoute des headers de sécurité à toutes les réponses"""
@@ -1969,9 +2023,34 @@ def register_routes(app: Flask) -> None:
         # Nombre total de visites sur la période
         total_visits = VisitorLog.query.filter(VisitorLog.visited_at >= date_limit).count()
         
+        # Séparation robots vs humains
+        total_bots = VisitorLog.query.filter(
+            VisitorLog.visited_at >= date_limit,
+            VisitorLog.is_bot == True
+        ).count()
+        
+        total_humans = VisitorLog.query.filter(
+            VisitorLog.visited_at >= date_limit,
+            VisitorLog.is_bot == False
+        ).count()
+        
         # Visiteurs uniques (basé sur session_id)
         unique_visitors = db.session.query(func.count(func.distinct(VisitorLog.session_id))).\
             filter(VisitorLog.visited_at >= date_limit).scalar()
+        
+        # Visiteurs uniques humains (non-bots)
+        unique_humans = db.session.query(func.count(func.distinct(VisitorLog.session_id))).\
+            filter(
+                VisitorLog.visited_at >= date_limit,
+                VisitorLog.is_bot == False
+            ).scalar()
+        
+        # Visiteurs uniques robots
+        unique_bots = db.session.query(func.count(func.distinct(VisitorLog.session_id))).\
+            filter(
+                VisitorLog.visited_at >= date_limit,
+                VisitorLog.is_bot == True
+            ).scalar()
         
         # Pages les plus visitées
         top_pages = db.session.query(
@@ -2022,7 +2101,8 @@ def register_routes(app: Flask) -> None:
             VisitorLog.isp,
             VisitorLog.ip_anonymized,
             VisitorLog.user_agent,
-            VisitorLog.user_id
+            VisitorLog.user_id,
+            VisitorLog.is_bot
         ).filter(VisitorLog.visited_at >= date_limit).\
             group_by(
                 VisitorLog.session_id,
@@ -2032,7 +2112,8 @@ def register_routes(app: Flask) -> None:
                 VisitorLog.isp,
                 VisitorLog.ip_anonymized,
                 VisitorLog.user_agent,
-                VisitorLog.user_id
+                VisitorLog.user_id,
+                VisitorLog.is_bot
             ).\
             order_by(desc('first_visit')).\
             limit(50).all()
@@ -2051,7 +2132,11 @@ def register_routes(app: Flask) -> None:
             "admin_statistics.html",
             user=current_user(),
             total_visits=total_visits,
+            total_bots=total_bots,
+            total_humans=total_humans,
             unique_visitors=unique_visitors,
+            unique_humans=unique_humans,
+            unique_bots=unique_bots,
             top_pages=top_pages,
             top_referrers=top_referrers,
             visits_by_day=visits_by_day,

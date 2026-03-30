@@ -47,18 +47,38 @@
                                 <td><small class="text-muted">Personnes différentes</small></td>
                             </tr>
                             <tr>
+                                <td><i class="fas fa-user text-info"></i> <strong>Visiteurs humains</strong></td>
+                                <td class="text-end"><span class="badge bg-info fs-5">{{ unique_humans }}</span></td>
+                                <td><small class="text-muted">Vrais visiteurs ({{ (unique_humans * 100 / unique_visitors)|round|int if unique_visitors > 0 else 0 }}%)</small></td>
+                            </tr>
+                            <tr>
+                                <td><i class="fas fa-robot text-secondary"></i> <strong>Robots/Crawlers</strong></td>
+                                <td class="text-end"><span class="badge bg-secondary fs-5">{{ unique_bots }}</span></td>
+                                <td><small class="text-muted">Indexation moteurs ({{ (unique_bots * 100 / unique_visitors)|round|int if unique_visitors > 0 else 0 }}%)</small></td>
+                            </tr>
+                            <tr>
                                 <td><i class="fas fa-file-alt text-primary"></i> <strong>Pages vues</strong></td>
                                 <td class="text-end"><span class="badge bg-primary fs-5">{{ total_visits }}</span></td>
                                 <td><small class="text-muted">Total de pages consultées</small></td>
                             </tr>
                             <tr>
-                                <td><i class="fas fa-chart-line text-info"></i> <strong>Pages par visiteur</strong></td>
-                                <td class="text-end"><span class="badge bg-info fs-5">{{ (total_visits / unique_visitors)|round(1) if unique_visitors > 0 else 0 }}</span></td>
+                                <td style="padding-left: 2rem;"><i class="fas fa-eye text-info"></i> Pages vues par humains</td>
+                                <td class="text-end"><span class="badge bg-info">{{ total_humans }}</span></td>
+                                <td><small class="text-muted">{{ (total_humans * 100 / total_visits)|round|int if total_visits > 0 else 0 }}%</small></td>
+                            </tr>
+                            <tr>
+                                <td style="padding-left: 2rem;"><i class="fas fa-robot text-secondary"></i> Pages vues par robots</td>
+                                <td class="text-end"><span class="badge bg-secondary">{{ total_bots }}</span></td>
+                                <td><small class="text-muted">{{ (total_bots * 100 / total_visits)|round|int if total_visits > 0 else 0 }}%</small></td>
+                            </tr>
+                            <tr>
+                                <td><i class="fas fa-chart-line text-warning"></i> <strong>Pages par visiteur</strong></td>
+                                <td class="text-end"><span class="badge bg-warning fs-5">{{ (total_visits / unique_visitors)|round(1) if unique_visitors > 0 else 0 }}</span></td>
                                 <td><small class="text-muted">Moyenne de pages/personne</small></td>
                             </tr>
                             <tr>
-                                <td><i class="fas fa-calendar-day text-warning"></i> <strong>Moyenne quotidienne</strong></td>
-                                <td class="text-end"><span class="badge bg-warning fs-5">{{ (total_visits / days)|round|int }}</span></td>
+                                <td><i class="fas fa-calendar-day text-dark"></i> <strong>Moyenne quotidienne</strong></td>
+                                <td class="text-end"><span class="badge bg-dark fs-5">{{ (total_visits / days)|round|int }}</span></td>
                                 <td><small class="text-muted">Pages vues par jour</small></td>
                             </tr>
                             <tr class="table-active">
@@ -243,14 +263,26 @@
     <div class="row mb-4">
         <div class="col-md-12">
             <div class="card">
-                <div class="card-header">
-                    <h5><i class="fas fa-history"></i> Derniers visiteurs uniques (50 derniers)</h5>
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="fas fa-history"></i> Derniers visiteurs uniques (50 derniers)</h5>
+                    <div class="btn-group btn-group-sm" role="group">
+                        <button class="btn btn-outline-primary active" onclick="filterVisitors('all')" id="btnAll">
+                            <i class="fas fa-globe"></i> Tous ({{ recent_visitors|length }})
+                        </button>
+                        <button class="btn btn-outline-info" onclick="filterVisitors('humans')" id="btnHumans">
+                            <i class="fas fa-user"></i> Humains ({{ unique_humans }})
+                        </button>
+                        <button class="btn btn-outline-secondary" onclick="filterVisitors('bots')" id="btnBots">
+                            <i class="fas fa-robot"></i> Robots ({{ unique_bots }})
+                        </button>
+                    </div>
                 </div>
                 <div class="card-body">
                     <div class="table-responsive">
-                        <table class="table table-sm table-striped">
+                        <table class="table table-sm table-striped" id="visitorsTable">
                             <thead>
                                 <tr>
+                                    <th>Type</th>
                                     <th>Date/Heure</th>
                                     <th>Pages vues</th>
                                     <th>Localisation</th>
@@ -260,13 +292,27 @@
                             </thead>
                             <tbody>
                                 {% for visitor in recent_visitors %}
-                                <tr>
+                                <tr class="visitor-row {% if visitor.is_bot %}visitor-bot{% else %}visitor-human{% endif %}">
+                                    <td>
+                                        {% if visitor.is_bot %}
+                                            <span class="badge bg-secondary" title="Robot/Crawler détecté">
+                                                <i class="fas fa-robot"></i> Robot
+                                            </span>
+                                        {% else %}
+                                            <span class="badge bg-success" title="Visiteur humain">
+                                                <i class="fas fa-user"></i> Humain
+                                            </span>
+                                        {% endif %}
+                                    </td>
                                     <td>{{ visitor.first_visit.strftime('%d/%m/%Y %H:%M:%S') }}</td>
                                     <td>
                                         <span class="badge bg-primary">{{ visitor.page_count }} page{{ 's' if visitor.page_count > 1 else '' }}</span>
                                     </td>
                                     <td>
                                         <small>
+                                            {% if visitor.country and visitor.country != 'France' %}
+                                                <span class="badge bg-warning text-dark" title="Visiteur étranger">{{ visitor.country }}</span>
+                                            {% endif %}
                                             {% if visitor.isp and visitor.city %}
                                                 <strong>{{ visitor.isp }}</strong> {{ visitor.city }}
                                             {% elif visitor.isp %}
@@ -486,5 +532,42 @@ visitsChart = new Chart(ctx, {
         }
     }
 });
+
+// Fonction pour filtrer les visiteurs par type (humains/robots/tous)
+function filterVisitors(type) {
+    const rows = document.querySelectorAll('.visitor-row');
+    const btnAll = document.getElementById('btnAll');
+    const btnHumans = document.getElementById('btnHumans');
+    const btnBots = document.getElementById('btnBots');
+    
+    // Réinitialiser les boutons
+    btnAll.classList.remove('active');
+    btnHumans.classList.remove('active');
+    btnBots.classList.remove('active');
+    
+    // Activer le bouton correspondant
+    if (type === 'all') {
+        btnAll.classList.add('active');
+        rows.forEach(row => row.style.display = '');
+    } else if (type === 'humans') {
+        btnHumans.classList.add('active');
+        rows.forEach(row => {
+            if (row.classList.contains('visitor-human')) {
+                row.style.display = '';
+            } else {
+                row.style.display = 'none';
+            }
+        });
+    } else if (type === 'bots') {
+        btnBots.classList.add('active');
+        rows.forEach(row => {
+            if (row.classList.contains('visitor-bot')) {
+                row.style.display = '';
+            } else {
+                row.style.display = 'none';
+            }
+        });
+    }
+}
 </script>
 {% endblock %}
