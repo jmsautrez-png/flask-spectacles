@@ -2121,7 +2121,7 @@ def register_routes(app: Flask) -> None:
             VisitorLog.ip_anonymized,
             VisitorLog.user_agent,
             VisitorLog.user_id,
-            func.max(VisitorLog.is_bot).label('is_bot')
+            func.bool_or(VisitorLog.is_bot).label('is_bot')  # bool_or pour PostgreSQL
         ).filter(VisitorLog.visited_at >= date_limit).\
             group_by(
                 VisitorLog.session_id,
