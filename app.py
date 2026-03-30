@@ -432,47 +432,24 @@ def create_app() -> Flask:
             
             # Détecter si c'est un robot/crawler
             user_agent_str = request.headers.get('User-Agent', '')[:300]
-            is_bot = is_bot_visitor(user_agent_str, geo_data['isp'])
+            # TEMPORAIREMENT DÉSACTIVÉ - Réactiver après migration
+            # is_bot = is_bot_visitor(user_agent_str, geo_data['isp'])
             
-            # Enregistrer la visite avec géolocalisation et détection de bot
-            # Vérifier si la colonne is_bot existe (compatibilité migration)
-            try:
-                visitor_log = VisitorLog(
-                    page_url=request.path[:300],
-                    referrer=request.referrer[:300] if request.referrer else None,
-                    user_agent=user_agent_str,
-                    ip_anonymized=ip_anonymized,
-                    session_id=session.get('visitor_id'),
-                    user_id=user_id,
-                    city=geo_data['city'],
-                    region=geo_data['region'],
-                    country=geo_data['country'],
-                    isp=geo_data['isp'],
-                    is_bot=is_bot
-                )
-                db.session.add(visitor_log)
-                db.session.commit()
-            except Exception as insert_error:
-                # Si la colonne is_bot n'existe pas encore, insérer sans ce champ
-                db.session.rollback()
-                if 'is_bot' in str(insert_error).lower() or 'column' in str(insert_error).lower():
-                    app.logger.warning(f"[TRACKING] Colonne is_bot manquante, insertion sans ce champ")
-                    visitor_log = VisitorLog(
-                        page_url=request.path[:300],
-                        referrer=request.referrer[:300] if request.referrer else None,
-                        user_agent=user_agent_str,
-                        ip_anonymized=ip_anonymized,
-                        session_id=session.get('visitor_id'),
-                        user_id=user_id,
-                        city=geo_data['city'],
-                        region=geo_data['region'],
-                        country=geo_data['country'],
-                        isp=geo_data['isp']
-                    )
-                    db.session.add(visitor_log)
-                    db.session.commit()
-                else:
-                    raise insert_error
+            # Enregistrer la visite avec géolocalisation (sans is_bot temporairement)
+            visitor_log = VisitorLog(
+                page_url=request.path[:300],
+                referrer=request.referrer[:300] if request.referrer else None,
+                user_agent=user_agent_str,
+                ip_anonymized=ip_anonymized,
+                session_id=session.get('visitor_id'),
+                user_id=user_id,
+                city=geo_data['city'],
+                region=geo_data['region'],
+                country=geo_data['country'],
+                isp=geo_data['isp']
+            )
+            db.session.add(visitor_log)
+            db.session.commit()
         except Exception as e:
             # Ne pas bloquer le site si le tracking échoue
             app.logger.warning(f"[TRACKING] Erreur lors de l'enregistrement: {e}")
@@ -2047,79 +2024,16 @@ def register_routes(app: Flask) -> None:
         # Nombre total de visites sur la période
         total_visits = VisitorLog.query.filter(VisitorLog.visited_at >= date_limit).count()
         
-        # Vérifier si la colonne is_bot existe (gestion migration)
-        try:
-            # Test de la colonne is_bot
-            test_query = VisitorLog.query.filter(VisitorLog.is_bot == True).limit(1).count()
-            has_is_bot_column = True
-        except ProgrammingError:
-            has_is_bot_column = False
-            db.session.rollback()
-        
-        # Si la colonne n'existe pas, afficher un message au lieu d'une erreur 500
-        if not has_is_bot_column:
-            return f"""
-            <html>
-            <head>
-                <title>Migration requise</title>
-                <style>
-                    body {{ font-family: Arial, sans-serif; padding: 40px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; }}
-                    .container {{ max-width: 600px; margin: 0 auto; background: rgba(255,255,255,0.1); padding: 30px; border-radius: 10px; }}
-                    h1 {{ margin-top: 0; }}
-                    a {{ display: inline-block; margin-top: 20px; padding: 12px 24px; background: #4CAF50; color: white; text-decoration: none; border-radius: 5px; }}
-                    a:hover {{ background: #45a049; }}
-                    .warning {{ background: rgba(255,193,7,0.2); padding: 15px; border-left: 4px solid #FFC107; margin: 20px 0; }}
-                </style>
-            </head>
-            <body>
-                <div class="container">
-                    <h1>⚙️ Migration de base de données requise</h1>
-                    <div class="warning">
-                        <strong>⚠️ Action requise</strong><br>
-                        La colonne 'is_bot' n'existe pas encore dans la table visitor_log.
-                    </div>
-                    <p>Pour activer la détection des robots et afficher les statistiques complètes, vous devez exécuter la migration une seule fois.</p>
-                    <h3>📋 Instructions :</h3>
-                    <ol>
-                        <li>Cliquez sur le bouton ci-dessous</li>
-                        <li>Attendez le message de confirmation</li>
-                        <li>Revenez sur cette page</li>
-                    </ol>
-                    <a href="/admin/migrate-is-bot">🚀 Exécuter la migration</a>
-                    <a href="/admin" style="background: #2196F3;">← Retour admin</a>
-                </div>
-            </body>
-            </html>
-            """
-        
-        # Séparation robots vs humains
-        total_bots = VisitorLog.query.filter(
-            VisitorLog.visited_at >= date_limit,
-            VisitorLog.is_bot == True
-        ).count()
-        
-        total_humans = VisitorLog.query.filter(
-            VisitorLog.visited_at >= date_limit,
-            VisitorLog.is_bot == False
-        ).count()
-        
-        # Visiteurs uniques (basé sur session_id)
-        unique_visitors = db.session.query(func.count(func.distinct(VisitorLog.session_id))).\
+        # TEMPORAIREMENT DÉSACTIVÉ - Statistiques robots/humains
+        # Réactiver après avoir exécuté /admin/migrate-is-bot
+        total_bots = 0
+        total_humans = total_visits
+        unique_bots = 0
+        unique_humans = unique_visitors = db.session.query(func.count(func.distinct(VisitorLog.session_id))).\
             filter(VisitorLog.visited_at >= date_limit).scalar()
         
-        # Visiteurs uniques humains (non-bots)
-        unique_humans = db.session.query(func.count(func.distinct(VisitorLog.session_id))).\
-            filter(
-                VisitorLog.visited_at >= date_limit,
-                VisitorLog.is_bot == False
-            ).scalar()
-        
-        # Visiteurs uniques robots
-        unique_bots = db.session.query(func.count(func.distinct(VisitorLog.session_id))).\
-            filter(
-                VisitorLog.visited_at >= date_limit,
-                VisitorLog.is_bot == True
-            ).scalar()
+        # Message d'information
+        migration_needed = True
         
         # Pages les plus visitées
         top_pages = db.session.query(
@@ -2170,8 +2084,8 @@ def register_routes(app: Flask) -> None:
             VisitorLog.isp,
             VisitorLog.ip_anonymized,
             VisitorLog.user_agent,
-            VisitorLog.user_id,
-            func.max(VisitorLog.is_bot).label('is_bot')
+            VisitorLog.user_id
+            # TEMPORAIREMENT RETIRÉ: func.max(VisitorLog.is_bot).label('is_bot')
         ).filter(VisitorLog.visited_at >= date_limit).\
             group_by(
                 VisitorLog.session_id,
@@ -2213,7 +2127,8 @@ def register_routes(app: Flask) -> None:
             active_users=active_users,
             days=days,
             period=period,
-            period_label=period_label
+            period_label=period_label,
+            migration_needed=migration_needed
         )
     
     # Route temporaire pour migration is_bot (À SUPPRIMER après exécution)

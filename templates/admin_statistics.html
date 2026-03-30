@@ -8,6 +8,19 @@
         <div class="col-md-12">
             <h1><i class="fas fa-chart-line"></i> Statistiques des visiteurs</h1>
             <p class="text-muted">Données anonymisées - Conforme RGPD</p>
+            
+            {% if migration_needed %}
+            <div class="alert alert-warning d-flex align-items-center" role="alert">
+                <i class="fas fa-exclamation-triangle me-3 fs-4"></i>
+                <div>
+                    <strong>Détection de robots désactivée</strong><br>
+                    Pour activer la séparation robots/humains, veuillez exécuter la migration : 
+                    <a href="/admin/migrate-is-bot" class="btn btn-sm btn-success ms-2">
+                        <i class="fas fa-cog"></i> Exécuter la migration
+                    </a>
+                </div>
+            </div>
+            {% endif %}
         </div>
     </div>
 
@@ -292,16 +305,22 @@
                             </thead>
                             <tbody>
                                 {% for visitor in recent_visitors %}
-                                <tr class="visitor-row {% if visitor.is_bot %}visitor-bot{% else %}visitor-human{% endif %}">
+                                <tr class="visitor-row">
                                     <td>
-                                        {% if visitor.is_bot %}
-                                            <span class="badge bg-secondary" title="Robot/Crawler détecté">
-                                                <i class="fas fa-robot"></i> Robot
+                                        {% if migration_needed %}
+                                            <span class="badge bg-info" title="Migration is_bot requise">
+                                                <i class="fas fa-user-clock"></i> N/A
                                             </span>
                                         {% else %}
-                                            <span class="badge bg-success" title="Visiteur humain">
-                                                <i class="fas fa-user"></i> Humain
-                                            </span>
+                                            {% if visitor.is_bot %}
+                                                <span class="badge bg-secondary" title="Robot/Crawler détecté">
+                                                    <i class="fas fa-robot"></i> Robot
+                                                </span>
+                                            {% else %}
+                                                <span class="badge bg-success" title="Visiteur humain">
+                                                    <i class="fas fa-user"></i> Humain
+                                                </span>
+                                            {% endif %}
                                         {% endif %}
                                     </td>
                                     <td>{{ visitor.first_visit.strftime('%d/%m/%Y %H:%M:%S') }}</td>

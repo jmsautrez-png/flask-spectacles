@@ -164,113 +164,58 @@
 
 
 <form action="" method="get" class="mobile-search-block"
+      style="display:flex; align-items:center; gap:10px; background:linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); border:2px solid #6d1313; padding:12px 16px; border-radius:16px; margin:0 0 20px; box-shadow:0 4px 12px rgba(109,19,19,0.3); color:#fff;"
       role="search"
       aria-label="Rechercher un spectacle">
-  
-  <!-- Premier bandeau : Recherche catégorie/spectacle -->
-  <div class="search-row search-category">
-    <span aria-hidden="true" style="color:#ffc107; font-size:1.2rem;">🔍</span>
-    <input name="q" value="{{ q or '' }}"
-      placeholder="Recherche catégorie, spectacle, âge..."
-      aria-label="Recherche générale"
-      style="flex:1; border:none; background:rgba(255,255,255,0.1); outline:none; font-size:15px; color:#fff; padding:10px 14px; border-radius:10px;">
-  </div>
-  
-  <!-- Deuxième bandeau : Ville ou région -->
-  <div class="search-row search-location">
-    <span aria-hidden="true" style="color:#ffc107; font-size:1.2rem;">📍</span>
-    <input name="location" value="{{ location or '' }}"
-      placeholder="Ville ou région..."
-      aria-label="Localisation"
-      style="flex:1; border:none; background:rgba(255,255,255,0.1); outline:none; font-size:15px; color:#fff; padding:10px 14px; border-radius:10px;">
-  </div>
-  
-  <!-- Bouton rechercher -->
-  <button type="submit" class="search-submit-btn">
-    Rechercher
-  </button>
+  <span aria-hidden="true" style="color:#ffc107; font-size:1.2rem;">🔍</span>
+  <input name="q" value="{{ q or '' }}"
+    placeholder="Recherche catégorie, spectacle, âge..."
+    aria-label="Recherche générale"
+    style="flex:2; border:none; background:rgba(255,255,255,0.1); outline:none; font-size:15px; color:#fff; padding:8px 12px; border-radius:8px; placeholder-color:#aaa;">
+  <span style="color:#6d1313; font-weight:bold;">|</span>
+  <input name="location" value="{{ location or '' }}"
+    placeholder="Ville ou région..."
+    style="flex:1; border:none; background:rgba(255,255,255,0.1); outline:none; font-size:15px; color:#fff; padding:8px 12px; border-radius:8px;">
+  <button type="submit"
+     style="border:none; background:linear-gradient(135deg, #6d1313 0%, #8b1e1e 100%); color:white; font-weight:700; cursor:pointer; padding:8px 16px; border-radius:10px; box-shadow:0 2px 8px rgba(109,19,19,0.5); transition:all 0.3s;">Rechercher</button>
 </form>
 
 <style>
-.mobile-search-block {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  padding: 16px;
-  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
-  border: 2px solid #6d1313;
-  border-radius: 16px;
-  margin: 0 0 20px;
-  box-shadow: 0 4px 12px rgba(109,19,19,0.3);
-}
-
-.mobile-search-block .search-row {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  background: linear-gradient(135deg, rgba(109,19,19,0.2) 0%, rgba(139,30,30,0.15) 100%);
-  padding: 8px 12px;
-  border-radius: 12px;
-  border: 1px solid rgba(109,19,19,0.3);
-  transition: all 0.3s;
-}
-
-.mobile-search-block .search-row:focus-within {
-  border-color: #6d1313;
-  box-shadow: 0 0 10px rgba(109,19,19,0.4);
-  transform: translateY(-2px);
-}
-
 .mobile-search-block input::placeholder {
   color: #aaa;
   opacity: 1;
 }
 
-.mobile-search-block input:focus {
-  background: rgba(255,255,255,0.15) !important;
-}
-
-.mobile-search-block .search-submit-btn {
-  width: 100%;
-  border: none;
-  background: linear-gradient(135deg, #6d1313 0%, #8b1e1e 100%);
-  color: white;
-  font-weight: 700;
-  cursor: pointer;
-  padding: 12px 16px;
-  border-radius: 12px;
-  box-shadow: 0 3px 10px rgba(109,19,19,0.5);
-  transition: all 0.3s;
-  font-size: 1rem;
-  letter-spacing: 0.5px;
-}
-
-.mobile-search-block .search-submit-btn:hover {
+.mobile-search-block button:hover {
   transform: translateY(-2px);
-  box-shadow: 0 5px 15px rgba(109,19,19,0.7);
+  box-shadow: 0 4px 12px rgba(109,19,19,0.7);
 }
 
-.mobile-search-block .search-submit-btn:active {
+.mobile-search-block button:active {
   transform: translateY(0);
 }
 
-/* Version desktop - tout sur une ligne */
-@media (min-width: 768px) {
+@media (max-width: 600px) {
   .mobile-search-block {
-    flex-direction: row;
-    align-items: center;
-    padding: 12px 16px;
+    flex-direction: column;
+    gap: 8px !important;
+    padding: 14px !important;
   }
   
-  .mobile-search-block .search-row {
-    flex: 1;
-    margin: 0;
+  .mobile-search-block input {
+    width: 100%;
+    flex: none !important;
+    font-size: 14px !important;
   }
   
-  .mobile-search-block .search-submit-btn {
-    width: auto;
-    padding: 10px 24px;
-    flex-shrink: 0;
+  .mobile-search-block span:not([aria-hidden="true"]) {
+    display: none;
+  }
+  
+  .mobile-search-block button {
+    width: 100%;
+    padding: 10px 16px !important;
+    font-size: 1rem !important;
   }
 }
 </style>
