@@ -323,43 +323,6 @@
 
 <!-- Section: Deux blocs principaux côte à côte -->
 <div class="blocs-principaux">
-  <!-- Bloc Collectivités -->
-  <div class="bloc-collectivites">
-    <h2 style="display: flex; align-items: center; justify-content: center; gap: 12px; flex-wrap: wrap;">
-      <span>Mairies, Écoles, CSE, Festival</span>
-      <span style="font-size: 0.85em; color: var(--primary); font-weight: 600;">✅ 100% GRATUIT</span>
-    </h2>
-    <p>Vous organisez un événement pour votre commune, école, comité d'entreprise ou association ? Découvrez notre catalogue de spectacles : spectacle enfants, marionnette, théâtre, concerts...</p>
-    
-    <!-- Bandeau intégré -->
-    <div class="bandeau-interne-collectivite">
-      <h3>Appel d'offre GRATUIT - Un gain de temps considérable</h3>
-      <p class="texte-clignotant" style="font-style:italic; margin-top:12px; font-weight:700; font-size:1.1rem;">
-        Vous ne cherchez plus, ce sont les artistes qui viennent à vous !
-      </p>
-      <p style="font-size:1.05rem; line-height:1.6; margin-top:12px;">
-        Publiez gratuitement votre demande de spectacle, animation, clown, magie, etc. et recevez des propositions ciblées d'artistes professionnels 
-        de votre région, correspondant exactement à votre thème et votre budget.
-      </p>
-      <a href="{{ url_for('demande_animation') }}" class="btn-bandeau">Publier ma demande →</a>
-    </div>
-    
-    <div class="recherches-populaires">
-      <ul>
-        <li><a href="{{ url_for('catalogue', category='Spectacle Enfants') }}">Trouver un spectacle pour Enfants</a></li>
-        <li><a href="{{ url_for('catalogue', category='Spectacle de rue') }}">Spectacle de rue pour fête de village</a></li>
-        <li><a href="{{ url_for('catalogue', category='Spectacle Enfants') }}">Spectacle enfant pour centre culturel</a></li>
-        <li><a href="{{ url_for('catalogue') }}">Spectacle bibliothèque APE</a></li>
-        <li><a href="{{ url_for('ecoles_themes') }}">Intervention pédagogique pour votre école</a></li>
-        <li><a href="{{ url_for('catalogue') }}">Spectacle pour arbre de Noël CSE</a></li>
-      </ul>
-    </div>
-    
-    <div class="text-center">
-      <a href="{{ url_for('catalogue') }}" class="btn-catalogue">Parcourir le catalogue</a>
-    </div>
-  </div>
-  
   <!-- Bloc Artistes -->
   <div class="bloc-artistes">
     <h2 style="display: flex; align-items: center; justify-content: center; gap: 12px; flex-wrap: wrap;">
@@ -449,6 +412,43 @@
           Gestion URSSAF, fiches de salaire, contrats, accompagnement juridique
         </p>
       </div>
+    </div>
+  </div>
+  
+  <!-- Bloc Collectivités -->
+  <div class="bloc-collectivites">
+    <h2 style="display: flex; align-items: center; justify-content: center; gap: 12px; flex-wrap: wrap;">
+      <span>Mairies, Écoles, CSE, Festival</span>
+      <span style="font-size: 0.85em; color: var(--primary); font-weight: 600;">✅ 100% GRATUIT</span>
+    </h2>
+    <p>Vous organisez un événement pour votre commune, école, comité d'entreprise ou association ? Découvrez notre catalogue de spectacles : spectacle enfants, marionnette, théâtre, concerts...</p>
+    
+    <!-- Bandeau intégré -->
+    <div class="bandeau-interne-collectivite">
+      <h3>Appel d'offre GRATUIT - Un gain de temps considérable</h3>
+      <p class="texte-clignotant" style="font-style:italic; margin-top:12px; font-weight:700; font-size:1.1rem;">
+        Vous ne cherchez plus, ce sont les artistes qui viennent à vous !
+      </p>
+      <p style="font-size:1.05rem; line-height:1.6; margin-top:12px;">
+        Publiez gratuitement votre demande de spectacle, animation, clown, magie, etc. et recevez des propositions ciblées d'artistes professionnels 
+        de votre région, correspondant exactement à votre thème et votre budget.
+      </p>
+      <a href="{{ url_for('demande_animation') }}" class="btn-bandeau">Publier ma demande →</a>
+    </div>
+    
+    <div class="recherches-populaires">
+      <ul>
+        <li><a href="{{ url_for('catalogue', category='Spectacle Enfants') }}">Trouver un spectacle pour Enfants</a></li>
+        <li><a href="{{ url_for('catalogue', category='Spectacle de rue') }}">Spectacle de rue pour fête de village</a></li>
+        <li><a href="{{ url_for('catalogue', category='Spectacle Enfants') }}">Spectacle enfant pour centre culturel</a></li>
+        <li><a href="{{ url_for('catalogue') }}">Spectacle bibliothèque APE</a></li>
+        <li><a href="{{ url_for('ecoles_themes') }}">Intervention pédagogique pour votre école</a></li>
+        <li><a href="{{ url_for('catalogue') }}">Spectacle pour arbre de Noël CSE</a></li>
+      </ul>
+    </div>
+    
+    <div class="text-center">
+      <a href="{{ url_for('catalogue') }}" class="btn-catalogue">Parcourir le catalogue</a>
     </div>
   </div>
 </div>
