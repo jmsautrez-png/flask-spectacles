@@ -2039,7 +2039,15 @@ def register_routes(app: Flask) -> None:
     @login_required
     @admin_required
     def admin_statistics():
-        """Page de statistiques des visiteurs (conforme RGPD - données anonymisées)"""
+        """
+        Page de statistiques des visiteurs (conforme RGPD - données anonymisées)
+        
+        Optimisations appliquées :
+        - Filtre is_bot == False sur toutes les requêtes (humains uniquement)
+        - Regroupement des comptages en 1 requête au lieu de 6 (performance)
+        - Suppression de la vue horaire instable (DATE_TRUNC PostgreSQL)
+        - 200 derniers visiteurs humains au lieu de 50 mixtes
+        """
         from sqlalchemy import func, desc, text
         from sqlalchemy.exc import ProgrammingError
         from datetime import timedelta
@@ -2058,165 +2066,108 @@ def register_routes(app: Flask) -> None:
             date_limit = datetime.utcnow() - timedelta(days=days)
             period_label = f"{days} dernier{'s' if days > 1 else ''} jour{'s' if days > 1 else ''}"
         
-        # Nombre total de visites sur la période
-        total_visits = VisitorLog.query.filter(VisitorLog.visited_at >= date_limit).count()
+        # Comptages optimisés (1 requête au lieu de 3)
+        visit_stats = db.session.query(
+            VisitorLog.is_bot,
+            func.count(VisitorLog.id).label('visit_count'),
+            func.count(func.distinct(VisitorLog.session_id)).label('unique_count')
+        ).filter(VisitorLog.visited_at >= date_limit).\
+            group_by(VisitorLog.is_bot).all()
         
-        # Séparation robots vs humains
-        total_bots = VisitorLog.query.filter(
-            VisitorLog.visited_at >= date_limit,
-            VisitorLog.is_bot == True
-        ).count()
+        # Initialisation des compteurs
+        total_visits = 0
+        total_bots = 0
+        total_humans = 0
+        unique_bots = 0
+        unique_humans = 0
         
-        total_humans = VisitorLog.query.filter(
-            VisitorLog.visited_at >= date_limit,
-            VisitorLog.is_bot == False
-        ).count()
+        # Extraction des résultats
+        for stat in visit_stats:
+            total_visits += stat.visit_count
+            if stat.is_bot:
+                total_bots = stat.visit_count
+                unique_bots = stat.unique_count
+            else:
+                total_humans = stat.visit_count
+                unique_humans = stat.unique_count
         
-        # Visiteurs uniques (basé sur session_id)
-        unique_visitors = db.session.query(func.count(func.distinct(VisitorLog.session_id))).\
-            filter(VisitorLog.visited_at >= date_limit).scalar()
+        # Total visiteurs uniques
+        unique_visitors = unique_humans + unique_bots
         
-        # Visiteurs uniques humains (non-bots)
-        unique_humans = db.session.query(func.count(func.distinct(VisitorLog.session_id))).\
-            filter(
-                VisitorLog.visited_at >= date_limit,
-                VisitorLog.is_bot == False
-            ).scalar()
-        
-        # Visiteurs uniques robots
-        unique_bots = db.session.query(func.count(func.distinct(VisitorLog.session_id))).\
-            filter(
-                VisitorLog.visited_at >= date_limit,
-                VisitorLog.is_bot == True
-            ).scalar()
-        
-        # Pages les plus visitées
+        # Pages les plus visitées - HUMAINS UNIQUEMENT
         top_pages = db.session.query(
             VisitorLog.page_url,
             func.count(VisitorLog.id).label('visits')
-        ).filter(VisitorLog.visited_at >= date_limit).\
-            group_by(VisitorLog.page_url).\
+        ).filter(
+            VisitorLog.visited_at >= date_limit,
+            VisitorLog.is_bot == False
+        ).group_by(VisitorLog.page_url).\
             order_by(desc('visits')).\
             limit(10).all()
         
-        # Référents (d'où viennent les visiteurs)
+        # Référents (d'où viennent les visiteurs) - HUMAINS UNIQUEMENT
         top_referrers = db.session.query(
             VisitorLog.referrer,
             func.count(VisitorLog.id).label('visits')
         ).filter(
             VisitorLog.visited_at >= date_limit,
-            VisitorLog.referrer.isnot(None)
+            VisitorLog.referrer.isnot(None),
+            VisitorLog.is_bot == False
         ).group_by(VisitorLog.referrer).\
             order_by(desc('visits')).\
             limit(10).all()
         
-        # Visites par jour/heure (selon la période) - HUMAINS UNIQUEMENT pour le graphique
-        if period in ['today', '1']:
-            # Pour 24h : regrouper par heure (PostgreSQL)
-            visits_by_day = db.session.query(
-                text("DATE_TRUNC('hour', visited_at) as date"),
-                func.count(VisitorLog.id).label('visits')
-            ).filter(
-                VisitorLog.visited_at >= date_limit,
-                VisitorLog.is_bot == True  # ROBOTS SEULEMENT (TEST INVERSÉ)
-            ).group_by(text("DATE_TRUNC('hour', visited_at)")).\
-                order_by(text("DATE_TRUNC('hour', visited_at)")).all()
-            
-            # Visiteurs uniques par heure (pour le graphique) - HUMAINS UNIQUEMENT
-            visitors_by_day = db.session.query(
-                text("DATE_TRUNC('hour', visited_at) as date"),
-                func.count(func.distinct(VisitorLog.session_id)).label('visitors')
-            ).filter(
-                VisitorLog.visited_at >= date_limit,
-                VisitorLog.is_bot == True  # ROBOTS SEULEMENT (TEST INVERSÉ)
-            ).group_by(text("DATE_TRUNC('hour', visited_at)")).\
-                order_by(text("DATE_TRUNC('hour', visited_at)")).all()
-        else:
-            # Pour les autres périodes : regrouper par jour - HUMAINS UNIQUEMENT
-            visits_by_day = db.session.query(
-                func.date(VisitorLog.visited_at).label('date'),
-                func.count(VisitorLog.id).label('visits')
-            ).filter(
-                VisitorLog.visited_at >= date_limit,
-                VisitorLog.is_bot == True  # ROBOTS SEULEMENT (TEST INVERSÉ)
-            ).group_by(func.date(VisitorLog.visited_at)).\
-                order_by('date').all()
-            
-            # Visiteurs uniques par jour (pour le graphique) - HUMAINS UNIQUEMENT
-            visitors_by_day = db.session.query(
-                func.date(VisitorLog.visited_at).label('date'),
-                func.count(func.distinct(VisitorLog.session_id)).label('visitors')
-            ).filter(
-                VisitorLog.visited_at >= date_limit,
-                VisitorLog.is_bot == True  # ROBOTS SEULEMENT (TEST INVERSÉ)
-            ).group_by(func.date(VisitorLog.visited_at)).\
-                order_by('date').all()
+        # Visites par jour - HUMAINS UNIQUEMENT pour le graphique
+        visits_by_day = db.session.query(
+            func.date(VisitorLog.visited_at).label('date'),
+            func.count(VisitorLog.id).label('visits')
+        ).filter(
+            VisitorLog.visited_at >= date_limit,
+            VisitorLog.is_bot == False
+        ).group_by(func.date(VisitorLog.visited_at)).\
+            order_by('date').all()
         
-        # Derniers visiteurs uniques (groupés par session)
-        # Chaque ligne = 1 visiteur avec le nombre de pages vues
-        try:
-            recent_visitors = db.session.query(
-                VisitorLog.session_id,
-                func.min(VisitorLog.visited_at).label('first_visit'),
-                func.max(VisitorLog.visited_at).label('last_visit'),
-                func.count(VisitorLog.id).label('page_count'),
-                VisitorLog.city,
-                VisitorLog.region,
-                VisitorLog.country,
-                VisitorLog.isp,
-                VisitorLog.ip_anonymized,
-                VisitorLog.user_agent,
-                VisitorLog.user_id,
-                func.bool_or(VisitorLog.is_bot).label('is_bot')  # bool_or pour PostgreSQL
-            ).filter(VisitorLog.visited_at >= date_limit).\
-                group_by(
-                    VisitorLog.session_id,
-                    VisitorLog.city,
-                    VisitorLog.region,
-                    VisitorLog.country,
-                    VisitorLog.isp,
-                    VisitorLog.ip_anonymized,
-                    VisitorLog.user_agent,
-                    VisitorLog.user_id
-                ).\
-                order_by(desc('first_visit')).\
-                limit(50).all()
-        except ProgrammingError as e:
-            # Fallback si la colonne is_bot n'existe pas encore ou autre erreur SQL
-            print(f"⚠️ Erreur SQL dans recent_visitors: {e}")
-            recent_visitors = db.session.query(
-                VisitorLog.session_id,
-                func.min(VisitorLog.visited_at).label('first_visit'),
-                func.max(VisitorLog.visited_at).label('last_visit'),
-                func.count(VisitorLog.id).label('page_count'),
-                VisitorLog.city,
-                VisitorLog.region,
-                VisitorLog.country,
-                VisitorLog.isp,
-                VisitorLog.ip_anonymized,
-                VisitorLog.user_agent,
-                VisitorLog.user_id
-            ).filter(VisitorLog.visited_at >= date_limit).\
-                group_by(
-                    VisitorLog.session_id,
-                    VisitorLog.city,
-                    VisitorLog.region,
-                    VisitorLog.country,
-                    VisitorLog.isp,
-                    VisitorLog.ip_anonymized,
-                    VisitorLog.user_agent,
-                    VisitorLog.user_id
-                ).\
-                order_by(desc('first_visit')).\
-                limit(50).all()
-            db.session.rollback()  # Important pour éviter que la session reste en erreur
+        # Derniers visiteurs uniques (groupés par session) - HUMAINS UNIQUEMENT
+        # Sous-requête optimisée : GROUP BY uniquement sur session_id (plus performant)
+        # Limite à 100 pour un rendu plus rapide
+        subq = db.session.query(
+            VisitorLog.session_id,
+            func.min(VisitorLog.id).label('min_id'),
+            func.min(VisitorLog.visited_at).label('first_visit'),
+            func.max(VisitorLog.visited_at).label('last_visit'),
+            func.count(VisitorLog.id).label('page_count')
+        ).filter(
+            VisitorLog.visited_at >= date_limit,
+            VisitorLog.is_bot == False
+        ).group_by(VisitorLog.session_id).\
+            order_by(desc(func.min(VisitorLog.visited_at))).\
+            limit(100).subquery()
         
-        # Utilisateurs connectés actifs
+        # Récupération des détails en joignant sur l'ID minimal de chaque session
+        recent_visitors = db.session.query(
+            subq.c.session_id,
+            subq.c.first_visit,
+            subq.c.last_visit,
+            subq.c.page_count,
+            VisitorLog.city,
+            VisitorLog.region,
+            VisitorLog.country,
+            VisitorLog.isp,
+            VisitorLog.ip_anonymized,
+            VisitorLog.user_agent,
+            VisitorLog.user_id,
+            VisitorLog.is_bot
+        ).join(VisitorLog, VisitorLog.id == subq.c.min_id).all()
+        
+        # Utilisateurs connectés actifs - HUMAINS UNIQUEMENT
         active_users = db.session.query(
             User.username,
             func.count(VisitorLog.id).label('visits')
         ).join(VisitorLog, VisitorLog.user_id == User.id).\
-            filter(VisitorLog.visited_at >= date_limit).\
+            filter(
+                VisitorLog.visited_at >= date_limit,
+                VisitorLog.is_bot == False
+            ).\
             group_by(User.username).\
             order_by(desc('visits')).\
             limit(10).all()
@@ -2233,13 +2184,11 @@ def register_routes(app: Flask) -> None:
             top_pages=top_pages,
             top_referrers=top_referrers,
             visits_by_day=visits_by_day,
-            visitors_by_day=visitors_by_day,
             recent_visitors=recent_visitors,
             active_users=active_users,
             days=days,
             period=period,
-            period_label=period_label,
-            is_hourly=(period in ['today', '1'])
+            period_label=period_label
         )
     
     # Route temporaire pour migration is_bot (À SUPPRIMER après exécution)

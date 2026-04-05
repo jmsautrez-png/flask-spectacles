@@ -264,7 +264,7 @@
         <div class="col-md-12">
             <div class="card">
                 <div class="card-header d-flex justify-content-between align-items-center">
-                    <h5 class="mb-0"><i class="fas fa-history"></i> Derniers visiteurs uniques (50 derniers)</h5>
+                    <h5 class="mb-0"><i class="fas fa-history"></i> Derniers visiteurs uniques (100 derniers visiteurs humains)</h5>
                     <div class="btn-group btn-group-sm" role="group">
                         <button class="btn btn-outline-primary active" onclick="filterVisitors('all')" id="btnAll">
                             <i class="fas fa-globe"></i> Tous ({{ recent_visitors|length }})
@@ -383,40 +383,19 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <script>
 // Données brutes pour le graphique
-const rawDates = [{% for day in visitors_by_day %}'{{ day.date }}'{% if not loop.last %}, {% endif %}{% endfor %}];
-const rawVisitors = [{% for day in visitors_by_day %}{{ day.visitors }}{% if not loop.last %}, {% endif %}{% endfor %}];
-const isHourly = {{ 'true' if is_hourly else 'false' }};
+const rawDates = [{% for day in visits_by_day %}'{{ day.date }}'{% if not loop.last %}, {% endif %}{% endfor %}];
+const rawVisitors = [{% for day in visits_by_day %}{{ day.visits }}{% if not loop.last %}, {% endif %}{% endfor %}];
 
 let currentView = 'day';
 let visitsChart;
 
-// Fonction pour formater les dates/heures
+// Fonction pour formater les dates (Format : "2026-03-30" -> "30/03")
 function formatLabel(dateStr) {
-    if (isHourly) {
-        // Format : "2026-03-30 14:00:00+00" -> "14h"
-        // Extraire l'heure directement de la chaîne
-        let hour = 0;
-        
-        // Essayer plusieurs formats
-        if (typeof dateStr === 'string') {
-            // Format "2026-03-30 14:00:00" ou "2026-03-30T14:00:00"
-            const match = dateStr.match(/(\d{1,2}):(\d{2}):(\d{2})/);
-            if (match) {
-                hour = parseInt(match[1], 10);
-            }
-        }
-        
-        // Afficher 1h à 24h (au lieu de 0h à 23h)
-        const displayHour = hour === 0 ? 24 : hour;
-        return displayHour + 'h';
-    } else {
-        // Format : "2026-03-30" -> "30/03"
-        const parts = dateStr.split('-');
-        if (parts.length >= 3) {
-            return parts[2] + '/' + parts[1];
-        }
-        return dateStr;
+    const parts = dateStr.split('-');
+    if (parts.length >= 3) {
+        return parts[2] + '/' + parts[1];
     }
+    return dateStr;
 }
 
 // Formater les labels initiaux
@@ -497,7 +476,7 @@ visitsChart = new Chart(ctx, {
     data: {
         labels: formattedDates,  // Toujours utiliser les labels formatés
         datasets: [{
-            label: isHourly ? 'Visiteurs humains (par heure)' : 'Visiteurs humains uniques',
+            label: 'Nombre de visites par jour',
             data: rawVisitors,
             borderColor: 'rgb(13, 110, 253)',
             backgroundColor: 'rgba(13, 110, 253, 0.1)',
@@ -528,7 +507,7 @@ visitsChart = new Chart(ctx, {
                 },
                 callbacks: {
                     label: function(context) {
-                        return 'Visiteurs : ' + context.parsed.y;
+                        return 'Visites : ' + context.parsed.y;
                     }
                 }
             }

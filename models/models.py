@@ -211,3 +211,9 @@ class VisitorLog(db.Model):
     
     # Relation avec l'utilisateur (optionnel, si connecté)
     user = db.relationship('User', backref='visit_logs')
+    
+    # Index composite pour optimiser les requêtes fréquentes
+    __table_args__ = (
+        db.Index('idx_visited_at_is_bot', 'visited_at', 'is_bot'),
+        db.Index('idx_session_id_is_bot', 'session_id', 'is_bot'),
+    )
