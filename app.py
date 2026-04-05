@@ -2046,7 +2046,8 @@ def register_routes(app: Flask) -> None:
         - Filtre is_bot == False sur toutes les requêtes (humains uniquement)
         - Regroupement des comptages en 1 requête au lieu de 6 (performance)
         - Suppression de la vue horaire instable (DATE_TRUNC PostgreSQL)
-        - 200 derniers visiteurs humains au lieu de 50 mixtes
+        - 100 derniers visiteurs humains au lieu de 200
+        - Affichage des VISITEURS UNIQUES par jour (COUNT DISTINCT session_id)
         """
         from sqlalchemy import func, desc, text
         from sqlalchemy.exc import ProgrammingError
@@ -2117,10 +2118,10 @@ def register_routes(app: Flask) -> None:
             order_by(desc('visits')).\
             limit(10).all()
         
-        # Visites par jour - HUMAINS UNIQUEMENT pour le graphique
+        # Visiteurs uniques par jour - HUMAINS UNIQUEMENT pour le graphique
         visits_by_day = db.session.query(
             func.date(VisitorLog.visited_at).label('date'),
-            func.count(VisitorLog.id).label('visits')
+            func.count(func.distinct(VisitorLog.session_id)).label('visits')
         ).filter(
             VisitorLog.visited_at >= date_limit,
             VisitorLog.is_bot == False
@@ -2159,6 +2160,9 @@ def register_routes(app: Flask) -> None:
             VisitorLog.is_bot
         ).join(VisitorLog, VisitorLog.id == subq.c.min_id).all()
         
+        # Maximum de visiteurs uniques sur un jour (pour la barre de progression)
+        max_visitors_per_day = max([day.visits for day in visits_by_day]) if visits_by_day else 1
+        
         # Utilisateurs connectés actifs - HUMAINS UNIQUEMENT
         active_users = db.session.query(
             User.username,
@@ -2184,6 +2188,7 @@ def register_routes(app: Flask) -> None:
             top_pages=top_pages,
             top_referrers=top_referrers,
             visits_by_day=visits_by_day,
+            max_visitors_per_day=max_visitors_per_day,
             recent_visitors=recent_visitors,
             active_users=active_users,
             days=days,
