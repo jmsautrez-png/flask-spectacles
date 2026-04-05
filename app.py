@@ -321,13 +321,15 @@ def create_app() -> Flask:
         """Détecte si un visiteur est un robot/crawler basé sur le User-Agent et l'ISP
         
         Retourne True si c'est un robot, False sinon.
+        
+        Amélioration v2 : Liste rouge stricte pour les ISP des géants tech
         """
         if not user_agent:
             return False
         
         user_agent_lower = user_agent.lower()
         
-        # Liste des patterns de robots connus
+        # Liste des patterns de robots connus dans User-Agent
         bot_patterns = [
             'bot', 'crawler', 'spider', 'scraper', 'slurp', 'mediapartners',
             'googlebot', 'bingbot', 'yandexbot', 'baiduspider', 'facebookexternalhit',
@@ -343,24 +345,57 @@ def create_app() -> Flask:
             if pattern in user_agent_lower:
                 return True
         
-        # ISPs connus pour héberger principalement des bots/crawlers
+        # LISTE ROUGE STRICTE : ISPs des géants tech = TOUJOURS des bots/crawlers
+        # Ces entreprises n'ont PAS d'utilisateurs finaux, seulement des serveurs
         if isp:
             isp_lower = isp.lower()
-            bot_isps = [
-                'amazon', 'aws', 'google cloud', 'microsoft corporation',
-                'tencent', 'alibaba', 'digitalocean', 'ovh', 'hetzner',
-                'linode', 'vultr', 'cloudflare', 'fastly'
+            
+            # ISPs des géants tech (crawlers déguisés)
+            critical_bot_isps = [
+                'google llc',
+                'microsoft corporation',
+                'facebook, inc',
+                'facebook inc',
+                'meta platforms',
+                'tencent',
+                'alibaba',
+                'bytedance',
+                'apple inc',
+                'amazon technologies',
+                'twitter, inc',
+                'linkedin corporation',
+                'aceville pte',  # Service de masquage d'IP
+                'ophl',  # Apple Private Relay
+                'pfcloud',  # Privacy service
+                'foundation for applied privacy',  # VPN
+                'gaditek',  # Scraping service
+                'internetvikings',  # Bulletproof hosting
+                'internet vikings',
+                'space exploration technologies'  # Starlink utilisé par bots
             ]
             
-            # Si ISP datacenter ET pas de navigateur reconnu dans User-Agent
-            for bot_isp in bot_isps:
-                if bot_isp in isp_lower:
-                    # Vérifier que ce n'est pas un humain via un VPN
-                    human_browsers = ['chrome', 'firefox', 'safari', 'edge', 'opera']
-                    has_human_browser = any(browser in user_agent_lower for browser in human_browsers)
+            # Si l'ISP est dans la liste rouge → BOT confirmé
+            for critical_isp in critical_bot_isps:
+                if critical_isp in isp_lower:
+                    return True
+            
+            # Data centers et hébergeurs (crawlers potentiels)
+            datacenter_isps = [
+                'ovh', 'hetzner', 'digitalocean', 'linode', 'vultr',
+                'contabo', 'cloudflare', 'fastly', 'akamai',
+                'aws', 'azure', 'google cloud', 'amazon',
+                'host baltic', 'berkah solusi', '1337 services',
+                'meerfarbig', 'cloud computing corporation'
+            ]
+            
+            # Si datacenter ET pas de FAI résidentiel français connu
+            for dc_isp in datacenter_isps:
+                if dc_isp in isp_lower:
+                    # Vérifier si c'est un vrai FAI résidentiel français (whitelist)
+                    trusted_isps = ['orange', 'free', 'sfr', 'bouygues', 'numericable']
+                    is_trusted = any(trusted in isp_lower for trusted in trusted_isps)
                     
-                    # Si pas de navigateur humain reconnu, probablement un bot
-                    if not has_human_browser:
+                    if not is_trusted:
                         return True
         
         return False
