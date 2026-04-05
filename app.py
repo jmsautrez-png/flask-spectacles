@@ -1068,7 +1068,8 @@ def register_routes(app: Flask) -> None:
                                 f"Nom d'utilisateur : {username}\n\n"
                                 f"À très bientôt !\n\n"
                                 f"L'équipe Spectacle'ment VØtre\n"
-                                f"contact@spectacleanimation.fr"
+                                f"contact@spectacleanimation.fr\n\n"
+                                f"Spectacle'ment VØtre n'est pas qu'une simple plateforme de mise en relation. Depuis plus de 30 ans, nous accompagnons les compagnies de spectacle vivant dans la gestion complexe de leur administration artistique et sociale. https://spectacleanimation.fr/abonnement-compagnie"
                             )
                             msg_user = Message(subject="Bienvenue sur Spectacle'ment VØtre !", recipients=[email])  # type: ignore[arg-type]
                             msg_user.body = body_user  # type: ignore[assignment]
@@ -2834,7 +2835,8 @@ def register_routes(app: Flask) -> None:
                         + "Si cette dimension vous intéresse, découvrez notre accompagnement premium :\n"
                         + f"{abonnement_url}\n\n"
                         + "Si vous souhaitez retirer ou modifier votre fiche, contactez-nous par simple retour de mail.\n\n"
-                        + "Spectaclement vôtre,\nL'équipe Spectacle'ment VØtre"
+                        + "Spectaclement vôtre,\nL'équipe Spectacle'ment VØtre\n\n"
+                        + "Spectacle'ment VØtre n'est pas qu'une simple plateforme de mise en relation. Depuis plus de 30 ans, nous accompagnons les compagnies de spectacle vivant dans la gestion complexe de leur administration artistique et sociale. https://spectacleanimation.fr/abonnement-compagnie"
                     )
                 
                 msg = Message(subject=subject, recipients=[to_addr])  # type: ignore[arg-type]
@@ -3574,6 +3576,8 @@ L'équipe Spectacle'ment VØtre
 ---
 Votre spectacle concerné: {show.title}
 Catégorie: {show.category}
+
+Spectacle'ment VØtre n'est pas qu'une simple plateforme de mise en relation. Depuis plus de 30 ans, nous accompagnons les compagnies de spectacle vivant dans la gestion complexe de leur administration artistique et sociale. https://spectacleanimation.fr/abonnement-compagnie
 """
                             msg = Message(
                                 subject=f"Nouvelle opportunité : {demande.genre_recherche} à {demande.lieu_ville}",
@@ -3616,6 +3620,8 @@ Si vous êtes intéressé(e), vous pouvez contacter directement le demandeur.
 
 Cordialement,
 L'équipe Spectacle'ment VØtre
+
+Spectacle'ment VØtre n'est pas qu'une simple plateforme de mise en relation. Depuis plus de 30 ans, nous accompagnons les compagnies de spectacle vivant dans la gestion complexe de leur administration artistique et sociale. https://spectacleanimation.fr/abonnement-compagnie
 """
                         msg = Message(
                             subject=f"Nouvelle opportunité dans votre région : {demande.genre_recherche} à {demande.lieu_ville}",
@@ -4242,3 +4248,9 @@ def admin_demande_ecole_notes(demande_id):
     db.session.commit()
     flash("Notes enregistrées.", "success")
     return redirect(url_for("admin_demande_ecole_detail", demande_id=demande_id))
+
+# -----------------------------------------------------
+# Point d'entrée pour le serveur de développement local
+# -----------------------------------------------------
+if __name__ == "__main__":
+    app.run(debug=True, host="127.0.0.1", port=5000)
