@@ -497,32 +497,51 @@ def create_app() -> Flask:
             user_agent_str = request.headers.get('User-Agent', '')[:300]
             is_bot = is_bot_visitor(user_agent_str, geo_data['isp'])
             
-            # Détection par comportement : >10 pages visitées = bot (scraper)
+            # Ignorer les actualisations rapides (F5) de la même page
             session_id = session.get('visitor_id')
-            if session_id and not is_bot:  # Seulement si pas déjà détecté comme bot
-                # Compter combien de pages cette session a déjà visitées
-                page_count = VisitorLog.query.filter_by(session_id=session_id).count()
-                if page_count >= 10:
-                    # Plus de 10 pages = comportement de scraper/crawler
-                    is_bot = True
-                    app.logger.info(f"[TRACKING] Session {session_id[:20]}... marquée BOT - {page_count+1} pages visitées")
+            should_track = True
             
-            # Enregistrer la visite avec géolocalisation et détection de bot
-            visitor_log = VisitorLog(
-                page_url=request.path[:300],
-                referrer=request.referrer[:300] if request.referrer else None,
-                user_agent=user_agent_str,
-                ip_anonymized=ip_anonymized,
-                session_id=session_id,
-                user_id=user_id,
-                city=geo_data['city'],
-                region=geo_data['region'],
-                country=geo_data['country'],
-                isp=geo_data['isp'],
-                is_bot=is_bot
-            )
-            db.session.add(visitor_log)
-            db.session.commit()
+            if session_id:
+                # Vérifier la dernière visite de cette session
+                last_visit = VisitorLog.query.filter_by(session_id=session_id).order_by(
+                    VisitorLog.visited_at.desc()
+                ).first()
+                
+                if last_visit:
+                    # Si même page visitée il y a moins de 10 secondes : c'est un refresh
+                    time_since_last = datetime.utcnow() - last_visit.visited_at.replace(tzinfo=None)
+                    if (last_visit.page_url == request.path and 
+                        time_since_last.total_seconds() < 10):
+                        should_track = False
+                        app.logger.debug(f"[TRACKING] Actualisation ignorée - même page en {time_since_last.total_seconds():.1f}s")
+            
+            # Ne tracker que si ce n'est pas une actualisation rapide
+            if should_track:
+                # Détection par comportement : >10 pages visitées = bot (scraper)
+                if session_id and not is_bot:  # Seulement si pas déjà détecté comme bot
+                    # Compter combien de pages UNIQUES cette session a visitées
+                    page_count = VisitorLog.query.filter_by(session_id=session_id).count()
+                    if page_count >= 10:
+                        # Plus de 10 pages = comportement de scraper/crawler
+                        is_bot = True
+                        app.logger.info(f"[TRACKING] Session {session_id[:20]}... marquée BOT - {page_count+1} pages visitées")
+                
+                # Enregistrer la visite avec géolocalisation et détection de bot
+                visitor_log = VisitorLog(
+                    page_url=request.path[:300],
+                    referrer=request.referrer[:300] if request.referrer else None,
+                    user_agent=user_agent_str,
+                    ip_anonymized=ip_anonymized,
+                    session_id=session_id,
+                    user_id=user_id,
+                    city=geo_data['city'],
+                    region=geo_data['region'],
+                    country=geo_data['country'],
+                    isp=geo_data['isp'],
+                    is_bot=is_bot
+                )
+                db.session.add(visitor_log)
+                db.session.commit()
         except Exception as e:
             # Ne pas bloquer le site si le tracking échoue
             app.logger.warning(f"[TRACKING] Erreur lors de l'enregistrement: {e}")
