@@ -6,27 +6,48 @@ Les bots sophistiqués (Google LLC, Microsoft Corporation, Facebook Inc., Tencen
 
 **Résultat** : 60+ crawlers de datacenters étaient classés comme "Humains" dans les statistiques.
 
-## ✅ Solution implémentée
+**Problème supplémentaire** : Même avec Starlink (whitelist), certains bots visitaient 100+ pages par session.
 
-### 1. Fonction de détection stricte (`app.py` lignes 320-395)
+## ✅ Solutions implémentées
 
-**LISTE ROUGE CRITIQUE** → **TOUJOURS bots** :
-- Google LLC
-- Microsoft Corporation  
-- Facebook Inc / Meta Platforms
-- Tencent
-- Alibaba
-- Amazon Technologies
-- Apple Inc
-- Twitter, Inc
-- LinkedIn Corporation
-- Autres services cloud/masquage IP
+### 1. Fonction de détection stricte - LISTE BLANCHE (`app.py` lignes 320-395)
 
-**Plus de contournement** : Si l'ISP est dans la liste rouge, c'est un bot **même avec** User-Agent "Chrome/Safari".
+**APPROCHE INVERSÉE** : Au lieu de bloquer les bots, on autorise UNIQUEMENT les FAI français :
 
-### 2. Script de reclassification
+**Liste blanche des FAI résidentiels français** :
+- Orange, Free/Proxad, SFR, Bouygues, Numericable
+- Opérateurs secondaires : La Poste Mobile, NRJ Mobile, Lycamobile, etc.
+- FAI régionaux : Alsatis, Auchan Telecom, etc.
+- Internet satellite : Starlink
 
-`reclassify_bots.py` : Retraite TOUS les logs existants avec la nouvelle détection.
+**Tout le reste = BOT automatiquement** :
+- Google LLC, Microsoft, Facebook → BOT
+- Datacenters (Hivelocity, Oracle, OVH) → BOT
+- IPs non résolues (144.217.0.0) → BOT
+- ISP étrangers → BOT
+
+### 2. Détection comportementale - Limite de pages (`app.py` ligne 505)
+
+**RÈGLE** : **Plus de 10 pages visitées en une session = BOT**
+
+Un humain normal visite rarement plus de 10 pages en une session. Au-delà = scraper/crawler.
+
+**Fonctionnement** :
+- À chaque visite, on compte combien de pages cette `session_id` a déjà visitées
+- Si ≥ 10 pages → Marqué automatiquement comme BOT
+- S'applique même aux FAI français (bloque les crawlers Starlink 129 pages)
+
+**Exemple** :
+```
+Session ABC123... visite 1-10 pages → Humain ✅
+Session ABC123... visite page 11+ → Bot automatique 🚫
+```
+
+### 3. Script de reclassification amélioré
+
+`reclassify_bots.py` : Retraite TOUS les logs existants avec :
+1. Détection par ISP/User-Agent (liste blanche)
+2. Détection par nombre de pages (>10 = bot)
 
 ## 🚀 Déploiement sur Render
 
@@ -36,14 +57,9 @@ Le code est déjà pushé sur GitHub (branche `test_3`). Render va redéployer a
 
 ### Étape 2 : Exécuter la reclassification en production
 
-Une fois le déploiement terminé, connectez-vous en SSH à Render et exécutez :
+Une fois le déploiement terminé, connectez-vous au **Shell Web Render** et exécutez :
 
 ```bash
-# Option A : Depuis le shell Render
-python reclassify_bots.py
-# Taper "oui" quand demandé
-
-# Option B : Via script one-liner  
 echo "oui" | python reclassify_bots.py
 ```
 
@@ -52,54 +68,67 @@ echo "oui" | python reclassify_bots.py
 Le script affichera :
 
 ```
+📊 Analyse des sessions (limite: 10 pages max pour humains)...
+   Sessions suspectes (>10 pages): XX
+      - Session XXX: 129 pages  ← Starlink crawler détecté
+      - Session YYY: 88 pages   ← Autre scraper
+
 📈 AVANT reclassification:
-   Bots: X (X%)
-   Humains: Y (Y%)
+   Bots: 9912 (78.9%)
+   Humains: 2652 (21.1%)
 
 📈 APRÈS reclassification:
-   Bots: X (X%)
-   Humains: Y (Y%)
+   Bots: XXXX (XX%)  ← Encore plus de bots détectés
+   Humains: XXXX (XX%)
 
 📊 CHANGEMENTS:
-   Humain → Bot: XX  ← Google/Microsoft/Facebook reclassés
+   Humain → Bot (ISP/User-Agent): XX
+   Humain → Bot (>10 pages): XX  ← Nouveaux bots détectés
+   Humain → Bot (TOTAL): XXX
 ```
 
 ## 📊 Résultats attendus
 
-D'après vos captures précédentes avec :
-- Google LLC Mountain View
-- Microsoft Corporation Amsterdam  
-- Facebook Inc Prineville
-- Tencent Cloud
-- 50+ autres datacenters
+**Sessions Starlink 129 pages** : Seront reclassées en BOT
 
-**Attendez-vous à voir 50-60+ visiteurs reclassés de "Humain" → "Bot"**
+**Attendez-vous à voir** :
+- 50-60+ visiteurs reclassés de "Humain" → "Bot" (ISP datacenter)
+- 20-30+ sessions reclassées en "Bot" (>10 pages)
+- **Total bots : probablement 85-90%** du trafic
 
 ## ⚡ Impact sur les statistiques
 
 Après la reclassification :
-- ✅ Graphique "Visiteurs uniques" : Données précises (humains seulement)
-- ✅ Tableau journalier : Comptes corrects
-- ✅ Derniers visiteurs : Plus de crawlers Google/Microsoft/Facebook
+- ✅ Graphique "Visiteurs uniques" : **Données ultra-précises** (humains français uniquement, <10 pages)
+- ✅ Tableau journalier : Comptes réalistes
+- ✅ Derniers visiteurs : Plus de crawlers Google/Microsoft/Starlink 129 pages
 
-## 🔍 Vérification
+## 🔍 Vérification en temps réel
 
-Pour vérifier les ISP en production, créez un rapport :
+**Nouvelles visites** : Automatiquement détectées avec les 2 règles :
+1. ISP non français → BOT immédiat
+2. 11ème page visitée → BOT automatique
 
-```python
-python check_visitor_isps.py > rapport_visiteurs.txt
+**Log automatique** : Quand une session atteint 10 pages, vous verrez dans les logs :
+```
+[TRACKING] Session abc123... marquée BOT - 11 pages visitées
 ```
 
-Cela listera les 30 derniers visiteurs avec leurs ISP réels.
+## 📝 Notes importantes
 
-## 📝 Note importante
+### Performance
+La détection par nombre de pages fait un `COUNT(*)` à chaque visite. Cela peut ralentir légèrement le site sur gros trafic. Si nécessaire, on pourra optimiser avec un cache Redis.
 
-Les **nouveaux** visiteurs seront automatiquement détectés avec la nouvelle fonction stricte.
+### Faux positifs
+Un vrai visiteur humain qui visite >10 pages sera marqué bot. C'est un compromis pour bloquer les scrapers. Vous pouvez ajuster la limite (actuellement 10) dans :
+- `app.py` ligne ~508 : `if page_count >= 10:`
+- `reclassify_bots.py` ligne ~97 : `if count > 10:`
 
-Le script `reclassify_bots.py` ne sert qu'à **corriger les anciens logs** déjà enregistrés avec l'ancienne détection permissive.
+### Visiteurs étrangers
+Avec la liste blanche française, tous les visiteurs étrangers (USA, UK, etc.) sont marqués bots. Si vous avez un public international légitime, il faudra élargir la whitelist.
 
 ---
 
-**Commit déployé** : `ec1c4a1` - "🤖 Fix: Détection stricte des bots datacenter"
+**Commit déployé** : `874e57d` - "🚫 Détection comportementale: >10 pages = bot"
 **Branche** : `test_3`
-**Date** : 2026-04-05
+**Date** : 2026-04-06
