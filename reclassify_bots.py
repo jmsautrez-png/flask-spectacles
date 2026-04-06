@@ -76,7 +76,11 @@ def is_bot_visitor(user_agent: str, isp: str = None) -> bool:
         'adista',
         'netissime',
         'ielo',
-        'k-net'
+        'k-net',
+        
+        # Internet satellite
+        'space exploration technologies',  # Starlink
+        'starlink'
     ]
     
     # Vérifier si l'ISP est dans la liste blanche

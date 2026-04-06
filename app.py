@@ -388,7 +388,11 @@ def create_app() -> Flask:
             'adista',
             'netissime',
             'ielo',
-            'k-net'
+            'k-net',
+            
+            # Internet satellite
+            'space exploration technologies',  # Starlink
+            'starlink'
         ]
         
         # Vérifier si l'ISP est dans la liste blanche
