@@ -92,7 +92,7 @@ def is_bot_visitor(user_agent: str, isp: str = None) -> bool:
     return True
 
 def reclassify_all_visitors():
-    """Reclassifie tous les visiteurs avec la nouvelle détection stricte"""
+    """Reclassifie tous les visiteurs avec la nouvelle détection stricte + limite de pages"""
     with app.app_context():
         print("🔍 Récupération de tous les logs de visiteurs...")
         all_visitors = VisitorLog.query.all()
@@ -106,9 +106,26 @@ def reclassify_all_visitors():
         print(f"   Bots: {bots_before} ({bots_before/total*100:.1f}%)")
         print(f"   Humains: {humans_before} ({humans_before/total*100:.1f}%)")
         
+        # ÉTAPE 1: Compter les pages par session
+        print(f"\n📊 Analyse des sessions (limite: 10 pages max pour humains)...")
+        from collections import Counter
+        session_counts = Counter()
+        for visitor in all_visitors:
+            if visitor.session_id:
+                session_counts[visitor.session_id] += 1
+        
+        # Sessions suspectes (>10 pages)
+        suspicious_sessions = {sid: count for sid, count in session_counts.items() if count > 10}
+        print(f"   Sessions suspectes (>10 pages): {len(suspicious_sessions)}")
+        if suspicious_sessions:
+            top_5 = sorted(suspicious_sessions.items(), key=lambda x: x[1], reverse=True)[:5]
+            for sid, count in top_5:
+                print(f"      - Session {sid[:20]}...: {count} pages")
+        
         # Reclassification
         print(f"\n🔄 Reclassification en cours...")
         changed_to_bot = 0
+        changed_to_bot_by_pages = 0
         changed_to_human = 0
         unchanged = 0
         
@@ -117,8 +134,16 @@ def reclassify_all_visitors():
             if (i + 1) % 100 == 0:
                 print(f"   Traitement: {i+1}/{total}...")
             
-            # Calculer nouvelle classification
+            # RÈGLE 1: Détection par User-Agent/ISP
             new_is_bot = is_bot_visitor(visitor.user_agent, visitor.isp)
+            
+            # RÈGLE 2: Détection par nombre de pages (>10 pages = bot)
+            if visitor.session_id and session_counts[visitor.session_id] > 10:
+                if not new_is_bot:  # Si c'était pas déjà un bot détecté par ISP
+                    changed_to_bot_by_pages += 1
+                    if changed_to_bot_by_pages <= 3:  # Afficher les 3 premiers
+                        print(f"   🚫 BOT (>10 pages): {visitor.isp[:50] if visitor.isp else 'N/A'} - {session_counts[visitor.session_id]} pages")
+                new_is_bot = True  # Forcer bot si >10 pages
             
             # Détecter changements
             if visitor.is_bot and not new_is_bot:
@@ -148,7 +173,9 @@ def reclassify_all_visitors():
         print(f"   Humains: {humans_after} ({humans_after/total*100:.1f}%)")
         
         print(f"\n📊 CHANGEMENTS:")
-        print(f"   Humain → Bot: {changed_to_bot}")
+        print(f"   Humain → Bot (ISP/User-Agent): {changed_to_bot - changed_to_bot_by_pages}")
+        print(f"   Humain → Bot (>10 pages): {changed_to_bot_by_pages}")
+        print(f"   Humain → Bot (TOTAL): {changed_to_bot}")
         print(f"   Bot → Humain: {changed_to_human}")
         print(f"   Inchangés: {unchanged}")
         

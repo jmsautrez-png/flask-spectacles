@@ -497,13 +497,23 @@ def create_app() -> Flask:
             user_agent_str = request.headers.get('User-Agent', '')[:300]
             is_bot = is_bot_visitor(user_agent_str, geo_data['isp'])
             
+            # Détection par comportement : >10 pages visitées = bot (scraper)
+            session_id = session.get('visitor_id')
+            if session_id and not is_bot:  # Seulement si pas déjà détecté comme bot
+                # Compter combien de pages cette session a déjà visitées
+                page_count = VisitorLog.query.filter_by(session_id=session_id).count()
+                if page_count >= 10:
+                    # Plus de 10 pages = comportement de scraper/crawler
+                    is_bot = True
+                    app.logger.info(f"[TRACKING] Session {session_id[:20]}... marquée BOT - {page_count+1} pages visitées")
+            
             # Enregistrer la visite avec géolocalisation et détection de bot
             visitor_log = VisitorLog(
                 page_url=request.path[:300],
                 referrer=request.referrer[:300] if request.referrer else None,
                 user_agent=user_agent_str,
                 ip_anonymized=ip_anonymized,
-                session_id=session.get('visitor_id'),
+                session_id=session_id,
                 user_id=user_id,
                 city=geo_data['city'],
                 region=geo_data['region'],
