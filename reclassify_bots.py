@@ -12,7 +12,7 @@ from app import app, db
 from models.models import VisitorLog
 
 def is_bot_visitor(user_agent: str, isp: str = None) -> bool:
-    """Détection stricte des bots (copie de la fonction améliorée dans app.py)"""
+    """Détection stricte des bots avec LISTE BLANCHE (copie exacte de app.py v3)"""
     if not user_agent:
         return False
     
@@ -34,59 +34,58 @@ def is_bot_visitor(user_agent: str, isp: str = None) -> bool:
         if pattern in user_agent_lower:
             return True
     
-    # LISTE ROUGE STRICTE : ISPs des géants tech = TOUJOURS des bots/crawlers
-    if isp:
-        isp_lower = isp.lower()
-        
-        # ISPs des géants tech (crawlers déguisés)
-        critical_bot_isps = [
-            'google llc',
-            'microsoft corporation',
-            'facebook, inc',
-            'facebook inc',
-            'meta platforms',
-            'tencent',
-            'alibaba',
-            'bytedance',
-            'apple inc',
-            'amazon technologies',
-            'twitter, inc',
-            'linkedin corporation',
-            'aceville pte',
-            'ophl',
-            'pfcloud',
-            'foundation for applied privacy',
-            'gaditek',
-            'internetvikings',
-            'internet vikings',
-            'space exploration technologies'
-        ]
-        
-        # Si l'ISP est dans la liste rouge → BOT confirmé
-        for critical_isp in critical_bot_isps:
-            if critical_isp in isp_lower:
-                return True
-        
-        # Data centers et hébergeurs (crawlers potentiels)
-        datacenter_isps = [
-            'ovh', 'hetzner', 'digitalocean', 'linode', 'vultr',
-            'contabo', 'cloudflare', 'fastly', 'akamai',
-            'aws', 'azure', 'google cloud', 'amazon',
-            'host baltic', 'berkah solusi', '1337 services',
-            'meerfarbig', 'cloud computing corporation'
-        ]
-        
-        # Si datacenter ET pas de FAI résidentiel français connu
-        for dc_isp in datacenter_isps:
-            if dc_isp in isp_lower:
-                # Vérifier si c'est un vrai FAI résidentiel français (whitelist)
-                trusted_isps = ['orange', 'free', 'sfr', 'bouygues', 'numericable']
-                is_trusted = any(trusted in isp_lower for trusted in trusted_isps)
-                
-                if not is_trusted:
-                    return True
+    # APPROCHE LISTE BLANCHE : Si pas d'ISP ou ISP inconnu = BOT
+    if not isp or isp == 'N/A':
+        return True  # Pas d'ISP identifié = suspect
     
-    return False
+    isp_lower = isp.lower()
+    
+    # Détection des IPs brutes (non résolues) → TOUJOURS des bots
+    import re
+    if re.match(r'^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$', isp.strip()):
+        return True  # IP non résolue = bot/proxy/datacenter
+    
+    # LISTE BLANCHE : FAI français résidentiels UNIQUEMENT
+    # Tout ce qui n'est PAS dans cette liste = BOT
+    trusted_french_isps = [
+        # Opérateurs principaux
+        'orange',
+        'proxad',  # Free
+        'free sas',
+        'free telecom',
+        'sfr',
+        'societe francaise du radiotelephone',
+        'bouygues',
+        'numericable',
+        
+        # Opérateurs secondaires français
+        'la poste mobile',
+        'transatel',
+        'lycamobile',
+        'nrj mobile',
+        'coriolis',
+        'completel',
+        'neuf',
+        'cegetel',
+        'iliad',  # Maison-mère de Free
+        'outremer telecom',
+        
+        # FAI régionaux français
+        'alsatis',
+        'auchan telecom',
+        'adista',
+        'netissime',
+        'ielo',
+        'k-net'
+    ]
+    
+    # Vérifier si l'ISP est dans la liste blanche
+    for trusted_isp in trusted_french_isps:
+        if trusted_isp in isp_lower:
+            return False  # ISP français reconnu = HUMAIN
+    
+    # Si on arrive ici : ISP inconnu/étranger = BOT
+    return True
 
 def reclassify_all_visitors():
     """Reclassifie tous les visiteurs avec la nouvelle détection stricte"""

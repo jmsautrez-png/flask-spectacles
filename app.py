@@ -322,7 +322,8 @@ def create_app() -> Flask:
         
         Retourne True si c'est un robot, False sinon.
         
-        Amélioration v2 : Liste rouge stricte pour les ISP des géants tech
+        Amélioration v3 : LISTE BLANCHE (whitelist) - Plus restrictif mais infaillible
+        Seuls les FAI français résidentiels sont considérés humains
         """
         if not user_agent:
             return False
@@ -345,60 +346,58 @@ def create_app() -> Flask:
             if pattern in user_agent_lower:
                 return True
         
-        # LISTE ROUGE STRICTE : ISPs des géants tech = TOUJOURS des bots/crawlers
-        # Ces entreprises n'ont PAS d'utilisateurs finaux, seulement des serveurs
-        if isp:
-            isp_lower = isp.lower()
-            
-            # ISPs des géants tech (crawlers déguisés)
-            critical_bot_isps = [
-                'google llc',
-                'microsoft corporation',
-                'facebook, inc',
-                'facebook inc',
-                'meta platforms',
-                'tencent',
-                'alibaba',
-                'bytedance',
-                'apple inc',
-                'amazon technologies',
-                'twitter, inc',
-                'linkedin corporation',
-                'aceville pte',  # Service de masquage d'IP
-                'ophl',  # Apple Private Relay
-                'pfcloud',  # Privacy service
-                'foundation for applied privacy',  # VPN
-                'gaditek',  # Scraping service
-                'internetvikings',  # Bulletproof hosting
-                'internet vikings',
-                'space exploration technologies'  # Starlink utilisé par bots
-            ]
-            
-            # Si l'ISP est dans la liste rouge → BOT confirmé
-            for critical_isp in critical_bot_isps:
-                if critical_isp in isp_lower:
-                    return True
-            
-            # Data centers et hébergeurs (crawlers potentiels)
-            datacenter_isps = [
-                'ovh', 'hetzner', 'digitalocean', 'linode', 'vultr',
-                'contabo', 'cloudflare', 'fastly', 'akamai',
-                'aws', 'azure', 'google cloud', 'amazon',
-                'host baltic', 'berkah solusi', '1337 services',
-                'meerfarbig', 'cloud computing corporation'
-            ]
-            
-            # Si datacenter ET pas de FAI résidentiel français connu
-            for dc_isp in datacenter_isps:
-                if dc_isp in isp_lower:
-                    # Vérifier si c'est un vrai FAI résidentiel français (whitelist)
-                    trusted_isps = ['orange', 'free', 'sfr', 'bouygues', 'numericable']
-                    is_trusted = any(trusted in isp_lower for trusted in trusted_isps)
-                    
-                    if not is_trusted:
-                        return True
+        # APPROCHE LISTE BLANCHE : Si pas d'ISP ou ISP inconnu = BOT
+        if not isp or isp == 'N/A':
+            return True  # Pas d'ISP identifié = suspect
         
-        return False
+        isp_lower = isp.lower()
+        
+        # Détection des IPs brutes (non résolues) → TOUJOURS des bots
+        import re
+        if re.match(r'^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$', isp.strip()):
+            return True  # IP non résolue = bot/proxy/datacenter
+        
+        # LISTE BLANCHE : FAI français résidentiels UNIQUEMENT
+        # Tout ce qui n'est PAS dans cette liste = BOT
+        trusted_french_isps = [
+            # Opérateurs principaux
+            'orange',
+            'proxad',  # Free
+            'free sas',
+            'free telecom',
+            'sfr',
+            'societe francaise du radiotelephone',
+            'bouygues',
+            'numericable',
+            
+            # Opérateurs secondaires français
+            'la poste mobile',
+            'transatel',
+            'lycamobile',
+            'nrj mobile',
+            'coriolis',
+            'completel',
+            'neuf',
+            'cegetel',
+            'iliad',  # Maison-mère de Free
+            'outremer telecom',
+            
+            # FAI régionaux français
+            'alsatis',
+            'auchan telecom',
+            'adista',
+            'netissime',
+            'ielo',
+            'k-net'
+        ]
+        
+        # Vérifier si l'ISP est dans la liste blanche
+        for trusted_isp in trusted_french_isps:
+            if trusted_isp in isp_lower:
+                return False  # ISP français reconnu = HUMAIN
+        
+        # Si on arrive ici : ISP inconnu/étranger = BOT
+        return True
     
     # Fonction de géolocalisation IP (API gratuite ip-api.com)
     def get_ip_geolocation(ip_address):
