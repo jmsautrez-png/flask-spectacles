@@ -3,9 +3,23 @@
 {% block content %}
 <h1>Mes spectacles</h1>
 
+{% if shows|length == 0 %}
+<div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 24px; border-radius: 12px; margin-bottom: 24px; box-shadow: 0 4px 16px rgba(0,0,0,0.15);">
+    <div>
+        <h2 style="margin: 0 0 12px 0; font-size: 1.5rem; color: white;">Bienvenue sur votre espace !</h2>
+        <p style="margin: 0 0 16px 0; font-size: 1.1rem; line-height: 1.6;">
+            Pour recevoir des <strong>appels d'offres</strong> et être contacté par des organisateurs d'événements, vous devez d'abord <strong>publier au moins un spectacle</strong>.
+        </p>
+        <p style="margin: 0; font-size: 1rem; opacity: 0.95; line-height: 1.5;">
+            📢 Créez votre première annonce dès maintenant pour que les écoles, mairies et organisateurs puissent découvrir votre talent !
+        </p>
+    </div>
+</div>
+{% endif %}
+
 <div style="margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
-    <a class="btn publish-btn" href="{{ url_for('publish') }}">
-        + Publier un spectacle
+    <a class="btn publish-btn" href="{{ url_for('publish') }}" style="font-size: 1.1rem; padding: 12px 24px;">
+        ✨ Publier un spectacle
     </a>
     <a href="{{ url_for('change_password') }}" class="btn btn-sm" style="padding:8px 16px; border-radius:6px; font-weight:600; background:#6c757d; color:#fff; text-decoration:none; border: none;">
         🔐 Changer mon mot de passe
@@ -69,7 +83,13 @@
   </article>
 
 {% else %}
-  <p>Vous n'avez pas encore de spectacle publié.</p>
+  <div style="text-align: center; padding: 48px 24px; background: #f8f9fa; border-radius: 12px; border: 2px dashed #dee2e6;">
+    <div style="font-size: 64px; margin-bottom: 16px;">🎪</div>
+    <h3 style="color: #495057; margin-bottom: 12px;">Aucun spectacle publié</h3>
+    <p style="color: #6c757d; font-size: 1.1rem; max-width: 500px; margin: 0 auto 24px;">
+      Cliquez sur le bouton "✨ Publier un spectacle" ci-dessus pour créer votre première annonce et commencer à recevoir des demandes !
+    </p>
+  </div>
 {% endfor %}
 </div>
 
