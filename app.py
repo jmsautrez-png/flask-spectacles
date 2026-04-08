@@ -1124,22 +1124,67 @@ def register_routes(app: Flask) -> None:
                     # Envoi d'un email de bienvenue à l'utilisateur
                     if email:
                         try:
-                            body_user = (
-                                f"Bonjour {username},\n\n"
-                                f"Bienvenue sur Spectacle'ment VØtre !\n\n"
-                                f"Votre compte a été créé avec succès. Vous pouvez maintenant vous connecter et :\n"
-                                f"• Publier vos spectacles et animations gratuitement\n"
-                                f"• Bénéficier d'une visibilité renforcée auprès de notre réseau d'acheteurs\n"
-                                f"• Profiter de notre diffusion gratuite auprès de plus de 100 000 contacts professionnels\n\n"
-                                f"Pour vous connecter : https://www.spectacleanimation.fr/login\n\n"
-                                f"Nom d'utilisateur : {username}\n\n"
-                                f"À très bientôt !\n\n"
-                                f"L'équipe Spectacle'ment VØtre\n"
-                                f"contact@spectacleanimation.fr\n\n"
-                                f"Spectacle'ment VØtre n'est pas qu'une simple plateforme de mise en relation. Depuis plus de 30 ans, nous accompagnons les compagnies de spectacle vivant dans la gestion complexe de leur administration artistique et sociale. https://spectacleanimation.fr/abonnement-compagnie"
-                            )
+                            body_html = f"""
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <style>
+        body {{ font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; }}
+        .logo {{ text-align: center; margin: 20px 0; }}
+        .logo img {{ max-width: 200px; height: auto; }}
+        .content {{ padding: 20px; background-color: #f9f9f9; border-radius: 8px; }}
+        h2 {{ color: #1b2a4e; }}
+        .highlight {{ background-color: #fff; padding: 15px; border-left: 4px solid #6a1b9a; margin: 15px 0; }}
+        ul {{ list-style: none; padding-left: 0; }}
+        ul li {{ padding: 5px 0; }}
+        ul li:before {{ content: "• "; color: #6a1b9a; font-weight: bold; }}
+        .footer {{ text-align: center; margin-top: 20px; color: #666; font-size: 0.9em; }}
+        .btn {{ display: inline-block; padding: 12px 24px; background-color: #6a1b9a; color: white; text-decoration: none; border-radius: 5px; margin: 10px 5px; }}
+    </style>
+</head>
+<body>
+    <div class="logo">
+        <img src="https://www.spectacleanimation.fr/static/img/logo_spectaclement_votre.png" alt="Spectacle'ment Vôtre">
+    </div>
+    <div class="content">
+        <h2>Bonjour {username},</h2>
+        <p><strong>Bienvenue sur Spectacle'ment VØtre !</strong></p>
+        <p>Votre compte a été créé avec succès. Vous pouvez maintenant vous connecter et :</p>
+        <ul>
+            <li>Publier vos spectacles et animations <strong>GRATUITEMENT toute l'année</strong></li>
+            <li>Annoncer vos événements sans limite de temps : <a href="https://www.spectacleanimation.fr/submit" style="color: #6a1b9a; font-weight: bold;">Publiez ici</a></li>
+            <li>Bénéficier d'une visibilité renforcée auprès de notre réseau d'acheteurs</li>
+            <li>Profiter de notre diffusion gratuite auprès de plus de 100 000 contacts professionnels</li>
+        </ul>
+        <p style="text-align: center;">
+            <a href="https://www.spectacleanimation.fr/submit" class="btn">👉 Publiez votre spectacle</a>
+            <a href="https://www.spectacleanimation.fr/login" class="btn">Se connecter</a>
+        </p>
+        <p><strong>Nom d'utilisateur :</strong> {username}</p>
+        <div class="highlight">
+            <h3>💼 BESOIN D'AIDE POUR VOTRE ADMINISTRATION ?</h3>
+            <p>Spectacle'ment VØtre ne se limite pas à la visibilité ! Depuis plus de 30 ans, nous accompagnons les compagnies de spectacle vivant dans la gestion complexe de leur administration artistique et sociale :</p>
+            <ul>
+                <li>Gestion URSSAF, DSN, DUE, AEM</li>
+                <li>Fiches de salaire et contrats de cession</li>
+                <li>Administration complète de votre compagnie</li>
+            </ul>
+            <p style="text-align: center;">
+                <a href="https://spectacleanimation.fr/abonnement-compagnie" class="btn">Découvrez nos services</a>
+            </p>
+        </div>
+        <p>À très bientôt !</p>
+        <div class="footer">
+            <p><strong>L'équipe Spectacle'ment VØtre</strong><br>
+            contact@spectacleanimation.fr</p>
+        </div>
+    </div>
+</body>
+</html>
+"""
                             msg_user = Message(subject="Bienvenue sur Spectacle'ment VØtre !", recipients=[email])  # type: ignore[arg-type]
-                            msg_user.body = body_user  # type: ignore[assignment]
+                            msg_user.html = body_html  # type: ignore[assignment]
                             current_app.mail.send(msg_user)  # type: ignore[attr-defined]
                             current_app.logger.info(f"[MAIL] ✓ Email de bienvenue envoyé à {email}")
                         except Exception as e:
@@ -3569,42 +3614,108 @@ Accessibilité: {accessibilite}
                     # Envoyer l'email à l'adresse réelle
                     if getattr(current_app, "mail", None):
                         try:
-                            body = f"""Bonjour,
-
-Nous avons une nouvelle demande d'animation qui pourrait vous intéresser :
-
-📍 Lieu : {demande.lieu_ville}
-📅 Date(s) : {demande.dates_horaires}
-🎭 Type recherché : {demande.genre_recherche}
-👥 Jauge : {demande.jauge}
-💰 Budget : {demande.budget}
-👶 Âge : {demande.age_range}
-🏢 Type d'espace : {demande.type_espace}
-
-Structure : {demande.structure}
-Contact : {demande.nom}
-Email : {demande.contact_email}
-Téléphone : {demande.telephone}
-
-Contraintes techniques : {demande.contraintes or 'Aucune'}
-Accessibilité : {demande.accessibilite or 'Non précisée'}
-
-Si vous êtes intéressé(e), vous pouvez contacter directement le demandeur.
-
-Cordialement,
-L'équipe Spectacle'ment VØtre
-
----
-Votre spectacle concerné: {show.title}
-Catégorie: {show.category}
-
-Spectacle'ment VØtre n'est pas qu'une simple plateforme de mise en relation. Depuis plus de 30 ans, nous accompagnons les compagnies de spectacle vivant dans la gestion complexe de leur administration artistique et sociale. https://spectacleanimation.fr/abonnement-compagnie
+                            body_html = f"""
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <style>
+        body {{ font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; }}
+        .logo {{ text-align: center; margin: 20px 0; }}
+        .logo img {{ max-width: 200px; height: auto; }}
+        .content {{ padding: 20px; background-color: #f9f9f9; border-radius: 8px; }}
+        h2 {{ color: #1b2a4e; margin-top: 0; }}
+        .opportunity-box {{ background: linear-gradient(135deg, #6a1b9a 0%, #8e44ad 100%); color: white; padding: 20px; border-radius: 8px; margin: 20px 0; }}
+        .opportunity-box h3 {{ margin-top: 0; color: white; }}
+        .info-grid {{ display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 15px 0; }}
+        .info-item {{ background-color: rgba(255,255,255,0.1); padding: 10px; border-radius: 5px; }}
+        .info-label {{ font-weight: bold; font-size: 0.9em; }}
+        .contact-box {{ background-color: #fff; padding: 15px; border-left: 4px solid #6a1b9a; margin: 15px 0; }}
+        .show-info {{ background-color: #e8eaf6; padding: 15px; border-radius: 8px; margin: 15px 0; }}
+        .footer {{ text-align: center; margin-top: 20px; color: #666; font-size: 0.9em; }}
+        .btn {{ display: inline-block; padding: 12px 24px; background-color: #6a1b9a; color: white; text-decoration: none; border-radius: 5px; margin: 10px 0; }}
+    </style>
+</head>
+<body>
+    <div class="logo">
+        <img src="https://www.spectacleanimation.fr/static/img/logo_spectaclement_votre.png" alt="Spectacle'ment Vôtre">
+    </div>
+    <div class="content">
+        <h2>🎭 Nouvelle Opportunité : {demande.intitule}</h2>
+        <p>Bonjour,</p>
+        <p>Bonne nouvelle ! Nous avons reçu une demande d'animation <strong>"{demande.intitule}"</strong> qui correspond parfaitement à votre profil :</p>
+        
+        <div class="opportunity-box">
+            <h3>📋 {demande.intitule}</h3>
+            <div class="info-grid">
+                <div class="info-item">
+                    <div class="info-label">📍 Lieu</div>
+                    {demande.lieu_ville}
+                </div>
+                <div class="info-item">
+                    <div class="info-label">📅 Date(s)</div>
+                    {demande.dates_horaires}
+                </div>
+                <div class="info-item">
+                    <div class="info-label">🎭 Type recherché</div>
+                    {demande.genre_recherche}
+                </div>
+                <div class="info-item">
+                    <div class="info-label">👥 Jauge</div>
+                    {demande.jauge}
+                </div>
+                <div class="info-item">
+                    <div class="info-label">💰 Budget</div>
+                    {demande.budget}
+                </div>
+                <div class="info-item">
+                    <div class="info-label">👶 Public</div>
+                    {demande.age_range}
+                </div>
+            </div>
+            <p><strong>🏢 Type d'espace :</strong> {demande.type_espace}</p>
+            <p><strong>🔧 Contraintes techniques :</strong> {demande.contraintes or 'Aucune'}</p>
+            <p><strong>♿ Accessibilité :</strong> {demande.accessibilite or 'Non précisée'}</p>
+        </div>
+        
+        <div class="contact-box">
+            <h3>📞 Coordonnées du demandeur</h3>
+            <p><strong>Structure :</strong> {demande.structure}<br>
+            <strong>Contact :</strong> {demande.nom}<br>
+            <strong>Email :</strong> <a href="mailto:{demande.contact_email}" style="color: #6a1b9a;">{demande.contact_email}</a><br>
+            <strong>Téléphone :</strong> {demande.telephone}</p>
+            <p style="text-align: center;">
+                <a href="mailto:{demande.contact_email}" class="btn">✉️ Contacter le demandeur</a>
+            </p>
+        </div>
+        
+        <div class="show-info">
+            <p><strong>✨ Votre spectacle concerné :</strong><br>
+            {show.title} - {show.category}</p>
+        </div>
+        
+        <div style="background-color: #e3f2fd; padding: 15px; border-radius: 8px; margin: 15px 0; text-align: center;">
+            <p><strong>🎭 Vous aussi, annoncez vos événements GRATUITEMENT !</strong><br>
+            Publiez vos spectacles toute l'année sans limite de temps.<br>
+            <a href="https://www.spectacleanimation.fr/submit" style="color: #6a1b9a; font-weight: bold;">👉 Publier un spectacle</a></p>
+        </div>
+        
+        <p>💼 <strong>Besoin d'aide pour l'administratif ?</strong> Spectacle'ment VØtre vous accompagne dans toute la gestion de votre compagnie (URSSAF, DSN, contrats, etc.).<br>
+        <a href="https://spectacleanimation.fr/abonnement-compagnie" style="color: #6a1b9a;">En savoir plus</a></p>
+        
+        <div class="footer">
+            <p><strong>L'équipe Spectacle'ment VØtre</strong><br>
+            contact@spectacleanimation.fr</p>
+        </div>
+    </div>
+</body>
+</html>
 """
                             msg = Message(
-                                subject=f"Nouvelle opportunité : {demande.genre_recherche} à {demande.lieu_ville}",
+                                subject=f"🎭 {demande.intitule} - {demande.genre_recherche} à {demande.lieu_ville}",
                                 recipients=[email]
                             )
-                            msg.body = body
+                            msg.html = body_html
                             current_app.mail.send(msg)
                             print(f"[DEBUG] ✅ Email envoyé à {email}")
                             success_count += 1
@@ -3617,38 +3728,102 @@ Spectacle'ment VØtre n'est pas qu'une simple plateforme de mise en relation. De
                 if user.email and user.email not in emails_sent:
                     emails_sent.add(user.email)
                     try:
-                        body = f"""Bonjour,
-
-Nous avons une nouvelle demande d'animation dans votre région qui pourrait vous intéresser :
-
-📍 Lieu : {demande.lieu_ville}
-📅 Date(s) : {demande.dates_horaires}
-🎭 Type recherché : {demande.genre_recherche}
-👥 Jauge : {demande.jauge}
-💰 Budget : {demande.budget}
-👶 Âge : {demande.age_range}
-🏢 Type d'espace : {demande.type_espace}
-
-Structure : {demande.structure}
-Contact : {demande.nom}
-Email : {demande.contact_email}
-Téléphone : {demande.telephone}
-
-Contraintes techniques : {demande.contraintes or 'Aucune'}
-Accessibilité : {demande.accessibilite or 'Non précisée'}
-
-Si vous êtes intéressé(e), vous pouvez contacter directement le demandeur.
-
-Cordialement,
-L'équipe Spectacle'ment VØtre
-
-Spectacle'ment VØtre n'est pas qu'une simple plateforme de mise en relation. Depuis plus de 30 ans, nous accompagnons les compagnies de spectacle vivant dans la gestion complexe de leur administration artistique et sociale. https://spectacleanimation.fr/abonnement-compagnie
+                        body_html = f"""
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <style>
+        body {{ font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; }}
+        .logo {{ text-align: center; margin: 20px 0; }}
+        .logo img {{ max-width: 200px; height: auto; }}
+        .content {{ padding: 20px; background-color: #f9f9f9; border-radius: 8px; }}
+        h2 {{ color: #1b2a4e; margin-top: 0; }}
+        .opportunity-box {{ background: linear-gradient(135deg, #1b2a4e 0%, #355c7d 100%); color: white; padding: 20px; border-radius: 8px; margin: 20px 0; }}
+        .opportunity-box h3 {{ margin-top: 0; color: white; }}
+        .info-grid {{ display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 15px 0; }}
+        .info-item {{ background-color: rgba(255,255,255,0.1); padding: 10px; border-radius: 5px; }}
+        .info-label {{ font-weight: bold; font-size: 0.9em; }}
+        .contact-box {{ background-color: #fff; padding: 15px; border-left: 4px solid #1b2a4e; margin: 15px 0; }}
+        .footer {{ text-align: center; margin-top: 20px; color: #666; font-size: 0.9em; }}
+        .btn {{ display: inline-block; padding: 12px 24px; background-color: #1b2a4e; color: white; text-decoration: none; border-radius: 5px; margin: 10px 0; }}
+    </style>
+</head>
+<body>
+    <div class="logo">
+        <img src="https://www.spectacleanimation.fr/static/img/logo_spectaclement_votre.png" alt="Spectacle'ment Vôtre">
+    </div>
+    <div class="content">
+        <h2>🎭 Nouvelle Opportunité : {demande.intitule}</h2>
+        <p>Bonjour,</p>
+        <p>Nous avons reçu une demande d'animation <strong>"{demande.intitule}"</strong> dans votre région qui pourrait vous intéresser :</p>
+        
+        <div class="opportunity-box">
+            <h3>📋 {demande.intitule}</h3>
+            <div class="info-grid">
+                <div class="info-item">
+                    <div class="info-label">📍 Lieu</div>
+                    {demande.lieu_ville}
+                </div>
+                <div class="info-item">
+                    <div class="info-label">📅 Date(s)</div>
+                    {demande.dates_horaires}
+                </div>
+                <div class="info-item">
+                    <div class="info-label">🎭 Type recherché</div>
+                    {demande.genre_recherche}
+                </div>
+                <div class="info-item">
+                    <div class="info-label">👥 Jauge</div>
+                    {demande.jauge}
+                </div>
+                <div class="info-item">
+                    <div class="info-label">💰 Budget</div>
+                    {demande.budget}
+                </div>
+                <div class="info-item">
+                    <div class="info-label">👶 Public</div>
+                    {demande.age_range}
+                </div>
+            </div>
+            <p><strong>🏢 Type d'espace :</strong> {demande.type_espace}</p>
+            <p><strong>🔧 Contraintes techniques :</strong> {demande.contraintes or 'Aucune'}</p>
+            <p><strong>♿ Accessibilité :</strong> {demande.accessibilite or 'Non précisée'}</p>
+        </div>
+        
+        <div class="contact-box">
+            <h3>📞 Coordonnées du demandeur</h3>
+            <p><strong>Structure :</strong> {demande.structure}<br>
+            <strong>Contact :</strong> {demande.nom}<br>
+            <strong>Email :</strong> <a href="mailto:{demande.contact_email}" style="color: #1b2a4e;">{demande.contact_email}</a><br>
+            <strong>Téléphone :</strong> {demande.telephone}</p>
+            <p style="text-align: center;">
+                <a href="mailto:{demande.contact_email}" class="btn">✉️ Contacter le demandeur</a>
+            </p>
+        </div>
+        
+        <div style="background-color: #e3f2fd; padding: 15px; border-radius: 8px; margin: 15px 0; text-align: center;">
+            <p><strong>🎭 Vous aussi, annoncez vos événements GRATUITEMENT !</strong><br>
+            Publiez vos spectacles toute l'année sans limite de temps.<br>
+            <a href="https://www.spectacleanimation.fr/submit" style="color: #1b2a4e; font-weight: bold;">👉 Publier un spectacle</a></p>
+        </div>
+        
+        <p>💼 <strong>Besoin d'aide pour l'administratif ?</strong> Spectacle'ment VØtre vous accompagne dans toute la gestion de votre compagnie (URSSAF, DSN, contrats, etc.).<br>
+        <a href="https://spectacleanimation.fr/abonnement-compagnie" style="color: #1b2a4e;">En savoir plus</a></p>
+        
+        <div class="footer">
+            <p><strong>L'équipe Spectacle'ment VØtre</strong><br>
+            contact@spectacleanimation.fr</p>
+        </div>
+    </div>
+</body>
+</html>
 """
                         msg = Message(
-                            subject=f"Nouvelle opportunité dans votre région : {demande.genre_recherche} à {demande.lieu_ville}",
+                            subject=f"🎭 {demande.intitule} - {demande.genre_recherche} à {demande.lieu_ville}",
                             recipients=[user.email]
                         )
-                        msg.body = body
+                        msg.html = body_html
                         current_app.mail.send(msg)
                         print(f"[DEBUG] ✅ Email envoyé à {user.email} (utilisateur région)")
                         success_count += 1
