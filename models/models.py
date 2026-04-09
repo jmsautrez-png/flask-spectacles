@@ -26,6 +26,7 @@ class DemandeAnimation(db.Model):
     code_postal = db.Column(db.String(10), nullable=True)  # Code postal
     region = db.Column(db.String(100), nullable=True)  # Région (déduite du code postal)
     is_private = db.Column(db.Boolean, default=False)  # True = visible admin uniquement
+    approved = db.Column(db.Boolean, default=False)  # True = approuvé et publié sur le site
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
 

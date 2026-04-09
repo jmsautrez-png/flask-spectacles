@@ -26,8 +26,24 @@
                             <label class="toggle-label" for="is_private">
                                 <div class="toggle-icon">🔒</div>
                                 <div class="toggle-text">
-                                    <strong>Brouillon privé</strong>
-                                    <span>Ne pas publier sur le site public</span>
+                                    <strong>Mode brouillon (non publié)</strong>
+                                    <span style="display:block; margin-top:4px;">✅ <strong>Coché :</strong> La carte reste privée, visible uniquement par vous en admin</span>
+                                    <span style="display:block; margin-top:2px;">❌ <strong>Décoché :</strong> La carte est publiée et visible par tous les utilisateurs sur le site</span>
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Option de publication -->
+                    <div class="privacy-toggle">
+                        <div class="toggle-container">
+                            <input class="toggle-checkbox" type="checkbox" name="publish_immediately" id="publish_immediately">
+                            <label class="toggle-label" for="publish_immediately">
+                                <div class="toggle-icon">✅</div>
+                                <div class="toggle-text">
+                                    <strong>Publier immédiatement</strong>
+                                    <span style="display:block; margin-top:4px;">✅ <strong>Coché :</strong> L'appel d'offre est visible sur le site dès sa création</span>
+                                    <span style="display:block; margin-top:2px;">❌ <strong>Non coché :</strong> L'appel d'offre sera en attente de validation avant publication</span>
                                 </div>
                             </label>
                         </div>

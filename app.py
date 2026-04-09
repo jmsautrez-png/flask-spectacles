@@ -3411,8 +3411,17 @@ Accessibilité: {accessibilite}
         categorie = request.args.get('categorie', '').strip()
         region = request.args.get('region', '').strip()
         
-        # Base de la requête - TOUJOURS filtrer les demandes privées sur la page publique
-        demandes_query = DemandeAnimation.query.filter(DemandeAnimation.is_private == False).order_by(DemandeAnimation.created_at.desc())
+        # Base de la requête - Filtrer les demandes privées ET non approuvées sur la page publique
+        user = current_user()
+        if user and user.is_admin:
+            # Admin voit toutes les demandes (sauf les privées)
+            demandes_query = DemandeAnimation.query.filter(DemandeAnimation.is_private == False).order_by(DemandeAnimation.created_at.desc())
+        else:
+            # Public voit seulement les demandes approuvées et publiques
+            demandes_query = DemandeAnimation.query.filter(
+                DemandeAnimation.is_private == False,
+                DemandeAnimation.approved == True
+            ).order_by(DemandeAnimation.created_at.desc())
         
         if categorie:
             demandes_query = demandes_query.filter(DemandeAnimation.genre_recherche.ilike(f"%{categorie}%"))
@@ -3445,9 +3454,10 @@ Accessibilité: {accessibilite}
         categorie = request.args.get('categorie', '').strip()
         region = request.args.get('region', '').strip()
         
-        # Les utilisateurs connectés voient toutes les demandes publiques avec toutes les infos
+        # Les utilisateurs connectés voient les demandes publiques approuvées
         demandes_query = DemandeAnimation.query.filter(
-            DemandeAnimation.is_private == False
+            DemandeAnimation.is_private == False,
+            DemandeAnimation.approved == True
         ).order_by(DemandeAnimation.created_at.desc())
         
         if categorie:
@@ -3506,6 +3516,97 @@ Accessibilité: {accessibilite}
             # Rediriger vers la page admin pour voir toutes les demandes et avoir accès au bouton d'envoi
             return redirect(url_for("admin_demandes_animation"))
         return render_template("edit_demande_animation.html", demande=demande, user=current_user())
+
+    @app.route("/admin/approve-demande/<int:demande_id>")
+    @login_required
+    @admin_required
+    def approve_demande_animation(demande_id):
+        """Approuver et publier un appel d'offre, puis envoyer un email à l'auteur"""
+        from models.models import DemandeAnimation
+        demande = DemandeAnimation.query.get_or_404(demande_id)
+        
+        # Vérifier si déjà approuvé
+        if demande.approved:
+            flash("⚠️ Cette demande est déjà publiée.", "warning")
+            return redirect(url_for("admin_demandes_animation"))
+        
+        # Approuver la demande
+        demande.approved = True
+        db.session.commit()
+        
+        # Envoyer un email à l'auteur
+        try:
+            body_html = f"""
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <style>
+        body {{ font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; }}
+        .logo {{ text-align: center; margin: 20px 0; }}
+        .logo img {{ max-width: 200px; height: auto; }}
+        .content {{ padding: 20px; background-color: #f9f9f9; border-radius: 8px; }}
+        h2 {{ color: #1b2a4e; margin-top: 0; }}
+        .success-box {{ background: linear-gradient(135deg, #28a745 0%, #34ce57 100%); color: white; padding: 20px; border-radius: 8px; margin: 20px 0; text-align: center; }}
+        .success-box h3 {{ margin-top: 0; color: white; }}
+        .info-box {{ background-color: #e3f2fd; padding: 15px; border-radius: 8px; margin: 15px 0; }}
+        .footer {{ text-align: center; margin-top: 20px; color: #666; font-size: 0.9em; }}
+        .btn {{ display: inline-block; padding: 12px 24px; background-color: #1976d2; color: white; text-decoration: none; border-radius: 5px; margin: 10px 0; }}
+    </style>
+</head>
+<body>
+    <div class="logo">
+        <img src="https://www.spectacleanimation.fr/static/img/logo_spectaclement_votre.png" alt="Spectacle'ment Vôtre">
+    </div>
+    <div class="content">
+        <div class="success-box">
+            <h3>✅ Votre appel d'offre est maintenant en ligne !</h3>
+        </div>
+        
+        <h2>Félicitations !</h2>
+        <p>Bonjour,</p>
+        <p>Votre appel d'offre <strong>"{demande.intitule or demande.genre_recherche}"</strong> a été validé et est maintenant visible sur notre site.</p>
+        
+        <div class="info-box">
+            <p><strong>📋 Votre demande :</strong></p>
+            <p><strong>Genre recherché :</strong> {demande.genre_recherche}<br>
+            <strong>Lieu :</strong> {demande.lieu_ville}<br>
+            <strong>Date(s) :</strong> {demande.dates_horaires}</p>
+        </div>
+        
+        <p style="text-align: center;">
+            <a href="https://spectacleanimation.fr/demandes-animation" class="btn">👉 Voir mon appel d'offre sur le site</a>
+        </p>
+        
+        <p>Les compagnies de spectacle correspondant à votre recherche vont pouvoir consulter votre demande et vous contacter directement.</p>
+        
+        <div style="background-color: #fff3cd; padding: 15px; border-radius: 8px; margin: 15px 0;">
+            <p><strong>💼 Besoin d'aide pour l'administratif ?</strong><br>
+            Spectacle'ment Vôtre vous accompagne dans toute la gestion de votre compagnie (URSSAF, DSN, contrats, etc.).<br>
+            <a href="https://spectacleanimation.fr/abonnement-compagnie" style="color: #1976d2;">En savoir plus</a></p>
+        </div>
+        
+        <div class="footer">
+            <p><strong>L'équipe Spectacle'ment Vôtre</strong><br>
+            contact@spectacleanimation.fr</p>
+        </div>
+    </div>
+</body>
+</html>
+"""
+            msg = Message(
+                subject=f"✅ Votre appel d'offre est en ligne - {demande.genre_recherche} à {demande.lieu_ville}",
+                recipients=[demande.contact_email]
+            )
+            msg.html = body_html
+            current_app.mail.send(msg)
+            print(f"[DEBUG] ✅ Email de confirmation envoyé à {demande.contact_email}")
+            flash(f"✅ Appel d'offre approuvé et publié ! Email de confirmation envoyé à {demande.contact_email}", "success")
+        except Exception as e:
+            print(f"[MAIL] ❌ Erreur envoi email de confirmation : {e}")
+            flash(f"✅ Appel d'offre approuvé et publié ! ⚠️ Erreur lors de l'envoi de l'email de confirmation.", "warning")
+        
+        return redirect(url_for("admin_demandes_animation"))
 
     @app.route("/admin/demandes-animation")
     @login_required
@@ -3580,6 +3681,7 @@ Accessibilité: {accessibilite}
             contact_email = request.form.get("contact_email", "").strip()
             is_private = request.form.get("is_private") == "on"
             send_emails = request.form.get("send_emails") == "on"
+            publish_immediately = request.form.get("publish_immediately") == "on"
             
             # Si "Autre" est sélectionné, utiliser le genre personnalisé
             autre_genre = request.form.get("autre_genre", "").strip()
@@ -3608,7 +3710,8 @@ Accessibilité: {accessibilite}
                 contraintes=contraintes,
                 accessibilite=accessibilite,
                 contact_email=contact_email,
-                is_private=is_private
+                is_private=is_private,
+                approved=publish_immediately  # Approuvé seulement si demandé
             )
             db.session.add(demande)
             db.session.commit()
@@ -3618,13 +3721,17 @@ Accessibilité: {accessibilite}
                 flash("🔒 Brouillon privé créé ! Non publié sur le site.", "success")
                 return redirect(url_for("demandes_animation"))
             
-            # Si envoi d'emails souhaité, rediriger vers la page d'envoi
-            if send_emails:
-                flash("✅ Carte créée ! Sélectionnez les catégories et régions pour l'envoi.", "success")
-                return redirect(url_for("envoyer_demande_animation", demande_id=demande.id))
+            # Si publication immédiate
+            if publish_immediately:
+                # Si envoi d'emails souhaité, rediriger vers la page d'envoi
+                if send_emails:
+                    flash("✅ Carte créée et publiée ! Sélectionnez les catégories et régions pour l'envoi.", "success")
+                    return redirect(url_for("envoyer_demande_animation", demande_id=demande.id))
+                else:
+                    flash("✅ Appel d'offre publié sur le site (aucun email envoyé).", "success")
+            else:
+                flash("⏳ Appel d'offre créé ! En attente de validation avant publication.", "info")
             
-            # Sinon, carte créée et visible sans email
-            flash("✅ Appel d'offre publié sur le site (aucun email envoyé).", "success")
             return redirect(url_for("demandes_animation"))
 
         return render_template("admin_create_demande.html", user=current_user())

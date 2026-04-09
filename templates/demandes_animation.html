@@ -86,6 +86,16 @@
         🔒 DEMANDE PRIVÉE (Admin uniquement)
       </div>
       {% endif %}
+      {% if user and user.is_admin and not demande.approved %}
+      <div style="background:linear-gradient(135deg, #ff9800 0%, #ffb74d 100%); color:white; padding:6px 12px; border-radius:8px; margin-bottom:0.5rem; text-align:center; font-weight:700;">
+        ⏳ EN ATTENTE DE VALIDATION
+      </div>
+      {% endif %}
+      {% if user and user.is_admin and demande.approved %}
+      <div style="background:linear-gradient(135deg, #28a745 0%, #34ce57 100%); color:white; padding:6px 12px; border-radius:8px; margin-bottom:0.5rem; text-align:center; font-weight:700; font-size:0.85em;">
+        ✅ PUBLIÉ
+      </div>
+      {% endif %}
       <p style="font-size:0.95em;color:#888; margin-bottom:0.3rem;">🕒 Demande créée le {{ demande.created_at.strftime('%d/%m/%Y %H:%M') }}</p>
       <p style="font-size:0.95em;color:#444; margin-bottom:0.3rem;">bonjour nous sommes un(e)</p>
       <div style="display:flex; align-items:center; gap:0.7rem; margin-bottom:0.3rem;">
@@ -124,9 +134,15 @@
       <hr style="margin:0.5rem 0;">
       {% if user and user.is_admin %}
       <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:12px;">
+        {% if not demande.approved %}
+        <a href="{{ url_for('approve_demande_animation', demande_id=demande.id) }}" style="background:linear-gradient(135deg, #28a745 0%, #34ce57 100%);color:#fff;padding:8px 16px;border-radius:8px;font-weight:600;text-decoration:none;flex:1;text-align:center;display:flex;align-items:center;justify-content:center;gap:6px;box-shadow:0 4px 12px rgba(40, 167, 69, 0.3);">
+          ✅ Approuver et publier
+        </a>
+        {% else %}
         <a href="{{ url_for('envoyer_demande_animation', demande_id=demande.id) }}" style="background:#28a745;color:#fff;padding:8px 16px;border-radius:8px;font-weight:600;text-decoration:none;flex:1;text-align:center;display:flex;align-items:center;justify-content:center;gap:6px;">
           📧 Envoyer aux utilisateurs
         </a>
+        {% endif %}
         <a href="{{ url_for('edit_demande_animation', demande_id=demande.id) }}" style="background:#1976d2;color:#fff;padding:8px 16px;border-radius:8px;font-weight:600;text-decoration:none;flex:1;text-align:center;">
           ✏️ Modifier
         </a>
