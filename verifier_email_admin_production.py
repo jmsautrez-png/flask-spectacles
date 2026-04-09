@@ -17,7 +17,7 @@ with app.app_context():
     
     # Récupérer l'admin via SQL direct
     result = db.session.execute(
-        text("SELECT id, username, email, is_admin FROM \"user\" WHERE is_admin = TRUE LIMIT 1")
+        text("SELECT id, username, email, is_admin FROM users WHERE is_admin = TRUE LIMIT 1")
     ).fetchone()
     
     if result:
@@ -33,7 +33,7 @@ with app.app_context():
             print("📧 Ajout de l'email: contact@spectacleanimation.fr")
             
             db.session.execute(
-                text("UPDATE \"user\" SET email = :email WHERE id = :user_id"),
+                text("UPDATE users SET email = :email WHERE id = :user_id"),
                 {"email": "contact@spectacleanimation.fr", "user_id": user_id}
             )
             db.session.commit()
@@ -42,7 +42,7 @@ with app.app_context():
             
             # Vérification
             result_check = db.session.execute(
-                text("SELECT email FROM \"user\" WHERE id = :user_id"),
+                text("SELECT email FROM users WHERE id = :user_id"),
                 {"user_id": user_id}
             ).fetchone()
             
