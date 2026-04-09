@@ -3,164 +3,195 @@
 {% block title %}Gestion des demandes d'animation - Admin{% endblock %}
 
 {% block content %}
-<div class="container-fluid my-4">
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="d-flex justify-content-between align-items-center">
-                <h2>📋 Gestion des demandes d'animation</h2>
-                <a href="{{ url_for('admin_create_demande_animation') }}" class="btn btn-success btn-lg">
-                    ➕ Créer une demande
-                </a>
-            </div>
-        </div>
-    </div>
 
-    <!-- Statistiques -->
-    <div class="row mb-4">
-        <div class="col-md-4">
-            <div class="card text-white bg-primary">
-                <div class="card-body">
-                    <h5 class="card-title">📊 Total</h5>
-                    <h2 class="mb-0">{{ nb_privees + nb_publiques }}</h2>
-                    <small>demandes au total</small>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-4">
-            <div class="card text-white bg-danger">
-                <div class="card-body">
-                    <h5 class="card-title">🔒 Privées</h5>
-                    <h2 class="mb-0">{{ nb_privees }}</h2>
-                    <small>visibles uniquement par vous</small>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-4">
-            <div class="card text-white bg-success">
-                <div class="card-body">
-                    <h5 class="card-title">🌐 Publiques</h5>
-                    <h2 class="mb-0">{{ nb_publiques }}</h2>
-                    <small>visibles par tous</small>
-                </div>
-            </div>
-        </div>
-    </div>
+<h1>📋 Gestion des demandes d'animation</h1>
 
-    <!-- Filtres -->
-    <div class="card mb-4">
-        <div class="card-header bg-light">
-            <h5 class="mb-0">🔍 Filtres</h5>
+<div style="margin-bottom: 24px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+  <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+    <div style="background:#1a237e; padding:12px 20px; border-radius:8px; color:#fff;">
+      <div style="font-size:0.8rem; opacity:0.8;">Total</div>
+      <div style="font-size:1.5rem; font-weight:700;">{{ nb_privees + nb_publiques }}</div>
+    </div>
+    <div style="background:#ff9800; padding:12px 20px; border-radius:8px; color:#fff;">
+      <div style="font-size:0.8rem; opacity:0.8;">⏳ En attente</div>
+      <div style="font-size:1.5rem; font-weight:700;">{{ nb_en_attente }}</div>
+    </div>
+    <div style="background:#dc3545; padding:12px 20px; border-radius:8px; color:#fff;">
+      <div style="font-size:0.8rem; opacity:0.8;">🔒 Privées</div>
+      <div style="font-size:1.5rem; font-weight:700;">{{ nb_privees }}</div>
+    </div>
+    <div style="background:#28a745; padding:12px 20px; border-radius:8px; color:#fff;">
+      <div style="font-size:0.8rem; opacity:0.8;">✅ Publiques</div>
+      <div style="font-size:1.5rem; font-weight:700;">{{ nb_publiques }}</div>
+    </div>
+  </div>
+  <a href="{{ url_for('admin_create_demande_animation') }}" style="padding:10px 18px; border-radius:8px; font-weight:600; background:#28a745; color:#fff; text-decoration:none;">
+    ➕ Créer une demande
+  </a>
+</div>
+
+<!-- Section EN ATTENTE DE VALIDATION -->
+{% if pending %}
+<h2 style="color:#ff9800; margin-bottom:16px;">⏳ EN ATTENTE DE VALIDATION ({{ pending|length }})</h2>
+<p style="color:var(--muted); margin-bottom:24px;">Ces demandes doivent être validées avant d'apparaître sur le site public</p>
+
+<div class="cards">
+{% for demande in pending %}
+    <article class="card" style="border-color:#ff9800;">
+        <div class="media">
+            <div class="placeholder" style="background:linear-gradient(135deg, #ff9800, #ff5722); display:flex; align-items:center; justify-content:center; font-size:3rem;">
+                📋
+            </div>
         </div>
-        <div class="card-body">
-            <form method="get" class="row g-3">
-                <div class="col-md-3">
-                    <label for="filtre" class="form-label">Type</label>
-                    <select class="form-select" name="filtre" id="filtre">
-                        <option value="">Toutes les demandes</option>
-                        <option value="privees" {% if filtre == 'privees' %}selected{% endif %}>🔒 Demandes privées</option>
-                        <option value="publiques" {% if filtre == 'publiques' %}selected{% endif %}>🌐 Demandes publiques</option>
-                    </select>
-                </div>
-                <div class="col-md-3">
-                    <label for="categorie" class="form-label">Catégorie</label>
-                    <input type="text" class="form-control" name="categorie" id="categorie" value="{{ categorie }}" placeholder="Ex: Magie, Clown...">
-                </div>
-                <div class="col-md-3">
-                    <label for="region" class="form-label">Région</label>
-                    <input type="text" class="form-control" name="region" id="region" value="{{ region }}" placeholder="Ex: Paris, Lyon...">
-                </div>
-                <div class="col-md-3 d-flex align-items-end">
-                    <button type="submit" class="btn btn-primary w-100">Filtrer</button>
-                </div>
+
+        <div class="content">
+            <h3>{{ demande.intitule or demande.structure }}</h3>
+            <p class="meta">{{ demande.genre_recherche }} • {{ demande.lieu_ville }}</p>
+            <p class="meta">{{ demande.dates_horaires }}</p>
+            
+            <div style="background:#1a1a1e;padding:8px;border-radius:6px;margin:8px 0;font-size:0.8rem;">
+                <div>🏢 <strong>Structure:</strong> {{ demande.structure }}</div>
+                <div>👤 <strong>Contact:</strong> {{ demande.nom }}</div>
+                <div>📍 <strong>Lieu:</strong> {{ demande.lieu_ville }} ({{ demande.code_postal }})</div>
+                <div>📧 <strong>Email:</strong> {{ demande.contact_email }}</div>
+                <div>📱 <strong>Téléphone:</strong> {{ demande.telephone }}</div>
+                <div>💰 <strong>Budget:</strong> {{ demande.budget }} €</div>
+                <div>👥 <strong>Jauge:</strong> {{ demande.jauge }} personnes</div>
+                {% if demande.contraintes %}
+                <div>⚠️ <strong>Contraintes:</strong> {{ demande.contraintes[:50] }}{% if demande.contraintes|length > 50 %}...{% endif %}</div>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="actions">
+            <a href="{{ url_for('approve_demande_animation', demande_id=demande.id) }}" style="flex:1; display:flex; align-items:center; justify-content:center; background:var(--ok); color:#fff; text-decoration:none; padding:12px; border-radius:6px;">
+                ✅ Valider
+            </a>
+            <a href="{{ url_for('edit_demande_animation', demande_id=demande.id) }}" style="flex:1; display:flex; align-items:center; justify-content:center;">
+                Modifier
+            </a>
+            <form action="{{ url_for('delete_demande_animation', demande_id=demande.id) }}" method="post"
+                  onsubmit="return confirm('Supprimer cette demande ?');" style="flex:1; margin:0;">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                <button type="submit" class="danger" style="width:100%;">Supprimer</button>
             </form>
         </div>
-    </div>
-
-    <!-- Liste des demandes -->
-    {% if demandes %}
-    <div class="table-responsive">
-        <table class="table table-hover table-striped">
-            <thead class="table-dark">
-                <tr>
-                    <th width="5%">Type</th>
-                    <th width="15%">Structure</th>
-                    <th width="10%">Genre</th>
-                    <th width="10%">Lieu</th>
-                    <th width="10%">Date(s)</th>
-                    <th width="8%">Budget</th>
-                    <th width="8%">Jauge</th>
-                    <th width="12%">Contact</th>
-                    <th width="10%">Créée le</th>
-                    <th width="12%">Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for demande in demandes %}
-                <tr {% if demande.is_private %}class="table-danger"{% endif %}>
-                    <td>
-                        {% if demande.is_private %}
-                            <span class="badge bg-danger">🔒 Privée</span>
-                        {% else %}
-                            <span class="badge bg-success">🌐 Public</span>
-                        {% endif %}
-                    </td>
-                    <td><strong>{{ demande.structure }}</strong></td>
-                    <td>{{ demande.genre_recherche }}</td>
-                    <td>{{ demande.lieu_ville }}</td>
-                    <td><small>{{ demande.dates_horaires }}</small></td>
-                    <td>{{ demande.budget }} €</td>
-                    <td>{{ demande.jauge }}</td>
-                    <td>
-                        <small>
-                            {{ demande.nom }}<br>
-                            {{ demande.telephone }}<br>
-                            <a href="mailto:{{ demande.contact_email }}">{{ demande.contact_email }}</a>
-                        </small>
-                    </td>
-                    <td><small>{{ demande.created_at.strftime('%d/%m/%Y %H:%M') }}</small></td>
-                    <td>
-                        <div class="btn-group-vertical btn-group-sm" role="group">
-                            <a href="{{ url_for('envoyer_demande_animation', demande_id=demande.id) }}" class="btn btn-success btn-sm">
-                                📧 Envoyer
-                            </a>
-                            <a href="{{ url_for('edit_demande_animation', demande_id=demande.id) }}" class="btn btn-primary btn-sm">
-                                ✏️ Modifier
-                            </a>
-                            <form method="post" action="{{ url_for('delete_demande_animation', demande_id=demande.id) }}" style="display:inline;" onsubmit="return confirm('Supprimer cette demande ?')">
-                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-                                <button type="submit" class="btn btn-danger btn-sm w-100">
-                                    🗑️ Supprimer
-                                </button>
-                            </form>
-                        </div>
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
-
-    <!-- Pagination -->
-    {% if nb_pages > 1 %}
-    <nav aria-label="Pagination">
-        <ul class="pagination justify-content-center">
-            {% for p in range(1, nb_pages + 1) %}
-                <li class="page-item {% if p == page %}active{% endif %}">
-                    <a class="page-link" href="?page={{ p }}&filtre={{ filtre }}&categorie={{ categorie }}&region={{ region }}">{{ p }}</a>
-                </li>
-            {% endfor %}
-        </ul>
-        <p class="text-center text-muted">
-            Page {{ page }} sur {{ nb_pages }} ({{ total }} demande{{ 's' if total > 1 else '' }})
-        </p>
-    </nav>
-    {% endif %}
-
-    {% else %}
-    <div class="alert alert-info text-center">
-        <h4>Aucune demande d'animation</h4>
-        <p>Créez votre première demande en cliquant sur le bouton "➕ Créer une demande" ci-dessus.</p>
-    </div>
-    {% endif %}
+    </article>
+{% endfor %}
 </div>
+{% else %}
+<p style="color:var(--muted);">✅ Aucune demande en attente de validation.</p>
+{% endif %}
+
+<hr>
+
+<h2>📚 Toutes les demandes</h2>
+
+<!-- Filtres -->
+<div style="background:var(--bg-secondary); padding:20px; border-radius:8px; margin-bottom:24px;">
+    <form method="get" style="display:flex; gap:12px; flex-wrap:wrap; align-items:end;">
+        <div style="flex:1; min-width:150px;">
+            <label style="display:block; margin-bottom:6px; font-size:0.85rem; color:var(--muted);">Type</label>
+            <select name="filtre" style="width:100%; padding:8px; border-radius:6px; background:var(--bg); color:var(--text); border:1px solid var(--border);">
+                <option value="">Toutes les demandes</option>
+                <option value="privees" {% if filtre == 'privees' %}selected{% endif %}>🔒 Demandes privées</option>
+                <option value="publiques" {% if filtre == 'publiques' %}selected{% endif %}>🌐 Demandes publiques</option>
+            </select>
+        </div>
+        <div style="flex:1; min-width:150px;">
+            <label style="display:block; margin-bottom:6px; font-size:0.85rem; color:var(--muted);">Catégorie</label>
+            <input type="text" name="categorie" value="{{ categorie }}" placeholder="Ex: Magie, Clown..." style="width:100%; padding:8px; border-radius:6px; background:var(--bg); color:var(--text); border:1px solid var(--border);">
+        </div>
+        <div style="flex:1; min-width:150px;">
+            <label style="display:block; margin-bottom:6px; font-size:0.85rem; color:var(--muted);">Région</label>
+            <input type="text" name="region" value="{{ region }}" placeholder="Ex: Paris, Lyon..." style="width:100%; padding:8px; border-radius:6px; background:var(--bg); color:var(--text); border:1px solid var(--border);">
+        </div>
+        <button type="submit" style="padding:8px 20px; border-radius:6px; background:var(--primary); color:#fff; border:none; font-weight:600; cursor:pointer;">
+            Filtrer
+        </button>
+    </form>
+</div>
+
+<!-- Liste des demandes en cartes -->
+{% if demandes %}
+<div class="cards">
+{% for demande in demandes %}
+    <article class="card" {% if demande.is_private %}style="border-color:#dc3545;"{% endif %}>
+        <div class="media">
+            <div class="placeholder" style="background:{% if demande.is_private %}linear-gradient(135deg, #dc3545, #c82333){% elif demande.approved %}linear-gradient(135deg, #28a745, #218838){% else %}linear-gradient(135deg, #6c757d, #5a6268){% endif %}; display:flex; align-items:center; justify-content:center; font-size:3rem;">
+                {% if demande.is_private %}🔒{% elif demande.approved %}✅{% else %}⏳{% endif %}
+            </div>
+        </div>
+
+        <div class="content">
+            <h3>{{ demande.intitule or demande.structure }}</h3>
+            <p class="meta">{{ demande.genre_recherche }} • {{ demande.lieu_ville }}</p>
+            <p class="meta">{{ demande.dates_horaires }}</p>
+            
+            <!-- Badge de statut -->
+            <div style="margin:8px 0;">
+                {% if demande.is_private %}
+                    <span style="background:#dc3545; color:#fff; padding:4px 10px; border-radius:12px; font-size:0.75rem; font-weight:600;">🔒 PRIVÉE</span>
+                {% elif demande.approved %}
+                    <span style="background:#28a745; color:#fff; padding:4px 10px; border-radius:12px; font-size:0.75rem; font-weight:600;">✅ PUBLIÉE</span>
+                {% else %}
+                    <span style="background:#ff9800; color:#fff; padding:4px 10px; border-radius:12px; font-size:0.75rem; font-weight:600;">⏳ EN ATTENTE</span>
+                {% endif %}
+            </div>
+            
+            <div style="background:#1a1a1e;padding:8px;border-radius:6px;margin:8px 0;font-size:0.8rem;">
+                <div>🏢 <strong>Structure:</strong> {{ demande.structure }}</div>
+                <div>👤 <strong>Contact:</strong> {{ demande.nom }}</div>
+                <div>📍 <strong>Lieu:</strong> {{ demande.lieu_ville }} ({{ demande.code_postal }})</div>
+                <div>📧 <strong>Email:</strong> {{ demande.contact_email }}</div>
+                <div>📱 <strong>Téléphone:</strong> {{ demande.telephone }}</div>
+                <div>💰 <strong>Budget:</strong> {{ demande.budget }} €</div>
+                <div>👥 <strong>Jauge:</strong> {{ demande.jauge }} personnes</div>
+            </div>
+        </div>
+
+        <div class="actions">
+            {% if not demande.approved and not demande.is_private %}
+                <a href="{{ url_for('approve_demande_animation', demande_id=demande.id) }}" style="flex:1; display:flex; align-items:center; justify-content:center; background:var(--ok); color:#fff; text-decoration:none; padding:12px; border-radius:6px;">
+                    ✅ Valider
+                </a>
+            {% else %}
+                <a href="{{ url_for('envoyer_demande_animation', demande_id=demande.id) }}" style="flex:1; display:flex; align-items:center; justify-content:center; background:#28a745; color:#fff; text-decoration:none; padding:12px; border-radius:6px;">
+                    📧 Envoyer
+                </a>
+            {% endif %}
+            <a href="{{ url_for('edit_demande_animation', demande_id=demande.id) }}" style="flex:1; display:flex; align-items:center; justify-content:center;">
+                Modifier
+            </a>
+            <form action="{{ url_for('delete_demande_animation', demande_id=demande.id) }}" method="post"
+                  onsubmit="return confirm('Supprimer cette demande ?');" style="flex:1; margin:0;">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                <button type="submit" class="danger" style="width:100%;">Supprimer</button>
+            </form>
+        </div>
+    </article>
+{% endfor %}
+</div>
+
+<!-- Pagination -->
+{% if nb_pages > 1 %}
+<div style="margin-top:32px; text-align:center;">
+    <div style="display:inline-flex; gap:6px; flex-wrap:wrap; justify-content:center;">
+        {% for p in range(1, nb_pages + 1) %}
+            <a href="?page={{ p }}&filtre={{ filtre }}&categorie={{ categorie }}&region={{ region }}" 
+               style="padding:8px 14px; border-radius:6px; text-decoration:none; {% if p == page %}background:var(--primary); color:#fff; font-weight:600;{% else %}background:var(--bg-secondary); color:var(--text);{% endif %}">
+                {{ p }}
+            </a>
+        {% endfor %}
+    </div>
+    <p style="color:var(--muted); margin-top:16px; font-size:0.9rem;">
+        Page {{ page }} sur {{ nb_pages }} ({{ total }} demande{{ 's' if total > 1 else '' }})
+    </p>
+</div>
+{% endif %}
+
+{% else %}
+<p style="color:var(--muted);">Aucune demande trouvée avec ces critères.</p>
+{% endif %}
+
 {% endblock %}

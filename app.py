@@ -3620,6 +3620,12 @@ Accessibilité: {accessibilite}
         region = request.args.get('region', '').strip()
         filtre = request.args.get('filtre', '').strip()  # 'privees', 'publiques', ou '' (toutes)
         
+        # Demandes EN ATTENTE de validation (approved=False, is_private=False)
+        pending = DemandeAnimation.query.filter(
+            DemandeAnimation.is_private.is_(False),
+            DemandeAnimation.approved.is_(False)
+        ).order_by(DemandeAnimation.created_at.desc()).all()
+        
         # Base de la requête - l'admin voit TOUTES les demandes
         demandes_query = DemandeAnimation.query.order_by(DemandeAnimation.created_at.desc())
         
@@ -3641,9 +3647,11 @@ Accessibilité: {accessibilite}
         # Compter les demandes privées et publiques
         nb_privees = DemandeAnimation.query.filter(DemandeAnimation.is_private.is_(True)).count()
         nb_publiques = DemandeAnimation.query.filter(DemandeAnimation.is_private.is_(False)).count()
+        nb_en_attente = len(pending)
         
         return render_template(
             "admin_demandes_animation.html", 
+            pending=pending,
             demandes=demandes, 
             page=page, 
             nb_pages=nb_pages, 
@@ -3651,6 +3659,7 @@ Accessibilité: {accessibilite}
             per_page=per_page,
             nb_privees=nb_privees,
             nb_publiques=nb_publiques,
+            nb_en_attente=nb_en_attente,
             filtre=filtre,
             categorie=categorie,
             region=region,
