@@ -3725,6 +3725,100 @@ Accessibilité: {accessibilite}
             db.session.add(demande)
             db.session.commit()
 
+            # Envoyer un email récapitulatif à l'admin à chaque création
+            admin_email = current_user().email if current_user() and current_user().email else None
+            if admin_email and getattr(current_app, "mail", None):
+                try:
+                    body_html = f"""
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <style>
+        body {{ font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; }}
+        .logo {{ text-align: center; margin: 20px 0; }}
+        .logo img {{ max-width: 200px; height: auto; }}
+        .content {{ padding: 20px; background-color: #f9f9f9; border-radius: 8px; }}
+        h2 {{ color: #1b2a4e; margin-top: 0; }}
+        .create-notice {{ background: linear-gradient(135deg, #4caf50 0%, #66bb6a 100%); color: white; padding: 15px; border-radius: 8px; margin: 20px 0; text-align: center; font-weight: bold; }}
+        .info-box {{ background-color: #e3f2fd; padding: 15px; border-radius: 8px; margin: 15px 0; }}
+        .info-grid {{ display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 15px 0; }}
+        .info-item {{ background-color: rgba(255,255,255,0.9); padding: 10px; border-radius: 5px; border-left: 3px solid #1976d2; }}
+        .status-box {{ background-color: #fff3cd; padding: 15px; border-radius: 8px; margin: 15px 0; border-left: 4px solid #ff9800; }}
+        .footer {{ text-align: center; margin-top: 20px; color: #666; font-size: 0.9em; }}
+    </style>
+</head>
+<body>
+    <div class="logo">
+        <img src="https://www.spectacleanimation.fr/static/img/logo_spectaclement_votre.png" alt="Spectacle'ment Vôtre">
+    </div>
+    <div class="content">
+        <div class="create-notice">
+            ✅ NOUVEL APPEL D'OFFRE CRÉÉ
+        </div>
+        <h2>Appel d'offre créé : {demande.intitule or demande.genre_recherche}</h2>
+        
+        <div class="info-box">
+            <p><strong>📋 Informations de l'appel d'offre :</strong></p>
+            <div class="info-grid">
+                <div class="info-item">
+                    <strong>🏢 Structure :</strong> {demande.structure}
+                </div>
+                <div class="info-item">
+                    <strong>👤 Contact :</strong> {demande.nom}
+                </div>
+                <div class="info-item">
+                    <strong>📍 Lieu :</strong> {demande.lieu_ville}
+                </div>
+                <div class="info-item">
+                    <strong>📅 Date(s) :</strong> {demande.dates_horaires}
+                </div>
+                <div class="info-item">
+                    <strong>🎭 Genre :</strong> {demande.genre_recherche}
+                </div>
+                <div class="info-item">
+                    <strong>👥 Jauge :</strong> {demande.jauge}
+                </div>
+                <div class="info-item">
+                    <strong>💰 Budget :</strong> {demande.budget}
+                </div>
+                <div class="info-item">
+                    <strong>👶 Public :</strong> {demande.age_range}
+                </div>
+            </div>
+            <p><strong>🏢 Type d'espace :</strong> {demande.type_espace}</p>
+            <p><strong>📋 Intitulé :</strong> {demande.intitule or 'Non précisé'}</p>
+            <p><strong>♿ Accessibilité :</strong> {demande.accessibilite or 'Non précisée'}</p>
+            <p><strong>📝 Contraintes :</strong> {demande.contraintes or 'Aucune'}</p>
+            <p><strong>📧 Email :</strong> {demande.contact_email}</p>
+            <p><strong>📞 Téléphone :</strong> {demande.telephone}</p>
+        </div>
+        
+        <div class="status-box">
+            <p><strong>🔒 Statut :</strong> {'🔒 BROUILLON PRIVÉ (non publié)' if is_private else '📢 PUBLIC'}</p>
+            <p><strong>✅ Validation :</strong> {'✅ APPROUVÉ (publié immédiatement)' if publish_immediately else '⏳ EN ATTENTE (nécessite validation)'}</p>
+            <p><strong>📧 Emails compagnies :</strong> {'✅ OUI (redirection vers sélection)' if send_emails else '❌ NON'}</p>
+        </div>
+        
+        <div class="footer">
+            <p><strong>L'équipe Spectacle'ment Vôtre</strong><br>
+            Notification automatique de création</p>
+        </div>
+    </div>
+</body>
+</html>
+"""
+                    status_text = "Brouillon privé" if is_private else ("Publié" if publish_immediately else "En attente")
+                    msg = Message(
+                        subject=f"✅ Nouvel appel d'offre créé ({status_text}) : {demande.intitule or demande.genre_recherche} - {demande.lieu_ville}",
+                        recipients=[admin_email]
+                    )
+                    msg.html = body_html
+                    current_app.mail.send(msg)
+                    print(f"[CREATE] ✅ Email de notification envoyé à {admin_email}")
+                except Exception as e:
+                    print(f"[CREATE] ❌ Erreur envoi email : {e}")
+
             # Si brouillon privé
             if is_private:
                 flash("🔒 Brouillon privé créé ! Non publié sur le site.", "success")
