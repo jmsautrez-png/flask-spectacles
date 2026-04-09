@@ -1,4 +1,4 @@
-# Import optionnel de Flask-Mail
+﻿# Import optionnel de Flask-Mail
 try:
     from flask_mail import Mail, Message
 except ImportError:
@@ -1861,9 +1861,9 @@ def register_routes(app: Flask) -> None:
             if getattr(current_app, "mail", None) and current_app.config.get("MAIL_USERNAME") and current_app.config.get("MAIL_PASSWORD"):
                 try:
                     to_addr = current_app.config.get("MAIL_DEFAULT_SENDER") or current_app.config.get("MAIL_USERNAME")
-                    type_annonce = "📅 ÉVÉNEMENT" if is_event else "🎭 CATALOGUE"
+                    type_annonce = "📅 ÉVÉNEMENT" if is_event else "CATALOGUE"
                     body = (
-                        f"🎭 Nouvelle annonce à valider [{type_annonce}]\n\n"
+                        f"Nouvelle annonce à valider [{type_annonce}]\n\n"
                         f"👤 Compagnie: {raison_sociale}\n"
                         f"📌 Titre: {title}\n"
                         f"📍 Lieu: {location}\n"
@@ -1878,7 +1878,7 @@ def register_routes(app: Flask) -> None:
                         + "💼 Service d'administration disponible pour les compagnies (gestion URSSAF, DSN, contrats, etc.).\n"
                         + "\nCordialement,\nL'équipe Spectacle'ment VØtre"
                     )
-                    msg = Message(subject="🎭 Nouvelle annonce à valider", recipients=[to_addr])  # type: ignore[arg-type]
+                    msg = Message(subject="Nouvelle annonce à valider", recipients=[to_addr])  # type: ignore[arg-type]
                     msg.body = body  # type: ignore[assignment]
                     current_app.mail.send(msg)  # type: ignore[attr-defined]
                     current_app.logger.info(f"[MAIL] ✓ Email envoyé à l'admin pour nouvelle annonce: {title}")
@@ -2861,7 +2861,7 @@ def register_routes(app: Flask) -> None:
                 # Déterminer si c'est une carte créée par l'admin (pas de user_id) ou par l'utilisateur
                 if show.user_id:
                     # Carte créée par l'utilisateur lui-même → Email de validation classique
-                    subject = "🎭 Votre spectacle est validé sur Spectacle'ment VØtre !"
+                    subject = "Votre spectacle est validé sur Spectacle'ment VØtre !"
                     abonnement_url = url_for('abonnement_compagnie', _external=True)
                     submit_url = url_for('submit_show', _external=True)
                     body_html = f"""<!DOCTYPE html>
@@ -2895,7 +2895,7 @@ def register_routes(app: Flask) -> None:
                             
                             <!-- Spectacle Info Card -->
                             <div style="background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%); border-radius: 12px; padding: 25px; margin: 25px 0;">
-                                <h2 style="color: #764ba2; font-size: 20px; margin: 0 0 15px 0;">🎭 {show.title}</h2>
+                                <h2 style="color: #764ba2; font-size: 20px; margin: 0 0 15px 0;">{show.title}</h2>
                                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; font-size: 14px; color: #555;">
                                     <div><strong>Compagnie :</strong><br>{show.raison_sociale or 'Non renseignée'}</div>
                                     <div><strong>Lieu :</strong><br>{show.location}</div>
@@ -2966,7 +2966,7 @@ def register_routes(app: Flask) -> None:
                     body = (
                         "Bonjour,\n\n"
                         "Depuis plus de trente ans, Spectacle'ment VØtre accompagne les acteurs culturels français (Centres Culturels, Mairies, CSE, Écoles, MJC, etc.) en leur proposant des spectacles de qualité exceptionnelle.\n\n"
-                        "🎭 Notre mission : Repérer les meilleurs artistes et compagnies pour offrir de l'excellence aux programmateurs qui recherchent des spectacles professionnels.\n\n"
+                        "Notre mission : Repérer les meilleurs artistes et compagnies pour offrir de l'excellence aux programmateurs qui recherchent des spectacles professionnels.\n\n"
                         "Votre talent a retenu notre attention et nous avons créé une fiche pour vous sur notre annuaire gratuit :\n\n"
                         f"Compagnie : {show.raison_sociale or 'Non renseignée'}\n"
                         f"Titre : {show.title}\n"
@@ -3081,6 +3081,12 @@ def register_routes(app: Flask) -> None:
             dates_horaires = request.form.get("dates_horaires", "").strip()
             type_espace = request.form.get("type_espace", "").strip()
             genre_recherche = request.form.get("genre_recherche", "").strip()
+            autre_genre = request.form.get("autre_genre", "").strip()
+            
+            # Si "Autre" est sélectionné et qu'un genre personnalisé est renseigné, on l'utilise
+            if genre_recherche == "Autre" and autre_genre:
+                genre_recherche = autre_genre
+            
             age_range = request.form.get("age_range", "").strip()
             jauge = request.form.get("jauge", "").strip()
             budget = request.form.get("budget", "").strip()
@@ -3406,7 +3412,17 @@ Accessibilité: {accessibilite}
         region = request.args.get('region', '').strip()
         
         # Base de la requête - TOUJOURS filtrer les demandes privées sur la page publique
-        demandes_query = DemandeAnimation.query.filter(DemandeAnimation.is_private == False).order_by(DemandeAnimation.created_at.desc())
+        # Pour les non-admins, filtrer aussi les demandes non validées
+        user = current_user()
+        if user and user.is_admin:
+            # Admin voit tout sauf les privées
+            demandes_query = DemandeAnimation.query.filter(DemandeAnimation.is_private == False).order_by(DemandeAnimation.created_at.desc())
+        else:
+            # Non-admin voit seulement les cartes validées et publiques
+            demandes_query = DemandeAnimation.query.filter(
+                DemandeAnimation.is_private == False,
+                DemandeAnimation.is_validated == True
+            ).order_by(DemandeAnimation.created_at.desc())
         
         if categorie:
             demandes_query = demandes_query.filter(DemandeAnimation.genre_recherche.ilike(f"%{categorie}%"))
@@ -3439,8 +3455,11 @@ Accessibilité: {accessibilite}
         categorie = request.args.get('categorie', '').strip()
         region = request.args.get('region', '').strip()
         
-        # Les utilisateurs connectés voient toutes les demandes publiques avec toutes les infos
-        demandes_query = DemandeAnimation.query.filter(DemandeAnimation.is_private == False).order_by(DemandeAnimation.created_at.desc())
+        # Les utilisateurs connectés voient toutes les demandes publiques validées avec toutes les infos
+        demandes_query = DemandeAnimation.query.filter(
+            DemandeAnimation.is_private == False,
+            DemandeAnimation.is_validated == True
+        ).order_by(DemandeAnimation.created_at.desc())
         
         if categorie:
             demandes_query = demandes_query.filter(DemandeAnimation.genre_recherche.ilike(f"%{categorie}%"))
@@ -3571,6 +3590,12 @@ Accessibilité: {accessibilite}
             accessibilite = request.form.get("accessibilite", "").strip()
             contact_email = request.form.get("contact_email", "").strip()
             is_private = request.form.get("is_private") == "on"
+            send_emails = request.form.get("send_emails") == "on"
+            
+            # Si "Autre" est sélectionné, utiliser le genre personnalisé
+            autre_genre = request.form.get("autre_genre", "").strip()
+            if genre_recherche == "Autre" and autre_genre:
+                genre_recherche = autre_genre
 
             # Validation basique
             if not all([structure, telephone, lieu_ville, nom, dates_horaires, 
@@ -3599,13 +3624,19 @@ Accessibilité: {accessibilite}
             db.session.add(demande)
             db.session.commit()
 
+            # Si brouillon privé
             if is_private:
-                flash("🔒 Demande privée créée ! Sélectionnez maintenant les catégories pour l'envoi.", "success")
-            else:
-                flash("✅ Demande publique créée ! Sélectionnez maintenant les catégories pour l'envoi.", "success")
+                flash("🔒 Brouillon privé créé ! Non publié sur le site.", "success")
+                return redirect(url_for("demandes_animation"))
             
-            # Rediriger directement vers la page d'envoi
-            return redirect(url_for("envoyer_demande_animation", demande_id=demande.id))
+            # Si envoi d'emails souhaité, rediriger vers la page d'envoi
+            if send_emails:
+                flash("✅ Carte créée ! Sélectionnez les catégories et régions pour l'envoi.", "success")
+                return redirect(url_for("envoyer_demande_animation", demande_id=demande.id))
+            
+            # Sinon, carte créée et visible sans email
+            flash("✅ Appel d'offre publié sur le site (aucun email envoyé).", "success")
+            return redirect(url_for("demandes_animation"))
 
         return render_template("admin_create_demande.html", user=current_user())
 
@@ -3720,12 +3751,12 @@ Accessibilité: {accessibilite}
         <img src="https://www.spectacleanimation.fr/static/img/logo_spectaclement_votre.png" alt="Spectacle'ment Vôtre">
     </div>
     <div class="content">
-        <h2>🎭 Nouvelle Opportunité : {demande.intitule}</h2>
+        <h2>Nouvelle Opportunité : {demande.intitule or 'Demande d\'animation'}</h2>
         <p>Bonjour,</p>
-        <p>Bonne nouvelle ! Nous avons reçu une demande d'animation <strong>"{demande.intitule}"</strong> qui correspond parfaitement à votre profil :</p>
+        <p>Bonne nouvelle ! Nous avons reçu une demande d'animation <strong>"{demande.intitule or 'nouvelle demande'}"</strong> qui correspond parfaitement à votre profil :</p>
         
         <div class="opportunity-box">
-            <h3>📋 {demande.intitule}</h3>
+            <h3>📋 {demande.genre_recherche} à {demande.lieu_ville}</h3>
             <div class="info-grid">
                 <div class="info-item">
                     <div class="info-label">📍 Lieu</div>
@@ -3736,7 +3767,7 @@ Accessibilité: {accessibilite}
                     {demande.dates_horaires}
                 </div>
                 <div class="info-item">
-                    <div class="info-label">🎭 Type recherché</div>
+                    <div class="info-label">Type recherché</div>
                     {demande.genre_recherche}
                 </div>
                 <div class="info-item">
@@ -3753,7 +3784,7 @@ Accessibilité: {accessibilite}
                 </div>
             </div>
             <p><strong>🏢 Type d'espace :</strong> {demande.type_espace}</p>
-            <p><strong>🔧 Contraintes techniques :</strong> {demande.contraintes or 'Aucune'}</p>
+            <p><strong>� Intitulé de la mission :</strong> {demande.intitule or 'Non précisé'}</p>
             <p><strong>♿ Accessibilité :</strong> {demande.accessibilite or 'Non précisée'}</p>
         </div>
         
@@ -3774,7 +3805,7 @@ Accessibilité: {accessibilite}
         </div>
         
         <div style="background-color: #e3f2fd; padding: 15px; border-radius: 8px; margin: 15px 0; text-align: center;">
-            <p><strong>🎭 Vous aussi, annoncez vos événements GRATUITEMENT !</strong><br>
+            <p><strong>Vous aussi, annoncez vos événements GRATUITEMENT !</strong><br>
             Publiez vos spectacles toute l'année sans limite de temps.<br>
             <a href="https://www.spectacleanimation.fr/submit" style="color: #6a1b9a; font-weight: bold;">👉 Publier un spectacle</a></p>
         </div>
@@ -3791,7 +3822,7 @@ Accessibilité: {accessibilite}
 </html>
 """
                             msg = Message(
-                                subject=f"🎭 {demande.intitule} - {demande.genre_recherche} à {demande.lieu_ville}",
+                                subject=f"{demande.intitule or 'Nouvelle opportunité'} - {demande.genre_recherche} à {demande.lieu_ville}",
                                 recipients=[email]
                             )
                             msg.html = body_html
@@ -3833,12 +3864,12 @@ Accessibilité: {accessibilite}
         <img src="https://www.spectacleanimation.fr/static/img/logo_spectaclement_votre.png" alt="Spectacle'ment Vôtre">
     </div>
     <div class="content">
-        <h2>🎭 Nouvelle Opportunité : {demande.intitule}</h2>
+        <h2>Nouvelle Opportunité : {demande.intitule or 'Demande d\'animation'}</h2>
         <p>Bonjour,</p>
-        <p>Nous avons reçu une demande d'animation <strong>"{demande.intitule}"</strong> dans votre région qui pourrait vous intéresser :</p>
+        <p>Nous avons reçu une demande d'animation <strong>"{demande.intitule or 'nouvelle demande'}"</strong> dans votre région qui pourrait vous intéresser :</p>
         
         <div class="opportunity-box">
-            <h3>📋 {demande.intitule}</h3>
+            <h3>📋 {demande.genre_recherche} à {demande.lieu_ville}</h3>
             <div class="info-grid">
                 <div class="info-item">
                     <div class="info-label">📍 Lieu</div>
@@ -3849,7 +3880,7 @@ Accessibilité: {accessibilite}
                     {demande.dates_horaires}
                 </div>
                 <div class="info-item">
-                    <div class="info-label">🎭 Type recherché</div>
+                    <div class="info-label">Type recherché</div>
                     {demande.genre_recherche}
                 </div>
                 <div class="info-item">
@@ -3866,7 +3897,7 @@ Accessibilité: {accessibilite}
                 </div>
             </div>
             <p><strong>🏢 Type d'espace :</strong> {demande.type_espace}</p>
-            <p><strong>🔧 Contraintes techniques :</strong> {demande.contraintes or 'Aucune'}</p>
+            <p><strong>� Intitulé de la mission :</strong> {demande.intitule or 'Non précisé'}</p>
             <p><strong>♿ Accessibilité :</strong> {demande.accessibilite or 'Non précisée'}</p>
         </div>
         
@@ -3882,7 +3913,7 @@ Accessibilité: {accessibilite}
         </div>
         
         <div style="background-color: #e3f2fd; padding: 15px; border-radius: 8px; margin: 15px 0; text-align: center;">
-            <p><strong>🎭 Vous aussi, annoncez vos événements GRATUITEMENT !</strong><br>
+            <p><strong>Vous aussi, annoncez vos événements GRATUITEMENT !</strong><br>
             Publiez vos spectacles toute l'année sans limite de temps.<br>
             <a href="https://www.spectacleanimation.fr/submit" style="color: #1b2a4e; font-weight: bold;">👉 Publier un spectacle</a></p>
         </div>
@@ -3899,7 +3930,7 @@ Accessibilité: {accessibilite}
 </html>
 """
                         msg = Message(
-                            subject=f"🎭 {demande.intitule} - {demande.genre_recherche} à {demande.lieu_ville}",
+                            subject=f"{demande.intitule or 'Nouvelle opportunité'} - {demande.genre_recherche} à {demande.lieu_ville}",
                             recipients=[user.email]
                         )
                         msg.html = body_html
@@ -3909,6 +3940,95 @@ Accessibilité: {accessibilite}
                     except Exception as e:
                         print(f"[MAIL] ❌ Erreur envoi à {user.email}: {e}")
                         error_count += 1
+            
+            # Envoyer aussi une copie à l'admin
+            admin_email = current_user().email if current_user() and current_user().email else None
+            if admin_email and admin_email not in emails_sent:
+                try:
+                    admin_body_html = f"""
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <style>
+        body {{ font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; }}
+        .logo {{ text-align: center; margin: 20px 0; }}
+        .logo img {{ max-width: 200px; height: auto; }}
+        .content {{ padding: 20px; background-color: #f9f9f9; border-radius: 8px; }}
+        h2 {{ color: #1b2a4e; margin-top: 0; }}
+        .admin-notice {{ background: linear-gradient(135deg, #1b2a4e 0%, #355c7d 100%); color: white; padding: 15px; border-radius: 8px; margin: 20px 0; text-align: center; font-weight: bold; }}
+        .opportunity-box {{ background: linear-gradient(135deg, #6a1b9a 0%, #8e44ad 100%); color: white; padding: 20px; border-radius: 8px; margin: 20px 0; }}
+        .opportunity-box h3 {{ margin-top: 0; color: white; }}
+        .info-grid {{ display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 15px 0; }}
+        .info-item {{ background-color: rgba(255,255,255,0.1); padding: 10px; border-radius: 5px; }}
+        .info-label {{ font-weight: bold; font-size: 0.9em; }}
+        .footer {{ text-align: center; margin-top: 20px; color: #666; font-size: 0.9em; }}
+    </style>
+</head>
+<body>
+    <div class="logo">
+        <img src="https://www.spectacleanimation.fr/static/img/logo_spectaclement_votre.png" alt="Spectacle'ment Vôtre">
+    </div>
+    <div class="content">
+        <div class="admin-notice">
+            📋 COPIE ADMIN - Appel d'offre envoyé à {success_count} compagnie(s)
+        </div>
+        <h2>Appel d'offre : {demande.intitule or 'Demande d\'animation'}</h2>
+        
+        <div class="opportunity-box">
+            <h3>📋 {demande.genre_recherche} à {demande.lieu_ville}</h3>
+            <div class="info-grid">
+                <div class="info-item">
+                    <div class="info-label">📍 Lieu</div>
+                    {demande.lieu_ville}
+                </div>
+                <div class="info-item">
+                    <div class="info-label">📅 Date(s)</div>
+                    {demande.dates_horaires}
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Type recherché</div>
+                    {demande.genre_recherche}
+                </div>
+                <div class="info-item">
+                    <div class="info-label">👥 Jauge</div>
+                    {demande.jauge}
+                </div>
+                <div class="info-item">
+                    <div class="info-label">💰 Budget</div>
+                    {demande.budget}
+                </div>
+                <div class="info-item">
+                    <div class="info-label">👶 Public</div>
+                    {demande.age_range}
+                </div>
+            </div>
+            <p><strong>🏢 Type d'espace :</strong> {demande.type_espace}</p>
+            <p><strong>📝 Intitulé de la mission :</strong> {demande.intitule or 'Non précisé'}</p>
+            <p><strong>♿ Accessibilité :</strong> {demande.accessibilite or 'Non précisée'}</p>
+        </div>
+        
+        <p><strong>Structure :</strong> {demande.structure}<br>
+        <strong>Contact :</strong> {demande.nom}<br>
+        <strong>Email :</strong> {demande.contact_email}<br>
+        <strong>Téléphone :</strong> {demande.telephone}</p>
+        
+        <div class="footer">
+            <p><strong>L'équipe Spectacle'ment Vôtre</strong></p>
+        </div>
+    </div>
+</body>
+</html>
+"""
+                    admin_msg = Message(
+                        subject=f"[ADMIN] Appel d'offre envoyé : {demande.intitule or 'Nouvelle opportunité'} - {demande.genre_recherche}",
+                        recipients=[admin_email]
+                    )
+                    admin_msg.html = admin_body_html
+                    current_app.mail.send(admin_msg)
+                    print(f"[DEBUG] ✅ Copie admin envoyée à {admin_email}")
+                except Exception as e:
+                    print(f"[MAIL] ⚠️ Erreur envoi copie admin à {admin_email}: {e}")
             
             print(f"[DEBUG] Envoi terminé - Succès: {success_count}, Erreurs: {error_count}")
             if success_count > 0:
@@ -3985,6 +4105,179 @@ Accessibilité: {accessibilite}
             categories=categories_list,
             user=current_user()
         )
+
+    @app.route("/admin/valider-demande/<int:demande_id>")
+    @login_required
+    @admin_required
+    def valider_demande_animation(demande_id):
+        """Valider une carte et envoyer automatiquement aux compagnies correspondantes"""
+        from models.models import DemandeAnimation
+        demande = DemandeAnimation.query.get_or_404(demande_id)
+        
+        # Vérifier si déjà validée
+        if demande.is_validated:
+            flash("⚠️ Cette carte est déjà validée.", "warning")
+            return redirect(url_for("demandes_animation"))
+        
+        # Marquer comme validée
+        demande.is_validated = True
+        db.session.commit()
+        print(f"[DEBUG] Carte {demande_id} validée, envoi automatique basé sur genre: {demande.genre_recherche}")
+        
+        # Envoyer automatiquement aux spectacles correspondant au genre_recherche
+        genre = demande.genre_recherche
+        print(f"[DEBUG] Recherche des spectacles pour le genre: {genre}")
+        
+        # Récupérer tous les spectacles approuvés correspondant au genre
+        query = Show.query.filter(Show.approved.is_(True))
+        query = query.filter(Show.category.ilike(f"%{genre}%"))
+        shows = query.all()
+        
+        print(f"[DEBUG] {len(shows)} spectacles trouvés pour le genre {genre}")
+        
+        # Récupérer les emails uniques des utilisateurs
+        emails_sent = set()
+        success_count = 0
+        error_count = 0
+        
+        # Vérifier si mail est configuré
+        if not getattr(current_app, "mail", None):
+            print("[DEBUG ERREUR] Flask-Mail n'est pas configuré !")
+            flash("❌ Erreur : le service email n'est pas configuré.", "danger")
+            return redirect(url_for("demandes_animation"))
+        
+        print(f"[DEBUG] Flask-Mail configuré, début de l'envoi automatique...")
+        for show in shows:
+            # Utiliser l'email du spectacle en priorité, sinon l'email de l'utilisateur
+            email = show.contact_email
+            if not email and show.user:
+                email = show.user.email if hasattr(show.user, 'email') else None
+            
+            if email and email not in emails_sent:
+                emails_sent.add(email)
+                
+                # Envoyer l'email à l'adresse réelle
+                if getattr(current_app, "mail", None):
+                    try:
+                        body_html = f"""
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <style>
+        body {{ font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; }}
+        .logo {{ text-align: center; margin: 20px 0; }}
+        .logo img {{ max-width: 200px; height: auto; }}
+        .content {{ padding: 20px; background-color: #f9f9f9; border-radius: 8px; }}
+        h2 {{ color: #1b2a4e; margin-top: 0; }}
+        .opportunity-box {{ background: linear-gradient(135deg, #6a1b9a 0%, #8e44ad 100%); color: white; padding: 20px; border-radius: 8px; margin: 20px 0; }}
+        .opportunity-box h3 {{ margin-top: 0; color: white; }}
+        .info-grid {{ display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 15px 0; }}
+        .info-item {{ background-color: rgba(255,255,255,0.1); padding: 10px; border-radius: 5px; }}
+        .info-label {{ font-weight: bold; font-size: 0.9em; }}
+        .contact-box {{ background-color: #fff; padding: 15px; border-left: 4px solid #6a1b9a; margin: 15px 0; }}
+        .show-info {{ background-color: #e8eaf6; padding: 15px; border-radius: 8px; margin: 15px 0; }}
+        .footer {{ text-align: center; margin-top: 20px; color: #666; font-size: 0.9em; }}
+        .btn {{ display: inline-block; padding: 12px 24px; background-color: #6a1b9a; color: white; text-decoration: none; border-radius: 5px; margin: 10px 0; }}
+    </style>
+</head>
+<body>
+    <div class="logo">
+        <img src="https://www.spectacleanimation.fr/static/img/logo_spectaclement_votre.png" alt="Spectacle'ment Vôtre">
+    </div>
+    <div class="content">
+        <h2>Nouvelle Opportunité : {demande.intitule or 'Demande d\'animation'}</h2>
+        <p>Bonjour,</p>
+        <p>Bonne nouvelle ! Nous avons reçu une demande d'animation <strong>"{demande.intitule or 'nouvelle demande'}"</strong> qui correspond parfaitement à votre profil :</p>
+        
+        <div class="opportunity-box">
+            <h3>📋 {demande.genre_recherche} à {demande.lieu_ville}</h3>
+            <div class="info-grid">
+                <div class="info-item">
+                    <div class="info-label">📍 Lieu</div>
+                    {demande.lieu_ville}
+                </div>
+                <div class="info-item">
+                    <div class="info-label">📅 Date(s)</div>
+                    {demande.dates_horaires}
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Type recherché</div>
+                    {demande.genre_recherche}
+                </div>
+                <div class="info-item">
+                    <div class="info-label">👥 Jauge</div>
+                    {demande.jauge}
+                </div>
+                <div class="info-item">
+                    <div class="info-label">💰 Budget</div>
+                    {demande.budget}
+                </div>
+                <div class="info-item">
+                    <div class="info-label">👶 Public</div>
+                    {demande.age_range}
+                </div>
+            </div>
+            <p><strong>🏢 Type d'espace :</strong> {demande.type_espace}</p>
+            <p><strong>� Intitulé de la mission :</strong> {demande.intitule or 'Non précisé'}</p>
+            <p><strong>♿ Accessibilité :</strong> {demande.accessibilite or 'Non précisée'}</p>
+        </div>
+        
+        <div class="contact-box">
+            <h3>📞 Coordonnées du demandeur</h3>
+            <p><strong>Structure :</strong> {demande.structure}<br>
+            <strong>Contact :</strong> {demande.nom}<br>
+            <strong>Email :</strong> <a href="mailto:{demande.contact_email}" style="color: #6a1b9a;">{demande.contact_email}</a><br>
+            <strong>Téléphone :</strong> {demande.telephone}</p>
+            <p style="text-align: center;">
+                <a href="mailto:{demande.contact_email}" class="btn">✉️ Contacter le demandeur</a>
+            </p>
+        </div>
+        
+        <div class="show-info">
+            <p><strong>✨ Votre spectacle concerné :</strong><br>
+            {show.title} - {show.category}</p>
+        </div>
+        
+        <div style="background-color: #e3f2fd; padding: 15px; border-radius: 8px; margin: 15px 0; text-align: center;">
+            <p><strong>Vous aussi, annoncez vos événements GRATUITEMENT !</strong><br>
+            Publiez vos spectacles toute l'année sans limite de temps.<br>
+            <a href="https://www.spectacleanimation.fr/submit" style="color: #6a1b9a; font-weight: bold;">👉 Publier un spectacle</a></p>
+        </div>
+        
+        <p>💼 <strong>Besoin d'aide pour l'administratif ?</strong> Spectacle'ment VØtre vous accompagne dans toute la gestion de votre compagnie (URSSAF, DSN, contrats, etc.).<br>
+        <a href="https://spectacleanimation.fr/abonnement-compagnie" style="color: #6a1b9a;">En savoir plus</a></p>
+        
+        <div class="footer">
+            <p><strong>L'équipe Spectacle'ment VØtre</strong><br>
+            contact@spectacleanimation.fr</p>
+        </div>
+    </div>
+</body>
+</html>
+"""
+                        msg = Message(
+                            subject=f"{demande.intitule or 'Nouvelle opportunité'} - {demande.genre_recherche} à {demande.lieu_ville}",
+                            recipients=[email]
+                        )
+                        msg.html = body_html
+                        current_app.mail.send(msg)
+                        print(f"[DEBUG] ✅ Email envoyé automatiquement à {email}")
+                        success_count += 1
+                    except Exception as e:
+                        print(f"[MAIL] ❌ Erreur envoi à {email}: {e}")
+                        error_count += 1
+        
+        print(f"[DEBUG] Envoi automatique terminé - Succès: {success_count}, Erreurs: {error_count}")
+        if success_count > 0:
+            flash(f"✅ Carte validée ! {success_count} email(s) envoyé(s) automatiquement aux compagnies {genre}.", "success")
+        else:
+            flash(f"✅ Carte validée. Aucune compagnie {genre} trouvée pour l'envoi automatique.", "info")
+        
+        if error_count > 0:
+            flash(f"⚠️ {error_count} email(s) n'ont pas pu être envoyé(s).", "warning")
+        
+        return redirect(url_for("demandes_animation"))
 
     # ----------------------------
     # Routes SEO pour les villes

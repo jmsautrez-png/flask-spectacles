@@ -5,150 +5,498 @@
 {% block content %}
 <div class="container-fluid my-5">
     <div class="row justify-content-center">
-        <div class="col-lg-11">
-            <div class="card shadow">
-                <div class="card-header bg-primary text-white">
-                    <h3 class="mb-0">📝 Créer une demande d'animation</h3>
-                    <p class="mb-0 small">Interface administrateur</p>
+        <div class="col-lg-10 col-xl-9">
+            <!-- Header moderne avec gradient -->
+            <div class="modern-header mb-4">
+                <div class="header-content">
+                    <h1 class="header-title">Créer une demande d'animation</h1>
+                    <p class="header-subtitle">Interface administrateur</p>
                 </div>
-                <div class="card-body">
-                    <form method="post">
-                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-                        
-                        <!-- Option privée/publique -->
-                        <div class="alert alert-info mb-4">
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" name="is_private" id="is_private" checked>
-                                <label class="form-check-label" for="is_private">
-                                    <strong>🔒 Demande privée</strong> (visible uniquement par vous)
-                                    <br>
-                                    <small class="text-muted">Si décoché, la demande sera publique et visible par tous les visiteurs</small>
-                                </label>
-                            </div>
-                        </div>
+            </div>
 
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label for="structure" class="form-label">Structure *</label>
-                                <input type="text" class="form-control" id="structure" name="structure" required>
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <label for="nom" class="form-label">Nom du contact *</label>
-                                <input type="text" class="form-control" id="nom" name="nom" required>
-                            </div>
+            <!-- Carte principale -->
+            <div class="modern-card">
+                <form method="post">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                    
+                    <!-- Option privée/publique -->
+                    <div class="privacy-toggle">
+                        <div class="toggle-container">
+                            <input class="toggle-checkbox" type="checkbox" name="is_private" id="is_private" checked>
+                            <label class="toggle-label" for="is_private">
+                                <div class="toggle-icon">🔒</div>
+                                <div class="toggle-text">
+                                    <strong>Brouillon privé</strong>
+                                    <span>Ne pas publier sur le site public</span>
+                                </div>
+                            </label>
                         </div>
+                    </div>
 
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label for="telephone" class="form-label">Téléphone *</label>
-                                <input type="tel" class="form-control" id="telephone" name="telephone" required>
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <label for="contact_email" class="form-label">Email *</label>
-                                <input type="email" class="form-control" id="contact_email" name="contact_email" required>
-                            </div>
+                    <!-- Option d'envoi d'emails -->
+                    <div class="privacy-toggle">
+                        <div class="toggle-container">
+                            <input class="toggle-checkbox" type="checkbox" name="send_emails" id="send_emails">
+                            <label class="toggle-label" for="send_emails">
+                                <div class="toggle-icon">📧</div>
+                                <div class="toggle-text">
+                                    <strong>Envoyer des emails aux compagnies</strong>
+                                    <span style="display:block; margin-top:4px;">✅ <strong>Coché :</strong> Les compagnies correspondantes recevront l'email + Vous recevrez aussi une copie</span>
+                                    <span style="display:block; margin-top:2px;">❌ <strong>Non coché :</strong> Carte visible sur le site sans envoi d'email (simple publication)</span>
+                                </div>
+                            </label>
                         </div>
+                    </div>
 
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label for="lieu_ville" class="form-label">Lieu/Ville *</label>
-                                <input type="text" class="form-control" id="lieu_ville" name="lieu_ville" required>
+                    <!-- Section Contact -->
+                    <div class="form-section">
+                        <h2 class="section-title">
+                            <span class="section-icon">👤</span>
+                            Informations de contact
+                        </h2>
+                        <div class="row g-4">
+                            <div class="col-md-6">
+                                <div class="modern-input-group">
+                                    <label class="modern-label">Structure *</label>
+                                    <input type="text" class="modern-input" id="structure" name="structure" required>
+                                </div>
                             </div>
-                            <div class="col-md-6 mb-3">
-                                <label for="dates_horaires" class="form-label">Date(s) et horaires *</label>
-                                <input type="text" class="form-control" id="dates_horaires" name="dates_horaires" required>
+                            <div class="col-md-6">
+                                <div class="modern-input-group">
+                                    <label class="modern-label">Nom du contact *</label>
+                                    <input type="text" class="modern-input" id="nom" name="nom" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="modern-input-group">
+                                    <label class="modern-label">📞 Téléphone *</label>
+                                    <input type="tel" class="modern-input" id="telephone" name="telephone" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="modern-input-group">
+                                    <label class="modern-label">✉️ Email *</label>
+                                    <input type="email" class="modern-input" id="contact_email" name="contact_email" required>
+                                </div>
                             </div>
                         </div>
+                    </div>
 
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label for="genre_recherche" class="form-label">Genre recherché *</label>
-                                <select class="form-select" id="genre_recherche" name="genre_recherche" required>
-                                    <option value="">-- Sélectionner --</option>
-                                    <option value="Marionnettes">Marionnettes</option>
-                                    <option value="Magie">Magie</option>
-                                    <option value="Clown">Clown</option>
-                                    <option value="Théâtre">Théâtre</option>
-                                    <option value="Danse">Danse</option>
-                                    <option value="Musique">Musique</option>
-                                    <option value="Cirque">Cirque</option>
-                                    <option value="Conte">Conte</option>
-                                    <option value="Animation">Animation</option>
-                                    <option value="Autre">Autre</option>
-                                </select>
+                    <!-- Section Événement -->
+                    <div class="form-section">
+                        <h2 class="section-title">
+                            <span class="section-icon">📅</span>
+                            Détails de l'événement
+                        </h2>
+                        <div class="row g-4">
+                            <div class="col-md-6">
+                                <div class="modern-input-group">
+                                    <label class="modern-label">📍 Lieu/Ville *</label>
+                                    <input type="text" class="modern-input" id="lieu_ville" name="lieu_ville" required>
+                                </div>
                             </div>
-                            <div class="col-md-6 mb-3">
-                                <label for="age_range" class="form-label">Tranche d'âge *</label>
-                                <input type="text" class="form-control" id="age_range" name="age_range" placeholder="Ex: 3-6 ans" required>
+                            <div class="col-md-6">
+                                <div class="modern-input-group">
+                                    <label class="modern-label">🗓️ Date(s) et horaires *</label>
+                                    <input type="text" class="modern-input" id="dates_horaires" name="dates_horaires" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="modern-input-group">
+                                    <label class="modern-label">Genre recherché *</label>
+                                    <select class="modern-input modern-select" id="genre_recherche" name="genre_recherche" required>
+                                        <option value="">-- Sélectionner --</option>
+                                        <option value="Marionnettes">Marionnettes</option>
+                                        <option value="Magie">Magie</option>
+                                        <option value="Clown">Clown</option>
+                                        <option value="Théâtre">Théâtre</option>
+                                        <option value="Danse">Danse</option>
+                                        <option value="Musique">Musique</option>
+                                        <option value="Cirque">Cirque</option>
+                                        <option value="Conte">Conte</option>
+                                        <option value="Animation">Animation</option>
+                                        <option value="Autre">Autre (précisez ci-dessous)</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-6" id="autre_genre_container" style="display:none;">
+                                <div class="modern-input-group">
+                                    <label class="modern-label">✏️ Précisez le genre *</label>
+                                    <input type="text" class="modern-input" id="autre_genre" name="autre_genre" placeholder="Décrivez le type de spectacle">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="modern-input-group">
+                                    <label class="modern-label">👶 Tranche d'âge *</label>
+                                    <input type="text" class="modern-input" id="age_range" name="age_range" placeholder="Ex: 3-6 ans" required>
+                                </div>
                             </div>
                         </div>
+                    </div>
 
-                        <div class="row">
-                            <div class="col-md-4 mb-3">
-                                <label for="type_espace" class="form-label">Type d'espace *</label>
-                                <select class="form-select" id="type_espace" name="type_espace" required>
-                                    <option value="">-- Sélectionner --</option>
-                                    <option value="Salle">Salle</option>
-                                    <option value="Extérieur">Extérieur</option>
-                                    <option value="École">École</option>
-                                    <option value="Médiathèque">Médiathèque</option>
-                                    <option value="Entreprise">Entreprise</option>
-                                    <option value="Domicile">Domicile</option>
-                                    <option value="Autre">Autre</option>
-                                </select>
+                    <!-- Section Technique -->
+                    <div class="form-section">
+                        <h2 class="section-title">
+                            <span class="section-icon">⚙️</span>
+                            Configuration technique
+                        </h2>
+                        <div class="row g-4">
+                            <div class="col-md-4">
+                                <div class="modern-input-group">
+                                    <label class="modern-label">🏢 Type d'espace *</label>
+                                    <select class="modern-input modern-select" id="type_espace" name="type_espace" required>
+                                        <option value="">-- Sélectionner --</option>
+                                        <option value="Salle">Salle</option>
+                                        <option value="Extérieur">Extérieur</option>
+                                        <option value="École">École</option>
+                                        <option value="Médiathèque">Médiathèque</option>
+                                        <option value="Entreprise">Entreprise</option>
+                                        <option value="Domicile">Domicile</option>
+                                        <option value="Autre">Autre</option>
+                                    </select>
+                                </div>
                             </div>
-                            <div class="col-md-4 mb-3">
-                                <label for="jauge" class="form-label">Jauge (personnes) *</label>
-                                <input type="text" class="form-control" id="jauge" name="jauge" placeholder="Ex: 50" required>
+                            <div class="col-md-4">
+                                <div class="modern-input-group">
+                                    <label class="modern-label">👥 Jauge (personnes) *</label>
+                                    <input type="text" class="modern-input" id="jauge" name="jauge" placeholder="Ex: 50" required>
+                                </div>
                             </div>
-                            <div class="col-md-4 mb-3">
-                                <label for="budget" class="form-label">Budget (€) *</label>
-                                <input type="text" class="form-control" id="budget" name="budget" placeholder="Ex: 500" required>
+                            <div class="col-md-4">
+                                <div class="modern-input-group">
+                                    <label class="modern-label">💰 Budget (€) *</label>
+                                    <input type="text" class="modern-input" id="budget" name="budget" placeholder="Ex: 500" required>
+                                </div>
+                            </div>
+                            <div class="col-12">
+                                <div class="modern-input-group">
+                                    <label class="modern-label">📝 Intitulé de la mission</label>
+                                    <textarea class="modern-input modern-textarea" id="contraintes" name="contraintes" rows="8" placeholder="Décrivez en détail la mission et les contraintes techniques..."></textarea>
+                                </div>
+                            </div>
+                            <div class="col-12">
+                                <div class="modern-input-group">
+                                    <label class="modern-label">♿ Accessibilité</label>
+                                    <input type="text" class="modern-input" id="accessibilite" name="accessibilite" placeholder="PMR, parking...">
+                                </div>
                             </div>
                         </div>
+                    </div>
 
-                        <div class="mb-3">
-                            <label for="contraintes" class="form-label">Contraintes techniques</label>
-                            <textarea class="form-control" id="contraintes" name="contraintes" rows="3" placeholder="Précisions sur le matériel, l'espace disponible..."></textarea>
-                        </div>
-
-                        <div class="mb-4">
-                            <label for="accessibilite" class="form-label">Accessibilité</label>
-                            <input type="text" class="form-control" id="accessibilite" name="accessibilite" placeholder="PMR, parking...">
-                        </div>
-
-                        <div class="d-flex justify-content-between">
-                            <a href="{{ url_for('demandes_animation') }}" class="btn btn-secondary">
-                                ← Retour
-                            </a>
-                            <button type="submit" class="btn btn-primary btn-lg">
-                                💾 Créer la demande
-                            </button>
-                        </div>
-                    </form>
-                </div>
+                    <!-- Boutons d'action -->
+                    <div class="action-buttons">
+                        <a href="{{ url_for('demandes_animation') }}" class="btn-secondary-modern">
+                            <span>←</span> Retour
+                        </a>
+                        <button type="submit" class="btn-primary-modern">
+                            <span>💾</span> Créer la demande
+                        </button>
+                    </div>
+                </form>
             </div>
         </div>
     </div>
 </div>
 
 <style>
-    /* Augmenter la taille des champs de 40% */
-    .form-control,
-    .form-select {
-        font-size: 1.2rem !important;
-        padding: 0.7rem 1rem !important;
-        min-height: 3rem !important;
+    /* Design contemporain */
+    .modern-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 20px;
+        padding: 2.5rem 2rem;
+        color: white;
+        box-shadow: 0 10px 40px rgba(102, 126, 234, 0.3);
+        position: relative;
+        overflow: hidden;
     }
-    
-    textarea.form-control {
-        min-height: 8rem !important;
+
+    .modern-header::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M11 18c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm48 25c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm-43-7c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm63 31c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM34 90c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm56-76c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM12 86c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm28-65c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm23-11c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-6 60c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm29 22c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zM32 63c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm57-13c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-9-21c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM60 91c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM35 41c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM12 60c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2z' fill='%23ffffff' fill-opacity='0.05' fill-rule='evenodd'/%3E%3C/svg%3E");
+        opacity: 0.5;
     }
-    
-    .form-label {
-        font-size: 1.1rem !important;
+
+    .header-content {
+        position: relative;
+        z-index: 1;
+    }
+
+    .header-title {
+        font-size: 2rem;
+        font-weight: 700;
+        margin: 0;
+        letter-spacing: -0.5px;
+    }
+
+    .header-subtitle {
+        margin: 0.5rem 0 0 0;
+        opacity: 0.9;
+        font-size: 1.1rem;
+    }
+
+    .modern-card {
+        background: white;
+        border-radius: 20px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+        padding: 2.5rem;
+        margin-bottom: 2rem;
+    }
+
+    .privacy-toggle {
+        background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+        border-radius: 15px;
+        padding: 1.5rem;
+        margin-bottom: 2.5rem;
+    }
+
+    .toggle-container {
+        display: flex;
+        align-items: center;
+    }
+
+    .toggle-checkbox {
+        width: 24px;
+        height: 24px;
+        cursor: pointer;
+        margin-right: 1rem;
+        accent-color: #667eea;
+    }
+
+    .toggle-label {
+        display: flex;
+        align-items: center;
+        cursor: pointer;
+        margin: 0;
+        flex: 1;
+    }
+
+    .toggle-icon {
+        font-size: 1.8rem;
+        margin-right: 1rem;
+    }
+
+    .toggle-text {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .toggle-text strong {
+        font-size: 1.1rem;
+        color: #2d3748;
+    }
+
+    .toggle-text span {
+        font-size: 0.9rem;
+        color: #718096;
+        margin-top: 0.2rem;
+    }
+
+    .form-section {
+        margin-bottom: 2.5rem;
+        padding-bottom: 2.5rem;
+        border-bottom: 2px solid #f0f0f0;
+    }
+
+    .form-section:last-of-type {
+        border-bottom: none;
+    }
+
+    .section-title {
+        font-size: 1.4rem;
+        font-weight: 600;
+        color: #2d3748;
+        margin-bottom: 1.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.8rem;
+    }
+
+    .section-icon {
+        font-size: 1.8rem;
+        display: inline-block;
+    }
+
+    .modern-input-group {
+        position: relative;
+    }
+
+    .modern-label {
+        display: block;
+        font-size: 0.95rem;
+        font-weight: 600;
+        color: #4a5568;
+        margin-bottom: 0.6rem;
+        transition: color 0.3s ease;
+    }
+
+    .modern-input,
+    .modern-select,
+    .modern-textarea {
+        width: 100%;
+        padding: 0.9rem 1.2rem;
+        font-size: 1.05rem;
+        border: 2px solid #e2e8f0;
+        border-radius: 12px;
+        background-color: #ffffff;
+        transition: all 0.3s ease;
+        font-family: inherit;
+    }
+
+    .modern-input:focus,
+    .modern-select:focus,
+    .modern-textarea:focus {
+        outline: none;
+        border-color: #667eea;
+        box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+        transform: translateY(-1px);
+    }
+
+    .modern-input:hover,
+    .modern-select:hover,
+    .modern-textarea:hover {
+        border-color: #cbd5e0;
+    }
+
+    .modern-textarea {
+        resize: vertical;
+        min-height: 180px;
+        line-height: 1.6;
+    }
+
+    .modern-select {
+        cursor: pointer;
+        appearance: none;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%234a5568' d='M10.293 3.293L6 7.586 1.707 3.293A1 1 0 00.293 4.707l5 5a1 1 0 001.414 0l5-5a1 1 0 10-1.414-1.414z'/%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: right 1rem center;
+        padding-right: 3rem;
+    }
+
+    .action-buttons {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 1rem;
+        margin-top: 2rem;
+        padding-top: 2rem;
+        border-top: 2px solid #f0f0f0;
+    }
+
+    .btn-primary-modern {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border: none;
+        padding: 1rem 2.5rem;
+        font-size: 1.1rem;
+        font-weight: 600;
+        border-radius: 12px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        display: flex;
+        align-items: center;
+        gap: 0.6rem;
+    }
+
+    .btn-primary-modern:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(102, 126, 234, 0.5);
+    }
+
+    .btn-primary-modern:active {
+        transform: translateY(0);
+    }
+
+    .btn-secondary-modern {
+        background: #f7fafc;
+        color: #4a5568;
+        border: 2px solid #e2e8f0;
+        padding: 1rem 2rem;
+        font-size: 1rem;
         font-weight: 500;
+        border-radius: 12px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        text-decoration: none;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .btn-secondary-modern:hover {
+        background: #edf2f7;
+        border-color: #cbd5e0;
+        color: #2d3748;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        .modern-header {
+            padding: 2rem 1.5rem;
+        }
+
+        .header-title {
+            font-size: 1.5rem;
+        }
+
+        .modern-card {
+            padding: 1.5rem;
+        }
+
+        .section-title {
+            font-size: 1.2rem;
+        }
+
+        .action-buttons {
+            flex-direction: column-reverse;
+        }
+
+        .btn-primary-modern,
+        .btn-secondary-modern {
+            width: 100%;
+            justify-content: center;
+        }
+    }
+
+    /* Animation d'apparition */
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .modern-card {
+        animation: fadeInUp 0.5s ease-out;
     }
 </style>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const genreSelect = document.getElementById('genre_recherche');
+        const autreGenreContainer = document.getElementById('autre_genre_container');
+        const autreGenreInput = document.getElementById('autre_genre');
+
+        genreSelect.addEventListener('change', function() {
+            if (this.value === 'Autre') {
+                autreGenreContainer.style.display = 'block';
+                autreGenreInput.required = true;
+            } else {
+                autreGenreContainer.style.display = 'none';
+                autreGenreInput.required = false;
+                autreGenreInput.value = '';
+            }
+        });
+    });
+</script>
 
 {% endblock %}
