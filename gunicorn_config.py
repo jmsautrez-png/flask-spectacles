@@ -13,8 +13,8 @@ workers = min(workers, 4)
 # Type de worker
 worker_class = 'sync'
 
-# Timeout pour les requêtes longues (upload de fichiers)
-timeout = 120
+# Timeout pour les requêtes longues (upload de fichiers et envoi emails massifs)
+timeout = 300  # 5 minutes pour permettre l'envoi de nombreux emails
 keepalive = 5
 
 # Logging

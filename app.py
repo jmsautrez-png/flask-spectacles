@@ -3923,6 +3923,7 @@ Accessibilité: {accessibilite}
             emails_sent = set()
             success_count = 0
             error_count = 0
+            errors_detail = []  # Liste des erreurs détaillées
             
             # Vérifier si mail est configuré
             if not getattr(current_app, "mail", None):
@@ -4075,8 +4076,10 @@ Accessibilité: {accessibilite}
                             print(f"[DEBUG] ✅ Email envoyé à {email}")
                             success_count += 1
                         except Exception as e:
-                            print(f"[MAIL] ❌ Erreur envoi à {email}: {e}")
+                            error_msg = str(e)
+                            print(f"[MAIL] ❌ Erreur envoi à {email}: {error_msg}")
                             error_count += 1
+                            errors_detail.append(f"{email}: {error_msg[:100]}")
             
             # Envoyer aussi aux utilisateurs additionnels par région (qui n'ont pas de spectacle correspondant aux catégories mais sont dans la région)
             for user in additional_users:
@@ -4188,8 +4191,10 @@ Accessibilité: {accessibilite}
                         print(f"[DEBUG] ✅ Email envoyé à {user.email} (utilisateur région)")
                         success_count += 1
                     except Exception as e:
-                        print(f"[MAIL] ❌ Erreur envoi à {user.email}: {e}")
+                        error_msg = str(e)
+                        print(f"[MAIL] ❌ Erreur envoi à {user.email}: {error_msg}")
                         error_count += 1
+                        errors_detail.append(f"{user.email}: {error_msg[:100]}")
             
             # Envoyer aussi une copie à l'admin
             admin_email = current_user().email if current_user() and current_user().email else None
@@ -4284,7 +4289,10 @@ Accessibilité: {accessibilite}
             if success_count > 0:
                 flash(f"✅ Demande envoyée à {success_count} utilisateur(s) !", "success")
             if error_count > 0:
-                flash(f"⚠️ {error_count} email(s) n'ont pas pu être envoyé(s).", "warning")
+                flash(f"⚠️ {error_count} email(s) n'ont pas pu être envoyé(s) (domaines invalides ou boîtes pleines).", "warning")
+                # Logger les détails des erreurs sans crasher
+                for err_detail in errors_detail[:5]:  # Limiter à 5 pour ne pas surcharger les logs
+                    print(f"[MAIL ERROR DETAIL] {err_detail}")
             
             if success_count == 0 and error_count == 0:
                 flash("⚠️ Aucun email n'a été envoyé. Aucun spectacle correspondant trouvé.", "warning")
