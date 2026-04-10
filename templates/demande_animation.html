@@ -104,42 +104,53 @@
 
       <div class="grid-2">
         <label>
-          <span class="label-text">Genre recherché <span class="req">*</span></span>
+          <span class="label-text">🎪 Type d'événement</span>
+          <select id="type_evenement" name="type_evenement">
+            <option value="">-- Choisir (optionnel) --</option>
+            <option value="Arbre de Noël">Arbre de Noël</option>
+            <option value="Anniversaire">Anniversaire</option>
+            <option value="Festival">Festival</option>
+            <option value="Fête de village">Fête de village</option>
+            <option value="Fête d'école">Fête d'école</option>
+            <option value="Spectacle scolaire">Spectacle scolaire (Maternelle/Élémentaire)</option>
+            <option value="Événement CSE/CE">Événement CSE/CE</option>
+            <option value="Salon du livre">Salon du livre</option>
+            <option value="Salon professionnel">Salon professionnel</option>
+            <option value="Fête foraine">Fête foraine</option>
+            <option value="Inauguration">Inauguration</option>
+            <option value="Mariage">Mariage</option>
+            <option value="Événement privé">Événement privé</option>
+            <option value="Autre">Autre</option>
+          </select>
+          <small class="hint">Précisez le type d'événement si vous le connaissez</small>
+        </label>
+
+        <label>
+          <span class="label-text">🎭 Genre de spectacle recherché <span class="req">*</span></span>
           <select id="genre_recherche" name="genre_recherche" required>
             <option value="">-- Choisir --</option>
             <optgroup label="Spectacle et Animation">
-              <option value="Spectacle Maternelle">Spectacle Maternelle</option>
-              <option value="Spectacle Élémentaire">Spectacle Élémentaire</option>
-              <option value="Spectacle École">Spectacle École</option>
-              <option value="Spectacle CSE">Spectacle CSE</option>
-              <option value="Festival">Festival</option>
-              <option value="Fêtes Foraine">Fête Foraine</option>
+              <option value="Marionnettes">Marionnettes</option>
+              <option value="Magie et Magicien">Magie et Magicien</option>
+              <option value="Clown">Clown</option>
+              <option value="Cirque">Cirque</option>
+              <option value="Conte et Théâtre">Conte et Théâtre</option>
               <option value="Sculpteur de ballons">Sculpteur de ballons</option>
               <option value="Animation et Atelier Artistique">Animation et Atelier Artistique</option>
-              <option value="Atelier divers">Atelier divers</option>
               <option value="Atelier maquillage">Atelier maquillage</option>
               <option value="Caricaturistes et Silhouettiste">Caricaturistes et Silhouettiste</option>
-              <option value="Cirque">Cirque</option>
-              <option value="Clown">Clown</option>
-              <option value="Conte et Théâtre">Conte et Théâtre</option>
-              <option value="Fête de village">Fête de village</option>
               <option value="Humoriste et Imitateur">Humoriste et Imitateur</option>
-              <option value="Location de stand">Location de stand</option>
-              <option value="Magie et Magicien">Magie et Magicien</option>
-              <option value="Manège">Manège</option>
-              <option value="Marionnettes">Marionnettes</option>
+              <option value="Ventriloque">Ventriloque</option>
               <option value="Père Noël">Père Noël</option>
               <option value="Revue Cabaret et Danse">Revue Cabaret et Danse</option>
-              <option value="Sosie">Sosie</option>
-              <option value="Spectacle à Thèmes">Spectacle à Thèmes</option>
               <option value="Spectacle Animalier">Spectacle Animalier</option>
-              <option value="Spectacle Arbre de Noël">Spectacle Arbre de Noël</option>
               <option value="Spectacle de danse">Spectacle de danse</option>
               <option value="Spectacle de Rue">Spectacle de Rue</option>
-              <option value="Spectacle Enfants">Spectacle Enfants</option>
-              <option value="Spectacle Evénementiel">Spectacle Evénementiel</option>
               <option value="Spectacle Musical">Spectacle Musical</option>
-              <option value="Ventriloque">Ventriloque</option>
+              <option value="Spectacle à Thèmes">Spectacle à Thèmes</option>
+              <option value="Location de stand">Location de stand</option>
+              <option value="Manège">Manège</option>
+              <option value="Sosie">Sosie</option>
             </optgroup>
             <optgroup label="Théâtre">
               <option value="Théâtre contemporain">Théâtre contemporain</option>
@@ -151,7 +162,6 @@
               <option value="Théâtre d'improvisation">Théâtre d'improvisation</option>
               <option value="Comédie musicale">Comédie musicale</option>
               <option value="Théâtre jeune public">Théâtre jeune public</option>
-              <option value="Théâtre amateur">Théâtre amateur</option>
             </optgroup>
             <optgroup label="Groupe de Musique et Musicien">
               <option value="Accordéoniste">Accordéoniste</option>

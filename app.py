@@ -3080,6 +3080,7 @@ def register_routes(app: Flask) -> None:
             nom = request.form.get("nom", "").strip()
             dates_horaires = request.form.get("dates_horaires", "").strip()
             type_espace = request.form.get("type_espace", "").strip()
+            type_evenement = request.form.get("type_evenement", "").strip()
             genre_recherche = request.form.get("genre_recherche", "").strip()
             autre_genre = request.form.get("autre_genre", "").strip()
             
@@ -3120,6 +3121,7 @@ Code postal: {code_postal}
 Région: {region}
 Date(s) et horaires: {dates_horaires}
 Type d'espace: {type_espace}
+Type d'événement: {type_evenement or 'Non précisé'}
 Genre recherché: {genre_recherche}
 Tranche d'âge: {age_range}
 Jauge: {jauge}
@@ -3154,6 +3156,7 @@ Accessibilité: {accessibilite}
                 nom=nom,
                 dates_horaires=dates_horaires,
                 type_espace=type_espace,
+                type_evenement=type_evenement,
                 genre_recherche=genre_recherche,
                 age_range=age_range,
                 jauge=jauge,

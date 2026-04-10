@@ -104,7 +104,10 @@
       </div>
       <hr style="margin:0.3rem 0 0.7rem 0;">
       <p style="margin:0.2rem 0 0.2rem 0; color:#444; font-size:1em;">et nous recherchons pour notre manifestation</p>
-      <p style="margin:0.2rem 0;"><strong>Genre recherché :</strong> <span style="color:#222;">{{ demande.genre_recherche }}</span></p>
+      {% if demande.type_evenement %}
+      <p style="margin:0.2rem 0;"><strong>🎪 Type d'événement :</strong> <span style="color:#222; background:#e3f2fd; padding:4px 10px; border-radius:6px; font-weight:600;">{{ demande.type_evenement }}</span></p>
+      {% endif %}
+      <p style="margin:0.2rem 0;"><strong>🎭 Genre recherché :</strong> <span style="color:#222;">{{ demande.genre_recherche }}</span></p>
       {% if user %}
         <p style="margin:0.2rem 0;"><strong>👤 Contact :</strong> <span style="color:#222;">{{ demande.nom }}</span></p>
         <p style="margin:0.2rem 0;"><strong>📞 Téléphone :</strong> <span style="color:#222;">{{ demande.telephone }}</span></p>
