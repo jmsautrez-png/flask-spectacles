@@ -261,6 +261,25 @@
             </a>
         </p>
     {% else %}
+        <!-- Compteur de photos avec indicateur de statut -->
+        {% set photos_count = (1 if show.file_name else 0) + (1 if show.file_name2 else 0) + (1 if show.file_name3 else 0) %}
+        <div style="background:{% if photos_count >= 2 %}linear-gradient(135deg, #27ae60 0%, #2ecc71 100%){% else %}linear-gradient(135deg, #e74c3c 0%, #c0392b 100%){% endif %}; padding:12px 16px; border-radius:10px; margin-bottom:16px; box-shadow:0 4px 12px rgba(0,0,0,0.15);">
+          <div style="display:flex; align-items:center; gap:12px;">
+            <span style="font-size:2rem;">{% if photos_count >= 2 %}✅{% else %}⚠️{% endif %}</span>
+            <div style="flex:1;">
+              <strong style="color:#fff; display:block; font-size:1rem; margin-bottom:4px;">{{ photos_count }}/2 photos minimum</strong>
+              <span style="color:#fff; font-size:0.85rem; opacity:0.95;">
+                {% if photos_count >= 2 %}
+                  Votre spectacle a suffisamment de photos pour être publié ! Vous pouvez en ajouter jusqu'à 3 au total.
+                {% else %}
+                  {% set manquantes = 2 - photos_count %}
+                  Il manque encore {{ manquantes }} photo{% if manquantes > 1 %}s{% endif %} pour pouvoir publier ce spectacle.
+                {% endif %}
+              </span>
+            </div>
+          </div>
+        </div>
+        
         <p>Photos actuelles :</p>
         <div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:12px; margin-bottom:16px;">
           <div style="text-align:center; position:relative;">
@@ -325,6 +344,17 @@
   <div style="margin-bottom:16px;">
     <span style="font-weight:600; display:block; margin-bottom:12px;">Remplacer ou ajouter des photos <span style="font-size:0.85rem;font-weight:normal;color:#fff;">(jusqu'à 3 photos - Taille max : 500 Ko chacune)</span></span>
     <small style="display:block; margin-bottom:12px; color:#fff;">Les photos s'afficheront en diaporama sur votre carte. Formats acceptés : PNG, JPG, GIF, WEBP ou PDF.</small>
+    
+    <!-- Avertissement 2 photos minimum -->
+    <div style="background:linear-gradient(135deg, #f39c12 0%, #e74c3c 100%); padding:12px 16px; border-radius:10px; margin-bottom:16px; border-left:4px solid #c0392b; box-shadow:0 4px 12px rgba(231, 76, 60, 0.2);">
+      <div style="display:flex; align-items:center; gap:10px;">
+        <span style="font-size:1.5rem;">⚠️</span>
+        <div>
+          <strong style="color:#fff; display:block; font-size:0.95rem; margin-bottom:4px;">Minimum 2 photos requis pour la publication</strong>
+          <span style="color:#fff; font-size:0.85rem; opacity:0.95;">Votre spectacle ne pourra être approuvé et publié que si vous avez ajouté au moins 2 photos. Vous pouvez en ajouter jusqu'à 3.</span>
+        </div>
+      </div>
+    </div>
     
     <div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:12px;">
       <label style="display:flex; flex-direction:column; gap:6px;">

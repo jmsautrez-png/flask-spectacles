@@ -2848,6 +2848,18 @@ def register_routes(app: Flask) -> None:
     @admin_required
     def show_approve(show_id: int):
         show = Show.query.get_or_404(show_id)
+        
+        # Vérifier qu'il y a au moins 2 photos avant d'approuver
+        photos_count = sum([
+            1 if show.file_name else 0,
+            1 if show.file_name2 else 0,
+            1 if show.file_name3 else 0
+        ])
+        
+        if photos_count < 2:
+            flash(f"⚠️ Ce spectacle ne peut pas être approuvé : il doit avoir au moins 2 photos (actuellement : {photos_count} photo{'s' if photos_count > 1 else ''}).", "warning")
+            return redirect(url_for("admin_shows"))
+        
         show.approved = True
         db.session.commit()
         
