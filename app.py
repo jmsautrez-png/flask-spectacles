@@ -3945,7 +3945,11 @@ Accessibilité: {accessibilite}
                 ).all()
                 print(f"[DEBUG] {len(additional_users)} utilisateurs supplémentaires avec région correspondante")
             
-            print(f"[DEBUG] Flask-Mail configuré, début de l'envoi...")
+            # === PHASE 1 : COLLECTER TOUS LES EMAILS À ENVOYER ===
+            import time
+            emails_to_send = []  # Liste de tuples (email, body_html, show_title)
+            
+            print(f"[DEBUG] Phase 1 : Collecte des destinataires...")
             for show in shows:
                 # Vérifier si l'utilisateur correspond aux régions sélectionnées (si applicable)
                 if regions and show.user and show.user.region:
@@ -3962,10 +3966,8 @@ Accessibilité: {accessibilite}
                 if email and email not in emails_sent:
                     emails_sent.add(email)
                     
-                    # Envoyer l'email à l'adresse réelle
-                    if getattr(current_app, "mail", None):
-                        try:
-                            body_html = f"""
+                    # Préparer le HTML de l'email (sans l'envoyer tout de suite)
+                    body_html = f"""
 <!DOCTYPE html>
 <html>
 <head>
@@ -4067,26 +4069,19 @@ Accessibilité: {accessibilite}
 </body>
 </html>
 """
-                            msg = Message(
-                                subject=f"Nouvelle Opportunité - {demande.genre_recherche} à {demande.lieu_ville}",
-                                recipients=[email]
-                            )
-                            msg.html = body_html
-                            current_app.mail.send(msg)
-                            print(f"[DEBUG] ✅ Email envoyé à {email}")
-                            success_count += 1
-                        except Exception as e:
-                            error_msg = str(e)
-                            print(f"[MAIL] ❌ Erreur envoi à {email}: {error_msg}")
-                            error_count += 1
-                            errors_detail.append(f"{email}: {error_msg[:100]}")
+                    # Ajouter à la liste au lieu d'envoyer immédiatement
+                    emails_to_send.append({
+                        'email': email,
+                        'body_html': body_html,
+                        'show_title': f"{show.title} - {show.category}",
+                        'type': 'spectacle'
+                    })
             
-            # Envoyer aussi aux utilisateurs additionnels par région (qui n'ont pas de spectacle correspondant aux catégories mais sont dans la région)
+            # Collecter aussi les utilisateurs additionnels par région
             for user in additional_users:
                 if user.email and user.email not in emails_sent:
                     emails_sent.add(user.email)
-                    try:
-                        body_html = f"""
+                    body_html = f"""
 <!DOCTYPE html>
 <html>
 <head>
@@ -4182,21 +4177,61 @@ Accessibilité: {accessibilite}
 </body>
 </html>
 """
+                    # Ajouter à la liste
+                    emails_to_send.append({
+                        'email': user.email,
+                        'body_html': body_html,
+                        'show_title': f"Région: {user.region}" if user.region else "Utilisateur régional",
+                        'type': 'region'
+                    })
+            
+            print(f"[DEBUG] Phase 1 terminée : {len(emails_to_send)} emails à envoyer")
+            
+            # === PHASE 2 : ENVOI PAR BATCH AVEC PROGRESSION ===
+            BATCH_SIZE = 20  # Nombre d'emails par batch
+            PAUSE_SECONDS = 2  # Pause entre les batchs
+            
+            success_count = 0
+            error_count = 0
+            errors_detail = []
+            
+            total_emails = len(emails_to_send)
+            if total_emails == 0:
+                flash("⚠️ Aucun email à envoyer. Aucun spectacle correspondant trouvé.", "warning")
+                return redirect(url_for("admin_demandes_animation"))
+            
+            print(f"[DEBUG] Phase 2 : Envoi par batchs de {BATCH_SIZE} emails...")
+            
+            # Découper en batchs
+            for i in range(0, total_emails, BATCH_SIZE):
+                batch = emails_to_send[i:i+BATCH_SIZE]
+                batch_num = (i // BATCH_SIZE) + 1
+                total_batchs = (total_emails + BATCH_SIZE - 1) // BATCH_SIZE
+                
+                print(f"[BATCH {batch_num}/{total_batchs}] Envoi de {len(batch)} emails...")
+                
+                for email_data in batch:
+                    try:
                         msg = Message(
                             subject=f"Nouvelle Opportunité - {demande.genre_recherche} à {demande.lieu_ville}",
-                            recipients=[user.email]
+                            recipients=[email_data['email']]
                         )
-                        msg.html = body_html
+                        msg.html = email_data['body_html']
                         current_app.mail.send(msg)
-                        print(f"[DEBUG] ✅ Email envoyé à {user.email} (utilisateur région)")
                         success_count += 1
+                        print(f"[DEBUG] ✅ Email envoyé à {email_data['email']} ({success_count}/{total_emails})")
                     except Exception as e:
                         error_msg = str(e)
-                        print(f"[MAIL] ❌ Erreur envoi à {user.email}: {error_msg}")
                         error_count += 1
-                        errors_detail.append(f"{user.email}: {error_msg[:100]}")
+                        errors_detail.append(f"{email_data['email']}: {error_msg[:100]}")
+                        print(f"[MAIL] ❌ Erreur envoi à {email_data['email']}: {error_msg}")
+                
+                # Pause entre les batchs (sauf pour le dernier)
+                if i + BATCH_SIZE < total_emails:
+                    print(f"[BATCH] Pause de {PAUSE_SECONDS}s avant le prochain batch...")
+                    time.sleep(PAUSE_SECONDS)
             
-            # Envoyer aussi une copie à l'admin
+            # === PHASE 3 : ENVOYER COPIE ADMIN ===
             admin_email = current_user().email if current_user() and current_user().email else None
             if admin_email and admin_email not in emails_sent:
                 try:
