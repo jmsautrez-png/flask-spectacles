@@ -64,6 +64,59 @@
                         </div>
                     </div>
 
+                    <!-- Aide : Tableau récapitulatif des options -->
+                    <div style="margin-bottom: 2rem;">
+                        <button type="button" onclick="toggleHelpTable()" style="background: transparent; border: none; color: #667eea; font-size: 0.85rem; cursor: pointer; padding: 8px 12px; border-radius: 6px; transition: all 0.3s; display: flex; align-items: center; gap: 6px;">
+                            <span id="helpToggleIcon">ℹ️</span>
+                            <span id="helpToggleText">Aide : comprendre les options</span>
+                        </button>
+                        <div id="helpTable" style="display: none; background: #f8f9fa; border-radius: 12px; padding: 16px; margin-top: 8px; border: 1px solid #e0e0e0;">
+                            <p style="margin: 0 0 12px 0; font-size: 0.9rem; color: #666; font-weight: 600;">📋 Récapitulatif des combinaisons possibles :</p>
+                            <table style="width: 100%; font-size: 0.85rem; border-collapse: collapse;">
+                                <thead>
+                                    <tr style="background: #667eea; color: white;">
+                                        <th style="padding: 8px; text-align: left; border-radius: 6px 0 0 0;">Mode brouillon</th>
+                                        <th style="padding: 8px; text-align: left;">Publier imm.</th>
+                                        <th style="padding: 8px; text-align: left;">Envoyer emails</th>
+                                        <th style="padding: 8px; text-align: left; border-radius: 0 6px 0 0;">Résultat</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr style="background: white;">
+                                        <td style="padding: 8px; border-bottom: 1px solid #e0e0e0;">❌ Décoché</td>
+                                        <td style="padding: 8px; border-bottom: 1px solid #e0e0e0;">❌ Non coché</td>
+                                        <td style="padding: 8px; border-bottom: 1px solid #e0e0e0;">❌ Non coché</td>
+                                        <td style="padding: 8px; border-bottom: 1px solid #e0e0e0; font-weight: 600; color: #ff9800;">Publique, en attente, pas d'emails</td>
+                                    </tr>
+                                    <tr style="background: #f8f9fa;">
+                                        <td style="padding: 8px; border-bottom: 1px solid #e0e0e0;">❌ Décoché</td>
+                                        <td style="padding: 8px; border-bottom: 1px solid #e0e0e0;">✅ Coché</td>
+                                        <td style="padding: 8px; border-bottom: 1px solid #e0e0e0;">❌ Non coché</td>
+                                        <td style="padding: 8px; border-bottom: 1px solid #e0e0e0; font-weight: 600; color: #28a745;">Publique, approuvée, pas d'emails</td>
+                                    </tr>
+                                    <tr style="background: white;">
+                                        <td style="padding: 8px; border-bottom: 1px solid #e0e0e0;">❌ Décoché</td>
+                                        <td style="padding: 8px; border-bottom: 1px solid #e0e0e0;">❌ Non coché</td>
+                                        <td style="padding: 8px; border-bottom: 1px solid #e0e0e0;">✅ Coché</td>
+                                        <td style="padding: 8px; border-bottom: 1px solid #e0e0e0; font-weight: 600; color: #1976d2;">Publique, en attente, avec emails</td>
+                                    </tr>
+                                    <tr style="background: #f8f9fa;">
+                                        <td style="padding: 8px; border-bottom: 1px solid #e0e0e0;">❌ Décoché</td>
+                                        <td style="padding: 8px; border-bottom: 1px solid #e0e0e0;">✅ Coché</td>
+                                        <td style="padding: 8px; border-bottom: 1px solid #e0e0e0;">✅ Coché</td>
+                                        <td style="padding: 8px; border-bottom: 1px solid #e0e0e0; font-weight: 600; color: #28a745;">Publique, approuvée, avec emails</td>
+                                    </tr>
+                                    <tr style="background: white;">
+                                        <td style="padding: 8px;">✅ Coché</td>
+                                        <td style="padding: 8px; color: #999;">Désactivé</td>
+                                        <td style="padding: 8px; color: #999;">Désactivé</td>
+                                        <td style="padding: 8px; font-weight: 600; color: #dc3545;">Privée uniquement</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
                     <!-- Section Contact -->
                     <div class="form-section">
                         <h2 class="section-title">
@@ -503,6 +556,23 @@
 </style>
 
 <script>
+    // Fonction pour afficher/masquer le tableau d'aide
+    function toggleHelpTable() {
+        const helpTable = document.getElementById('helpTable');
+        const helpIcon = document.getElementById('helpToggleIcon');
+        const helpText = document.getElementById('helpToggleText');
+        
+        if (helpTable.style.display === 'none') {
+            helpTable.style.display = 'block';
+            helpIcon.textContent = '❌';
+            helpText.textContent = 'Masquer l\'aide';
+        } else {
+            helpTable.style.display = 'none';
+            helpIcon.textContent = 'ℹ️';
+            helpText.textContent = 'Aide : comprendre les options';
+        }
+    }
+
     document.addEventListener('DOMContentLoaded', function() {
         const genreSelect = document.getElementById('genre_recherche');
         const autreGenreContainer = document.getElementById('autre_genre_container');
