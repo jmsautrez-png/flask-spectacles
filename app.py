@@ -3890,6 +3890,8 @@ Accessibilité: {accessibilite}
         
         if request.method == "POST":
             print(f"[DEBUG] POST reçu pour demande_id={demande_id}")
+            action = request.form.get("action", "preview")
+            print(f"[DEBUG] Action: {action}")
             categories = request.form.getlist("categories")
             regions = request.form.getlist("regions")
             print(f"[DEBUG] Catégories sélectionnées: {categories}")
@@ -3945,6 +3947,65 @@ Accessibilité: {accessibilite}
                 ).all()
                 print(f"[DEBUG] {len(additional_users)} utilisateurs supplémentaires avec région correspondante")
             
+            # === SI ACTION = PREVIEW : Retourner liste des destinataires pour sélection manuelle ===
+            if action == "preview":
+                destinataires = []
+                emails_seen = set()
+                
+                # Collecter les destinataires des spectacles
+                for show in shows:
+                    if regions and show.user and show.user.region:
+                        user_region_match = any(reg.lower() in show.user.region.lower() for reg in regions)
+                        show_region_match = show.region and any(reg.lower() in show.region.lower() for reg in regions)
+                        if not user_region_match and not show_region_match:
+                            continue
+                    
+                    email = show.contact_email
+                    if not email and show.user:
+                        email = show.user.email if hasattr(show.user, 'email') else None
+                    
+                    if email and email not in emails_seen:
+                        emails_seen.add(email)
+                        destinataires.append({
+                            'email': email,
+                            'show_title': f"{show.title} - {show.category}",
+                            'category': show.category,
+                            'region': show.region or (show.user.region if show.user else ""),
+                            'show_id': show.id,
+                            'type': 'spectacle'
+                        })
+                
+                # Collecter les destinataires régionaux additionnels
+                for user in additional_users:
+                    if user.email and user.email not in emails_seen:
+                        emails_seen.add(user.email)
+                        destinataires.append({
+                            'email': user.email,
+                            'show_title': f"Région: {user.region}" if user.region else "Utilisateur régional",
+                            'category': "Utilisateur régional",
+                            'region': user.region or "",
+                            'show_id': None,
+                            'type': 'region'
+                        })
+                
+                print(f"[DEBUG] {len(destinataires)} destinataires uniques trouvés pour prévisualisation")
+                
+                # Retourner le template de prévisualisation
+                return render_template(
+                    "admin_preview_destinataires.html",
+                    user=current_user(),
+                    demande=demande,
+                    destinataires=destinataires,
+                    categories=categories,
+                    regions=regions
+                )
+            
+            # === SINON (ACTION = SEND ou autre) : Continuer avec l'envoi normal ===
+            # Filtrer par emails sélectionnés si fournis
+            selected_emails = request.form.getlist("emails[]")
+            if selected_emails:
+                print(f"[DEBUG] Envoi limité à {len(selected_emails)} emails sélectionnés")
+            
             # === PHASE 1 : COLLECTER TOUS LES EMAILS À ENVOYER ===
             import time
             emails_to_send = []  # Liste de tuples (email, body_html, show_title)
@@ -3963,7 +4024,7 @@ Accessibilité: {accessibilite}
                 if not email and show.user:
                     email = show.user.email if hasattr(show.user, 'email') else None
                 
-                if email and email not in emails_sent:
+                if email and email not in emails_sent and (not selected_emails or email in selected_emails):
                     emails_sent.add(email)
                     
                     # Préparer le HTML de l'email (sans l'envoyer tout de suite)
@@ -4079,7 +4140,7 @@ Accessibilité: {accessibilite}
             
             # Collecter aussi les utilisateurs additionnels par région
             for user in additional_users:
-                if user.email and user.email not in emails_sent:
+                if user.email and user.email not in emails_sent and (not selected_emails or user.email in selected_emails):
                     emails_sent.add(user.email)
                     body_html = f"""
 <!DOCTYPE html>
