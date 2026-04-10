@@ -4048,26 +4048,111 @@ Accessibilité: {accessibilite}
         demande = DemandeAnimation.query.get_or_404(demande_id)
         
         if request.method == "POST":
-            print(f"[DEBUG] POST reçu pour demande_id={demande_id}")
-            categories = request.form.getlist("categories")
-            regions = request.form.getlist("regions")
-            print(f"[DEBUG] Catégories sélectionnées: {categories}")
-            print(f"[DEBUG] Régions sélectionnées: {regions}")
+            action = request.form.get("action", "preview")  # "preview" ou "send"
+            print(f"[DEBUG] POST reçu pour demande_id={demande_id}, action={action}")
             
-            if not categories:
-                print("[DEBUG] Aucune catégorie sélectionnée")
-                flash("Veuillez sélectionner au moins une catégorie.", "warning")
-                return redirect(request.url)
+            # === ACTION: PREVIEW (Étape 1 - Prévisualisation) ===
+            if action == "preview":
+                categories = request.form.getlist("categories")
+                regions = request.form.getlist("regions")
+                print(f"[DEBUG] Catégories sélectionnées: {categories}")
+                print(f"[DEBUG] Régions sélectionnées: {regions}")
+                
+                if not categories:
+                    print("[DEBUG] Aucune catégorie sélectionnée")
+                    flash("Veuillez sélectionner au moins une catégorie.", "warning")
+                    return redirect(request.url)
+                
+                print(f"[DEBUG] Recherche des spectacles pour {len(categories)} catégories et {len(regions)} régions")
+                
+                # Récupérer tous les spectacles correspondants
+                query = Show.query.filter(Show.approved.is_(True))
+                
+                if categories:
+                    category_filters = [Show.category.ilike(f"%{cat}%") for cat in categories]
+                    query = query.filter(or_(*category_filters))
+                
+                # Filtrer par région si des régions sont sélectionnées
+                if regions:
+                    region_filters = []
+                    for reg in regions:
+                        region_filters.append(Show.region.ilike(f"%{reg}%"))
+                    query = query.filter(or_(*region_filters))
+                
+                shows = query.all()
+                print(f"[DEBUG] {len(shows)} spectacles trouvés")
+                
+                # Collecter les emails et informations des destinataires
+                destinataires = []
+                emails_seen = set()
+                
+                for show in shows:
+                    # Vérifier si l'utilisateur correspond aux régions sélectionnées (si applicable)
+                    if regions and show.user and show.user.region:
+                        user_region_match = any(reg.lower() in show.user.region.lower() for reg in regions)
+                        show_region_match = show.region and any(reg.lower() in show.region.lower() for reg in regions)
+                        if not user_region_match and not show_region_match:
+                            continue
+                    
+                    # Utiliser l'email du spectacle en priorité, sinon l'email de l'utilisateur
+                    email = show.contact_email
+                    if not email and show.user:
+                        email = show.user.email if hasattr(show.user, 'email') else None
+                    
+                    if email and email not in emails_seen:
+                        emails_seen.add(email)
+                        destinataires.append({
+                            'email': email,
+                            'show_title': show.title,
+                            'show_id': show.id,
+                            'category': show.category,
+                            'region': show.region or (show.user.region if show.user else None),
+                            'type': 'spectacle'
+                        })
+                
+                # Ajouter les utilisateurs par région (qui n'ont pas de spectacle correspondant)
+                if regions:
+                    from models.models import User as UserModel
+                    user_region_filters = []
+                    for reg in regions:
+                        user_region_filters.append(UserModel.region.ilike(f"%{reg}%"))
+                    additional_users = UserModel.query.filter(
+                        UserModel.email.isnot(None),
+                        or_(*user_region_filters)
+                    ).all()
+                    
+                    for user in additional_users:
+                        if user.email and user.email not in emails_seen:
+                            emails_seen.add(user.email)
+                            destinataires.append({
+                                'email': user.email,
+                                'show_title': f"Région: {user.region}" if user.region else "Utilisateur régional",
+                                'show_id': None,
+                                'category': 'Utilisateur régional',
+                                'region': user.region,
+                                'type': 'region'
+                            })
+                
+                print(f"[DEBUG] {len(destinataires)} destinataires uniques trouvés")
+                
+                # Afficher la page de prévisualisation
+                return render_template("admin_preview_destinataires.html",
+                                     demande=demande,
+                                     destinataires=destinataires,
+                                     user=current_user())
             
-            print(f"[DEBUG] Recherche des spectacles pour {len(categories)} catégories et {len(regions)} régions")
-            # Récupérer tous les spectacles correspondants
-            query = Show.query.filter(Show.approved.is_(True))
-            
-            if categories:
-                category_filters = [Show.category.ilike(f"%{cat}%") for cat in categories]
-                query = query.filter(or_(*category_filters))
-            
-            # Filtrer par région si des régions sont sélectionnées
+            # === ACTION: SEND (Étape 2 - Envoi définitif) ===
+            elif action == "send":
+                selected_emails = request.form.getlist("emails[]")
+                print(f"[DEBUG] Envoi définitif à {len(selected_emails)} emails sélectionnés")
+                
+                if not selected_emails:
+                    flash("❌ Aucune compagnie sélectionnée pour l'envoi.", "danger")
+                    return redirect(url_for("admin_envoyer_demande", demande_id=demande_id))
+                
+                # Récupérer les informations complètes des spectacles pour chaque email
+                categories = request.form.getlist("categories")
+                regions = request.form.getlist("regions")
             if regions:
                 # Filtrer sur la région du spectacle OU la région de l'utilisateur propriétaire
                 region_filters = []

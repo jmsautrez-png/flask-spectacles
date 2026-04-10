@@ -88,17 +88,16 @@
                             </div>
                         </div>
 
-                        <div class="alert alert-warning mt-3">
-                            <strong>⚠️ Attention :</strong> Les emails seront envoyés immédiatement après validation.
-                            Vérifiez bien votre sélection avant de continuer.
+                        <div class="alert alert-info mt-3">
+                            <strong>ℹ️ Prochaine étape :</strong> Vous pourrez prévisualiser et sélectionner manuellement les destinataires avant l'envoi final.
                         </div>
 
                         <div class="d-flex justify-content-between mt-4">
-                            <a href="{{ url_for('admin_dashboard') }}" class="btn btn-secondary">
+                            <a href="{{ url_for('admin_demandes_animation') }}" class="btn btn-secondary">
                                 ← Retour
                             </a>
-                            <button type="submit" class="btn btn-success btn-lg" id="btn-envoyer">
-                                📧 Envoyer maintenant
+                            <button type="submit" name="action" value="preview" class="btn btn-primary btn-lg" id="btn-preview">
+                                🔍 Prévisualiser les destinataires →
                             </button>
                         </div>
                     </form>

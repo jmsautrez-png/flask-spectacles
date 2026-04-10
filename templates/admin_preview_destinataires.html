@@ -1,0 +1,282 @@
+{% extends "base.html" %}
+
+{% block title %}Prévisualisation destinataires{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-11">
+            <div class="card shadow">
+                <div class="card-header bg-success text-white">
+                    <h3 class="mb-0">🔍 Prévisualisation - Sélection des destinataires</h3>
+                </div>
+                <div class="card-body">
+                    <!-- Détails de la demande -->
+                    <div class="alert alert-info">
+                        <h5>📋 Appel d'offre à envoyer :</h5>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <ul class="mb-0">
+                                    <li><strong>Structure :</strong> {{ demande.structure }}</li>
+                                    <li><strong>Lieu :</strong> {{ demande.lieu_ville }}</li>
+                                    <li><strong>Type recherché :</strong> {{ demande.genre_recherche }}</li>
+                                    <li><strong>Date(s) :</strong> {{ demande.dates_horaires }}</li>
+                                </ul>
+                            </div>
+                            <div class="col-md-6">
+                                <ul class="mb-0">
+                                    <li><strong>Budget :</strong> {{ demande.budget }} €</li>
+                                    <li><strong>Jauge :</strong> {{ demande.jauge }}</li>
+                                    <li><strong>Public :</strong> {{ demande.age_range }}</li>
+                                    <li><strong>Type d'espace :</strong> {{ demande.type_espace }}</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Statistiques -->
+                    <div class="row mb-4">
+                        <div class="col-md-4">
+                            <div class="card bg-primary text-white text-center">
+                                <div class="card-body">
+                                    <h2 class="mb-0" id="total-count">{{ destinataires|length }}</h2>
+                                    <p class="mb-0">Compagnies trouvées</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="card bg-success text-white text-center">
+                                <div class="card-body">
+                                    <h2 class="mb-0" id="selected-count">{{ destinataires|length }}</h2>
+                                    <p class="mb-0">Sélectionnées</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="card bg-warning text-white text-center">
+                                <div class="card-body">
+                                    <h2 class="mb-0" id="excluded-count">0</h2>
+                                    <p class="mb-0">Exclues</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Formulaire d'envoi -->
+                    <form method="post" id="form-envoi">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                        <input type="hidden" name="action" value="send"/>
+                        <input type="hidden" name="demande_id" value="{{ demande.id }}"/>
+                        
+                        <!-- Boutons d'action rapide -->
+                        <div class="d-flex justify-content-between mb-3">
+                            <div>
+                                <button type="button" class="btn btn-sm btn-outline-success" onclick="selectAll()">
+                                    ✅ Tout sélectionner
+                                </button>
+                                <button type="button" class="btn btn-sm btn-outline-warning" onclick="deselectAll()">
+                                    ❌ Tout désélectionner
+                                </button>
+                                <button type="button" class="btn btn-sm btn-outline-info" onclick="inverserSelection()">
+                                    🔄 Inverser la sélection
+                                </button>
+                            </div>
+                            <div>
+                                <input type="text" id="search-input" class="form-control form-control-sm" placeholder="🔍 Rechercher email, spectacle..." onkeyup="searchCompanies()">
+                            </div>
+                        </div>
+
+                        <!-- Table des destinataires -->
+                        <div class="table-responsive" style="max-height: 600px; overflow-y: auto;">
+                            <table class="table table-striped table-hover">
+                                <thead class="sticky-top bg-light">
+                                    <tr>
+                                        <th style="width: 50px;">
+                                            <input type="checkbox" id="checkbox-all" onchange="toggleAll(this)" checked>
+                                        </th>
+                                        <th style="width: 50px;">#</th>
+                                        <th>📧 Email</th>
+                                        <th>🎭 Spectacle</th>
+                                        <th>📂 Catégorie</th>
+                                        <th>🗺️ Région</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="table-body">
+                                    {% if destinataires %}
+                                        {% for dest in destinataires %}
+                                        <tr class="company-row">
+                                            <td>
+                                                <input type="checkbox" class="company-checkbox" 
+                                                       name="emails[]" 
+                                                       value="{{ dest.email }}" 
+                                                       data-show-title="{{ dest.show_title }}"
+                                                       data-show-id="{{ dest.show_id }}"
+                                                       onchange="updateCounts()" 
+                                                       checked>
+                                            </td>
+                                            <td>{{ loop.index }}</td>
+                                            <td class="fw-bold email-cell">{{ dest.email }}</td>
+                                            <td class="show-cell">{{ dest.show_title }}</td>
+                                            <td class="text-muted category-cell">{{ dest.category }}</td>
+                                            <td class="text-muted region-cell">{{ dest.region or 'Non spécifiée' }}</td>
+                                        </tr>
+                                        {% endfor %}
+                                    {% else %}
+                                        <tr>
+                                            <td colspan="6" class="text-center text-muted py-5">
+                                                <h5>❌ Aucune compagnie trouvée</h5>
+                                                <p>Les critères sélectionnés ne correspondent à aucune compagnie.</p>
+                                            </td>
+                                        </tr>
+                                    {% endif %}
+                                </tbody>
+                            </table>
+                        </div>
+
+                        {% if destinataires %}
+                        <div class="alert alert-warning mt-4">
+                            <strong>⚠️ Attention :</strong> L'envoi est définitif. Les emails seront envoyés aux <strong><span id="final-count">{{ destinataires|length }}</span> compagnies cochées</strong>.
+                        </div>
+
+                        <div class="d-flex justify-content-between mt-4">
+                            <a href="{{ url_for('admin_envoyer_demande', demande_id=demande.id) }}" class="btn btn-secondary btn-lg">
+                                ← Modifier les critères
+                            </a>
+                            <button type="submit" class="btn btn-success btn-lg" id="btn-send" onclick="return confirmSend()">
+                                📧 Envoyer définitivement (<span id="button-count">{{ destinataires|length }}</span> emails)
+                            </button>
+                        </div>
+                        {% else %}
+                        <div class="d-flex justify-content-center mt-4">
+                            <a href="{{ url_for('admin_envoyer_demande', demande_id=demande.id) }}" class="btn btn-primary btn-lg">
+                                ← Modifier les critères de recherche
+                            </a>
+                        </div>
+                        {% endif %}
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.sticky-top {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+.table-responsive {
+    border: 1px solid #dee2e6;
+    border-radius: 0.25rem;
+}
+.company-row:hover {
+    background-color: #f8f9fa !important;
+}
+.company-checkbox {
+    cursor: pointer;
+    width: 18px;
+    height: 18px;
+}
+#search-input {
+    width: 300px;
+}
+</style>
+
+<script>
+// Mettre à jour les compteurs
+function updateCounts() {
+    const total = document.querySelectorAll('.company-checkbox').length;
+    const selected = document.querySelectorAll('.company-checkbox:checked').length;
+    const excluded = total - selected;
+    
+    document.getElementById('total-count').textContent = total;
+    document.getElementById('selected-count').textContent = selected;
+    document.getElementById('excluded-count').textContent = excluded;
+    document.getElementById('final-count').textContent = selected;
+    document.getElementById('button-count').textContent = selected;
+    
+    // Activer/désactiver le bouton d'envoi
+    const btnSend = document.getElementById('btn-send');
+    if (selected === 0) {
+        btnSend.disabled = true;
+        btnSend.classList.remove('btn-success');
+        btnSend.classList.add('btn-secondary');
+    } else {
+        btnSend.disabled = false;
+        btnSend.classList.remove('btn-secondary');
+        btnSend.classList.add('btn-success');
+    }
+}
+
+// Tout sélectionner
+function selectAll() {
+    document.querySelectorAll('.company-checkbox').forEach(cb => cb.checked = true);
+    document.getElementById('checkbox-all').checked = true;
+    updateCounts();
+}
+
+// Tout désélectionner
+function deselectAll() {
+    document.querySelectorAll('.company-checkbox').forEach(cb => cb.checked = false);
+    document.getElementById('checkbox-all').checked = false;
+    updateCounts();
+}
+
+// Inverser la sélection
+function inverserSelection() {
+    document.querySelectorAll('.company-checkbox').forEach(cb => cb.checked = !cb.checked);
+    updateCounts();
+}
+
+// Toggle tous les checkboxes
+function toggleAll(masterCheckbox) {
+    const isChecked = masterCheckbox.checked;
+    document.querySelectorAll('.company-checkbox').forEach(cb => cb.checked = isChecked);
+    updateCounts();
+}
+
+// Recherche dans le tableau
+function searchCompanies() {
+    const searchText = document.getElementById('search-input').value.toLowerCase();
+    const rows = document.querySelectorAll('.company-row');
+    
+    rows.forEach(row => {
+        const email = row.querySelector('.email-cell').textContent.toLowerCase();
+        const show = row.querySelector('.show-cell').textContent.toLowerCase();
+        const category = row.querySelector('.category-cell').textContent.toLowerCase();
+        const region = row.querySelector('.region-cell').textContent.toLowerCase();
+        
+        const matches = email.includes(searchText) || 
+                       show.includes(searchText) || 
+                       category.includes(searchText) || 
+                       region.includes(searchText);
+        
+        row.style.display = matches ? '' : 'none';
+    });
+}
+
+// Confirmation avant envoi
+function confirmSend() {
+    const selected = document.querySelectorAll('.company-checkbox:checked').length;
+    
+    if (selected === 0) {
+        alert('❌ Veuillez sélectionner au moins une compagnie.');
+        return false;
+    }
+    
+    const msg = `⚠️ CONFIRMATION D'ENVOI\n\n` +
+                `Vous allez envoyer cet appel d'offre à ${selected} compagnie(s).\n\n` +
+                `Les emails seront envoyés aux adresses RÉELLES.\n` +
+                `Cette action est DÉFINITIVE.\n\n` +
+                `Continuer ?`;
+    
+    return confirm(msg);
+}
+
+// Initialisation
+document.addEventListener('DOMContentLoaded', function() {
+    updateCounts();
+});
+</script>
+{% endblock %}
