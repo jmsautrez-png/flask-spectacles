@@ -2985,7 +2985,16 @@ def register_routes(app: Flask) -> None:
                     )
                 
                 msg = Message(subject=subject, recipients=[to_addr])  # type: ignore[arg-type]
-                msg.body = body  # type: ignore[assignment]
+                
+                # Assigner le bon format selon le type de spectacle
+                if show.user_id:
+                    # Spectacle créé par utilisateur : email HTML
+                    msg.html = body_html  # type: ignore[assignment]
+                    msg.body = f"Votre spectacle '{show.title}' a été validé et publié sur Spectacle'ment VØtre !\n\nConsultez votre annonce : {show_url}\n\nSpectaclement vôtre,\nL'équipe Spectacle'ment VØtre"  # type: ignore[assignment]
+                else:
+                    # Spectacle créé par admin : email texte simple
+                    msg.body = body  # type: ignore[assignment]
+                
                 current_app.mail.send(msg)  # type: ignore[attr-defined]
                 current_app.logger.info(f"[MAIL] ✓ Email envoyé à {to_addr} pour validation de spectacle: {show.title}")
             except Exception as e:
