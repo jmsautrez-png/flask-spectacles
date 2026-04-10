@@ -3934,18 +3934,20 @@ Accessibilité: {accessibilite}
                 return redirect(url_for("admin_demandes_animation"))
             
             # Si des régions sont sélectionnées, ajouter aussi les utilisateurs directement
-            # (ceux qui ont une région correspondante mais dont le spectacle n'a pas de région définie)
+            # (ceux qui ont une région correspondante ET au moins un spectacle approuvé)
             additional_users = []
             if regions:
                 from models.models import User as UserModel
                 user_region_filters = []
                 for reg in regions:
                     user_region_filters.append(UserModel.region.ilike(f"%{reg}%"))
-                additional_users = UserModel.query.filter(
+                # Ne récupérer QUE les utilisateurs avec au moins un spectacle approuvé
+                additional_users = UserModel.query.join(Show).filter(
                     UserModel.email.isnot(None),
-                    or_(*user_region_filters)
-                ).all()
-                print(f"[DEBUG] {len(additional_users)} utilisateurs supplémentaires avec région correspondante")
+                    or_(*user_region_filters),
+                    Show.approved.is_(True)
+                ).distinct().all()
+                print(f"[DEBUG] {len(additional_users)} utilisateurs supplémentaires avec région correspondante ET spectacle approuvé")
             
             # === SI ACTION = PREVIEW : Retourner liste des destinataires pour sélection manuelle ===
             if action == "preview":
