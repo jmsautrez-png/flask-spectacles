@@ -3507,6 +3507,7 @@ Accessibilité: {accessibilite}
             demande.age_range = request.form.get("age_range", demande.age_range)
             demande.jauge = request.form.get("jauge", demande.jauge)
             demande.budget = request.form.get("budget", demande.budget)
+            demande.intitule = request.form.get("intitule", demande.intitule)
             demande.contraintes = request.form.get("contraintes", demande.contraintes)
             demande.accessibilite = request.form.get("accessibilite", demande.accessibilite)
             demande.contact_email = request.form.get("contact_email", demande.contact_email)
@@ -3685,6 +3686,7 @@ Accessibilité: {accessibilite}
             age_range = request.form.get("age_range", "").strip()
             jauge = request.form.get("jauge", "").strip()
             budget = request.form.get("budget", "").strip()
+            intitule = request.form.get("intitule", "").strip()
             contraintes = request.form.get("contraintes", "").strip()
             accessibilite = request.form.get("accessibilite", "").strip()
             contact_email = request.form.get("contact_email", "").strip()
@@ -3716,6 +3718,7 @@ Accessibilité: {accessibilite}
                 age_range=age_range,
                 jauge=jauge,
                 budget=budget,
+                intitule=intitule,
                 contraintes=contraintes,
                 accessibilite=accessibilite,
                 contact_email=contact_email,

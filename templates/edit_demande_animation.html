@@ -42,6 +42,9 @@
           <div>👶 <strong>Tranche d'âge:</strong> {{ demande.age_range }}</div>
           <div>💰 <strong>Budget:</strong> {{ demande.budget }} €</div>
           <div>👥 <strong>Jauge:</strong> {{ demande.jauge }} personnes</div>
+          {% if demande.intitule %}
+          <div>📝 <strong>Intitulé:</strong> {{ demande.intitule }}</div>
+          {% endif %}
           {% if demande.contraintes %}
           <div>⚠️ <strong>Contraintes:</strong> {{ demande.contraintes }}</div>
           {% endif %}

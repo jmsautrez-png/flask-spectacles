@@ -373,7 +373,7 @@
       <span class="mission-modal-close" onclick="closeMissionModal({{ loop.index }})">&times;</span>
     </div>
     <div class="mission-modal-body">
-      <div class="mission-content">{{ demande.contraintes }}</div>
+      <div class="mission-content">{{ demande.intitule or "Aucun intitulé précisé" }}</div>
     </div>
   </div>
 </div>
