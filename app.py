@@ -3632,165 +3632,6 @@ Accessibilité: {accessibilite}
             
             current_app.mail.send(msg)
             print(f"[DEBUG] ✅ Email de confirmation envoyé à {demande.contact_email} (copie admin: {admin_email})")
-            
-            # === ENVOYER RAPPORT DÉTAILLÉ À L'ADMIN ===
-            try:
-                # Chercher les compagnies qui correspondent aux critères
-                from sqlalchemy import or_
-                matching_shows = Show.query.filter(Show.approved.is_(True))
-                
-                # Filtrer par catégorie si le genre_recherche correspond
-                if demande.genre_recherche:
-                    matching_shows = matching_shows.filter(Show.category.ilike(f"%{demande.genre_recherche}%"))
-                
-                shows = matching_shows.all()
-                
-                # Créer liste HTML des compagnies correspondantes
-                matches_html = ""
-                emails_found = set()
-                for idx, show in enumerate(shows, 1):
-                    email = show.contact_email or (show.user.email if show.user else None)
-                    if email and email not in emails_found:
-                        emails_found.add(email)
-                        region_info = show.region or (show.user.region if show.user else "Non spécifiée")
-                        matches_html += f"""
-                        <tr style="border-bottom: 1px solid #e0e0e0;">
-                            <td style="padding: 8px;">{idx}</td>
-                            <td style="padding: 8px; font-weight: bold;">{email}</td>
-                            <td style="padding: 8px;">{show.title}</td>
-                            <td style="padding: 8px; color: #666; font-size: 0.9em;">{show.category}</td>
-                            <td style="padding: 8px; color: #666; font-size: 0.9em;">{region_info}</td>
-                        </tr>
-                        """
-                
-                if not matches_html:
-                    matches_html = """
-                    <tr>
-                        <td colspan="5" style="padding: 20px; text-align: center; color: #999;">
-                            Aucune compagnie correspondante trouvée pour le moment.
-                        </td>
-                    </tr>
-                    """
-                
-                rapport_html = f"""
-<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="UTF-8">
-    <style>
-        body {{ font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 900px; margin: 0 auto; }}
-        .logo {{ text-align: center; margin: 20px 0; }}
-        .logo img {{ max-width: 200px; height: auto; }}
-        .content {{ padding: 20px; background-color: #f9f9f9; border-radius: 8px; }}
-        h2 {{ color: #1b2a4e; margin-top: 0; }}
-        .stats-box {{ background: linear-gradient(135deg, #28a745 0%, #34ce57 100%); color: white; padding: 20px; border-radius: 8px; margin: 20px 0; text-align: center; }}
-        .stat-number {{ font-size: 2.5em; font-weight: bold; margin: 10px 0; }}
-        .stat-label {{ font-size: 1.1em; margin: 5px 0; opacity: 0.9; }}
-        .opportunity-box {{ background: linear-gradient(135deg, #6a1b9a 0%, #8e44ad 100%); color: white; padding: 20px; border-radius: 8px; margin: 20px 0; }}
-        .opportunity-box h3 {{ margin-top: 0; color: white; }}
-        .info-grid {{ display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 15px 0; }}
-        .info-item {{ background-color: rgba(255,255,255,0.1); padding: 10px; border-radius: 5px; }}
-        .info-label {{ font-weight: bold; font-size: 0.9em; }}
-        .matches-table {{ width: 100%; border-collapse: collapse; margin: 20px 0; background-color: white; border-radius: 8px; overflow: hidden; }}
-        .matches-table th {{ background-color: #1b2a4e; color: white; padding: 12px; text-align: left; }}
-        .matches-table td {{ padding: 8px; }}
-        .footer {{ text-align: center; margin-top: 20px; color: #666; font-size: 0.9em; }}
-    </style>
-</head>
-<body>
-    <div class="logo">
-        <img src="https://www.spectacleanimation.fr/static/img/logo_spectaclement_votre.png" alt="Spectacle'ment Vôtre">
-    </div>
-    <div class="content">
-        <h2>📊 RAPPORT DE VALIDATION - Appel d'offre #{demande.id}</h2>
-        
-        <div class="stats-box">
-            <p class="stat-number">{len(emails_found)}</p>
-            <p class="stat-label">Compagnies correspondantes identifiées</p>
-        </div>
-        
-        <div class="opportunity-box">
-            <h3>📋 {demande.genre_recherche} à {demande.lieu_ville}</h3>
-            <div class="info-grid">
-                <div class="info-item">
-                    <div class="info-label">📍 Lieu</div>
-                    {demande.lieu_ville}
-                </div>
-                <div class="info-item">
-                    <div class="info-label">📅 Date(s)</div>
-                    {demande.dates_horaires}
-                </div>
-                <div class="info-item">
-                    <div class="info-label">Type recherché</div>
-                    {demande.genre_recherche}
-                </div>
-                <div class="info-item">
-                    <div class="info-label">👥 Jauge</div>
-                    {demande.jauge}
-                </div>
-                <div class="info-item">
-                    <div class="info-label">💰 Budget</div>
-                    {demande.budget} €
-                </div>
-                <div class="info-item">
-                    <div class="info-label">👶 Public</div>
-                    {demande.age_range}
-                </div>
-            </div>
-            <p><strong>🏢 Type d'espace :</strong> {demande.type_espace}</p>
-            <p><strong>📝 Intitulé :</strong> {demande.intitule or 'Non précisé'}</p>
-        </div>
-        
-        <h3 style="margin-top: 30px; color: #1b2a4e;">👥 Compagnies correspondantes ({len(emails_found)})</h3>
-        <p style="color: #666;">Ces compagnies peuvent être contactées via l'interface d'envoi d'appel d'offre.</p>
-        <table class="matches-table">
-            <thead>
-                <tr>
-                    <th style="width: 50px;">#</th>
-                    <th>Email</th>
-                    <th>Spectacle</th>
-                    <th>Catégorie</th>
-                    <th>Région</th>
-                </tr>
-            </thead>
-            <tbody>
-                {matches_html}
-            </tbody>
-        </table>
-        
-        <div style="background-color: #e8f5e9; padding: 15px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #4caf50;">
-            <p style="margin: 0;"><strong>📞 Contact demandeur :</strong></p>
-            <p style="margin: 5px 0 0 0;">{demande.structure} - {demande.nom}<br>
-            📧 {demande.contact_email} | ☎️ {demande.telephone}</p>
-        </div>
-        
-        <div style="background-color: #fff3cd; padding: 15px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #ffc107;">
-            <p style="margin: 0;"><strong>➡️ Prochaines étapes :</strong></p>
-            <p style="margin: 5px 0 0 0;">
-            1. Vérifier la liste des compagnies correspondantes<br>
-            2. Utiliser l'interface "Envoyer aux compagnies" pour cibler l'envoi<br>
-            3. Les compagnies recevront l'email d'opportunité avec coordonnées du demandeur
-            </p>
-        </div>
-        
-        <div class="footer">
-            <p><strong>L'équipe Spectacle'ment Vôtre</strong><br>
-            Ce rapport est généré automatiquement à chaque validation d'appel d'offre.</p>
-        </div>
-    </div>
-</body>
-</html>
-"""
-                rapport_msg = Message(
-                    subject=f"📊 VALIDATION - {len(emails_found)} compagnies pour : {demande.genre_recherche} à {demande.lieu_ville}",
-                    recipients=[admin_email]
-                )
-                rapport_msg.html = rapport_html
-                current_app.mail.send(rapport_msg)
-                print(f"[DEBUG] ✅ Rapport de validation envoyé à {admin_email}")
-            except Exception as e:
-                print(f"[MAIL] ⚠️ Erreur envoi rapport de validation : {e}")
-            
             flash(f"✅ Appel d'offre approuvé et publié ! Email de confirmation envoyé à {demande.contact_email}", "success")
         except Exception as e:
             print(f"[MAIL] ❌ Erreur envoi email de confirmation : {e}")
@@ -4048,111 +3889,26 @@ Accessibilité: {accessibilite}
         demande = DemandeAnimation.query.get_or_404(demande_id)
         
         if request.method == "POST":
-            action = request.form.get("action", "preview")  # "preview" ou "send"
-            print(f"[DEBUG] POST reçu pour demande_id={demande_id}, action={action}")
+            print(f"[DEBUG] POST reçu pour demande_id={demande_id}")
+            categories = request.form.getlist("categories")
+            regions = request.form.getlist("regions")
+            print(f"[DEBUG] Catégories sélectionnées: {categories}")
+            print(f"[DEBUG] Régions sélectionnées: {regions}")
             
-            # === ACTION: PREVIEW (Étape 1 - Prévisualisation) ===
-            if action == "preview":
-                categories = request.form.getlist("categories")
-                regions = request.form.getlist("regions")
-                print(f"[DEBUG] Catégories sélectionnées: {categories}")
-                print(f"[DEBUG] Régions sélectionnées: {regions}")
-                
-                if not categories:
-                    print("[DEBUG] Aucune catégorie sélectionnée")
-                    flash("Veuillez sélectionner au moins une catégorie.", "warning")
-                    return redirect(request.url)
-                
-                print(f"[DEBUG] Recherche des spectacles pour {len(categories)} catégories et {len(regions)} régions")
-                
-                # Récupérer tous les spectacles correspondants
-                query = Show.query.filter(Show.approved.is_(True))
-                
-                if categories:
-                    category_filters = [Show.category.ilike(f"%{cat}%") for cat in categories]
-                    query = query.filter(or_(*category_filters))
-                
-                # Filtrer par région si des régions sont sélectionnées
-                if regions:
-                    region_filters = []
-                    for reg in regions:
-                        region_filters.append(Show.region.ilike(f"%{reg}%"))
-                    query = query.filter(or_(*region_filters))
-                
-                shows = query.all()
-                print(f"[DEBUG] {len(shows)} spectacles trouvés")
-                
-                # Collecter les emails et informations des destinataires
-                destinataires = []
-                emails_seen = set()
-                
-                for show in shows:
-                    # Vérifier si l'utilisateur correspond aux régions sélectionnées (si applicable)
-                    if regions and show.user and show.user.region:
-                        user_region_match = any(reg.lower() in show.user.region.lower() for reg in regions)
-                        show_region_match = show.region and any(reg.lower() in show.region.lower() for reg in regions)
-                        if not user_region_match and not show_region_match:
-                            continue
-                    
-                    # Utiliser l'email du spectacle en priorité, sinon l'email de l'utilisateur
-                    email = show.contact_email
-                    if not email and show.user:
-                        email = show.user.email if hasattr(show.user, 'email') else None
-                    
-                    if email and email not in emails_seen:
-                        emails_seen.add(email)
-                        destinataires.append({
-                            'email': email,
-                            'show_title': show.title,
-                            'show_id': show.id,
-                            'category': show.category,
-                            'region': show.region or (show.user.region if show.user else None),
-                            'type': 'spectacle'
-                        })
-                
-                # Ajouter les utilisateurs par région (qui n'ont pas de spectacle correspondant)
-                if regions:
-                    from models.models import User as UserModel
-                    user_region_filters = []
-                    for reg in regions:
-                        user_region_filters.append(UserModel.region.ilike(f"%{reg}%"))
-                    additional_users = UserModel.query.filter(
-                        UserModel.email.isnot(None),
-                        or_(*user_region_filters)
-                    ).all()
-                    
-                    for user in additional_users:
-                        if user.email and user.email not in emails_seen:
-                            emails_seen.add(user.email)
-                            destinataires.append({
-                                'email': user.email,
-                                'show_title': f"Région: {user.region}" if user.region else "Utilisateur régional",
-                                'show_id': None,
-                                'category': 'Utilisateur régional',
-                                'region': user.region,
-                                'type': 'region'
-                            })
-                
-                print(f"[DEBUG] {len(destinataires)} destinataires uniques trouvés")
-                
-                # Afficher la page de prévisualisation
-                return render_template("admin_preview_destinataires.html",
-                                     demande=demande,
-                                     destinataires=destinataires,
-                                     user=current_user())
+            if not categories:
+                print("[DEBUG] Aucune catégorie sélectionnée")
+                flash("Veuillez sélectionner au moins une catégorie.", "warning")
+                return redirect(request.url)
             
-            # === ACTION: SEND (Étape 2 - Envoi définitif) ===
-            elif action == "send":
-                selected_emails = request.form.getlist("emails[]")
-                print(f"[DEBUG] Envoi définitif à {len(selected_emails)} emails sélectionnés")
-                
-                if not selected_emails:
-                    flash("❌ Aucune compagnie sélectionnée pour l'envoi.", "danger")
-                    return redirect(url_for("admin_envoyer_demande", demande_id=demande_id))
-                
-                # Récupérer les informations complètes des spectacles pour chaque email
-                categories = request.form.getlist("categories")
-                regions = request.form.getlist("regions")
+            print(f"[DEBUG] Recherche des spectacles pour {len(categories)} catégories et {len(regions)} régions")
+            # Récupérer tous les spectacles correspondants
+            query = Show.query.filter(Show.approved.is_(True))
+            
+            if categories:
+                category_filters = [Show.category.ilike(f"%{cat}%") for cat in categories]
+                query = query.filter(or_(*category_filters))
+            
+            # Filtrer par région si des régions sont sélectionnées
             if regions:
                 # Filtrer sur la région du spectacle OU la région de l'utilisateur propriétaire
                 region_filters = []
@@ -4475,57 +4231,27 @@ Accessibilité: {accessibilite}
                     print(f"[BATCH] Pause de {PAUSE_SECONDS}s avant le prochain batch...")
                     time.sleep(PAUSE_SECONDS)
             
-            # === PHASE 3 : ENVOYER RAPPORT DÉTAILLÉ ADMIN ===
+            # === PHASE 3 : ENVOYER COPIE ADMIN ===
             admin_email = current_user().email if current_user() and current_user().email else None
-            if not admin_email:
-                admin_email = "contact@spectacleanimation.fr"  # Email admin par défaut
-            
-            # Construire la liste HTML des destinataires
-            recipients_html = ""
-            for idx, email_data in enumerate(emails_to_send, 1):
-                status = "✅" if email_data['email'] not in [e.split(':')[0] for e in errors_detail] else "❌"
-                recipients_html += f"""
-                <tr style="border-bottom: 1px solid #e0e0e0;">
-                    <td style="padding: 8px; text-align: center;">{status}</td>
-                    <td style="padding: 8px;">{idx}</td>
-                    <td style="padding: 8px; font-weight: bold;">{email_data['email']}</td>
-                    <td style="padding: 8px; color: #666; font-size: 0.9em;">{email_data['show_title']}</td>
-                </tr>
-                """
-            
-            # Construire la liste des erreurs HTML
-            errors_html = ""
-            if errors_detail:
-                errors_html = "<h3 style='color: #d32f2f; margin-top: 20px;'>❌ Détails des erreurs</h3><ul>"
-                for err in errors_detail:
-                    errors_html += f"<li style='color: #d32f2f; margin: 5px 0;'>{err}</li>"
-                errors_html += "</ul>"
-            
-            try:
-                admin_body_html = f"""
+            if admin_email and admin_email not in emails_sent:
+                try:
+                    admin_body_html = f"""
 <!DOCTYPE html>
 <html>
 <head>
     <meta charset="UTF-8">
     <style>
-        body {{ font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 800px; margin: 0 auto; }}
+        body {{ font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; }}
         .logo {{ text-align: center; margin: 20px 0; }}
         .logo img {{ max-width: 200px; height: auto; }}
         .content {{ padding: 20px; background-color: #f9f9f9; border-radius: 8px; }}
         h2 {{ color: #1b2a4e; margin-top: 0; }}
-        .stats-box {{ background: linear-gradient(135deg, #1b2a4e 0%, #355c7d 100%); color: white; padding: 20px; border-radius: 8px; margin: 20px 0; text-align: center; }}
-        .stats-grid {{ display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-top: 15px; }}
-        .stat-item {{ background-color: rgba(255,255,255,0.1); padding: 15px; border-radius: 5px; }}
-        .stat-number {{ font-size: 2em; font-weight: bold; margin: 0; }}
-        .stat-label {{ font-size: 0.9em; margin: 5px 0 0 0; opacity: 0.9; }}
+        .admin-notice {{ background: linear-gradient(135deg, #1b2a4e 0%, #355c7d 100%); color: white; padding: 15px; border-radius: 8px; margin: 20px 0; text-align: center; font-weight: bold; }}
         .opportunity-box {{ background: linear-gradient(135deg, #6a1b9a 0%, #8e44ad 100%); color: white; padding: 20px; border-radius: 8px; margin: 20px 0; }}
         .opportunity-box h3 {{ margin-top: 0; color: white; }}
         .info-grid {{ display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 15px 0; }}
         .info-item {{ background-color: rgba(255,255,255,0.1); padding: 10px; border-radius: 5px; }}
         .info-label {{ font-weight: bold; font-size: 0.9em; }}
-        .recipients-table {{ width: 100%; border-collapse: collapse; margin: 20px 0; background-color: white; border-radius: 8px; overflow: hidden; }}
-        .recipients-table th {{ background-color: #1b2a4e; color: white; padding: 12px; text-align: left; }}
-        .recipients-table td {{ padding: 8px; }}
         .footer {{ text-align: center; margin-top: 20px; color: #666; font-size: 0.9em; }}
     </style>
 </head>
@@ -4534,98 +4260,16 @@ Accessibilité: {accessibilite}
         <img src="https://www.spectacleanimation.fr/static/img/logo_spectaclement_votre.png" alt="Spectacle'ment Vôtre">
     </div>
     <div class="content">
-        <h2>📊 RAPPORT D'ENVOI - Appel d'offre #{demande.id}</h2>
-        
-        <div class="stats-box">
-            <h3 style="margin: 0 0 15px 0;">Statistiques d'envoi</h3>
-            <div class="stats-grid">
-                <div class="stat-item">
-                    <p class="stat-number">{total_emails}</p>
-                    <p class="stat-label">Total destinataires</p>
-                </div>
-                <div class="stat-item">
-                    <p class="stat-number" style="color: #4caf50;">{success_count}</p>
-                    <p class="stat-label">✅ Envoyés</p>
-                </div>
-                <div class="stat-item">
-                    <p class="stat-number" style="color: #ff5252;">{error_count}</p>
-                    <p class="stat-label">❌ Erreurs</p>
-                </div>
-            </div>
+        <div class="admin-notice">
+            📋 COPIE ADMIN - Appel d'offre envoyé à {success_count} compagnie(s)
         </div>
+        <h2>Appel d'offre : {demande.intitule or 'Demande d\'animation'}</h2>
         
         <div class="opportunity-box">
             <h3>📋 {demande.genre_recherche} à {demande.lieu_ville}</h3>
             <div class="info-grid">
                 <div class="info-item">
                     <div class="info-label">📍 Lieu</div>
-                    {demande.lieu_ville}
-                </div>
-                <div class="info-item">
-                    <div class="info-label">📅 Date(s)</div>
-                    {demande.dates_horaires}
-                </div>
-                <div class="info-item">
-                    <div class="info-label">Type recherché</div>
-                    {demande.genre_recherche}
-                </div>
-                <div class="info-item">
-                    <div class="info-label">👥 Jauge</div>
-                    {demande.jauge}
-                </div>
-                <div class="info-item">
-                    <div class="info-label">💰 Budget</div>
-                    {demande.budget} €
-                </div>
-                <div class="info-item">
-                    <div class="info-label">👶 Public</div>
-                    {demande.age_range}
-                </div>
-            </div>
-            <p><strong>🏢 Type d'espace :</strong> {demande.type_espace}</p>
-            <p><strong>📝 Intitulé :</strong> {demande.intitule or 'Non précisé'}</p>
-        </div>
-        
-        <h3 style="margin-top: 30px; color: #1b2a4e;">👥 Liste complète des destinataires ({total_emails})</h3>
-        <table class="recipients-table">
-            <thead>
-                <tr>
-                    <th style="width: 50px; text-align: center;">✓</th>
-                    <th style="width: 50px;">#</th>
-                    <th>Email</th>
-                    <th>Spectacle / Région</th>
-                </tr>
-            </thead>
-            <tbody>
-                {recipients_html}
-            </tbody>
-        </table>
-        
-        {errors_html}
-        
-        <div style="background-color: #e8f5e9; padding: 15px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #4caf50;">
-            <p style="margin: 0;"><strong>📞 Contact demandeur :</strong></p>
-            <p style="margin: 5px 0 0 0;">{demande.structure} - {demande.nom}<br>
-            📧 {demande.contact_email} | ☎️ {demande.telephone}</p>
-        </div>
-        
-        <div class="footer">
-            <p><strong>L'équipe Spectacle'ment Vôtre</strong><br>
-            Ce rapport est généré automatiquement à chaque envoi d'appel d'offre.</p>
-        </div>
-    </div>
-</body>
-</html>
-"""
-                admin_msg = Message(
-                    subject=f"📊 RAPPORT - {success_count}/{total_emails} emails envoyés : {demande.genre_recherche} à {demande.lieu_ville}",
-                    recipients=[admin_email]
-                )
-                admin_msg.html = admin_body_html
-                current_app.mail.send(admin_msg)
-                print(f"[DEBUG] ✅ Rapport détaillé envoyé à {admin_email}")
-            except Exception as e:
-                print(f"[MAIL] ⚠️ Erreur envoi rapport admin à {admin_email}: {e}")
                     {demande.lieu_ville}
                 </div>
                 <div class="info-item">
