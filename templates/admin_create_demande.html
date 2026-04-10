@@ -512,6 +512,44 @@
                 autreGenreInput.value = '';
             }
         });
+
+        // Gestion de la logique des checkboxes interdépendantes
+        const isPrivateCheckbox = document.getElementById('is_private');
+        const publishImmediatelyCheckbox = document.getElementById('publish_immediately');
+        const sendEmailsCheckbox = document.getElementById('send_emails');
+        
+        // Fonction pour mettre à jour l'état des checkboxes dépendantes
+        function updateDependentCheckboxes() {
+            if (isPrivateCheckbox.checked) {
+                // Mode brouillon activé : désactiver et décocher les autres options
+                publishImmediatelyCheckbox.disabled = true;
+                sendEmailsCheckbox.disabled = true;
+                publishImmediatelyCheckbox.checked = false;
+                sendEmailsCheckbox.checked = false;
+                
+                // Ajouter un style visuel pour montrer que c'est désactivé
+                publishImmediatelyCheckbox.parentElement.parentElement.style.opacity = '0.5';
+                sendEmailsCheckbox.parentElement.parentElement.style.opacity = '0.5';
+                publishImmediatelyCheckbox.parentElement.style.cursor = 'not-allowed';
+                sendEmailsCheckbox.parentElement.style.cursor = 'not-allowed';
+            } else {
+                // Mode public activé : réactiver les autres options
+                publishImmediatelyCheckbox.disabled = false;
+                sendEmailsCheckbox.disabled = false;
+                
+                // Retirer le style visuel de désactivation
+                publishImmediatelyCheckbox.parentElement.parentElement.style.opacity = '1';
+                sendEmailsCheckbox.parentElement.parentElement.style.opacity = '1';
+                publishImmediatelyCheckbox.parentElement.style.cursor = 'pointer';
+                sendEmailsCheckbox.parentElement.style.cursor = 'pointer';
+            }
+        }
+        
+        // Écouter les changements sur la checkbox "Mode brouillon"
+        isPrivateCheckbox.addEventListener('change', updateDependentCheckboxes);
+        
+        // Initialiser l'état au chargement de la page
+        updateDependentCheckboxes();
     });
 </script>
 
