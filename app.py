@@ -3503,6 +3503,7 @@ Accessibilité: {accessibilite}
             demande.nom = request.form.get("nom", demande.nom)
             demande.dates_horaires = request.form.get("dates_horaires", demande.dates_horaires)
             demande.type_espace = request.form.get("type_espace", demande.type_espace)
+            demande.type_evenement = request.form.get("type_evenement", demande.type_evenement)
             demande.genre_recherche = request.form.get("genre_recherche", demande.genre_recherche)
             demande.age_range = request.form.get("age_range", demande.age_range)
             demande.jauge = request.form.get("jauge", demande.jauge)
@@ -3682,6 +3683,7 @@ Accessibilité: {accessibilite}
             nom = request.form.get("nom", "").strip()
             dates_horaires = request.form.get("dates_horaires", "").strip()
             type_espace = request.form.get("type_espace", "").strip()
+            type_evenement = request.form.get("type_evenement", "").strip()
             genre_recherche = request.form.get("genre_recherche", "").strip()
             age_range = request.form.get("age_range", "").strip()
             jauge = request.form.get("jauge", "").strip()
@@ -3714,6 +3716,7 @@ Accessibilité: {accessibilite}
                 nom=nom,
                 dates_horaires=dates_horaires,
                 type_espace=type_espace,
+                type_evenement=type_evenement,
                 genre_recherche=genre_recherche,
                 age_range=age_range,
                 jauge=jauge,

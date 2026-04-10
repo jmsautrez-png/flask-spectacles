@@ -114,10 +114,14 @@
         <input type="text" name="dates_horaires" value="{{ demande.dates_horaires }}" required style="width:100%; padding:10px; border-radius:6px; border:1px solid var(--border); background:var(--bg); color:var(--text);">
       </div>
       
-      <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">
+      <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:16px;">
         <div>
           <label style="display:block; font-weight:600; margin-bottom:6px;">Type d'espace *</label>
           <input type="text" name="type_espace" value="{{ demande.type_espace }}" required style="width:100%; padding:10px; border-radius:6px; border:1px solid var(--border); background:var(--bg); color:var(--text);">
+        </div>
+        <div>
+          <label style="display:block; font-weight:600; margin-bottom:6px;">Type d'événement</label>
+          <input type="text" name="type_evenement" value="{{ demande.type_evenement }}" style="width:100%; padding:10px; border-radius:6px; border:1px solid var(--border); background:var(--bg); color:var(--text);">
         </div>
         <div>
           <label style="display:block; font-weight:600; margin-bottom:6px;">Genre recherché *</label>
