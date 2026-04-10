@@ -178,6 +178,7 @@
                                         <option value="Arbre de Noël">Arbre de Noël</option>
                                         <option value="Anniversaire">Anniversaire</option>
                                         <option value="Festival">Festival</option>
+                                        <option value="Festival de rue">Festival de rue</option>
                                         <option value="Fête de village">Fête de village</option>
                                         <option value="Fête d'école">Fête d'école</option>
                                         <option value="Spectacle scolaire">Spectacle scolaire</option>
@@ -187,8 +188,14 @@
                                         <option value="Inauguration">Inauguration</option>
                                         <option value="Mariage">Mariage</option>
                                         <option value="Événement privé">Événement privé</option>
-                                        <option value="Autre">Autre</option>
+                                        <option value="Autre">Autre (précisez ci-dessous)</option>
                                     </select>
+                                </div>
+                            </div>
+                            <div class="col-md-6" id="autre_evenement_container" style="display:none;">
+                                <div class="modern-input-group">
+                                    <label class="modern-label">✏️ Précisez le type d'événement</label>
+                                    <input type="text" class="modern-input" id="autre_evenement" name="autre_evenement" placeholder="Décrivez le type d'événement">
                                 </div>
                             </div>
                             <div class="col-md-6">
@@ -205,6 +212,8 @@
                                         <option value="Cirque">Cirque</option>
                                         <option value="Conte">Conte</option>
                                         <option value="Animation">Animation</option>
+                                        <option value="Spectacle de rue">Spectacle de rue</option>
+                                        <option value="Animation de rue">Animation de rue</option>
                                         <option value="Sculpteur de ballons">Sculpteur de ballons</option>
                                         <option value="Caricaturiste">Caricaturiste</option>
                                         <option value="Maquillage">Maquillage</option>
@@ -614,6 +623,19 @@
                 autreGenreContainer.style.display = 'none';
                 autreGenreInput.required = false;
                 autreGenreInput.value = '';
+            }
+        });
+
+        const typeEvenementSelect = document.getElementById('type_evenement');
+        const autreEvenementContainer = document.getElementById('autre_evenement_container');
+        const autreEvenementInput = document.getElementById('autre_evenement');
+
+        typeEvenementSelect.addEventListener('change', function() {
+            if (this.value === 'Autre') {
+                autreEvenementContainer.style.display = 'block';
+            } else {
+                autreEvenementContainer.style.display = 'none';
+                autreEvenementInput.value = '';
             }
         });
 

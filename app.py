@@ -3081,6 +3081,12 @@ def register_routes(app: Flask) -> None:
             dates_horaires = request.form.get("dates_horaires", "").strip()
             type_espace = request.form.get("type_espace", "").strip()
             type_evenement = request.form.get("type_evenement", "").strip()
+            autre_evenement = request.form.get("autre_evenement", "").strip()
+            
+            # Si "Autre" est sélectionné pour le type d'événement et qu'un type personnalisé est renseigné
+            if type_evenement == "Autre" and autre_evenement:
+                type_evenement = autre_evenement
+            
             genre_recherche = request.form.get("genre_recherche", "").strip()
             autre_genre = request.form.get("autre_genre", "").strip()
             
@@ -3687,6 +3693,12 @@ Accessibilité: {accessibilite}
             dates_horaires = request.form.get("dates_horaires", "").strip()
             type_espace = request.form.get("type_espace", "").strip()
             type_evenement = request.form.get("type_evenement", "").strip()
+            autre_evenement = request.form.get("autre_evenement", "").strip()
+            
+            # Si "Autre" est sélectionné pour le type d'événement
+            if type_evenement == "Autre" and autre_evenement:
+                type_evenement = autre_evenement
+            
             genre_recherche = request.form.get("genre_recherche", "").strip()
             age_range = request.form.get("age_range", "").strip()
             jauge = request.form.get("jauge", "").strip()
