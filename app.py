@@ -4016,7 +4016,7 @@ Accessibilité: {accessibilite}
                 </div>
                 <div class="info-item">
                     <div class="info-label">💰 Budget</div>
-                    {demande.budget}
+                    {demande.budget} €
                 </div>
                 <div class="info-item">
                     <div class="info-label">👶 Public</div>
@@ -4050,8 +4050,13 @@ Accessibilité: {accessibilite}
             <a href="https://www.spectacleanimation.fr/submit" style="color: #6a1b9a; font-weight: bold;">👉 Publier un spectacle</a></p>
         </div>
         
-        <p>💼 <strong>Besoin d'aide pour l'administratif ?</strong> Spectacle'ment VØtre vous accompagne dans toute la gestion de votre compagnie (URSSAF, DSN, contrats, etc.).<br>
-        <a href="https://spectacleanimation.fr/abonnement-compagnie" style="color: #6a1b9a;">En savoir plus</a></p>
+        <div style="background: linear-gradient(135deg, #d32f2f 0%, #c62828 100%); color: white; padding: 20px; border-radius: 8px; margin: 15px 0; box-shadow: 0 4px 12px rgba(211,47,47,0.3);">
+            <p style="margin: 0 0 10px 0; font-size: 1.1em;"><strong>💼 SPECTACLE'MENT VÔTRE VOUS ACCOMPAGNE</strong></p>
+            <p style="margin: 0 0 15px 0; font-size: 0.95em;">Gestion administrative complète de votre compagnie : URSSAF, DSN, DUE, AEM, fiches de salaire, contrats de cession, déclarations sociales...</p>
+            <p style="text-align: center; margin: 0;">
+                <a href="https://spectacleanimation.fr/abonnement-compagnie" style="display: inline-block; background-color: white; color: #d32f2f; padding: 12px 28px; border-radius: 25px; text-decoration: none; font-weight: bold; box-shadow: 0 2px 8px rgba(0,0,0,0.2);">📋 Découvrir nos services</a>
+            </p>
+        </div>
         
         <div class="footer">
             <p><strong>L'équipe Spectacle'ment VØtre</strong><br>
@@ -4129,7 +4134,7 @@ Accessibilité: {accessibilite}
                 </div>
                 <div class="info-item">
                     <div class="info-label">💰 Budget</div>
-                    {demande.budget}
+                    {demande.budget} €
                 </div>
                 <div class="info-item">
                     <div class="info-label">👶 Public</div>
@@ -4158,8 +4163,13 @@ Accessibilité: {accessibilite}
             <a href="https://www.spectacleanimation.fr/submit" style="color: #1b2a4e; font-weight: bold;">👉 Publier un spectacle</a></p>
         </div>
         
-        <p>💼 <strong>Besoin d'aide pour l'administratif ?</strong> Spectacle'ment VØtre vous accompagne dans toute la gestion de votre compagnie (URSSAF, DSN, contrats, etc.).<br>
-        <a href="https://spectacleanimation.fr/abonnement-compagnie" style="color: #1b2a4e;">En savoir plus</a></p>
+        <div style="background: linear-gradient(135deg, #d32f2f 0%, #c62828 100%); color: white; padding: 20px; border-radius: 8px; margin: 15px 0; box-shadow: 0 4px 12px rgba(211,47,47,0.3);">
+            <p style="margin: 0 0 10px 0; font-size: 1.1em;"><strong>💼 SPECTACLE'MENT VÔTRE VOUS ACCOMPAGNE</strong></p>
+            <p style="margin: 0 0 15px 0; font-size: 0.95em;">Gestion administrative complète de votre compagnie : URSSAF, DSN, DUE, AEM, fiches de salaire, contrats de cession, déclarations sociales...</p>
+            <p style="text-align: center; margin: 0;">
+                <a href="https://spectacleanimation.fr/abonnement-compagnie" style="display: inline-block; background-color: white; color: #d32f2f; padding: 12px 28px; border-radius: 25px; text-decoration: none; font-weight: bold; box-shadow: 0 2px 8px rgba(0,0,0,0.2);">📋 Découvrir nos services</a>
+            </p>
+        </div>
         
         <div class="footer">
             <p><strong>L'équipe Spectacle'ment VØtre</strong><br>
@@ -4236,7 +4246,7 @@ Accessibilité: {accessibilite}
                 </div>
                 <div class="info-item">
                     <div class="info-label">💰 Budget</div>
-                    {demande.budget}
+                    {demande.budget} €
                 </div>
                 <div class="info-item">
                     <div class="info-label">👶 Public</div>
