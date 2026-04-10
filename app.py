@@ -2986,6 +2986,11 @@ def register_routes(app: Flask) -> None:
                 
                 msg = Message(subject=subject, recipients=[to_addr])  # type: ignore[arg-type]
                 
+                # Ajouter l'admin en copie cachée pour suivi
+                admin_email = "contact@spectacleanimation.fr"
+                if to_addr != admin_email:  # Éviter duplication si l'utilisateur EST l'admin
+                    msg.bcc = [admin_email]  # type: ignore[assignment]
+                
                 # Assigner le bon format selon le type de spectacle
                 if show.user_id:
                     # Spectacle créé par utilisateur : email HTML
@@ -2996,7 +3001,7 @@ def register_routes(app: Flask) -> None:
                     msg.body = body  # type: ignore[assignment]
                 
                 current_app.mail.send(msg)  # type: ignore[attr-defined]
-                current_app.logger.info(f"[MAIL] ✓ Email envoyé à {to_addr} pour validation de spectacle: {show.title}")
+                current_app.logger.info(f"[MAIL] ✓ Email envoyé à {to_addr} (copie admin: {admin_email}) pour validation de spectacle: {show.title}")
             except Exception as e:
                 current_app.logger.error(f"[MAIL] ✗ Envoi impossible (validation spectacle): {e}")
                 print("[MAIL] envoi automatique impossible:", e)
@@ -3619,8 +3624,14 @@ Accessibilité: {accessibilite}
                 recipients=[demande.contact_email]
             )
             msg.html = body_html
+            
+            # Ajouter l'admin en copie cachée pour suivi
+            admin_email = "contact@spectacleanimation.fr"
+            if demande.contact_email != admin_email:  # Éviter duplication
+                msg.bcc = [admin_email]
+            
             current_app.mail.send(msg)
-            print(f"[DEBUG] ✅ Email de confirmation envoyé à {demande.contact_email}")
+            print(f"[DEBUG] ✅ Email de confirmation envoyé à {demande.contact_email} (copie admin: {admin_email})")
             flash(f"✅ Appel d'offre approuvé et publié ! Email de confirmation envoyé à {demande.contact_email}", "success")
         except Exception as e:
             print(f"[MAIL] ❌ Erreur envoi email de confirmation : {e}")
