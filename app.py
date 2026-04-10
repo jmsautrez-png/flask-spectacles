@@ -3991,9 +3991,9 @@ Accessibilité: {accessibilite}
         <img src="https://www.spectacleanimation.fr/static/img/logo_spectaclement_votre.png" alt="Spectacle'ment Vôtre">
     </div>
     <div class="content">
-        <h2>Nouvelle Opportunité : {demande.intitule or 'Demande d\'animation'}</h2>
+        <h2>Nouvelle Opportunité à {demande.lieu_ville}</h2>
         <p>Bonjour,</p>
-        <p>Bonne nouvelle ! Nous avons reçu une demande d'animation <strong>"{demande.intitule or 'nouvelle demande'}"</strong> qui correspond parfaitement à votre profil :</p>
+        <p>Bonne nouvelle ! Nous avons reçu une demande d'animation pour <strong>{demande.genre_recherche}</strong> qui correspond parfaitement à votre profil :</p>
         
         <div class="opportunity-box">
             <h3>📋 {demande.genre_recherche} à {demande.lieu_ville}</h3>
@@ -4062,7 +4062,7 @@ Accessibilité: {accessibilite}
 </html>
 """
                             msg = Message(
-                                subject=f"{demande.intitule or 'Nouvelle opportunité'} - {demande.genre_recherche} à {demande.lieu_ville}",
+                                subject=f"Nouvelle Opportunité - {demande.genre_recherche} à {demande.lieu_ville}",
                                 recipients=[email]
                             )
                             msg.html = body_html
@@ -4104,9 +4104,9 @@ Accessibilité: {accessibilite}
         <img src="https://www.spectacleanimation.fr/static/img/logo_spectaclement_votre.png" alt="Spectacle'ment Vôtre">
     </div>
     <div class="content">
-        <h2>Nouvelle Opportunité : {demande.intitule or 'Demande d\'animation'}</h2>
+        <h2>Nouvelle Opportunité à {demande.lieu_ville}</h2>
         <p>Bonjour,</p>
-        <p>Nous avons reçu une demande d'animation <strong>"{demande.intitule or 'nouvelle demande'}"</strong> dans votre région qui pourrait vous intéresser :</p>
+        <p>Nous avons reçu une demande d'animation pour <strong>{demande.genre_recherche}</strong> dans votre région qui pourrait vous intéresser :</p>
         
         <div class="opportunity-box">
             <h3>📋 {demande.genre_recherche} à {demande.lieu_ville}</h3>
@@ -4170,7 +4170,7 @@ Accessibilité: {accessibilite}
 </html>
 """
                         msg = Message(
-                            subject=f"{demande.intitule or 'Nouvelle opportunité'} - {demande.genre_recherche} à {demande.lieu_ville}",
+                            subject=f"Nouvelle Opportunité - {demande.genre_recherche} à {demande.lieu_ville}",
                             recipients=[user.email]
                         )
                         msg.html = body_html
