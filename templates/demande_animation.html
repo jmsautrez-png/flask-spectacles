@@ -248,9 +248,19 @@
 
       <label style="margin-bottom: 0;">
         <span class="label-text">Type d'espace mis à disposition <span class="req">*</span></span>
-        <input type="text" id="type_espace" name="type_espace" required
-               placeholder="Salle polyvalente, gymnase, plein air…"
-               value="{{ request.form.get('type_espace','') }}">
+        <select id="type_espace" name="type_espace" required>
+          <option value="">-- Choisir --</option>
+          <option value="Salle intérieur">Salle intérieur</option>
+          <option value="Chapiteau">Chapiteau</option>
+          <option value="Espace improvisé">Espace improvisé</option>
+          <option value="Extérieur">Extérieur</option>
+          <option value="Jardin public">Jardin public</option>
+          <option value="Chez l'habitant">Chez l'habitant</option>
+          <option value="École">École</option>
+          <option value="Médiathèque">Médiathèque</option>
+          <option value="Entreprise">Entreprise</option>
+          <option value="Autre">Autre</option>
+        </select>
       </label>
 
       <details class="demande-details">
