@@ -3472,6 +3472,18 @@ Accessibilité: {accessibilite}
     def mes_appels_offres():
         """Page pour les utilisateurs connectés avec toutes les informations visibles"""
         from models.models import DemandeAnimation
+        
+        # Vérifier que l'utilisateur a au moins un spectacle approuvé
+        user = current_user()
+        has_approved_show = Show.query.filter(
+            Show.user_id == user.id,
+            Show.approved.is_(True)
+        ).count() > 0
+        
+        if not has_approved_show and not user.is_admin:
+            flash("Vous devez avoir un spectacle approuvé pour accéder aux appels d'offre.", "warning")
+            return redirect(url_for("espace_perso"))
+        
         page = request.args.get('page', 1, type=int)
         per_page = 12
         categorie = request.args.get('categorie', '').strip()
