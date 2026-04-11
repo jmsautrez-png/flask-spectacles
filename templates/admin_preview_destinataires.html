@@ -139,7 +139,7 @@
                         </div>
 
                         <div class="d-flex justify-content-between mt-4">
-                            <a href="{{ url_for('admin_envoyer_demande', demande_id=demande.id) }}" class="btn btn-secondary btn-lg">
+                            <a href="{{ url_for('envoyer_demande_animation', demande_id=demande.id) }}" class="btn btn-secondary btn-lg">
                                 ← Modifier les critères
                             </a>
                             <button type="submit" class="btn btn-success btn-lg" id="btn-send" onclick="return confirmSend()">
@@ -148,7 +148,7 @@
                         </div>
                         {% else %}
                         <div class="d-flex justify-content-center mt-4">
-                            <a href="{{ url_for('admin_envoyer_demande', demande_id=demande.id) }}" class="btn btn-primary btn-lg">
+                            <a href="{{ url_for('envoyer_demande_animation', demande_id=demande.id) }}" class="btn btn-primary btn-lg">
                                 ← Modifier les critères de recherche
                             </a>
                         </div>
