@@ -68,6 +68,14 @@
                         <input type="hidden" name="action" value="send"/>
                         <input type="hidden" name="demande_id" value="{{ demande.id }}"/>
                         
+                        <!-- Conserver les catégories et régions sélectionnées -->
+                        {% for cat in categories %}
+                        <input type="hidden" name="categories" value="{{ cat }}"/>
+                        {% endfor %}
+                        {% for reg in regions %}
+                        <input type="hidden" name="regions" value="{{ reg }}"/>
+                        {% endfor %}
+                        
                         <!-- Boutons d'action rapide -->
                         <div class="d-flex justify-content-between mb-3">
                             <div>

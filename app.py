@@ -4334,8 +4334,9 @@ Accessibilité: {accessibilite}
                     time.sleep(PAUSE_SECONDS)
             
             # === PHASE 3 : ENVOYER COPIE ADMIN ===
+            # L'admin reçoit TOUJOURS une copie récapitulative, même si son email était dans les destinataires
             admin_email = current_user().email if current_user() and current_user().email else None
-            if admin_email and admin_email not in emails_sent:
+            if admin_email:
                 try:
                     admin_body_html = f"""
 <!DOCTYPE html>
@@ -4421,10 +4422,13 @@ Accessibilité: {accessibilite}
                     print(f"[DEBUG] ✅ Copie admin envoyée à {admin_email}")
                 except Exception as e:
                     print(f"[MAIL] ⚠️ Erreur envoi copie admin à {admin_email}: {e}")
+            else:
+                print(f"[WARNING] Aucun email admin configuré - pas de copie envoyée")
             
             print(f"[DEBUG] Envoi terminé - Succès: {success_count}, Erreurs: {error_count}")
             if success_count > 0:
-                flash(f"✅ Demande envoyée à {success_count} utilisateur(s) !", "success")
+                copie_msg = f" + copie admin envoyée à {admin_email}" if admin_email else ""
+                flash(f"✅ Demande envoyée à {success_count} utilisateur(s){copie_msg} !", "success")
             if error_count > 0:
                 flash(f"⚠️ {error_count} email(s) n'ont pas pu être envoyé(s) (domaines invalides ou boîtes pleines).", "warning")
                 # Logger les détails des erreurs sans crasher
