@@ -2973,27 +2973,40 @@ def register_routes(app: Flask) -> None:
 </html>"""
                 else:
                     # Carte créée par l'admin → Email de découverte
-                    subject = "Votre spectacle a été repéré pour notre annuaire Spectacle'ment VØtre !"
+                    subject = "⭐ Votre spectacle a été repéré pour notre annuaire Spectacle'ment VØtre !"
                     abonnement_url = url_for('abonnement_compagnie', _external=True)
                     body = (
                         "Bonjour,\n\n"
                         "Depuis plus de trente ans, Spectacle'ment VØtre accompagne les acteurs culturels français (Centres Culturels, Mairies, CSE, Écoles, MJC, etc.) en leur proposant des spectacles de qualité exceptionnelle.\n\n"
-                        "Notre mission : Repérer les meilleurs artistes et compagnies pour offrir de l'excellence aux programmateurs qui recherchent des spectacles professionnels.\n\n"
-                        "Votre talent a retenu notre attention et nous avons créé une fiche pour vous sur notre annuaire gratuit :\n\n"
+                        "🎭 Notre mission : Repérer les meilleurs artistes et compagnies pour offrir de l'excellence aux programmateurs qui recherchent des spectacles professionnels.\n\n"
+                        "✨ Votre talent a retenu notre attention et nous avons créé une fiche pour vous sur notre annuaire gratuit :\n\n"
+                        "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
                         f"Compagnie : {show.raison_sociale or 'Non renseignée'}\n"
                         f"Titre : {show.title}\n"
                         f"Lieu : {show.location}\n"
                         f"Catégorie : {show.category}\n"
                         + (f"Date : {show.date}\n" if show.date else "")
-                        + f"Date de publication : {show.created_at.strftime('%d/%m/%Y %H:%M') if show.created_at else 'N/A'}\n\n"
-                        + f"Lien direct vers votre annonce : {show_url}\n\n"
-                        + "✅ Votre déploiement sur notre plateforme est entièrement gratuit.\n\n"
-                        + "💼 Au-delà de la visibilité, Spectacle'ment VØtre propose également un service d'administration complet pour les compagnies (gestion URSSAF, DSN, DUE, AEM, fiches de salaire, contrats de cession). \n"
-                        + "Si cette dimension vous intéresse, découvrez notre accompagnement premium :\n"
-                        + f"{abonnement_url}\n\n"
-                        + "Si vous souhaitez retirer ou modifier votre fiche, contactez-nous par simple retour de mail.\n\n"
-                        + "Spectaclement vôtre,\nL'équipe Spectacle'ment VØtre\n\n"
-                        + "Spectacle'ment VØtre n'est pas qu'une simple plateforme de mise en relation. Depuis plus de 30 ans, nous accompagnons les compagnies de spectacle vivant dans la gestion complexe de leur administration artistique et sociale. https://spectacleanimation.fr/abonnement-compagnie"
+                        + f"Date de publication : {show.created_at.strftime('%d/%m/%Y %H:%M') if show.created_at else 'N/A'}\n"
+                        + "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n"
+                        + f"👉 Lien direct vers votre annonce : {show_url}\n\n"
+                        + "✅ Votre déploiement sur notre plateforme est ENTIÈREMENT GRATUIT.\n\n"
+                        + "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
+                        + "💼 L'ACCOMPAGNEMENT ADMINISTRATIF COMPLET\n"
+                        + "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n"
+                        + "Au-delà de la visibilité, Spectacle'ment VØtre propose un service d'administration complet pour libérer les compagnies de la gestion administrative :\n\n"
+                        + "📊 URSSAF - Déclarations et cotisations\n"
+                        + "📝 DSN - Déclaration Sociale Nominative\n"
+                        + "🎫 DUE - Déclaration Unique d'Embauche\n"
+                        + "👥 AEM - Attestation Employeur Mensuelle\n"
+                        + "💰 Fiches de paie - Édition et gestion\n"
+                        + "📄 Contrats de cession - Rédaction et suivi\n\n"
+                        + "⏰ Gagnez un temps précieux • 🎯 Sécurité juridique • ✨ Expertise dédiée\n\n"
+                        + "Plus de 30 ans d'expérience au service des compagnies de spectacle vivant.\n\n"
++ f"Découvrez notre accompagnement Premium :\n{abonnement_url}\n\n"
+                        + "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n"
+                        + "Pour retirer ou modifier votre fiche, contactez-nous par simple retour de mail.\n\n"
+                        + "Spectaclement vôtre,\n"
+                        + "L'équipe Spectacle'ment VØtre"
                     )
                 
                 msg = Message(subject=subject, recipients=[to_addr])  # type: ignore[arg-type]
@@ -3196,12 +3209,14 @@ Accessibilité: {accessibilite}
                 contraintes=contraintes,
                 accessibilite=accessibilite,
                 contact_email=contact_email,
-                intitule=intitule
+                intitule=intitule,
+                is_private=False,  # Publique par défaut
+                approved=True  # Approuvé automatiquement pour publication immédiate
             )
             db.session.add(demande)
             db.session.commit()
 
-            flash("Votre demande d'animation a bien été envoyée ! Nous vous répondrons rapidement.", "success")
+            flash("✅ Votre demande d'animation a bien été publiée ! Elle est maintenant visible sur le site.", "success")
             return redirect(url_for("home"))
 
         # Récupérer les spectacles "à la une" pour affichage
