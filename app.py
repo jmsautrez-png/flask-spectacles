@@ -3141,8 +3141,8 @@ def register_routes(app: Flask) -> None:
             contact_email = request.form.get("contact_email", "").strip()
             intitule = request.form.get("intitule", "").strip()
 
-            # Validation basique
-            if not all([structure, telephone, lieu_ville, code_postal, nom, dates_horaires, 
+            # Validation basique - TELEPHONE est optionnel !
+            if not all([structure, lieu_ville, code_postal, nom, dates_horaires, 
                        type_espace, genre_recherche, age_range, jauge, budget, contact_email, intitule]):
                 flash("Veuillez remplir tous les champs obligatoires.", "danger")
                 # UX: keep user on page and preserve entered values (no redirect)
@@ -3775,8 +3775,8 @@ Accessibilité: {accessibilite}
             if genre_recherche == "Autre" and autre_genre:
                 genre_recherche = autre_genre
 
-            # Validation basique
-            if not all([structure, telephone, lieu_ville, nom, dates_horaires, 
+            # Validation basique - TELEPHONE est optionnel !
+            if not all([structure, lieu_ville, nom, dates_horaires, 
                        type_espace, genre_recherche, age_range, jauge, budget, contact_email]):
                 flash("Veuillez remplir tous les champs obligatoires.", "danger")
                 return render_template("admin_create_demande.html", user=current_user()), 400
