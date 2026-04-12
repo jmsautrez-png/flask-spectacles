@@ -3,11 +3,17 @@ name: CI
 on:
   pull_request:
   push:
-    branches: ["main"]
+    branches: ["main", "test_3"]
 
 jobs:
   test:
     runs-on: ubuntu-latest
+
+    env:
+      FLASK_ENV: testing
+      SECRET_KEY: ci-test-secret-key
+      ADMIN_USERNAME: testadmin
+      ADMIN_PASSWORD: testpass123
 
     steps:
       - uses: actions/checkout@v4
@@ -24,6 +30,9 @@ jobs:
 
       - name: Syntax check
         run: python -m compileall -q .
+
+      - name: Run pytest
+        run: python -m pytest tests/ -v --tb=short
 
       - name: Validate render.yaml
         run: |
