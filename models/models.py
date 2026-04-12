@@ -25,7 +25,7 @@ class DemandeAnimation(db.Model):
     contact_email = db.Column(db.String(255), nullable=False)
     intitule = db.Column(db.String(1000), nullable=True)  # Intitulé de la demande (150 mots max)
     code_postal = db.Column(db.String(10), nullable=True)  # Code postal
-    region = db.Column(db.String(100), nullable=True)  # Région (déduite du code postal)
+    region = db.Column(db.String(200), nullable=True)  # Région (déduite du code postal)
     is_private = db.Column(db.Boolean, default=False)  # True = visible admin uniquement
     approved = db.Column(db.Boolean, default=False)  # True = approuvé et publié sur le site
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
@@ -138,7 +138,7 @@ class DemandeEcole(db.Model):
     adresse = db.Column(db.String(300), nullable=True)
     code_postal = db.Column(db.String(10), nullable=False)
     ville = db.Column(db.String(100), nullable=False)
-    region = db.Column(db.String(100), nullable=True)
+    region = db.Column(db.String(200), nullable=True)
     
     # Contact
     nom_contact = db.Column(db.String(150), nullable=False)
@@ -204,7 +204,7 @@ class VisitorLog(db.Model):
     
     # Géolocalisation (RGPD-compliant car basée sur IP anonymisée)
     city = db.Column(db.String(100), nullable=True)  # Ville (ex: Paris, Lyon)
-    region = db.Column(db.String(100), nullable=True)  # Région (ex: Île-de-France)
+    region = db.Column(db.String(200), nullable=True)  # Région (ex: Île-de-France)
     country = db.Column(db.String(50), nullable=True)  # Pays (ex: France)
     isp = db.Column(db.String(150), nullable=True)  # Fournisseur (ex: Orange, Free)
     
