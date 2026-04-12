@@ -136,7 +136,7 @@
       <p style="margin:0.2rem 0;"><strong>👶 Tranche d'âge :</strong> <span style="color:#222;">{{ demande.age_range|format_age }}</span></p>
       <p style="margin:0.2rem 0;"><strong>👥 Jauge :</strong> <span style="color:#222;">{{ demande.jauge }} personnes</span></p>
       <p style="margin:0.2rem 0;"><strong>💶 Budget :</strong> <span style="color:#222;">{{ demande.budget }} €</span></p>
-      {% if demande.contraintes %}
+      {% if demande.intitule or demande.contraintes %}
       <div style="margin:0.8rem 0;">
         <button onclick="openMissionModal({{ loop.index }})" class="btn-mission" style="background:linear-gradient(135deg, #667eea 0%, #764ba2 100%); color:white; border:none; padding:10px 20px; border-radius:10px; font-weight:600; cursor:pointer; box-shadow:0 4px 12px rgba(102, 126, 234, 0.3); transition:all 0.3s ease; display:flex; align-items:center; gap:8px;">
           📝 Voir l'intitulé de la mission
