@@ -1870,12 +1870,8 @@ def register_routes(app: Flask) -> None:
 </body>
 </html>"""
 
-                    # Destinataires : compagnie (si email dispo) + admin
-                    recipients = []
-                    if compagnie_addr:
-                        recipients.append(compagnie_addr)
-                    if admin_addr and admin_addr not in recipients:
-                        recipients.append(admin_addr)
+                    # Destinataire : admin uniquement (l'admin contacte ensuite la compagnie)
+                    recipients = [admin_addr]
 
                     msg = MailMessage(
                         subject=f"Demande de devis — {show.title} ({type_lieu or 'événement'})",
