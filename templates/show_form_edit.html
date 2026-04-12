@@ -9,16 +9,7 @@
   </label>
 
   <label>Titre
-    <div style="display:flex; gap:8px; align-items:center;">
-      <input type="text" name="title" id="title" value="{{ show.title }}" required placeholder="Titre du spectacle" style="flex:1;">
-      <button type="button" id="ia-assist-btn" onclick="iaAssistTitle()" style="white-space:nowrap; padding:8px 16px; background:linear-gradient(135deg,#667eea 0%,#764ba2 100%); color:#fff; border:none; border-radius:8px; font-weight:600; cursor:pointer; font-size:0.95rem; box-shadow:0 2px 8px rgba(102,126,234,0.3); transition:all 0.2s;">✨ Aide IA</button>
-    </div>
-    <div id="ia-suggestions" style="display:none; margin-top:10px; padding:12px; background:var(--panel); border:1px solid var(--border); border-radius:10px;">
-      <div style="font-weight:600; margin-bottom:8px; font-size:0.9rem; color:var(--muted);">💡 Suggestions de titre :</div>
-      <div id="ia-suggestions-list"></div>
-      <div id="ia-loading" style="display:none; text-align:center; padding:12px; animation:pulse 1.5s infinite;">⏳ Analyse en cours…</div>
-      <div id="ia-hint" style="font-size:0.8rem; color:var(--muted); margin-top:8px;">Cliquez sur une suggestion pour l'utiliser comme titre.</div>
-    </div>
+    <input type="text" name="title" value="{{ show.title }}" required>
   </label>
   
   <label>Description (max 300 mots)
@@ -499,79 +490,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   });
 });
-
-function iaAssistTitle() {
-  const btn = document.getElementById('ia-assist-btn');
-  const panel = document.getElementById('ia-suggestions');
-  const list = document.getElementById('ia-suggestions-list');
-  const loading = document.getElementById('ia-loading');
-
-  const desc = (document.getElementById('description') || {}).value || '';
-  const category = (document.querySelector('[name="category"]') || {}).value || '';
-  const location = (document.querySelector('[name="location"]') || {}).value || '';
-  const age_range = (document.querySelector('[name="age_range"]') || {}).value || '';
-  const raison = (document.querySelector('[name="raison_sociale"]') || {}).value || '';
-  const title = (document.getElementById('title') || {}).value || '';
-
-  if (!desc && !category) {
-    alert('Remplissez au moins la description ou la catégorie pour obtenir des suggestions.');
-    return;
-  }
-
-  panel.style.display = 'block';
-  list.innerHTML = '';
-  loading.style.display = 'block';
-  btn.disabled = true;
-  btn.style.opacity = '0.6';
-
-  const csrfToken = document.querySelector('input[name="csrf_token"]').value;
-  fetch('/api/ia-title-assist', {
-    method: 'POST',
-    headers: {'Content-Type': 'application/json', 'X-CSRFToken': csrfToken},
-    body: JSON.stringify({
-      description: desc,
-      category: category,
-      location: location,
-      age_range: age_range,
-      raison_sociale: raison,
-      title: title
-    })
-  })
-  .then(r => r.json())
-  .then(data => {
-    loading.style.display = 'none';
-    btn.disabled = false;
-    btn.style.opacity = '1';
-    if (data.success && data.suggestions.length > 0) {
-      data.suggestions.forEach(s => {
-        const el = document.createElement('div');
-        el.style.cssText = 'padding:8px 12px; margin-bottom:6px; background:var(--panel); border:1px solid var(--border); border-radius:6px; cursor:pointer; font-size:0.95rem; transition:all 0.15s;';
-        el.textContent = s;
-        el.addEventListener('mouseenter', () => { el.style.borderColor = '#667eea'; el.style.background = 'rgba(102,126,234,0.15)'; });
-        el.addEventListener('mouseleave', () => { el.style.borderColor = 'var(--border)'; el.style.background = 'var(--panel)'; });
-        el.addEventListener('click', () => {
-          document.getElementById('title').value = s;
-          panel.style.display = 'none';
-          document.getElementById('title').focus();
-        });
-        list.appendChild(el);
-      });
-    } else {
-      list.innerHTML = '<div style="color:var(--muted); font-size:0.9rem;">Aucune suggestion — ajoutez plus de détails dans la description.</div>';
-    }
-  })
-  .catch(() => {
-    loading.style.display = 'none';
-    btn.disabled = false;
-    btn.style.opacity = '1';
-    list.innerHTML = '<div style="color:#e74c3c; font-size:0.9rem;">Erreur de connexion. Réessayez.</div>';
-  });
-}
 </script>
-
-<style>
-@keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
-</style>
 {% endblock %}
 
   <label>Email de contact <span style="font-size:0.85rem;font-weight:normal;color:var(--muted);">(Modifiable uniquement par l'admin)</span>

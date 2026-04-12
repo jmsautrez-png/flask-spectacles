@@ -21,22 +21,7 @@
 
       <label style="margin-bottom:16px;">
         <span class="label-text">Titre <span class="req">*</span></span>
-        <div style="display:flex; gap:8px; align-items:center;">
-          <input type="text" name="title" id="title" required placeholder="Titre du spectacle" style="flex:1;">
-          <button type="button" id="ia-assist-btn" onclick="iaAssistTitle()" style="padding:8px 16px; background:linear-gradient(135deg, #667eea, #764ba2); color:#fff; border:none; border-radius:8px; cursor:pointer; font-weight:600; font-size:0.85rem; white-space:nowrap; transition:opacity 0.2s;" title="L'IA analyse votre description et catégorie pour suggérer des titres optimisés">
-            ✨ Aide IA
-          </button>
-        </div>
-        <div id="ia-suggestions" style="display:none; margin-top:10px; padding:12px; background:rgba(102,126,234,0.1); border:1px solid rgba(102,126,234,0.3); border-radius:8px;">
-          <div style="font-size:0.85rem; font-weight:600; color:#667eea; margin-bottom:8px;">💡 Suggestions de titre :</div>
-          <div id="ia-suggestions-list"></div>
-          <div id="ia-loading" style="display:none; text-align:center; padding:8px; color:var(--muted);">
-            <span style="animation:pulse 1s infinite;">⏳</span> Analyse en cours…
-          </div>
-          <div id="ia-hint" style="font-size:0.8rem; color:var(--muted); margin-top:8px;">
-            Cliquez sur une suggestion pour l'utiliser comme titre.
-          </div>
-        </div>
+        <input type="text" name="title" required placeholder="Titre du spectacle">
       </label>
 
       <label style="margin-bottom:0;">
@@ -221,76 +206,5 @@ document.addEventListener('DOMContentLoaded', function() {
 {# Hide SEO block on this form page #}
 <style>
   main.container .seo-block { display: none; }
-  @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
 </style>
-
-<script>
-function iaAssistTitle() {
-  const btn = document.getElementById('ia-assist-btn');
-  const panel = document.getElementById('ia-suggestions');
-  const list = document.getElementById('ia-suggestions-list');
-  const loading = document.getElementById('ia-loading');
-
-  const desc = (document.getElementById('description') || {}).value || '';
-  const category = (document.querySelector('[name="category"]') || {}).value || '';
-  const location = (document.querySelector('[name="location"]') || {}).value || '';
-  const age_range = (document.querySelector('[name="age_range"]') || {}).value || '';
-  const raison = (document.querySelector('[name="raison_sociale"]') || {}).value || '';
-  const title = (document.getElementById('title') || {}).value || '';
-
-  if (!desc && !category) {
-    alert('Remplissez au moins la description ou la catégorie pour obtenir des suggestions.');
-    return;
-  }
-
-  panel.style.display = 'block';
-  list.innerHTML = '';
-  loading.style.display = 'block';
-  btn.disabled = true;
-  btn.style.opacity = '0.6';
-
-  const csrfToken = document.querySelector('input[name="csrf_token"]').value;
-  fetch('/api/ia-title-assist', {
-    method: 'POST',
-    headers: {'Content-Type': 'application/json', 'X-CSRFToken': csrfToken},
-    body: JSON.stringify({
-      description: desc,
-      category: category,
-      location: location,
-      age_range: age_range,
-      raison_sociale: raison,
-      title: title
-    })
-  })
-  .then(r => r.json())
-  .then(data => {
-    loading.style.display = 'none';
-    btn.disabled = false;
-    btn.style.opacity = '1';
-    if (data.success && data.suggestions.length > 0) {
-      data.suggestions.forEach(s => {
-        const el = document.createElement('div');
-        el.style.cssText = 'padding:8px 12px; margin-bottom:6px; background:var(--panel); border:1px solid var(--border); border-radius:6px; cursor:pointer; font-size:0.95rem; transition:all 0.15s;';
-        el.textContent = s;
-        el.addEventListener('mouseenter', () => { el.style.borderColor = '#667eea'; el.style.background = 'rgba(102,126,234,0.15)'; });
-        el.addEventListener('mouseleave', () => { el.style.borderColor = 'var(--border)'; el.style.background = 'var(--panel)'; });
-        el.addEventListener('click', () => {
-          document.getElementById('title').value = s;
-          panel.style.display = 'none';
-          document.getElementById('title').focus();
-        });
-        list.appendChild(el);
-      });
-    } else {
-      list.innerHTML = '<div style="color:var(--muted); font-size:0.9rem;">Aucune suggestion — ajoutez plus de détails dans la description.</div>';
-    }
-  })
-  .catch(() => {
-    loading.style.display = 'none';
-    btn.disabled = false;
-    btn.style.opacity = '1';
-    list.innerHTML = '<div style="color:#e74c3c; font-size:0.9rem;">Erreur de connexion. Réessayez.</div>';
-  });
-}
-</script>
 {% endblock %}
