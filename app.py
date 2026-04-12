@@ -86,7 +86,7 @@ from utils.security import (
     is_suspicious_request as _is_suspicious_request,
     is_bot_visitor as _is_bot_visitor_standalone,
 )
-from utils.search import normalize_search_text, generate_accent_variants
+from utils.search import normalize_search_text
 from utils.seo import SEO_CATEGORIES, optimize_title_seo
 
 print("✓ Config, models et utils importés")
@@ -455,10 +455,8 @@ def create_app() -> Flask:
     @app.before_request
     def track_visitor():
         """Enregistre chaque visite de manière anonymisée (conforme RGPD)"""
-        # Ne pas tracker les fichiers statiques, uploads, API, robots et pages admin
+        # Ne pas tracker les fichiers statiques, robots et pages admin
         if (request.path.startswith('/static/') or 
-            request.path.startswith('/uploads/') or
-            request.path.startswith('/api/') or
             request.path.startswith('/robots.txt') or 
             request.path.startswith('/admin') or
             request.path.startswith('/favicon')):
@@ -522,12 +520,12 @@ def create_app() -> Flask:
                 (now_ts - last_track_time) < 10):
                 return
             
-            # Détection par comportement : >50 pages visitées = bot (scraper)
+            # Détection par comportement : >10 pages visitées = bot (scraper)
             # Utiliser un compteur en session au lieu d'un COUNT(*) en DB
             page_count = session.get('_page_count', 0) + 1
             session['_page_count'] = page_count
             
-            if session_id and not is_bot and page_count >= 50:
+            if session_id and not is_bot and page_count >= 10:
                 is_bot = True
                 app.logger.info(f"[TRACKING] Session {session_id[:20]}... marquée BOT - {page_count} pages")
             
@@ -796,200 +794,6 @@ def register_routes(app: Flask) -> None:
         except Exception as e:
             app.logger.exception(f"Erreur API SEO: {e}")
             return jsonify({"error": "Erreur serveur"}), 500
-
-    # ---------------------------
-    # API - Assistant IA pour titre et description
-    # ---------------------------
-    @app.route("/api/ia-title-assist", methods=["POST"])
-    def api_ia_title_assist():
-        """Génère des suggestions de titre à partir du contexte fourni."""
-        try:
-            data = request.get_json() or {}
-            description = data.get("description", "").strip()
-            category = data.get("category", "").strip()
-            location = data.get("location", "").strip()
-            age_range = data.get("age_range", "").strip()
-            raison_sociale = data.get("raison_sociale", "").strip()
-            current_title = data.get("title", "").strip()
-
-            suggestions = _generate_title_suggestions(
-                description=description,
-                category=category,
-                location=location,
-                age_range=age_range,
-                raison_sociale=raison_sociale,
-                current_title=current_title,
-            )
-
-            return jsonify({"success": True, "suggestions": suggestions}), 200
-        except Exception as e:
-            app.logger.exception(f"Erreur API IA title: {e}")
-            return jsonify({"error": "Erreur serveur"}), 500
-
-    def _generate_title_suggestions(*, description, category, location,
-                                     age_range, raison_sociale, current_title):
-        """Génère 3-6 titres intelligents à partir du contexte du spectacle."""
-        import re as _re
-
-        suggestions = []
-
-        # ── Extraire des mots-clés de la description ──
-        desc_lower = description.lower()
-        keywords = []
-        keyword_map = {
-            "magie": "Spectacle de Magie",
-            "magicien": "Magie",
-            "marionnette": "Spectacle de Marionnettes",
-            "clown": "Spectacle de Clown",
-            "théâtre": "Spectacle de Théâtre",
-            "theatre": "Spectacle de Théâtre",
-            "conte": "Spectacle de Contes",
-            "cirque": "Spectacle de Cirque",
-            "jongleur": "Jonglerie",
-            "jonglage": "Jonglerie",
-            "acrobat": "Acrobaties",
-            "danse": "Spectacle de Danse",
-            "musique": "Spectacle Musical",
-            "musical": "Spectacle Musical",
-            "chant": "Spectacle Musical",
-            "ventriloque": "Ventriloquie",
-            "ballon": "Sculpture sur Ballons",
-            "sculpture": "Sculpture sur Ballons",
-            "noël": "Spectacle de Noël",
-            "noel": "Spectacle de Noël",
-            "père noël": "Animation Père Noël",
-            "halloween": "Spectacle Halloween",
-            "anniversaire": "Animation Anniversaire",
-            "fête": "Animation de Fête",
-            "école": "Animation pour Écoles",
-            "ecole": "Animation pour Écoles",
-            "crèche": "Spectacle pour Crèches",
-            "creche": "Spectacle pour Crèches",
-            "arbre de noël": "Arbre de Noël",
-            "kermesse": "Animation Kermesse",
-            "caricature": "Caricaturiste",
-            "maquillage": "Maquillage Artistique",
-            "bulle": "Spectacle de Bulles",
-            "ombre": "Théâtre d'Ombres",
-            "science": "Spectacle Scientifique",
-            "mentalisme": "Spectacle de Mentalisme",
-            "mentaliste": "Spectacle de Mentalisme",
-            "close-up": "Magie Close-Up",
-            "closeup": "Magie Close-Up",
-            "illusion": "Spectacle d'Illusion",
-            "hypnose": "Spectacle d'Hypnose",
-            "feu": "Spectacle de Feu",
-            "pirate": "Spectacle Pirate",
-            "chevalier": "Spectacle Médiéval",
-            "médiéval": "Spectacle Médiéval",
-            "princesse": "Spectacle Princesse",
-            "féerique": "Spectacle Féerique",
-            "feerique": "Spectacle Féerique",
-            "interactif": "Spectacle Interactif",
-        }
-
-        # Détection multi-mots d'abord (plus spécifique)
-        for phrase, label in sorted(keyword_map.items(), key=lambda x: -len(x[0])):
-            if phrase in desc_lower:
-                keywords.append(label)
-                if len(keywords) >= 3:
-                    break
-
-        # Fallback : utiliser la catégorie
-        if not keywords and category:
-            cat_lower = category.lower()
-            for phrase, label in keyword_map.items():
-                if phrase in cat_lower:
-                    keywords.append(label)
-                    break
-            if not keywords:
-                keywords.append(category.capitalize())
-
-        # Si aucun mot-clé trouvé
-        if not keywords:
-            keywords = ["Spectacle"]
-
-        primary = keywords[0]
-
-        # ── Détection du public ──
-        public_label = ""
-        if age_range:
-            ar = age_range.lower()
-            if "enfant" in ar:
-                public_label = "pour Enfants"
-            elif "familial" in ar or "famille" in ar:
-                public_label = "Familial"
-            elif "adulte" in ar:
-                public_label = "pour Adultes"
-            elif "tout public" in ar:
-                public_label = "Tout Public"
-        if not public_label and ("enfant" in desc_lower or "jeune public" in desc_lower):
-            public_label = "pour Enfants"
-
-        # ── Extraire un mot accrocheur de la description ──
-        hook_words = []
-        hook_patterns = [
-            r"(?:univers|monde|voyage)\s+(?:de\s+)?(\w+)",
-            r"(?:féerique|magique|enchanté|merveilleux|fantastique|extraordinaire)",
-            r"(?:rire|rêve|émerveillement|aventure|mystère|découverte)",
-        ]
-        for pat in hook_patterns:
-            m = _re.search(pat, desc_lower)
-            if m:
-                hook_words.append(m.group(0).strip().title())
-
-        # ── Construire les suggestions ──
-
-        # 1. Titre basique : type + public
-        s1 = primary
-        if public_label:
-            s1 += f" {public_label}"
-        suggestions.append(s1)
-
-        # 2. Avec la compagnie
-        if raison_sociale and len(raison_sociale) <= 30:
-            suggestions.append(f"{primary} par {raison_sociale}")
-
-        # 3. Avec la localisation
-        if location and len(location) <= 25:
-            s3 = f"{primary} à {location.title()}"
-            if public_label:
-                s3 += f" — {public_label}"
-            suggestions.append(s3)
-
-        # 4. Avec mot accrocheur
-        if hook_words:
-            suggestions.append(f"{primary} — {hook_words[0]}")
-
-        # 5. Format professionnel
-        if public_label:
-            suggestions.append(f"{primary} {public_label} — Animation Professionnelle")
-        else:
-            suggestions.append(f"{primary} — Animation Professionnelle")
-
-        # 6. Si plusieurs keywords, combiner
-        if len(keywords) >= 2:
-            suggestions.append(f"{keywords[0]} et {keywords[1]}")
-            if public_label:
-                suggestions[-1] += f" {public_label}"
-
-        # ── Dédupliquer et filtrer ──
-        seen = set()
-        unique = []
-        for s in suggestions:
-            s_clean = s.strip()
-            if s_clean and s_clean.lower() not in seen and len(s_clean) <= 90:
-                seen.add(s_clean.lower())
-                unique.append(s_clean)
-
-        # Si le titre actuel est déjà renseigné, proposer des améliorations
-        if current_title and len(unique) < 6:
-            if location and location.lower() not in current_title.lower():
-                unique.append(f"{current_title} à {location.title()}")
-            if public_label and public_label.lower() not in current_title.lower():
-                unique.append(f"{current_title} — {public_label}")
-
-        return unique[:6]
     
     # ---------------------------
     # Route de test d'envoi de mail (à la fin pour éviter les erreurs)
@@ -1383,12 +1187,7 @@ def register_routes(app: Flask) -> None:
             q_normalized = normalize_search_text(q)
             like_normalized = f"%{q_normalized}%"
 
-            # Variantes accentuées (pere noel → père noël, etc.)
-            accent_variants = generate_accent_variants(q)
-
             variants = {q, q_normalized}
-            variants.update(accent_variants)
-
             if any(c.isdigit() for c in q):
                 cleaned = q.lower().replace("ans", "").strip()
                 seps = [" - ", "-", "—", "–", "à", "a", "/", " "]
@@ -1408,39 +1207,16 @@ def register_routes(app: Flask) -> None:
                     norm.replace("/", ""),
                 })
 
-            conditions = []
-
-            # Chercher chaque variante dans tous les champs texte pertinents
-            for v in {v for v in variants if v}:
-                v_like = f"%{v}%"
-                conditions.append(Show.title.ilike(v_like))
-                conditions.append(Show.description.ilike(v_like))
-                conditions.append(Show.category.ilike(v_like))
-                conditions.append(Show.location.ilike(v_like))
-                conditions.append(Show.raison_sociale.ilike(v_like))
-                try:
-                    conditions.append(Show.age_range.ilike(v_like))
-                except Exception:
-                    pass
-
-            # Recherche par mots individuels : chaque mot (avec variantes accentuées)
-            # doit matcher dans au moins un champ texte
-            words = q_normalized.split()
-            if len(words) >= 2:
-                word_conditions = []
-                for word in words:
-                    word_variants = generate_accent_variants(word)
-                    word_match = []
-                    for wv in word_variants:
-                        wv_like = f"%{wv}%"
-                        word_match.append(Show.title.ilike(wv_like))
-                        word_match.append(Show.description.ilike(wv_like))
-                        word_match.append(Show.category.ilike(wv_like))
-                        word_match.append(Show.raison_sociale.ilike(wv_like))
-                    word_conditions.append(or_(*word_match))
-                # Tous les mots doivent matcher (AND entre mots, OR entre champs)
-                from sqlalchemy import and_
-                conditions.append(and_(*word_conditions))
+            conditions = [
+                Show.title.ilike(like),
+                Show.description.ilike(like),
+                Show.location.ilike(like),
+                Show.category.ilike(like),
+                # Recherches normalisées (tolérantes aux accents)
+                Show.title.ilike(like_normalized),
+                Show.description.ilike(like_normalized),
+                Show.category.ilike(like_normalized),
+            ]
 
             # Facultatif si le champ existe
             try:
@@ -1448,6 +1224,14 @@ def register_routes(app: Flask) -> None:
                 conditions.append(Show.contact_email.ilike(like))  # type: ignore[attr-defined]
             except Exception:
                 pass
+
+            for v in {v for v in variants if v}:
+                v_like = f"%{v}%"
+                try:
+                    conditions.append(Show.age_range.ilike(v_like))
+                except Exception:
+                    pass
+                conditions.append(Show.description.ilike(v_like))
 
             shows = shows.filter(or_(*conditions))
 
@@ -3454,15 +3238,8 @@ Accessibilité: {accessibilite}
         # 2) recherche textuelle — filtrer uniquement les approuvés
         base = Show.query.filter(Show.approved.is_(True))
         if q:
-            accent_vars = generate_accent_variants(q)
-            conditions = []
-            for v in accent_vars:
-                v_like = f"%{v}%"
-                conditions.append(Show.title.ilike(v_like))
-                conditions.append(Show.description.ilike(v_like))
-                conditions.append(Show.category.ilike(v_like))
-                conditions.append(Show.raison_sociale.ilike(v_like))
-            base = base.filter(or_(*conditions))
+            like = f"%{q}%"
+            base = base.filter(Show.title.ilike(like) | Show.description.ilike(like))
 
         # Limiter les résultats pour éviter de charger toute la DB en mémoire
         shows = base.limit(200).all()
@@ -3809,6 +3586,8 @@ Accessibilité: {accessibilite}
             structure = request.form.get("structure", "").strip()
             telephone = request.form.get("telephone", "").strip()
             lieu_ville = request.form.get("lieu_ville", "").strip()
+            code_postal = request.form.get("code_postal", "").strip()
+            region = request.form.get("region", "").strip()
             nom = request.form.get("nom", "").strip()
             dates_horaires = request.form.get("dates_horaires", "").strip()
             type_espace = request.form.get("type_espace", "").strip()
@@ -3848,6 +3627,8 @@ Accessibilité: {accessibilite}
                 structure=structure,
                 telephone=telephone,
                 lieu_ville=lieu_ville,
+                code_postal=code_postal,
+                region=region,
                 nom=nom,
                 dates_horaires=dates_horaires,
                 type_espace=type_espace,
@@ -5403,7 +5184,6 @@ def messages_new(recipient_id):
 def admin_analytics():
     """Dashboard analytics business."""
     from sqlalchemy import func
-    from models.models import DemandeAnimation
 
     u = current_user()
     today = datetime.utcnow().date()
