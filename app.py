@@ -25,6 +25,8 @@ import random
 import os
 import logging
 from logging.handlers import RotatingFileHandler
+import unicodedata
+import re
 
 print("✓ Imports standards OK")
 
@@ -1031,6 +1033,41 @@ def register_error_handlers(app: Flask) -> None:
         return render_template("500.html", user=current_user()), 500
 
 # -----------------------------------------------------
+# Fonction utilitaire pour la recherche
+# -----------------------------------------------------
+def normalize_search_text(text: str) -> str:
+    """Normalise le texte pour une recherche tolérante aux accents et ponctuation.
+    
+    Transformations:
+    - Supprime les accents (père -> pere)
+    - Supprime la ponctuation (père-noël -> pere noel)
+    - Met en minuscules
+    - Normalise les espaces
+    
+    Exemples:
+    - 'Père Noël' -> 'pere noel'
+    - 'père-noël' -> 'pere noel'
+    - 'pére noel' -> 'pere noel'
+    """
+    if not text:
+        return ""
+    
+    # Mettre en minuscules
+    text = text.lower()
+    
+    # Supprimer les accents
+    text = unicodedata.normalize('NFD', text)
+    text = ''.join(char for char in text if unicodedata.category(char) != 'Mn')
+    
+    # Remplacer la ponctuation et caractères spéciaux par des espaces
+    text = re.sub(r"[^a-z0-9\s]", " ", text)
+    
+    # Normaliser les espaces multiples
+    text = re.sub(r"\s+", " ", text).strip()
+    
+    return text
+
+# -----------------------------------------------------
 # Routes
 # -----------------------------------------------------
 def register_routes(app: Flask) -> None:
@@ -1421,9 +1458,14 @@ def register_routes(app: Flask) -> None:
 
         # Recherche texte + âges (6, 6 ans, 6-10, 6/10, 6 à 10, etc.)
         if q:
+            # Recherche originale (pour compatibilité)
             like = f"%{q}%"
+            
+            # Recherche normalisée (tolérante aux accents et ponctuation)
+            q_normalized = normalize_search_text(q)
+            like_normalized = f"%{q_normalized}%"
 
-            variants = {q}
+            variants = {q, q_normalized}
             if any(c.isdigit() for c in q):
                 cleaned = q.lower().replace("ans", "").strip()
                 seps = [" - ", "-", "—", "–", "à", "a", "/", " "]
@@ -1448,6 +1490,10 @@ def register_routes(app: Flask) -> None:
                 Show.description.ilike(like),
                 Show.location.ilike(like),
                 Show.category.ilike(like),
+                # Recherches normalisées (tolérantes aux accents)
+                Show.title.ilike(like_normalized),
+                Show.description.ilike(like_normalized),
+                Show.category.ilike(like_normalized),
             ]
 
             # Facultatif si le champ existe
