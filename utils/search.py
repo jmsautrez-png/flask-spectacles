@@ -1,18 +1,19 @@
-﻿"""Search and text normalization utilities."""
+"""Search and text normalization utilities."""
 import unicodedata
 import re
+from itertools import product as _product
 
 
-def normalize_search_text(text: str) -> str:
+def normalize_search_text(text):
     if not text:
         return ""
-    normalized = unicodedata.normalize('NFD', text)
-    without_accents = ''.join(
+    normalized = unicodedata.normalize("NFD", text)
+    without_accents = "".join(
         c for c in normalized
-        if unicodedata.category(c) != 'Mn'
+        if unicodedata.category(c) != "Mn"
     )
     lowered = without_accents.lower()
-    cleaned = re.sub(r"[''`]", " ", lowered)
+    cleaned = re.sub(r"[''`]", ' ', lowered)
     cleaned = re.sub(r'[^\w\s-]', ' ', cleaned)
     cleaned = re.sub(r'\s+', ' ', cleaned).strip()
     return cleaned
@@ -40,8 +41,7 @@ _ACCENT_WORDS = {
 }
 
 
-def generate_accent_variants(query: str) -> set:
-    """Genere des variantes accentuees d'une requete de recherche."""
+def generate_accent_variants(query):
     words = query.lower().split()
     variants = []
     for word in words:
@@ -50,7 +50,6 @@ def generate_accent_variants(query: str) -> set:
             word_variants.extend(_ACCENT_WORDS[word])
         variants.append(word_variants)
     result = set()
-    from itertools import product as _product
     for combo in _product(*variants):
         result.add(" ".join(combo))
     return result
