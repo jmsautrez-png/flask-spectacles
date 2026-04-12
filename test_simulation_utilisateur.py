@@ -34,7 +34,6 @@ with app.app_context():
             username=f"test_{datetime.now().strftime('%H%M%S')}",
             password_hash=generate_password_hash("test123"),
             email=EMAIL_TEST,
-            full_name="Utilisateur Test",
             region="Île-de-France",
             is_admin=False
         )
