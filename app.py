@@ -1474,7 +1474,7 @@ def register_routes(app: Flask) -> None:
             user = User.query.filter_by(username=username).first()
             if user and user.check_password(password):
                 session["username"] = user.username
-                flash("Connecté.", "success")
+                flash("Bienvenue, vous êtes connecté !", "success")
                 
                 # Sécuriser la redirection (open redirect fix)
                 next_url = request.args.get("next")
@@ -1488,7 +1488,7 @@ def register_routes(app: Flask) -> None:
                 
                 return redirect(url_for("admin_dashboard" if user.is_admin else "company_dashboard"))
 
-            flash("Identifiants invalides.", "danger")
+            flash("Nom d'utilisateur ou mot de passe incorrect. Vérifiez vos identifiants.", "danger")
 
         return render_template("login.html", user=current_user())
 
@@ -1496,7 +1496,7 @@ def register_routes(app: Flask) -> None:
     def logout():
         if session.get("username"):
             session.pop("username", None)
-            flash("Déconnecté.", "success")
+            flash("Vous êtes déconnecté. À bientôt !", "success")
         return redirect(url_for("home"))
 
     @app.route("/forgot", methods=["GET", "POST"])

@@ -94,7 +94,7 @@
     <span>←</span> Retour aux spectacles
   </a>
   
-  <article class="card" style="max-width:none; box-shadow:0 4px 16px rgba(0,0,0,0.2);">
+  <article class="card show-detail-article" style="max-width:none; box-shadow:0 4px 16px rgba(0,0,0,0.2);">
     {% set all_images = show.get_all_images() %}
     {% if all_images|length > 0 or show.is_pdf() %}
       <div class="media" style="aspect-ratio:16/9; max-height:450px; position:relative;">
@@ -185,13 +185,14 @@
             {% endif %}
             
             {% if show.contact_phone %}
-              <div class="contact-item" style="display:flex; align-items:center; gap:12px; padding:12px 16px; background:rgba(255,255,255,0.03); border:1px solid var(--border); border-radius:8px;">
+              <a href="tel:{{ show.contact_phone|replace(' ', '')|replace('.', '')|replace('-', '') }}" class="contact-item" style="display:flex; align-items:center; gap:12px; padding:12px 16px; background:rgba(255,255,255,0.03); border:1px solid var(--border); border-radius:8px; color:var(--text); text-decoration:none; transition:all 0.2s ease;">
                 <span style="font-size:1.3rem;">📞</span>
                 <div style="flex:1;">
                   <div style="font-size:0.8rem; color:var(--muted); margin-bottom:2px;">Téléphone</div>
                   <div style="font-weight:600; color:var(--primary); font-size:1.05rem;">{{ show.contact_phone }}</div>
                 </div>
-              </div>
+                <span style="font-size:0.85rem; color:var(--primary); opacity:0.7;">Appeler →</span>
+              </a>
             {% endif %}
             
             {% if show.site_internet %}
@@ -207,6 +208,15 @@
           </div>
         </div>
       {% endif %}
+
+      <!-- Bloc CTA conversion : Demander ce spectacle -->
+      <div style="margin-bottom:32px; padding:24px; background:linear-gradient(135deg,#1b5e20 0%,#2e7d32 100%); border-radius:12px; text-align:center; box-shadow:0 4px 16px rgba(27,94,32,0.25);">
+        <p style="margin:0 0 12px 0; color:#fff; font-size:1.05rem; font-weight:500;">Ce spectacle vous intéresse ?</p>
+        <a href="{{ url_for('demande_animation') }}" style="display:inline-flex; align-items:center; gap:10px; padding:14px 32px; border-radius:10px; background:#fff; color:#1b5e20; font-weight:700; font-size:1.1rem; text-decoration:none; box-shadow:0 2px 8px rgba(0,0,0,0.15); transition:all 0.2s;">
+          <i class="fa fa-magic"></i> Demander un devis gratuit
+        </a>
+        <p style="margin:10px 0 0 0; color:rgba(255,255,255,0.8); font-size:0.85rem;">Réponse rapide — sans engagement</p>
+      </div>
 
       <!-- Download File supprimé -->
     </div>
@@ -334,6 +344,46 @@ a.social-bandeau:hover {
 @media (max-width: 768px) {
   .spectacles-une-grid {
     grid-template-columns: 1fr !important;
+  }
+}
+
+/* CTA sticky mobile */
+.sticky-cta-mobile {
+  display:none;
+}
+@media (max-width: 700px) {
+  .sticky-cta-mobile {
+    display:flex;
+    position:fixed;
+    bottom:0;
+    left:0;
+    right:0;
+    z-index:1000;
+    padding:12px 16px;
+    background:rgba(22,36,71,0.97);
+    backdrop-filter:blur(8px);
+    border-top:1px solid rgba(255,255,255,0.1);
+    box-shadow:0 -4px 16px rgba(0,0,0,0.3);
+    justify-content:center;
+    gap:12px;
+    align-items:center;
+  }
+  .sticky-cta-mobile a {
+    flex:1;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:8px;
+    padding:14px 16px;
+    border-radius:10px;
+    font-weight:700;
+    font-size:0.95rem;
+    text-decoration:none;
+    text-align:center;
+  }
+  /* Espace pour éviter que le contenu ne soit caché sous le sticky */
+  .show-detail-article {
+    padding-bottom:80px !important;
   }
 }</style>
 
@@ -479,5 +529,17 @@ document.addEventListener('DOMContentLoaded', function() {
 .detail-carousel .carousel-next:hover { background: rgba(0,0,0,0.8); }
 .detail-carousel .carousel-dot:hover { background: rgba(255,255,255,0.5) !important; }
 </style>
+
+<!-- Sticky CTA mobile -->
+<div class="sticky-cta-mobile">
+  <a href="{{ url_for('demande_animation') }}" style="background:linear-gradient(135deg,#22c55e,#16a34a); color:#fff;">
+    <i class="fa fa-magic"></i> Demander un devis
+  </a>
+  {% if show.contact_phone %}
+  <a href="tel:{{ show.contact_phone|replace(' ', '')|replace('.', '')|replace('-', '') }}" style="background:linear-gradient(135deg,#1976d2,#1565c0); color:#fff;">
+    <i class="fa fa-phone"></i> Appeler
+  </a>
+  {% endif %}
+</div>
 
 {% endblock %}

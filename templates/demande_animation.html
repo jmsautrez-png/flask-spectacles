@@ -17,6 +17,17 @@
   <form action="{{ url_for('demande_animation') }}" method="POST" class="form demande-form" novalidate>
       <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
       <input type="hidden" name="auto_datetime" id="auto_datetime" value="">
+
+    <!-- Barre de progression -->
+    <div style="margin-bottom:20px; padding:0 4px;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+        <span style="font-size:0.85rem; color:#b0b8d8;">Progression</span>
+        <span id="form-progress-text" style="font-size:0.85rem; color:#b0b8d8;">0/9 champs remplis</span>
+      </div>
+      <div style="background:#1b2a4e; border-radius:8px; height:6px; overflow:hidden;">
+        <div id="form-progress" style="width:0%; height:100%; background:linear-gradient(90deg,#1976d2,#22c55e); border-radius:8px; transition:width 0.3s ease;"></div>
+      </div>
+    </div>
     
     <fieldset class="demande-section">
       <legend>1) Vos coordonnées</legend>
@@ -390,6 +401,7 @@
         if (this.value === 'Autre') {
           autreContainer.style.display = 'block';
           autreInput.setAttribute('required', 'required');
+          autreInput.focus();
         } else {
           autreContainer.style.display = 'none';
           autreInput.removeAttribute('required');
@@ -407,6 +419,7 @@
       typeEvenementSelect.addEventListener('change', function() {
         if (this.value === 'Autre') {
           autreEvenementContainer.style.display = 'block';
+          autreEvenementInput.focus();
         } else {
           autreEvenementContainer.style.display = 'none';
           autreEvenementInput.value = '';
@@ -435,6 +448,76 @@
         regionInput.value = region;
       }
     }
+
+    // === Validation inline en temps réel ===
+    var form = document.querySelector('.demande-form');
+    var requiredFields = form.querySelectorAll('[required]');
+    var progressBar = document.getElementById('form-progress');
+    var progressText = document.getElementById('form-progress-text');
+
+    function updateProgress() {
+      var total = form.querySelectorAll('[required]:not([type="hidden"])').length;
+      var filled = 0;
+      form.querySelectorAll('[required]:not([type="hidden"])').forEach(function(f) {
+        if (f.value && f.value.trim() !== '') filled++;
+      });
+      var pct = Math.round((filled / total) * 100);
+      if (progressBar) progressBar.style.width = pct + '%';
+      if (progressText) progressText.textContent = filled + '/' + total + ' champs remplis';
+    }
+
+    requiredFields.forEach(function(field) {
+      field.addEventListener('blur', function() {
+        validateField(this);
+        updateProgress();
+      });
+      field.addEventListener('input', function() {
+        if (this.classList.contains('field-error')) validateField(this);
+        updateProgress();
+      });
+    });
+
+    function validateField(field) {
+      var parent = field.closest('label');
+      if (!parent) return;
+      var existing = parent.querySelector('.inline-error');
+      if (existing) existing.remove();
+
+      if (field.hasAttribute('required') && (!field.value || !field.value.trim())) {
+        field.classList.add('field-error');
+        field.classList.remove('field-valid');
+        var msg = document.createElement('small');
+        msg.className = 'inline-error';
+        msg.textContent = 'Ce champ est requis';
+        parent.appendChild(msg);
+      } else if (field.id === 'code_postal' && field.value && !/^[0-9]{5}$/.test(field.value.trim())) {
+        field.classList.add('field-error');
+        field.classList.remove('field-valid');
+        var msg = document.createElement('small');
+        msg.className = 'inline-error';
+        msg.textContent = 'Le code postal doit contenir 5 chiffres';
+        parent.appendChild(msg);
+      } else {
+        field.classList.remove('field-error');
+        if (field.value && field.value.trim()) field.classList.add('field-valid');
+      }
+    }
+
+    // Validation avant soumission
+    form.addEventListener('submit', function(e) {
+      var hasError = false;
+      form.querySelectorAll('[required]').forEach(function(f) {
+        validateField(f);
+        if (f.classList.contains('field-error')) hasError = true;
+      });
+      if (hasError) {
+        e.preventDefault();
+        var first = form.querySelector('.field-error');
+        if (first) first.scrollIntoView({behavior:'smooth', block:'center'});
+      }
+    });
+
+    updateProgress();
   });
   </script>
 </div>
@@ -465,6 +548,22 @@
     .demande-form textarea::placeholder {
       color:#b0b8d8;
       opacity:0.8;
+    }
+    /* Validation inline */
+    .demande-form .field-error {
+      border-color:#ef4444 !important;
+      box-shadow:0 0 0 3px #ef444444 !important;
+    }
+    .demande-form .field-valid {
+      border-color:#22c55e !important;
+      box-shadow:0 0 0 3px #22c55e33 !important;
+    }
+    .demande-form .inline-error {
+      display:block;
+      color:#ef4444;
+      font-size:0.82rem;
+      margin-top:4px;
+      font-weight:600;
     }
   main.container .seo-block { display: none; }
 
