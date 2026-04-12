@@ -63,7 +63,8 @@ from flask import (
     session,
     send_from_directory,
     current_app,
-    abort
+    abort,
+    jsonify
 )
 
 print("✓ Flask importé")
@@ -1068,9 +1069,186 @@ def normalize_search_text(text: str) -> str:
     return text
 
 # -----------------------------------------------------
+# Intelligence Artificielle SEO pour les titres
+# -----------------------------------------------------
+def optimize_title_seo(title: str, category: str = "", location: str = "", age_range: str = "") -> dict:
+    """Optimise un titre pour le SEO avec intelligence artificielle.
+    
+    Args:
+        title: Titre original
+        category: Catégorie du spectacle (optionnel)
+        location: Localisation (optionnel)
+        age_range: Tranche d'âge (optionnel)
+    
+    Returns:
+        dict avec:
+            - original: titre original
+            - optimized: titre optimisé SEO
+            - suggestions: liste de suggestions alternatives
+            - seo_score: score SEO (0-100)
+            - improvements: liste des améliorations appliquées
+    """
+    if not title or not title.strip():
+        return {
+            "original": title,
+            "optimized": title,
+            "suggestions": [],
+            "seo_score": 0,
+            "improvements": ["⚠️ Le titre est vide"]
+        }
+    
+    original = title.strip()
+    optimized = original
+    improvements = []
+    suggestions = []
+    seo_score = 50  # Score de base
+    
+    # 1. Capitalisation intelligente (première lettre de chaque mot important)
+    words_to_lowercase = {'le', 'la', 'les', 'un', 'une', 'des', 'de', 'du', 'et', 'ou', 'pour', 'avec', 'sans'}
+    words = optimized.split()
+    capitalized_words = []
+    for i, word in enumerate(words):
+        if i == 0 or word.lower() not in words_to_lowercase:
+            capitalized_words.append(word.capitalize())
+        else:
+            capitalized_words.append(word.lower())
+    if capitalized_words != words:
+        optimized = ' '.join(capitalized_words)
+        improvements.append("✓ Capitalisation optimisée")
+        seo_score += 5
+    
+    # 2. Ajout des mots-clés contextuels si absents
+    keywords_map = {
+        'spectacle': ['Spectacle', 'Show'],
+        'animation': ['Animation'],
+        'enfant': ['Enfants', 'Jeune Public'],
+        'école': ['École', 'Mairie', 'CSE'],
+        'professionnel': ['Professionnel', 'Artiste'],
+    }
+    
+    # Détection du contexte
+    title_lower = optimized.lower()
+    context_keywords = []
+    
+    # Ajouter catégorie si pertinent et absent
+    if category and category.lower() not in title_lower:
+        if len(optimized) + len(category) + 3 < 80:  # Limite de longueur
+            context_keywords.append(category.capitalize())
+    
+    # Ajouter "pour Enfants" si âge mentionné mais pas "enfant"
+    if age_range and 'enfant' not in title_lower and 'jeune' not in title_lower:
+        if any(char.isdigit() for char in age_range):
+            context_keywords.append("pour Enfants")
+            seo_score += 10
+    
+    # Ajouter localisation si significative
+    if location and location.lower() not in title_lower:
+        if len(location) <= 25 and len(optimized) + len(location) + 3 < 90:
+            # Ne l'ajouter que si c'est une ville/région connue
+            if not any(sep in location.lower() for sep in ['france entière', 'toute la france']):
+                suggestions.append(f"{optimized} - {location}")
+    
+    # 3. Optimisation longueur (idéal: 40-70 caractères)
+    length = len(optimized)
+    if length < 30:
+        improvements.append("⚠️ Titre trop court (< 30 caractères) - Ajoutez des détails")
+        seo_score -= 15
+    elif length > 90:
+        improvements.append("⚠️ Titre trop long (> 90 caractères) - Réduisez pour Google")
+        seo_score -= 10
+    else:
+        improvements.append("✓ Longueur optimale pour le SEO")
+        seo_score += 15
+    
+    # 4. Vérification présence mots-clés essentiels
+    essential_keywords = ['spectacle', 'animation', 'show', 'artiste', 'compagnie', 'théâtre', 'concert']
+    has_essential = any(kw in title_lower for kw in essential_keywords)
+    
+    if not has_essential and category:
+        # Suggérer une version avec le type de spectacle
+        suggestions.append(f"{category.capitalize()} : {optimized}")
+        improvements.append("💡 Suggestion: Ajoutez le type de spectacle au début")
+        seo_score -= 5
+    else:
+        improvements.append("✓ Mots-clés essentiels présents")
+        seo_score += 10
+    
+    # 5. Génération de suggestions alternatives intelligentes
+    base_title = optimized
+    
+    # Suggestion avec contexte géographique
+    if location and location not in base_title:
+        suggestions.append(f"{base_title} à {location}")
+        suggestions.append(f"{base_title} | {location}")
+    
+    # Suggestion avec public cible
+    if age_range and 'enfant' not in title_lower:
+        suggestions.append(f"{base_title} - Spectacle pour Enfants")
+    
+    # Suggestion avec call-to-action SEO
+    action_phrases = [
+        f"{base_title} - Animation Professionnelle",
+        f"{base_title} pour Écoles, Mairies et CSE",
+        f"{base_title} | Artiste Professionnel",
+    ]
+    
+    for phrase in action_phrases:
+        if len(phrase) <= 85:  # Limite Google
+            suggestions.append(phrase)
+    
+    # 6. Bonus pour diversité de caractères (éviter les répétitions)
+    unique_words = len(set(words))
+    total_words = len(words)
+    if total_words > 0 and unique_words / total_words > 0.8:
+        improvements.append("✓ Vocabulaire varié")
+        seo_score += 5
+    
+    # Limiter le score entre 0 et 100
+    seo_score = max(0, min(100, seo_score))
+    
+    # Limiter les suggestions à 5 max
+    suggestions = list(dict.fromkeys(suggestions))[:5]  # Dédupliquer et limiter
+    
+    return {
+        "original": original,
+        "optimized": optimized,
+        "suggestions": suggestions,
+        "seo_score": seo_score,
+        "improvements": improvements
+    }
+
+# -----------------------------------------------------
 # Routes
 # -----------------------------------------------------
 def register_routes(app: Flask) -> None:
+    # ---------------------------
+    # API - Suggestions SEO Intelligence Artificielle
+    # ---------------------------
+    @app.route("/api/seo-suggest", methods=["POST"])
+    def api_seo_suggest():
+        """API endpoint pour obtenir des suggestions SEO intelligentes en temps réel."""
+        try:
+            data = request.get_json() or {}
+            title = data.get("title", "").strip()
+            category = data.get("category", "").strip()
+            location = data.get("location", "").strip()
+            age_range = data.get("age_range", "").strip()
+            
+            if not title:
+                return jsonify({"error": "Titre requis"}), 400
+            
+            # Obtenir les suggestions SEO optimisées
+            result = optimize_title_seo(title, category, location, age_range)
+            
+            return jsonify({
+                "success": True,
+                "data": result
+            }), 200
+            
+        except Exception as e:
+            app.logger.exception(f"Erreur API SEO: {e}")
+            return jsonify({"error": "Erreur serveur"}), 500
+    
     # ---------------------------
     # Route de test d'envoi de mail (à la fin pour éviter les erreurs)
     # ---------------------------
