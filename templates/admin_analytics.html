@@ -1,0 +1,89 @@
+{% extends "base.html" %}
+{% block title %}Analytics Business — Admin{% endblock %}
+{% block content %}
+<div style="max-width:1000px; margin:40px auto; padding:0 16px;">
+  <h1 style="font-size:1.8rem; margin-bottom:32px;">📊 Analytics Business</h1>
+
+  <!-- KPIs -->
+  <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(150px, 1fr)); gap:16px; margin-bottom:40px;">
+    <div style="padding:20px; background:var(--panel); border:1px solid var(--border); border-radius:12px; text-align:center;">
+      <div style="font-size:2rem; font-weight:700; color:var(--primary);">{{ total_users }}</div>
+      <div style="font-size:0.85rem; color:var(--muted); margin-top:4px;">Utilisateurs</div>
+    </div>
+    <div style="padding:20px; background:var(--panel); border:1px solid var(--border); border-radius:12px; text-align:center;">
+      <div style="font-size:2rem; font-weight:700; color:#4caf50;">{{ total_shows }}</div>
+      <div style="font-size:0.85rem; color:var(--muted); margin-top:4px;">Spectacles publiés</div>
+    </div>
+    <div style="padding:20px; background:var(--panel); border:1px solid var(--border); border-radius:12px; text-align:center;">
+      <div style="font-size:2rem; font-weight:700; color:#ff9800;">{{ total_demandes }}</div>
+      <div style="font-size:0.85rem; color:var(--muted); margin-top:4px;">Demandes</div>
+    </div>
+    <div style="padding:20px; background:var(--panel); border:1px solid var(--border); border-radius:12px; text-align:center;">
+      <div style="font-size:2rem; font-weight:700; color:#ffc107;">{{ total_reviews }}</div>
+      <div style="font-size:0.85rem; color:var(--muted); margin-top:4px;">Avis publiés</div>
+    </div>
+    <div style="padding:20px; background:var(--panel); border:1px solid var(--border); border-radius:12px; text-align:center;">
+      <div style="font-size:2rem; font-weight:700; color:#2196f3;">{{ total_views_30d }}</div>
+      <div style="font-size:0.85rem; color:var(--muted); margin-top:4px;">Vues (30 jours)</div>
+    </div>
+    <div style="padding:20px; background:var(--panel); border:1px solid var(--border); border-radius:12px; text-align:center;">
+      <div style="font-size:2rem; font-weight:700; color:#9c27b0;">{{ total_messages }}</div>
+      <div style="font-size:0.85rem; color:var(--muted); margin-top:4px;">Messages échangés</div>
+    </div>
+  </div>
+
+  <!-- Top spectacles les plus vus -->
+  {% if top_shows %}
+  <h2 style="font-size:1.3rem; margin-bottom:16px;">🔥 Top 10 spectacles les plus vus</h2>
+  <div style="margin-bottom:40px; background:var(--panel); border:1px solid var(--border); border-radius:12px; overflow:hidden;">
+    <table style="width:100%; border-collapse:collapse;">
+      <thead>
+        <tr style="background:rgba(255,255,255,0.05);">
+          <th style="padding:12px 16px; text-align:left; color:var(--muted); font-weight:600; font-size:0.85rem;">#</th>
+          <th style="padding:12px 16px; text-align:left; color:var(--muted); font-weight:600; font-size:0.85rem;">Spectacle</th>
+          <th style="padding:12px 16px; text-align:left; color:var(--muted); font-weight:600; font-size:0.85rem;">Compagnie</th>
+          <th style="padding:12px 16px; text-align:right; color:var(--muted); font-weight:600; font-size:0.85rem;">Vues</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for s in top_shows %}
+        <tr style="border-top:1px solid var(--border);">
+          <td style="padding:10px 16px; color:var(--muted);">{{ loop.index }}</td>
+          <td style="padding:10px 16px;"><a href="{{ url_for('show_detail', show_id=s.id) }}" style="color:var(--primary); text-decoration:none; font-weight:500;">{{ s.title }}</a></td>
+          <td style="padding:10px 16px; color:var(--muted);">{{ s.raison_sociale or '—' }}</td>
+          <td style="padding:10px 16px; text-align:right; font-weight:700;">{{ s.views }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% endif %}
+
+  <!-- Top spectacles par note -->
+  {% if top_rated %}
+  <h2 style="font-size:1.3rem; margin-bottom:16px;">⭐ Spectacles les mieux notés</h2>
+  <div style="margin-bottom:40px; background:var(--panel); border:1px solid var(--border); border-radius:12px; overflow:hidden;">
+    <table style="width:100%; border-collapse:collapse;">
+      <thead>
+        <tr style="background:rgba(255,255,255,0.05);">
+          <th style="padding:12px 16px; text-align:left; color:var(--muted); font-weight:600; font-size:0.85rem;">Spectacle</th>
+          <th style="padding:12px 16px; text-align:right; color:var(--muted); font-weight:600; font-size:0.85rem;">Note moy.</th>
+          <th style="padding:12px 16px; text-align:right; color:var(--muted); font-weight:600; font-size:0.85rem;">Avis</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for s in top_rated %}
+        <tr style="border-top:1px solid var(--border);">
+          <td style="padding:10px 16px;"><a href="{{ url_for('show_detail', show_id=s.id) }}" style="color:var(--primary); text-decoration:none;">{{ s.title }}</a></td>
+          <td style="padding:10px 16px; text-align:right; color:#ffc107; font-weight:700;">{{ '%.1f'|format(s.avg_rating) }} ★</td>
+          <td style="padding:10px 16px; text-align:right; color:var(--muted);">{{ s.review_count }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% endif %}
+
+  <a href="{{ url_for('admin_dashboard') }}" style="color:var(--primary); text-decoration:none; font-weight:500;">← Retour au tableau de bord</a>
+</div>
+{% endblock %}

@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% block title %}Messagerie — Spectacle'ment VØtre{% endblock %}
+{% block content %}
+<div style="max-width:700px; margin:40px auto; padding:0 16px;">
+  <h1 style="font-size:1.6rem; margin-bottom:24px;">📬 Mes messages</h1>
+
+  {% if conversations %}
+  <div style="display:flex; flex-direction:column; gap:8px;">
+    {% for item in conversations %}
+    <a href="{{ url_for('messages_thread', conv_id=item.conv.id) }}" style="display:flex; align-items:center; gap:16px; padding:16px 20px; background:var(--panel); border:1px solid var(--border); border-radius:10px; text-decoration:none; color:var(--text); transition:border-color 0.2s;{% if item.unread > 0 %} border-left:4px solid var(--primary);{% endif %}">
+      <div style="width:44px; height:44px; border-radius:50%; background:var(--primary); color:#fff; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:1.2rem; flex-shrink:0;">
+        {{ item.other.username[0]|upper }}
+      </div>
+      <div style="flex:1; min-width:0;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+          <strong>{{ item.other.raison_sociale or item.other.username }}</strong>
+          {% if item.last_msg %}
+          <small style="color:var(--muted);">{{ item.last_msg.created_at.strftime('%d/%m %H:%M') }}</small>
+          {% endif %}
+        </div>
+        {% if item.conv.subject %}
+        <div style="font-size:0.85rem; color:var(--primary); margin-bottom:2px;">{{ item.conv.subject }}</div>
+        {% endif %}
+        {% if item.last_msg %}
+        <p style="margin:0; color:var(--muted); font-size:0.9rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">{{ item.last_msg.content[:80] }}</p>
+        {% endif %}
+      </div>
+      {% if item.unread > 0 %}
+      <span style="background:var(--primary); color:#fff; font-size:0.8rem; font-weight:700; padding:4px 10px; border-radius:12px;">{{ item.unread }}</span>
+      {% endif %}
+    </a>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div style="text-align:center; padding:60px 20px; background:var(--panel); border-radius:12px;">
+    <p style="font-size:3rem; margin-bottom:12px;">📭</p>
+    <p style="color:var(--muted); font-size:1.1rem;">Aucun message pour le moment.</p>
+    <p style="color:var(--muted); font-size:0.9rem; margin-top:8px;">Vous pouvez contacter une compagnie depuis la fiche d'un spectacle.</p>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

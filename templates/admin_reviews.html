@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+{% block title %}Modération des avis — Admin{% endblock %}
+{% block content %}
+<div style="max-width:900px; margin:40px auto; padding:0 16px;">
+  <h1 style="font-size:1.8rem; margin-bottom:8px;">Modération des avis</h1>
+  <p style="color:var(--muted); margin-bottom:32px;">{{ pending|length }} avis en attente · {{ approved|length }} avis publiés</p>
+
+  {% if pending %}
+  <h2 style="font-size:1.3rem; margin-bottom:16px; color:#ff9800;">⏳ En attente de modération ({{ pending|length }})</h2>
+  {% for r in pending %}
+  <div style="padding:20px; margin-bottom:12px; background:var(--panel); border:1px solid #ff9800; border-radius:10px;">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; flex-wrap:wrap; gap:8px;">
+      <div>
+        <strong>{{ r.author_name }}</strong>
+        <span style="color:#ffc107; margin-left:8px;">{{ '★' * r.rating }}{{ '☆' * (5 - r.rating) }}</span>
+        <span style="color:var(--muted); margin-left:8px;">— Spectacle #{{ r.show_id }}{% if r.show %} « {{ r.show.title }} »{% endif %}</span>
+      </div>
+      <small style="color:var(--muted);">{{ r.created_at.strftime('%d/%m/%Y %H:%M') }}</small>
+    </div>
+    {% if r.comment %}<p style="margin:8px 0 14px; color:#ccc;">{{ r.comment }}</p>{% endif %}
+    <div style="display:flex; gap:8px;">
+      <form method="post" action="{{ url_for('admin_approve_review', review_id=r.id) }}">
+        <button style="padding:8px 20px; border:none; border-radius:6px; background:#4caf50; color:#fff; cursor:pointer; font-weight:600;">✅ Approuver</button>
+      </form>
+      <form method="post" action="{{ url_for('admin_delete_review', review_id=r.id) }}" onsubmit="return confirm('Supprimer cet avis ?')">
+        <button style="padding:8px 20px; border:none; border-radius:6px; background:#f44336; color:#fff; cursor:pointer; font-weight:600;">🗑️ Supprimer</button>
+      </form>
+    </div>
+  </div>
+  {% endfor %}
+  {% else %}
+  <p style="color:var(--muted); padding:20px; background:var(--panel); border-radius:10px; text-align:center;">Aucun avis en attente de modération. 👍</p>
+  {% endif %}
+
+  {% if approved %}
+  <h2 style="font-size:1.3rem; margin:32px 0 16px; color:#4caf50;">✅ Avis publiés ({{ approved|length }})</h2>
+  {% for r in approved %}
+  <div style="padding:16px; margin-bottom:8px; background:var(--panel); border:1px solid var(--border); border-radius:10px;">
+    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
+      <div>
+        <strong>{{ r.author_name }}</strong>
+        <span style="color:#ffc107; margin-left:8px;">{{ '★' * r.rating }}{{ '☆' * (5 - r.rating) }}</span>
+        <span style="color:var(--muted); margin-left:8px;">— {% if r.show %}{{ r.show.title }}{% else %}#{{ r.show_id }}{% endif %}</span>
+      </div>
+      <div style="display:flex; align-items:center; gap:12px;">
+        <small style="color:var(--muted);">{{ r.created_at.strftime('%d/%m/%Y') }}</small>
+        <form method="post" action="{{ url_for('admin_delete_review', review_id=r.id) }}" onsubmit="return confirm('Supprimer cet avis ?')">
+          <button style="padding:4px 12px; border:none; border-radius:4px; background:#c62828; color:#fff; cursor:pointer; font-size:0.85rem;">🗑️</button>
+        </form>
+      </div>
+    </div>
+    {% if r.comment %}<p style="margin:8px 0 0; color:#ccc; font-size:0.95rem;">{{ r.comment }}</p>{% endif %}
+  </div>
+  {% endfor %}
+  {% endif %}
+</div>
+{% endblock %}

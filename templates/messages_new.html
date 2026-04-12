@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block title %}Nouveau message — {{ recipient.raison_sociale or recipient.username }}{% endblock %}
+{% block content %}
+<div style="max-width:600px; margin:40px auto; padding:0 16px;">
+  <a href="{{ url_for('messages_inbox') }}" style="display:inline-flex; align-items:center; gap:6px; margin-bottom:20px; color:var(--primary); text-decoration:none; font-weight:500;">← Retour aux messages</a>
+
+  <h1 style="font-size:1.4rem; margin-bottom:20px;">Envoyer un message à {{ recipient.raison_sociale or recipient.username }}</h1>
+
+  {% if show %}
+  <div style="padding:12px 16px; margin-bottom:20px; background:var(--panel); border:1px solid var(--border); border-radius:8px; font-size:0.9rem;">
+    <span style="color:var(--muted);">À propos de :</span>
+    <strong style="color:var(--primary);">{{ show.title }}</strong>
+  </div>
+  {% endif %}
+
+  <form method="post" style="display:flex; flex-direction:column; gap:16px;">
+    <div>
+      <label style="display:block; margin-bottom:4px; color:var(--text); font-weight:500;">Objet</label>
+      <input type="text" name="subject" maxlength="200" placeholder="Ex: Question sur votre spectacle" value="{% if show %}Question sur « {{ show.title }} »{% endif %}" style="width:100%; padding:10px 14px; border:1px solid var(--border); border-radius:8px; background:var(--bg); color:var(--text); font-size:1rem; box-sizing:border-box;">
+    </div>
+    <div>
+      <label style="display:block; margin-bottom:4px; color:var(--text); font-weight:500;">Message *</label>
+      <textarea name="content" rows="5" required maxlength="2000" placeholder="Votre message..." style="width:100%; padding:10px 14px; border:1px solid var(--border); border-radius:8px; background:var(--bg); color:var(--text); font-size:1rem; resize:vertical; box-sizing:border-box;"></textarea>
+    </div>
+    <button type="submit" style="padding:14px 28px; border:none; border-radius:8px; background:var(--primary); color:#fff; font-weight:600; font-size:1.05rem; cursor:pointer; align-self:flex-start;">📨 Envoyer le message</button>
+  </form>
+</div>
+{% endblock %}

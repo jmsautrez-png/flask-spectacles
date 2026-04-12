@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block title %}Notifications — Spectacle'ment VØtre{% endblock %}
+{% block content %}
+<div style="max-width:700px; margin:40px auto; padding:0 16px;">
+  <h1 style="font-size:1.6rem; margin-bottom:24px;">🔔 Notifications</h1>
+
+  {% if notifications %}
+  <div style="display:flex; flex-direction:column; gap:8px;">
+    {% for n in notifications %}
+    <{% if n.link %}a href="{{ n.link }}"{% else %}div{% endif %} style="display:flex; align-items:flex-start; gap:14px; padding:16px 20px; background:var(--panel); border:1px solid var(--border); border-radius:10px; text-decoration:none; color:var(--text); transition:border-color 0.2s;{% if not n.read %} border-left:4px solid var(--primary); background:rgba(33,150,243,0.05);{% endif %}">
+      <div style="font-size:1.5rem; flex-shrink:0; padding-top:2px;">
+        {% if n.type == 'message' %}💬{% elif n.type == 'review' %}⭐{% elif n.type == 'demande' %}📋{% else %}🔔{% endif %}
+      </div>
+      <div style="flex:1;">
+        <strong style="display:block; margin-bottom:4px;">{{ n.title }}</strong>
+        {% if n.body %}<p style="margin:0; color:var(--muted); font-size:0.9rem; line-height:1.5;">{{ n.body }}</p>{% endif %}
+        <small style="color:var(--muted); margin-top:6px; display:block;">{{ n.created_at.strftime('%d/%m/%Y à %H:%M') }}</small>
+      </div>
+    </{% if n.link %}a{% else %}div{% endif %}>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div style="text-align:center; padding:60px 20px; background:var(--panel); border-radius:12px;">
+    <p style="font-size:3rem; margin-bottom:12px;">🔕</p>
+    <p style="color:var(--muted); font-size:1.1rem;">Aucune notification.</p>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

@@ -189,6 +189,86 @@ class PageVisit(db.Model):
     last_visit = db.Column(db.DateTime, default=datetime.utcnow)  # Dernière visite
 
 
+# ── Phase 5 : Fonctionnalités Avancées ──────────────────────────────
+
+class Review(db.Model):
+    """Avis / notation d'un spectacle par un visiteur ou utilisateur."""
+    __tablename__ = "review"
+
+    id = db.Column(db.Integer, primary_key=True)
+    show_id = db.Column(db.Integer, db.ForeignKey("shows.id"), nullable=False, index=True)
+    user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=True)  # null = visiteur anonyme
+    author_name = db.Column(db.String(100), nullable=False)  # Nom affiché
+    rating = db.Column(db.Integer, nullable=False)  # 1-5 étoiles
+    comment = db.Column(db.Text, nullable=True)
+    approved = db.Column(db.Boolean, default=False, index=True)  # Modération admin
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    show = db.relationship("Show", backref=db.backref("reviews", lazy="dynamic"))
+    user = db.relationship("User", backref=db.backref("reviews", lazy="dynamic"))
+
+
+class Conversation(db.Model):
+    """Fil de messagerie entre deux utilisateurs, éventuellement lié à un spectacle."""
+    __tablename__ = "conversation"
+
+    id = db.Column(db.Integer, primary_key=True)
+    user1_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False, index=True)
+    user2_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False, index=True)
+    show_id = db.Column(db.Integer, db.ForeignKey("shows.id"), nullable=True)  # Contexte optionnel
+    subject = db.Column(db.String(200), nullable=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    user1 = db.relationship("User", foreign_keys=[user1_id], backref=db.backref("conversations_started", lazy="dynamic"))
+    user2 = db.relationship("User", foreign_keys=[user2_id], backref=db.backref("conversations_received", lazy="dynamic"))
+    show = db.relationship("Show", backref=db.backref("conversations", lazy="dynamic"))
+
+
+class Message(db.Model):
+    """Message dans une conversation."""
+    __tablename__ = "message"
+
+    id = db.Column(db.Integer, primary_key=True)
+    conversation_id = db.Column(db.Integer, db.ForeignKey("conversation.id"), nullable=False, index=True)
+    sender_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
+    content = db.Column(db.Text, nullable=False)
+    read_at = db.Column(db.DateTime, nullable=True)  # null = non lu
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    conversation = db.relationship("Conversation", backref=db.backref("messages", lazy="dynamic", order_by="Message.created_at"))
+    sender = db.relationship("User", backref=db.backref("sent_messages", lazy="dynamic"))
+
+
+class ShowView(db.Model):
+    """Compteur de vues par spectacle (analytics)."""
+    __tablename__ = "show_view"
+
+    id = db.Column(db.Integer, primary_key=True)
+    show_id = db.Column(db.Integer, db.ForeignKey("shows.id"), nullable=False, index=True)
+    session_id = db.Column(db.String(64), nullable=True)  # Déduplication par session
+    ip_hash = db.Column(db.String(64), nullable=True)  # IP hachée (RGPD)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow, index=True)
+
+    show = db.relationship("Show", backref=db.backref("views", lazy="dynamic"))
+
+
+class Notification(db.Model):
+    """Notification in-app pour un utilisateur."""
+    __tablename__ = "notification"
+
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False, index=True)
+    type = db.Column(db.String(50), nullable=False)  # review, message, demande, system
+    title = db.Column(db.String(200), nullable=False)
+    body = db.Column(db.Text, nullable=True)
+    link = db.Column(db.String(300), nullable=True)  # URL vers la ressource
+    read = db.Column(db.Boolean, default=False, index=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow, index=True)
+
+    user = db.relationship("User", backref=db.backref("notifications", lazy="dynamic", order_by="Notification.created_at.desc()"))
+
+
 # Modèle pour le tracking anonymisé des visiteurs (conforme RGPD)
 class VisitorLog(db.Model):
     __tablename__ = "visitor_log"

@@ -21,9 +21,20 @@
     <a class="btn publish-btn" href="{{ url_for('publish') }}" style="font-size: 1.1rem; padding: 12px 24px;">
         ✨ Publier un spectacle
     </a>
-    <a href="{{ url_for('change_password') }}" class="btn btn-sm" style="padding:8px 16px; border-radius:6px; font-weight:600; background:#6c757d; color:#fff; text-decoration:none; border: none;">
-        🔐 Changer mon mot de passe
-    </a>
+    <div style="display: flex; gap: 10px; flex-wrap: wrap; align-items: center;">
+        <a href="{{ url_for('messages_inbox') }}" class="btn" style="padding:8px 16px; border-radius:6px; font-weight:600; background:#1a73e8; color:#fff; text-decoration:none; border: none;">
+            📬 Messages
+        </a>
+        <a href="{{ url_for('my_analytics') }}" class="btn" style="padding:8px 16px; border-radius:6px; font-weight:600; background:#9c27b0; color:#fff; text-decoration:none; border: none;">
+            📈 Mes stats
+        </a>
+        <a href="{{ url_for('notifications_page') }}" class="btn" style="padding:8px 16px; border-radius:6px; font-weight:600; background:#ff9800; color:#fff; text-decoration:none; border: none;">
+            🔔 Notifications
+        </a>
+        <a href="{{ url_for('change_password') }}" class="btn btn-sm" style="padding:8px 16px; border-radius:6px; font-weight:600; background:#6c757d; color:#fff; text-decoration:none; border: none;">
+            🔐 Changer mon mot de passe
+        </a>
+    </div>
 </div>
 
 <div class="cards">

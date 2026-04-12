@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% block title %}Mes statistiques — Spectacle'ment VØtre{% endblock %}
+{% block content %}
+<div style="max-width:800px; margin:40px auto; padding:0 16px;">
+  <a href="{{ url_for('company_dashboard') }}" style="display:inline-flex; align-items:center; gap:6px; margin-bottom:20px; color:var(--primary); text-decoration:none; font-weight:500;">← Retour au tableau de bord</a>
+
+  <h1 style="font-size:1.6rem; margin-bottom:8px;">📈 Mes statistiques</h1>
+  <p style="color:var(--muted); margin-bottom:32px;">Performance de vos spectacles sur les 30 derniers jours</p>
+
+  <!-- Résumé -->
+  <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(140px, 1fr)); gap:16px; margin-bottom:32px;">
+    <div style="padding:20px; background:var(--panel); border:1px solid var(--border); border-radius:12px; text-align:center;">
+      <div style="font-size:2rem; font-weight:700; color:#2196f3;">{{ total_views }}</div>
+      <div style="font-size:0.85rem; color:var(--muted);">Vues (30j)</div>
+    </div>
+    <div style="padding:20px; background:var(--panel); border:1px solid var(--border); border-radius:12px; text-align:center;">
+      <div style="font-size:2rem; font-weight:700; color:#ffc107;">{{ total_reviews }}</div>
+      <div style="font-size:0.85rem; color:var(--muted);">Avis publiés</div>
+    </div>
+    <div style="padding:20px; background:var(--panel); border:1px solid var(--border); border-radius:12px; text-align:center;">
+      <div style="font-size:2rem; font-weight:700; color:#4caf50;">{{ my_shows|length }}</div>
+      <div style="font-size:0.85rem; color:var(--muted);">Spectacles</div>
+    </div>
+  </div>
+
+  <!-- Détail par spectacle -->
+  {% if my_shows %}
+  <h2 style="font-size:1.2rem; margin-bottom:16px;">Détail par spectacle</h2>
+  <div style="display:flex; flex-direction:column; gap:12px;">
+    {% for s in my_shows %}
+    {% set st = stats[s.id] %}
+    <div style="padding:16px 20px; background:var(--panel); border:1px solid var(--border); border-radius:10px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;">
+      <div style="flex:1; min-width:200px;">
+        <a href="{{ url_for('show_detail', show_id=s.id) }}" style="color:var(--text); text-decoration:none; font-weight:600;">{{ s.title }}</a>
+        {% if not s.approved %}<span style="font-size:0.75rem; padding:2px 8px; background:#ff9800; color:#fff; border-radius:4px; margin-left:8px;">En attente</span>{% endif %}
+      </div>
+      <div style="display:flex; gap:24px; font-size:0.9rem;">
+        <span title="Vues (30 jours)">👁️ {{ st.views_30d }}</span>
+        <span title="Avis">💬 {{ st.reviews }}</span>
+        {% if st.avg_rating > 0 %}<span title="Note moyenne" style="color:#ffc107;">⭐ {{ st.avg_rating }}</span>{% endif %}
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div style="text-align:center; padding:40px; background:var(--panel); border-radius:12px;">
+    <p style="color:var(--muted);">Vous n'avez pas encore publié de spectacle.</p>
+    <a href="{{ url_for('publish') }}" style="display:inline-block; margin-top:12px; padding:12px 24px; background:var(--primary); color:#fff; border-radius:8px; text-decoration:none; font-weight:600;">Publier un spectacle</a>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

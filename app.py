@@ -18,7 +18,7 @@ print("PYTHON EXE:", sys.executable)
 print("PYTHON VERSION:", sys.version)
 
 from sqlalchemy import or_
-from datetime import datetime
+from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Optional, Tuple
 import random
@@ -71,7 +71,7 @@ print("✓ Flask importé")
 
 from config import Config
 from models import db
-from models.models import User, Show, PageVisit, VisitorLog
+from models.models import User, Show, PageVisit, VisitorLog, Review, Conversation, Message, ShowView, Notification
 from seo_cities import FRENCH_CITIES, get_city_by_slug, get_all_city_slugs
 
 # Imports refactorisés — utils/
@@ -1775,8 +1775,30 @@ def register_routes(app: Flask) -> None:
             Show.category.ilike('%Spectacle à la une%'),
             Show.id != show_id  # Exclure le spectacle actuel
         ).order_by(Show.created_at.desc()).limit(8).all()
+
+        # ── Phase 5 : tracking des vues ──
+        import hashlib
+        sid = session.get("_id", "")
+        ip_raw = request.remote_addr or ""
+        ip_h = hashlib.sha256(ip_raw.encode()).hexdigest()[:16]
+        already = ShowView.query.filter_by(show_id=show_id, session_id=sid).first() if sid else None
+        if not already:
+            db.session.add(ShowView(show_id=show_id, session_id=sid, ip_hash=ip_h))
+            try:
+                db.session.commit()
+            except Exception:
+                db.session.rollback()
+        view_count = ShowView.query.filter_by(show_id=show_id).count()
+
+        # ── Phase 5 : avis approuvés ──
+        reviews = Review.query.filter_by(show_id=show_id, approved=True).order_by(Review.created_at.desc()).all()
+        avg_rating = 0
+        if reviews:
+            avg_rating = round(sum(r.rating for r in reviews) / len(reviews), 1)
         
-        return render_template("show_detail.html", show=show, user=u, admin_email=admin_email, spectacles_une=spectacles_une)
+        return render_template("show_detail.html", show=show, user=u, admin_email=admin_email,
+                               spectacles_une=spectacles_une, view_count=view_count,
+                               reviews=reviews, avg_rating=avg_rating, review_count=len(reviews))
 
     # ---------------------------
     # Espace Compagnie
@@ -4935,6 +4957,358 @@ def admin_demande_ecole_notes(demande_id):
     db.session.commit()
     flash("Notes enregistrées.", "success")
     return redirect(url_for("admin_demande_ecole_detail", demande_id=demande_id))
+
+# =====================================================================
+# Phase 5 : Fonctionnalités Avancées
+# =====================================================================
+
+# ── 5.1  Système de notation / avis ─────────────────────────────────
+
+@app.route("/show/<int:show_id>/review", methods=["POST"])
+def submit_review(show_id):
+    """Soumettre un avis sur un spectacle."""
+    show = Show.query.get_or_404(show_id)
+    if not show.approved:
+        abort(404)
+
+    author = request.form.get("author_name", "").strip()
+    rating_str = request.form.get("rating", "")
+    comment = request.form.get("comment", "").strip()
+
+    # Validation
+    if not author or len(author) < 2:
+        flash("Merci d'indiquer votre nom (2 caractères minimum).", "warning")
+        return redirect(url_for("show_detail", show_id=show_id))
+    if not rating_str.isdigit() or not (1 <= int(rating_str) <= 5):
+        flash("Merci de sélectionner une note entre 1 et 5 étoiles.", "warning")
+        return redirect(url_for("show_detail", show_id=show_id))
+
+    # Limiter le commentaire
+    if len(comment) > 1000:
+        comment = comment[:1000]
+
+    u = current_user()
+    review = Review(
+        show_id=show_id,
+        user_id=u.id if u else None,
+        author_name=author,
+        rating=int(rating_str),
+        comment=comment or None,
+        approved=False,  # Modération admin requise
+    )
+    db.session.add(review)
+    db.session.commit()
+
+    # Notification au propriétaire du spectacle
+    if show.user_id:
+        notif = Notification(
+            user_id=show.user_id,
+            type="review",
+            title="Nouvel avis sur votre spectacle",
+            body=f"{author} a laissé un avis {int(rating_str)}★ sur « {show.title} » (en attente de modération).",
+            link=url_for("show_detail", show_id=show_id),
+        )
+        db.session.add(notif)
+        db.session.commit()
+
+    flash("Merci pour votre avis ! Il sera visible après validation par notre équipe.", "success")
+    return redirect(url_for("show_detail", show_id=show_id))
+
+
+@app.route("/admin/reviews")
+@login_required
+@admin_required
+def admin_reviews():
+    """Gestion des avis (modération)."""
+    pending = Review.query.filter_by(approved=False).order_by(Review.created_at.desc()).all()
+    approved = Review.query.filter_by(approved=True).order_by(Review.created_at.desc()).limit(50).all()
+    return render_template("admin_reviews.html", user=current_user(), pending=pending, approved=approved)
+
+
+@app.route("/admin/reviews/<int:review_id>/approve", methods=["POST"])
+@login_required
+@admin_required
+def admin_approve_review(review_id):
+    """Approuver un avis."""
+    review = Review.query.get_or_404(review_id)
+    review.approved = True
+    db.session.commit()
+    flash("Avis approuvé et publié.", "success")
+    return redirect(url_for("admin_reviews"))
+
+
+@app.route("/admin/reviews/<int:review_id>/delete", methods=["POST"])
+@login_required
+@admin_required
+def admin_delete_review(review_id):
+    """Supprimer un avis."""
+    review = Review.query.get_or_404(review_id)
+    db.session.delete(review)
+    db.session.commit()
+    flash("Avis supprimé.", "success")
+    return redirect(url_for("admin_reviews"))
+
+
+# ── 5.2  Messagerie interne ─────────────────────────────────────────
+
+@app.route("/messages")
+@login_required
+def messages_inbox():
+    """Boîte de réception — toutes les conversations de l'utilisateur."""
+    u = current_user()
+    conversations = Conversation.query.filter(
+        db.or_(Conversation.user1_id == u.id, Conversation.user2_id == u.id)
+    ).order_by(Conversation.updated_at.desc()).all()
+
+    # Enrichir chaque conversation avec le dernier message et le compteur de non-lus
+    conv_data = []
+    for c in conversations:
+        other = c.user2 if c.user1_id == u.id else c.user1
+        last_msg = Message.query.filter_by(conversation_id=c.id).order_by(Message.created_at.desc()).first()
+        unread = Message.query.filter(
+            Message.conversation_id == c.id,
+            Message.sender_id != u.id,
+            Message.read_at.is_(None),
+        ).count()
+        conv_data.append({"conv": c, "other": other, "last_msg": last_msg, "unread": unread})
+
+    return render_template("messages_inbox.html", user=u, conversations=conv_data)
+
+
+@app.route("/messages/<int:conv_id>", methods=["GET", "POST"])
+@login_required
+def messages_thread(conv_id):
+    """Afficher / envoyer un message dans une conversation."""
+    u = current_user()
+    conv = Conversation.query.get_or_404(conv_id)
+
+    # Sécurité : seuls les deux participants
+    if u.id not in (conv.user1_id, conv.user2_id):
+        abort(403)
+
+    other = conv.user2 if conv.user1_id == u.id else conv.user1
+
+    if request.method == "POST":
+        content = request.form.get("content", "").strip()
+        if content and len(content) <= 2000:
+            msg = Message(conversation_id=conv.id, sender_id=u.id, content=content)
+            db.session.add(msg)
+            conv.updated_at = datetime.utcnow()
+            # Notification pour le destinataire
+            notif = Notification(
+                user_id=other.id,
+                type="message",
+                title=f"Nouveau message de {u.raison_sociale or u.username}",
+                body=content[:100] + ("…" if len(content) > 100 else ""),
+                link=url_for("messages_thread", conv_id=conv.id),
+            )
+            db.session.add(notif)
+            db.session.commit()
+        return redirect(url_for("messages_thread", conv_id=conv.id))
+
+    # Marquer les messages reçus comme lus
+    Message.query.filter(
+        Message.conversation_id == conv.id,
+        Message.sender_id != u.id,
+        Message.read_at.is_(None),
+    ).update({"read_at": datetime.utcnow()})
+    db.session.commit()
+
+    messages_list = Message.query.filter_by(conversation_id=conv.id).order_by(Message.created_at.asc()).all()
+    return render_template("messages_thread.html", user=u, conv=conv, other=other, messages=messages_list)
+
+
+@app.route("/messages/new/<int:recipient_id>", methods=["GET", "POST"])
+@login_required
+def messages_new(recipient_id):
+    """Créer ou reprendre une conversation avec un utilisateur."""
+    u = current_user()
+    recipient = User.query.get_or_404(recipient_id)
+
+    if u.id == recipient.id:
+        flash("Vous ne pouvez pas vous envoyer un message.", "warning")
+        return redirect(url_for("messages_inbox"))
+
+    # Vérifier s'il existe déjà une conversation entre ces deux utilisateurs
+    existing = Conversation.query.filter(
+        db.or_(
+            db.and_(Conversation.user1_id == u.id, Conversation.user2_id == recipient.id),
+            db.and_(Conversation.user1_id == recipient.id, Conversation.user2_id == u.id),
+        )
+    ).first()
+
+    if existing:
+        if request.method == "POST":
+            content = request.form.get("content", "").strip()
+            if content and len(content) <= 2000:
+                msg = Message(conversation_id=existing.id, sender_id=u.id, content=content)
+                db.session.add(msg)
+                existing.updated_at = datetime.utcnow()
+                db.session.add(Notification(user_id=recipient.id, type="message",
+                    title=f"Nouveau message de {u.raison_sociale or u.username}",
+                    body=content[:100], link=url_for("messages_thread", conv_id=existing.id)))
+                db.session.commit()
+            return redirect(url_for("messages_thread", conv_id=existing.id))
+        return redirect(url_for("messages_thread", conv_id=existing.id))
+
+    if request.method == "POST":
+        content = request.form.get("content", "").strip()
+        subject = request.form.get("subject", "").strip() or None
+        show_id = request.args.get("show_id", type=int)
+        if content and len(content) <= 2000:
+            conv = Conversation(user1_id=u.id, user2_id=recipient.id, show_id=show_id, subject=subject)
+            db.session.add(conv)
+            db.session.flush()
+            msg = Message(conversation_id=conv.id, sender_id=u.id, content=content)
+            db.session.add(msg)
+            db.session.add(Notification(user_id=recipient.id, type="message",
+                title=f"Nouveau message de {u.raison_sociale or u.username}",
+                body=content[:100], link=url_for("messages_thread", conv_id=conv.id)))
+            db.session.commit()
+            return redirect(url_for("messages_thread", conv_id=conv.id))
+
+    show_id = request.args.get("show_id", type=int)
+    show = Show.query.get(show_id) if show_id else None
+    return render_template("messages_new.html", user=u, recipient=recipient, show=show)
+
+
+# ── 5.3  Analytics avancé ───────────────────────────────────────────
+
+@app.route("/admin/analytics")
+@login_required
+@admin_required
+def admin_analytics():
+    """Dashboard analytics business."""
+    from sqlalchemy import func
+
+    u = current_user()
+    today = datetime.utcnow().date()
+
+    # KPIs
+    total_users = User.query.count()
+    total_shows = Show.query.filter_by(approved=True).count()
+    total_demandes = DemandeAnimation.query.count()
+    total_reviews = Review.query.filter_by(approved=True).count()
+    total_messages = Message.query.count()
+
+    # Vues des 30 derniers jours
+    thirty_days_ago = datetime.utcnow() - timedelta(days=30)
+    total_views_30d = ShowView.query.filter(ShowView.created_at >= thirty_days_ago).count()
+
+    # Top 10 spectacles les plus vus
+    top_shows = db.session.query(
+        Show.id, Show.title, Show.raison_sociale,
+        func.count(ShowView.id).label("views")
+    ).join(ShowView, ShowView.show_id == Show.id).group_by(
+        Show.id, Show.title, Show.raison_sociale
+    ).order_by(func.count(ShowView.id).desc()).limit(10).all()
+
+    # Top spectacles par note moyenne
+    top_rated = db.session.query(
+        Show.id, Show.title,
+        func.avg(Review.rating).label("avg_rating"),
+        func.count(Review.id).label("review_count")
+    ).join(Review, Review.show_id == Show.id).filter(
+        Review.approved.is_(True)
+    ).group_by(Show.id, Show.title).having(
+        func.count(Review.id) >= 1
+    ).order_by(func.avg(Review.rating).desc()).limit(10).all()
+
+    # Inscriptions par mois (6 derniers mois)
+    six_months_ago = datetime.utcnow() - timedelta(days=180)
+    monthly_users = db.session.query(
+        func.date_trunc('month', User.created_at).label("month"),
+        func.count(User.id)
+    ).filter(User.created_at >= six_months_ago).group_by("month").order_by("month").all()
+
+    return render_template("admin_analytics.html", user=u,
+        total_users=total_users, total_shows=total_shows,
+        total_demandes=total_demandes, total_reviews=total_reviews,
+        total_messages=total_messages, total_views_30d=total_views_30d,
+        top_shows=top_shows, top_rated=top_rated, monthly_users=monthly_users)
+
+
+@app.route("/my-analytics")
+@login_required
+def my_analytics():
+    """Analytics pour une compagnie (ses propres spectacles)."""
+    from sqlalchemy import func
+
+    u = current_user()
+    my_shows = Show.query.filter_by(user_id=u.id).all()
+    show_ids = [s.id for s in my_shows]
+
+    if not show_ids:
+        return render_template("my_analytics.html", user=u, my_shows=[], stats={})
+
+    thirty_days_ago = datetime.utcnow() - timedelta(days=30)
+    # Vues par spectacle (30j)
+    views_by_show = dict(db.session.query(
+        ShowView.show_id, func.count(ShowView.id)
+    ).filter(ShowView.show_id.in_(show_ids), ShowView.created_at >= thirty_days_ago
+    ).group_by(ShowView.show_id).all())
+
+    # Avis par spectacle
+    reviews_by_show = dict(db.session.query(
+        Review.show_id, func.count(Review.id)
+    ).filter(Review.show_id.in_(show_ids), Review.approved.is_(True)
+    ).group_by(Review.show_id).all())
+
+    # Note moyenne par spectacle
+    avg_by_show = dict(db.session.query(
+        Review.show_id, func.avg(Review.rating)
+    ).filter(Review.show_id.in_(show_ids), Review.approved.is_(True)
+    ).group_by(Review.show_id).all())
+
+    stats = {}
+    for s in my_shows:
+        stats[s.id] = {
+            "views_30d": views_by_show.get(s.id, 0),
+            "reviews": reviews_by_show.get(s.id, 0),
+            "avg_rating": round(float(avg_by_show.get(s.id, 0)), 1),
+        }
+
+    total_views = sum(v for v in views_by_show.values())
+    total_reviews = sum(v for v in reviews_by_show.values())
+
+    return render_template("my_analytics.html", user=u, my_shows=my_shows, stats=stats,
+                           total_views=total_views, total_reviews=total_reviews)
+
+
+# ── 5.4  Notifications ──────────────────────────────────────────────
+
+@app.route("/notifications")
+@login_required
+def notifications_page():
+    """Page de toutes les notifications."""
+    u = current_user()
+    notifs = Notification.query.filter_by(user_id=u.id).order_by(Notification.created_at.desc()).limit(50).all()
+    # Marquer comme lues
+    Notification.query.filter_by(user_id=u.id, read=False).update({"read": True})
+    db.session.commit()
+    return render_template("notifications.html", user=u, notifications=notifs)
+
+
+@app.route("/api/notifications/count")
+@login_required
+def notifications_count():
+    """API JSON — nombre de notifications non lues (pour le badge header)."""
+    u = current_user()
+    count = Notification.query.filter_by(user_id=u.id, read=False).count()
+    return {"unread": count}
+
+
+@app.route("/api/notifications/unread-messages")
+@login_required
+def unread_messages_count():
+    """API JSON — nombre de messages non lus."""
+    u = current_user()
+    count = Message.query.join(Conversation).filter(
+        db.or_(Conversation.user1_id == u.id, Conversation.user2_id == u.id),
+        Message.sender_id != u.id,
+        Message.read_at.is_(None),
+    ).count()
+    return {"unread": count}
 
 # -----------------------------------------------------
 # Point d'entrée pour le serveur de développement local

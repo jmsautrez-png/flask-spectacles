@@ -828,6 +828,16 @@
             </a>
           </li>
           <li>
+            <a href="{{ url_for('admin_reviews') }}" style="padding:8px 14px; background:#ff9800; color:white; border-radius:6px; font-weight:600; font-size:0.85rem; text-decoration:none; display:inline-block; transition:opacity 0.2s;">
+              ⭐ Avis
+            </a>
+          </li>
+          <li>
+            <a href="{{ url_for('admin_analytics') }}" style="padding:8px 14px; background:#9c27b0; color:white; border-radius:6px; font-weight:600; font-size:0.85rem; text-decoration:none; display:inline-block; transition:opacity 0.2s;">
+              📊 Analytics
+            </a>
+          </li>
+          <li>
             <a href="{{ url_for('logout') }}" style="padding:8px 14px; background:transparent; color:#fff; font-weight:500; font-size:0.85rem; text-decoration:none; display:inline-block; transition:color 0.2s;">
               Déconnexion ({{ user.username }})
             </a>
@@ -958,6 +968,9 @@
   <div class="hamburger-menu" id="hamburger-menu">
     {% if user %}
     <a href="{{ url_for('admin_dashboard' if user.is_admin else 'company_dashboard') }}" class="menu-dashboard">Mon espace</a>
+    <a href="{{ url_for('messages_inbox') }}" style="position:relative;">📬 Messages <span id="msg-badge" style="display:none; position:absolute; top:-4px; right:-8px; background:#f44336; color:#fff; font-size:0.7rem; padding:2px 6px; border-radius:10px; font-weight:700;"></span></a>
+    <a href="{{ url_for('notifications_page') }}" style="position:relative;">🔔 Notifications <span id="notif-badge" style="display:none; position:absolute; top:-4px; right:-8px; background:#f44336; color:#fff; font-size:0.7rem; padding:2px 6px; border-radius:10px; font-weight:700;"></span></a>
+    <a href="{{ url_for('my_analytics') }}">📈 Mes stats</a>
     <a href="{{ url_for('mes_appels_offres') }}" class="menu-mes-appels">Mes appels d'offres</a>
     {% endif %}
     <a href="{{ url_for('catalogue') }}" class="menu-catalogue">Catalogue</a>
@@ -1208,6 +1221,26 @@ document.addEventListener('DOMContentLoaded', function() {
 </script>
 
 {% block scripts %}{% endblock %}
+
+{% if user %}
+<script>
+// Badge notifications et messages (poll toutes les 60s)
+(function(){
+  function updateBadges(){
+    fetch('/api/notifications/count').then(r=>r.json()).then(d=>{
+      const b=document.getElementById('notif-badge');
+      if(b){if(d.unread>0){b.textContent=d.unread;b.style.display='inline'}else{b.style.display='none'}}
+    }).catch(()=>{});
+    fetch('/api/notifications/unread-messages').then(r=>r.json()).then(d=>{
+      const b=document.getElementById('msg-badge');
+      if(b){if(d.unread>0){b.textContent=d.unread;b.style.display='inline'}else{b.style.display='none'}}
+    }).catch(()=>{});
+  }
+  updateBadges();
+  setInterval(updateBadges,60000);
+})();
+</script>
+{% endif %}
 
 </body>
 </html>
