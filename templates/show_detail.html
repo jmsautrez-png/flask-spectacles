@@ -213,7 +213,7 @@
       <div style="margin-bottom:32px; padding:24px; background:linear-gradient(135deg,#1b5e20 0%,#2e7d32 100%); border-radius:12px; text-align:center; box-shadow:0 4px 16px rgba(27,94,32,0.25);">
         <p style="margin:0 0 12px 0; color:#fff; font-size:1.05rem; font-weight:500;">Ce spectacle vous intéresse ?</p>
         <div style="display:flex; justify-content:center; gap:12px; flex-wrap:wrap;">
-          <a href="{{ url_for('demande_animation') }}" style="display:inline-flex; align-items:center; gap:10px; padding:14px 32px; border-radius:10px; background:#fff; color:#1b5e20; font-weight:700; font-size:1.1rem; text-decoration:none; box-shadow:0 2px 8px rgba(0,0,0,0.15); transition:all 0.2s;">
+          <a href="{{ url_for('demande_devis', show_id=show.id) }}" style="display:inline-flex; align-items:center; gap:10px; padding:14px 32px; border-radius:10px; background:#fff; color:#1b5e20; font-weight:700; font-size:1.1rem; text-decoration:none; box-shadow:0 2px 8px rgba(0,0,0,0.15); transition:all 0.2s;">
             <i class="fa fa-magic"></i> Demander un devis gratuit
           </a>
           {% if show.user_id and user and user.id != show.user_id %}

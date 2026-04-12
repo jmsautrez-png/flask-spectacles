@@ -1800,6 +1800,53 @@ def register_routes(app: Flask) -> None:
                                spectacles_une=spectacles_une, view_count=view_count,
                                reviews=reviews, avg_rating=avg_rating, review_count=len(reviews))
 
+    @app.route("/demande-devis/<int:show_id>", methods=["GET", "POST"])
+    def demande_devis(show_id: int):
+        show = Show.query.get_or_404(show_id)
+        if request.method == "POST":
+            nom = request.form.get("nom", "").strip()
+            structure = request.form.get("structure", "").strip()
+            email = request.form.get("email", "").strip()
+            telephone = request.form.get("telephone", "").strip()
+            message = request.form.get("message", "").strip()
+
+            if not all([nom, email, message]):
+                flash("Veuillez remplir les champs obligatoires (nom, email, message).", "danger")
+                return render_template("demande_devis.html", show=show, user=current_user())
+
+            # Envoi email à l'admin
+            if getattr(current_app, "mail", None) and current_app.config.get("MAIL_USERNAME"):
+                try:
+                    to_addr = current_app.config.get("MAIL_DEFAULT_SENDER") or current_app.config.get("MAIL_USERNAME")
+                    body = f"""Nouvelle demande de renseignement via la fiche spectacle
+
+Spectacle : {show.title}
+Compagnie : {show.raison_sociale or 'Non renseignée'}
+Catégorie : {show.category or 'Non renseignée'}
+Région    : {show.region or 'Non renseignée'}
+Lien      : {url_for('show_detail', show_id=show.id, _external=True)}
+
+--- Coordonnées du demandeur ---
+Nom       : {nom}
+Structure : {structure or 'Non renseignée'}
+Email     : {email}
+Téléphone : {telephone or 'Non renseigné'}
+
+--- Message ---
+{message}
+"""
+                    msg = Message(subject=f"Demande de renseignement — {show.title}", recipients=[to_addr])  # type: ignore[arg-type]
+                    msg.body = body  # type: ignore[assignment]
+                    current_app.mail.send(msg)  # type: ignore[attr-defined]
+                    current_app.logger.info(f"[MAIL] ✓ Email devis envoyé pour show #{show.id} de {email}")
+                except Exception as e:
+                    current_app.logger.error(f"[MAIL] ✗ Envoi impossible (demande devis): {e}")
+
+            flash("✅ Votre demande a bien été envoyée ! Nous vous répondrons rapidement.", "success")
+            return redirect(url_for("show_detail", show_id=show.id))
+
+        return render_template("demande_devis.html", show=show, user=current_user())
+
     # ---------------------------
     # Espace Compagnie
     # ---------------------------
