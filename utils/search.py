@@ -1,4 +1,4 @@
-"""Search and text normalization utilities."""
+﻿"""Search and text normalization utilities."""
 import unicodedata
 import re
 
@@ -18,12 +18,10 @@ def normalize_search_text(text: str) -> str:
     return cleaned
 
 
-# Dictionnaire de mots avec variantes accentuées
-_ACCENT_WORDS: dict[str, list[str]] = {
+_ACCENT_WORDS = {
     "pere": ["père"],
     "noel": ["noël"],
     "theatre": ["théâtre"],
-    "magie": ["magie"],
     "fee": ["fée"],
     "ecole": ["école"],
     "evenement": ["événement"],
@@ -32,8 +30,9 @@ _ACCENT_WORDS: dict[str, list[str]] = {
     "ete": ["été"],
     "etoile": ["étoile"],
     "general": ["général"],
-    "conte": ["conte"],
     "comedie": ["comédie"],
+    "magie": ["magie"],
+    "conte": ["conte"],
     "danse": ["danse"],
     "cirque": ["cirque"],
     "marionnette": ["marionnette"],
@@ -41,21 +40,16 @@ _ACCENT_WORDS: dict[str, list[str]] = {
 }
 
 
-def generate_accent_variants(query: str) -> set[str]:
-    """Génère des variantes accentuées d'une requête de recherche.
-
-    Exemple : "pere noel" → {"père noel", "pere noël", "père noël", "pere noel"}
-    """
+def generate_accent_variants(query: str) -> set:
+    """Genere des variantes accentuees d'une requete de recherche."""
     words = query.lower().split()
-    variants: list[list[str]] = []
+    variants = []
     for word in words:
         word_variants = [word]
         if word in _ACCENT_WORDS:
             word_variants.extend(_ACCENT_WORDS[word])
         variants.append(word_variants)
-
-    # Produit cartésien de toutes les variantes de mots
-    result: set[str] = set()
+    result = set()
     from itertools import product as _product
     for combo in _product(*variants):
         result.add(" ".join(combo))
