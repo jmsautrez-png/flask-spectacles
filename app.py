@@ -3108,6 +3108,59 @@ Accessibilité: {accessibilite}
             db.session.add(demande)
             db.session.commit()
 
+            # Email d'accusé de réception à l'auteur de la demande
+            if getattr(current_app, "mail", None) and current_app.config.get("MAIL_USERNAME"):
+                try:
+                    confirmation_html = f"""<!DOCTYPE html>
+<html>
+<head><meta charset="UTF-8">
+<style>
+  body {{ font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; }}
+  .logo {{ text-align: center; margin: 20px 0; }}
+  .logo img {{ max-width: 200px; height: auto; }}
+  .content {{ padding: 20px; background-color: #f9f9f9; border-radius: 8px; }}
+  .pending-box {{ background: linear-gradient(135deg, #1565c0, #1976d2); color: white; padding: 20px; border-radius: 8px; margin: 20px 0; text-align: center; }}
+  .pending-box h3 {{ margin: 0; color: white; }}
+  .info-box {{ background-color: #e3f2fd; padding: 15px; border-radius: 8px; margin: 15px 0; }}
+  .footer {{ text-align: center; margin-top: 20px; color: #666; font-size: 0.9em; }}
+</style>
+</head>
+<body>
+  <div class="logo">
+    <img src="https://www.spectacleanimation.fr/static/img/logo_spectaclement_votre.png" alt="Spectacle'ment Vôtre">
+  </div>
+  <div class="content">
+    <div class="pending-box">
+      <h3>⏳ Votre demande est en cours de validation</h3>
+    </div>
+    <p>Bonjour {nom},</p>
+    <p>Nous avons bien reçu votre appel d'offre <strong>"{intitule}"</strong>.<br>
+    Notre équipe va le vérifier et le publier dans les <strong>24 heures</strong>.</p>
+    <div class="info-box">
+      <p><strong>📋 Récapitulatif :</strong></p>
+      <p><strong>Structure :</strong> {structure}<br>
+      <strong>Genre recherché :</strong> {genre_recherche}<br>
+      <strong>Lieu :</strong> {lieu_ville}{f' ({code_postal})' if code_postal else ''}<br>
+      <strong>Date(s) :</strong> {dates_horaires}<br>
+      <strong>Budget :</strong> {budget}</p>
+    </div>
+    <p>Vous recevrez un second email dès que votre annonce sera en ligne.</p>
+    <div class="footer">
+      <p><strong>L'équipe Spectacle'ment Vôtre</strong><br>contact@spectacleanimation.fr</p>
+    </div>
+  </div>
+</body>
+</html>"""
+                    msg_conf = Message(
+                        subject=f"⏳ Votre appel d'offre « {intitule} » est en attente de validation",
+                        recipients=[contact_email]
+                    )
+                    msg_conf.html = confirmation_html
+                    current_app.mail.send(msg_conf)
+                    current_app.logger.info(f"[MAIL] ✓ Email accusé de réception envoyé à {contact_email}")
+                except Exception as e:
+                    current_app.logger.error(f"[MAIL] ✗ Envoi email accusé réception impossible: {e}")
+
             flash("✅ Votre demande a bien été envoyée ! Elle sera publiée après validation par notre équipe (sous 24h).", "success")
             return redirect(url_for("home"))
 
@@ -3532,10 +3585,10 @@ Accessibilité: {accessibilite}
         </div>
         
         <p style="text-align: center;">
-            <a href="https://spectacleanimation.fr/demandes-animation" class="btn">👉 Voir mon appel d'offre sur le site</a>
+            <a href="https://www.spectacleanimation.fr/demandes-animation" class="btn" style="display:inline-block;padding:14px 28px;background:#1b5e20;color:white;text-decoration:none;border-radius:8px;font-weight:700;font-size:1rem;">👉 Voir mon appel d'offre publié</a>
         </p>
         
-        <p>Les compagnies de spectacle correspondant à votre recherche vont pouvoir consulter votre demande et vous contacter directement.</p>
+        <p>Les compagnies de spectacle correspondant à votre recherche vont pouvoir consulter votre demande et vous contacter directement à l'adresse <strong>{demande.contact_email}</strong>.</p>
         
         <div style="background-color: #fff3cd; padding: 15px; border-radius: 8px; margin: 15px 0;">
             <p><strong>💼 Besoin d'aide pour l'administratif ?</strong><br>
