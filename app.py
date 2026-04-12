@@ -3103,12 +3103,12 @@ Accessibilité: {accessibilite}
                 contact_email=contact_email,
                 intitule=intitule,
                 is_private=False,  # Publique par défaut
-                approved=True  # Approuvé automatiquement pour publication immédiate
+                approved=False  # En attente de validation par l'admin
             )
             db.session.add(demande)
             db.session.commit()
 
-            flash("✅ Votre demande d'animation a bien été publiée ! Elle est maintenant visible sur le site.", "success")
+            flash("✅ Votre demande a bien été envoyée ! Elle sera publiée après validation par notre équipe (sous 24h).", "success")
             return redirect(url_for("home"))
 
         # Récupérer les spectacles "à la une" pour affichage
