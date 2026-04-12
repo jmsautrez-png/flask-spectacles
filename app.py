@@ -3152,7 +3152,7 @@ Accessibilité: {accessibilite}
 </body>
 </html>"""
                     msg_conf = MailMessage(
-                        subject=f"⏳ Votre appel d'offre « {intitule} » est en attente de validation",
+                        subject=f"⏳ Votre demande d'animation est en attente de validation",
                         recipients=[contact_email]
                     )
                     msg_conf.html = confirmation_html
@@ -3839,7 +3839,7 @@ Accessibilité: {accessibilite}
 """
                     status_text = "Brouillon privé" if is_private else ("Publié" if publish_immediately else "En attente")
                     msg = MailMessage(
-                        subject=f"✅ Nouvel appel d'offre créé ({status_text}) : {demande.intitule or demande.genre_recherche} - {demande.lieu_ville}",
+                        subject=f"✅ Nouvel appel d'offre créé ({status_text}) : {demande.genre_recherche} à {demande.lieu_ville}",
                         recipients=[admin_email]
                     )
                     msg.html = body_html
@@ -4363,7 +4363,7 @@ Accessibilité: {accessibilite}
 </html>
 """
                     admin_msg = MailMessage(
-                        subject=f"[ADMIN] Appel d'offre envoyé : {demande.intitule or 'Nouvelle opportunité'} - {demande.genre_recherche}",
+                        subject=f"[ADMIN] Appel d'offre envoyé : {demande.genre_recherche} à {demande.lieu_ville}",
                         recipients=[admin_email]
                     )
                     admin_msg.html = admin_body_html
