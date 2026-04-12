@@ -198,7 +198,7 @@
     </div>
     <div class="detail-item">
       <div class="label">Ville</div>
-      <div class="value">{{ demande.code_postal }} {{ demande.ville }}</div>
+      <div class="value">{{ demande.code_postal|default('', true) }} {{ demande.ville }}</div>
     </div>
     <div class="detail-item">
       <div class="label">Région</div>

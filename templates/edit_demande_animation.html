@@ -102,11 +102,11 @@
         </div>
         <div>
           <label style="display:block; font-weight:600; margin-bottom:6px;">Code postal</label>
-          <input type="text" name="code_postal" value="{{ demande.code_postal }}" style="width:100%; padding:10px; border-radius:6px; border:1px solid var(--border); background:var(--bg); color:var(--text);">
+          <input type="text" name="code_postal" value="{{ demande.code_postal|default('', true) }}" style="width:100%; padding:10px; border-radius:6px; border:1px solid var(--border); background:var(--bg); color:var(--text);">
         </div>
         <div>
           <label style="display:block; font-weight:600; margin-bottom:6px;">Région</label>
-          <input type="text" name="region" value="{{ demande.region }}" style="width:100%; padding:10px; border-radius:6px; border:1px solid var(--border); background:var(--bg); color:var(--text);">
+          <input type="text" name="region" value="{{ demande.region|default('', true) }}" style="width:100%; padding:10px; border-radius:6px; border:1px solid var(--border); background:var(--bg); color:var(--text);">
         </div>
       </div>
       
@@ -122,7 +122,7 @@
         </div>
         <div>
           <label style="display:block; font-weight:600; margin-bottom:6px;">Type d'événement</label>
-          <input type="text" name="type_evenement" value="{{ demande.type_evenement }}" style="width:100%; padding:10px; border-radius:6px; border:1px solid var(--border); background:var(--bg); color:var(--text);">
+          <input type="text" name="type_evenement" value="{{ demande.type_evenement|default('', true) }}" style="width:100%; padding:10px; border-radius:6px; border:1px solid var(--border); background:var(--bg); color:var(--text);">
         </div>
         <div>
           <label style="display:block; font-weight:600; margin-bottom:6px;">Genre recherché *</label>
@@ -147,17 +147,17 @@
       
       <div>
         <label style="display:block; font-weight:600; margin-bottom:6px;">Intitulé de la demande</label>
-        <input type="text" name="intitule" value="{{ demande.intitule }}" style="width:100%; padding:10px; border-radius:6px; border:1px solid var(--border); background:var(--bg); color:var(--text);">
+        <input type="text" name="intitule" value="{{ demande.intitule|default('', true) }}" style="width:100%; padding:10px; border-radius:6px; border:1px solid var(--border); background:var(--bg); color:var(--text);">
       </div>
       
       <div>
         <label style="display:block; font-weight:600; margin-bottom:6px;">Contraintes techniques</label>
-        <textarea name="contraintes" rows="3" style="width:100%; padding:10px; border-radius:6px; border:1px solid var(--border); background:var(--bg); color:var(--text); resize:vertical;">{{ demande.contraintes }}</textarea>
+        <textarea name="contraintes" rows="3" style="width:100%; padding:10px; border-radius:6px; border:1px solid var(--border); background:var(--bg); color:var(--text); resize:vertical;">{{ demande.contraintes|default('', true) }}</textarea>
       </div>
       
       <div>
         <label style="display:block; font-weight:600; margin-bottom:6px;">Accessibilité</label>
-        <input type="text" name="accessibilite" value="{{ demande.accessibilite }}" style="width:100%; padding:10px; border-radius:6px; border:1px solid var(--border); background:var(--bg); color:var(--text);">
+        <input type="text" name="accessibilite" value="{{ demande.accessibilite|default('', true) }}" style="width:100%; padding:10px; border-radius:6px; border:1px solid var(--border); background:var(--bg); color:var(--text);">
       </div>
     </div>
     
