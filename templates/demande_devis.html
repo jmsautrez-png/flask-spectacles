@@ -21,8 +21,8 @@
     {% endif %}
   </div>
 
-  <h1 style="font-size:1.4rem; color:#1b5e20; margin:0 0 6px 0;">Demander un renseignement</h1>
-  <p style="color:#555; margin:0 0 24px 0; font-size:0.95rem;">Laissez vos coordonnées, l'équipe vous répondra rapidement.</p>
+  <h1 style="font-size:1.4rem; color:#fff; margin:0 0 6px 0;">Demander un renseignement</h1>
+  <p style="color:#ccc; margin:0 0 24px 0; font-size:0.95rem;">Laissez vos coordonnées, l'équipe vous répondra rapidement.</p>
 
   {% with messages = get_flashed_messages(with_categories=true) %}
     {% for cat, msg in messages %}
@@ -39,25 +39,25 @@
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
 
     <div style="margin-bottom:16px;">
-      <label style="display:block; font-weight:600; margin-bottom:6px; color:#333;">Votre nom *</label>
+      <label style="display:block; font-weight:600; margin-bottom:6px; color:#fff;">Votre nom *</label>
       <input type="text" name="nom" required maxlength="120"
              style="width:100%; padding:10px 14px; border:2px solid #9e9e9e; border-radius:8px; font-size:1rem; box-sizing:border-box; background:#fff;">
     </div>
 
     <div style="margin-bottom:16px;">
-      <label style="display:block; font-weight:600; margin-bottom:6px; color:#333;">Votre structure / organisation</label>
+      <label style="display:block; font-weight:600; margin-bottom:6px; color:#fff;">Votre structure / organisation</label>
       <input type="text" name="structure" maxlength="200"
              style="width:100%; padding:10px 14px; border:2px solid #9e9e9e; border-radius:8px; font-size:1rem; box-sizing:border-box; background:#fff;">
     </div>
 
     <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:16px;">
       <div>
-        <label style="display:block; font-weight:600; margin-bottom:6px; color:#333;">Email *</label>
+        <label style="display:block; font-weight:600; margin-bottom:6px; color:#fff;">Email *</label>
         <input type="email" name="email" required maxlength="255"
                style="width:100%; padding:10px 14px; border:2px solid #9e9e9e; border-radius:8px; font-size:1rem; box-sizing:border-box; background:#fff;">
       </div>
       <div>
-        <label style="display:block; font-weight:600; margin-bottom:6px; color:#333;">Téléphone</label>
+        <label style="display:block; font-weight:600; margin-bottom:6px; color:#fff;">Téléphone</label>
         <input type="tel" name="telephone" maxlength="20"
                style="width:100%; padding:10px 14px; border:2px solid #9e9e9e; border-radius:8px; font-size:1rem; box-sizing:border-box; background:#fff;">
       </div>
@@ -65,12 +65,12 @@
 
     <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:16px;">
       <div>
-        <label style="display:block; font-weight:600; margin-bottom:6px; color:#333;">Date de la manifestation</label>
+        <label style="display:block; font-weight:600; margin-bottom:6px; color:#fff;">Date de la manifestation</label>
         <input type="date" name="date_manifestation"
                style="width:100%; padding:10px 14px; border:2px solid #9e9e9e; border-radius:8px; font-size:1rem; box-sizing:border-box; background:#fff;">
       </div>
       <div>
-        <label style="display:block; font-weight:600; margin-bottom:6px; color:#333;">Budget envisagé</label>
+        <label style="display:block; font-weight:600; margin-bottom:6px; color:#fff;">Budget envisagé</label>
         <select name="budget" style="width:100%; padding:10px 14px; border:2px solid #9e9e9e; border-radius:8px; font-size:1rem; box-sizing:border-box; background:#fff;">
           <option value="">-- Sélectionner --</option>
           <option value="Moins de 300 €">Moins de 300 €</option>
@@ -85,7 +85,7 @@
     </div>
 
     <div style="margin-bottom:16px;">
-      <label style="display:block; font-weight:600; margin-bottom:8px; color:#333;">Type de lieu / manifestation</label>
+      <label style="display:block; font-weight:600; margin-bottom:8px; color:#fff;">Type de lieu / manifestation</label>
       <div style="display:flex; flex-wrap:wrap; gap:10px;">
         {% for lieu in ['Festival', 'Spectacle de rue', 'Salle de spectacle', 'Salle des fêtes', 'École / Crèche', 'Médiathèque', 'Mairie / Institution', 'Espace extérieur', 'Centre culturel', 'CSE / Entreprise', 'Autre'] %}
         <label style="display:flex; align-items:center; gap:6px; cursor:pointer; background:#fff; padding:7px 13px; border-radius:20px; border:2px solid #bdbdbd; font-size:0.9rem; color:#222;">
@@ -96,7 +96,7 @@
     </div>
 
     <div style="margin-bottom:24px;">
-      <label style="display:block; font-weight:600; margin-bottom:6px; color:#333;">Votre message / question *</label>
+      <label style="display:block; font-weight:600; margin-bottom:6px; color:#fff;">Votre message / question *</label>
       <textarea name="message" required maxlength="2000" rows="4"
                 placeholder="Ex : Disponibilité, durée souhaitée, nombre de représentations, public attendu…"
                 style="width:100%; padding:10px 14px; border:2px solid #9e9e9e; border-radius:8px; font-size:1rem; box-sizing:border-box; resize:vertical; background:#fff;"></textarea>
@@ -106,11 +106,11 @@
             style="width:100%; padding:14px; background:linear-gradient(135deg,#1b5e20,#2e7d32); color:#fff; font-size:1.05rem; font-weight:700; border:none; border-radius:10px; cursor:pointer;">
       <i class="fa fa-paper-plane"></i> Envoyer ma demande
     </button>
-    <p style="text-align:center; color:#888; font-size:0.82rem; margin-top:10px;">Sans engagement — réponse rapide</p>
+    <p style="text-align:center; color:#ccc; font-size:0.82rem; margin-top:10px;">Sans engagement — réponse rapide</p>
   </form>
 
   <p style="text-align:center; margin-top:20px;">
-    <a href="{{ url_for('show_detail', show_id=show.id) }}" style="color:#1b5e20; font-size:0.9rem;">← Retour au spectacle</a>
+    <a href="{{ url_for('show_detail', show_id=show.id) }}" style="color:#a5d6a7; font-size:0.9rem;">← Retour au spectacle</a>
   </p>
 
 </div>
