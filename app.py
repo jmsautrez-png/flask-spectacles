@@ -1,9 +1,9 @@
 ﻿# Import optionnel de Flask-Mail
 try:
-    from flask_mail import Mail, Message
+    from flask_mail import Mail, Message as MailMessage
 except ImportError:
     Mail = None
-    Message = None
+    MailMessage = None
 # Import optionnel de Flask-Talisman
 try:
     from flask_talisman import Talisman
@@ -803,7 +803,7 @@ def register_routes(app: Flask) -> None:
         if not hasattr(app, "mail") or not app.mail:
             return "Mail non configuré.", 500
         try:
-            msg = Message(
+            msg = MailMessage(
                 subject="Test d'envoi de mail",
                 recipients=[app.config.get("MAIL_DEFAULT_SENDER")],
                 body="Ceci est un test d'envoi de mail depuis Flask-Spectacles."
@@ -890,7 +890,7 @@ def register_routes(app: Flask) -> None:
                             f"Région : {region}\n"
                             f"Site internet : {site_internet}\n"
                         )
-                        msg = Message(subject="Nouvelle inscription utilisateur", recipients=[to_addr])  # type: ignore[arg-type]
+                        msg = MailMessage(subject="Nouvelle inscription utilisateur", recipients=[to_addr])  # type: ignore[arg-type]
                         msg.body = body  # type: ignore[assignment]
                         current_app.mail.send(msg)  # type: ignore[attr-defined]
                         current_app.logger.info(f"[MAIL] ✓ Email envoyé à l'admin pour inscription de {username}")
@@ -960,7 +960,7 @@ def register_routes(app: Flask) -> None:
 </body>
 </html>
 """
-                            msg_user = Message(subject="Bienvenue sur Spectacle'ment VØtre !", recipients=[email])  # type: ignore[arg-type]
+                            msg_user = MailMessage(subject="Bienvenue sur Spectacle'ment VØtre !", recipients=[email])  # type: ignore[arg-type]
                             msg_user.html = body_html  # type: ignore[assignment]
                             current_app.mail.send(msg_user)  # type: ignore[attr-defined]
                             current_app.logger.info(f"[MAIL] ✓ Email de bienvenue envoyé à {email}")
@@ -1058,7 +1058,7 @@ def register_routes(app: Flask) -> None:
                 
                 if to_email:
                     try:
-                        msg = Message(
+                        msg = MailMessage(
                             "Réinitialisation de votre mot de passe",
                             sender=current_app.config.get("MAIL_DEFAULT_SENDER"),
                             recipients=[to_email]
@@ -1693,7 +1693,7 @@ def register_routes(app: Flask) -> None:
                         + "💼 Service d'administration disponible pour les compagnies (gestion URSSAF, DSN, contrats, etc.).\n"
                         + "\nCordialement,\nL'équipe Spectacle'ment VØtre"
                     )
-                    msg = Message(subject="Nouvelle annonce à valider", recipients=[to_addr])  # type: ignore[arg-type]
+                    msg = MailMessage(subject="Nouvelle annonce à valider", recipients=[to_addr])  # type: ignore[arg-type]
                     msg.body = body  # type: ignore[assignment]
                     current_app.mail.send(msg)  # type: ignore[attr-defined]
                     current_app.logger.info(f"[MAIL] ✓ Email envoyé à l'admin pour nouvelle annonce: {title}")
@@ -1843,7 +1843,7 @@ Budget    : {budget or 'Non renseigné'}
 --- Message ---
 {message}
 """
-                    msg = Message(subject=f"Demande de renseignement — {show.title}", recipients=[to_addr])  # type: ignore[arg-type]
+                    msg = MailMessage(subject=f"Demande de renseignement — {show.title}", recipients=[to_addr])  # type: ignore[arg-type]
                     msg.body = body  # type: ignore[assignment]
                     current_app.mail.send(msg)  # type: ignore[attr-defined]
                     current_app.logger.info(f"[MAIL] ✓ Email devis envoyé pour show #{show.id} de {email}")
@@ -2750,7 +2750,7 @@ Budget    : {budget or 'Non renseigné'}
         
         if photos_count < 2:
             flash(f"⚠️ Ce spectacle ne peut pas être approuvé : il doit avoir au moins 2 photos (actuellement : {photos_count} photo{'s' if photos_count > 1 else ''}).", "warning")
-            return redirect(url_for("admin_shows"))
+            return redirect(url_for("admin_dashboard"))
         
         show.approved = True
         db.session.commit()
@@ -2901,7 +2901,7 @@ Budget    : {budget or 'Non renseigné'}
                         + "L'équipe Spectacle'ment VØtre"
                     )
                 
-                msg = Message(subject=subject, recipients=[to_addr])  # type: ignore[arg-type]
+                msg = MailMessage(subject=subject, recipients=[to_addr])  # type: ignore[arg-type]
                 
                 # Ajouter l'admin en copie cachée pour suivi
                 admin_email = "contact@spectacleanimation.fr"
@@ -3066,7 +3066,7 @@ Budget: {budget}
 Contraintes techniques: {contraintes}
 Accessibilité: {accessibilite}
 """
-                    msg = Message(subject="Nouvelle demande d'animation", recipients=[to_addr])  # type: ignore[arg-type]
+                    msg = MailMessage(subject="Nouvelle demande d'animation", recipients=[to_addr])  # type: ignore[arg-type]
                     msg.body = body  # type: ignore[assignment]
                     current_app.mail.send(msg)  # type: ignore[attr-defined]
                     current_app.logger.info(f"[MAIL] ✓ Email envoyé à l'admin pour demande d'animation de {structure}")
@@ -3151,7 +3151,7 @@ Accessibilité: {accessibilite}
   </div>
 </body>
 </html>"""
-                    msg_conf = Message(
+                    msg_conf = MailMessage(
                         subject=f"⏳ Votre appel d'offre « {intitule} » est en attente de validation",
                         recipients=[contact_email]
                     )
@@ -3383,8 +3383,7 @@ Accessibilité: {accessibilite}
             message = request.form.get("message", "").strip()
             try:
                 if hasattr(current_app, "mail") and current_app.mail:
-                    from flask_mail import Message
-                    msg = Message(
+                    msg = MailMessage(
                         subject="Nouveau message de contact",
                         recipients=["audition_2020@yahoo.fr"],
                         body=f"Nom: {nom}\nEmail: {email}\nMessage: {message}"
@@ -3604,7 +3603,7 @@ Accessibilité: {accessibilite}
 </body>
 </html>
 """
-            msg = Message(
+            msg = MailMessage(
                 subject=f"✅ Votre appel d'offre est en ligne - {demande.genre_recherche} à {demande.lieu_ville}",
                 recipients=[demande.contact_email]
             )
@@ -3839,7 +3838,7 @@ Accessibilité: {accessibilite}
 </html>
 """
                     status_text = "Brouillon privé" if is_private else ("Publié" if publish_immediately else "En attente")
-                    msg = Message(
+                    msg = MailMessage(
                         subject=f"✅ Nouvel appel d'offre créé ({status_text}) : {demande.intitule or demande.genre_recherche} - {demande.lieu_ville}",
                         recipients=[admin_email]
                     )
@@ -4264,7 +4263,7 @@ Accessibilité: {accessibilite}
                 
                 for email_data in batch:
                     try:
-                        msg = Message(
+                        msg = MailMessage(
                             subject=f"Nouvelle Opportunité - {demande.genre_recherche} à {demande.lieu_ville}",
                             recipients=[email_data['email']]
                         )
@@ -4363,7 +4362,7 @@ Accessibilité: {accessibilite}
 </body>
 </html>
 """
-                    admin_msg = Message(
+                    admin_msg = MailMessage(
                         subject=f"[ADMIN] Appel d'offre envoyé : {demande.intitule or 'Nouvelle opportunité'} - {demande.genre_recherche}",
                         recipients=[admin_email]
                     )
@@ -4969,7 +4968,7 @@ Contraintes techniques :
 Informations complémentaires :
 {informations_complementaires}
 """
-                msg = Message(subject=f"Nouvelle demande école - {theme_label}", recipients=[to_addr])
+                msg = MailMessage(subject=f"Nouvelle demande école - {theme_label}", recipients=[to_addr])
                 msg.body = body
                 current_app.mail.send(msg)
                 current_app.logger.info(f"[MAIL] ✓ Email envoyé à l'admin pour demande école: {nom_ecole}")
