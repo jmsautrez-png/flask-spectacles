@@ -90,8 +90,9 @@
       </div>
       
       <div>
-        <label style="display:block; font-weight:600; margin-bottom:6px;">Email *</label>
-        <input type="email" name="contact_email" value="{{ demande.contact_email }}" required style="width:100%; padding:10px; border-radius:6px; border:1px solid var(--border); background:var(--bg); color:var(--text);">
+        <label style="display:block; font-weight:600; margin-bottom:6px;">📧 Contact (Email, Facebook, Instagram, site web...) *</label>
+        <input type="text" name="contact_email" value="{{ demande.contact_email }}" required placeholder="email@exemple.fr, @instagram, facebook.com/page, www.site.fr..." style="width:100%; padding:10px; border-radius:6px; border:1px solid var(--border); background:var(--bg); color:var(--text);">
+        <small style="color:var(--muted); font-size:0.85em;">Email, lien Facebook/Instagram, site web...</small>
       </div>
       
       <div style="display:grid; grid-template-columns:2fr 1fr 1fr; gap:16px;">

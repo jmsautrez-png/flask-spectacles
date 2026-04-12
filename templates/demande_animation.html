@@ -40,11 +40,11 @@
 
       <div class="grid-2">
         <label>
-          <span class="label-text">E-mail de contact <span class="req">*</span></span>
-          <input type="email" id="contact_email" name="contact_email" required autocomplete="email"
-                 placeholder="votre@email.fr"
+          <span class="label-text">📧 Contact (Email, Facebook, Instagram, site web...) <span class="req">*</span></span>
+          <input type="text" id="contact_email" name="contact_email" required
+                 placeholder="email@exemple.fr, @instagram, facebook.com/page, www.site.fr..."
                  value="{{ request.form.get('contact_email','') }}">
-          <small class="hint">Nous l'utilisons uniquement pour répondre à votre demande.</small>
+          <small class="hint">Email, lien Facebook/Instagram, site web... Nous l'utilisons pour vous contacter.</small>
         </label>
 
         <label>
