@@ -1,5 +1,24 @@
 {% extends "base.html" %}
-{% block title %}Animations anniversaire - AnimatoSpectacle{% endblock %}
+{% block title %}Animations Anniversaire Enfant : Magie, Clown, Ateliers | Réservez en Ligne - Spectacle'ment VØtre{% endblock %}
+{% block description %}Animations pour anniversaires d'enfants : magie, clowns, ateliers créatifs, maquillage, sculptures de ballons. Animateurs professionnels pour un anniversaire inoubliable.{% endblock %}
+{% block extra_head %}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "CollectionPage",
+  "name": "Animations Anniversaire",
+  "url": "{{ url_for('animations_anniversaire', _external=True) }}",
+  "breadcrumb": {
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      {"@type": "ListItem", "position": 1, "name": "Accueil", "item": "{{ url_for('home', _external=True) }}"},
+      {"@type": "ListItem", "position": 2, "name": "Catalogue", "item": "{{ url_for('catalogue', _external=True) }}"},
+      {"@type": "ListItem", "position": 3, "name": "Animations Anniversaire", "item": "{{ url_for('animations_anniversaire', _external=True) }}"}
+    ]
+  }
+}
+</script>
+{% endblock %}
 {% block content %}
 
 <h1>Animations anniversaire enfant - Un goûter inoubliable</h1>

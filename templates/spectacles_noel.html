@@ -1,5 +1,24 @@
 {% extends "base.html" %}
-{% block title %}Spectacles de Noël - AnimatoSpectacle{% endblock %}
+{% block title %}Spectacles de Noël : Arbre de Noël, Magie, Père Noël | Réservez un Artiste - Spectacle'ment VØtre{% endblock %}
+{% block description %}Spectacles de Noël pour vos fêtes de fin d'année : arbres de Noël, magie, chorales, crèches vivantes. Artistes professionnels pour écoles, mairies, entreprises.{% endblock %}
+{% block extra_head %}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "CollectionPage",
+  "name": "Spectacles de Noël",
+  "url": "{{ url_for('spectacles_noel', _external=True) }}",
+  "breadcrumb": {
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      {"@type": "ListItem", "position": 1, "name": "Accueil", "item": "{{ url_for('home', _external=True) }}"},
+      {"@type": "ListItem", "position": 2, "name": "Catalogue", "item": "{{ url_for('catalogue', _external=True) }}"},
+      {"@type": "ListItem", "position": 3, "name": "Spectacles Noël", "item": "{{ url_for('spectacles_noel', _external=True) }}"}
+    ]
+  }
+}
+</script>
+{% endblock %}
 {% block content %}
 
 <h1>Spectacles de Noël - Créez la magie des fêtes</h1>

@@ -1,5 +1,23 @@
 {% extends "base.html" %}
-{% block title %}Booker un artiste - AnimatoSpectacle{% endblock %}
+{% block title %}Réserver un Artiste : Musiciens, Comédiens, Danseurs pour Vos Événements - Spectacle'ment VØtre{% endblock %}
+{% block description %}Réservez un artiste professionnel pour votre événement : musiciens, chanteurs, comédiens, danseurs, magiciens. Mise en relation directe, devis gratuit.{% endblock %}
+{% block extra_head %}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "CollectionPage",
+  "name": "Réserver un Artiste",
+  "url": "{{ url_for('booker_artiste', _external=True) }}",
+  "breadcrumb": {
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      {"@type": "ListItem", "position": 1, "name": "Accueil", "item": "{{ url_for('home', _external=True) }}"},
+      {"@type": "ListItem", "position": 2, "name": "Réserver un Artiste", "item": "{{ url_for('booker_artiste', _external=True) }}"}
+    ]
+  }
+}
+</script>
+{% endblock %}
 {% block content %}
 
 <h1>Booker un artiste</h1>

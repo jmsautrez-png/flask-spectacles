@@ -1,5 +1,26 @@
 {% extends "base.html" %}
-{% block title %}Spectacles pour enfants - AnimatoSpectacle{% endblock %}
+{% block title %}Spectacles pour Enfants : Théâtre, Magie, Cirque | +200 Artistes - Spectacle'ment VØtre{% endblock %}
+{% block description %}Découvrez +200 spectacles pour enfants en France : théâtre jeune public, marionnettes, magie, cirque, clowns. Artistes professionnels pour écoles, mairies, CSE. Devis gratuit sous 3h.{% endblock %}
+{% block extra_head %}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "CollectionPage",
+  "name": "Spectacles pour Enfants",
+  "description": "Catalogue de spectacles pour enfants : théâtre jeune public, marionnettes, magie, cirque, clowns. Plus de 200 artistes professionnels.",
+  "url": "{{ url_for('spectacles_enfants', _external=True) }}",
+  "isPartOf": { "@type": "WebSite", "name": "Spectacle'ment VØtre", "url": "{{ request.url_root }}" },
+  "breadcrumb": {
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      {"@type": "ListItem", "position": 1, "name": "Accueil", "item": "{{ url_for('home', _external=True) }}"},
+      {"@type": "ListItem", "position": 2, "name": "Catalogue", "item": "{{ url_for('catalogue', _external=True) }}"},
+      {"@type": "ListItem", "position": 3, "name": "Spectacles Enfants", "item": "{{ url_for('spectacles_enfants', _external=True) }}"}
+    ]
+  }
+}
+</script>
+{% endblock %}
 {% block content %}
 
 <h1>Spectacles pour enfants - Plus de 200 artistes professionnels</h1>

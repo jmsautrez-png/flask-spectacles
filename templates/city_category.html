@@ -1,0 +1,211 @@
+{% extends "base.html" %}
+
+{# SEO Meta Tags - Longue traîne ville×catégorie #}
+{% block title %}{{ meta_title }}{% endblock %}
+{% block description %}{{ meta_description }}{% endblock %}
+
+{% block extra_head %}
+<meta name="keywords" content="{{ meta_keywords }}">
+<meta name="robots" content="index,follow">
+<link rel="canonical" href="{{ url_for('seo_category_city', category_slug=category_slug, city_slug=city['slug'], _external=True) }}">
+
+{# Open Graph #}
+<meta property="og:title" content="{{ meta_title }}">
+<meta property="og:description" content="{{ meta_description }}">
+<meta property="og:url" content="{{ url_for('seo_category_city', category_slug=category_slug, city_slug=city['slug'], _external=True) }}">
+<meta property="og:type" content="website">
+
+{# Pagination SEO #}
+{% if pagination %}
+  {% if pagination.has_prev %}
+    <link rel="prev" href="{{ url_for('seo_category_city', category_slug=category_slug, city_slug=city['slug'], page=pagination.prev_num, _external=True) }}">
+  {% endif %}
+  {% if pagination.has_next %}
+    <link rel="next" href="{{ url_for('seo_category_city', category_slug=category_slug, city_slug=city['slug'], page=pagination.next_num, _external=True) }}">
+  {% endif %}
+{% endif %}
+
+{# Schema.org ItemList #}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "ItemList",
+  "name": "{{ category_label }} à {{ city['name'] }}",
+  "description": "{{ meta_description }}",
+  "numberOfItems": {{ total_shows }},
+  "itemListElement": [
+    {% for show in shows %}
+    {
+      "@type": "ListItem",
+      "position": {{ loop.index }},
+      "item": {
+        "@type": "Event",
+        "name": "{{ show.title }}",
+        "description": "{{ show.description[:150]|e if show.description else show.title|e }}",
+        "url": "{{ url_for('show_detail', show_id=show.id, _external=True) }}",
+        "location": {
+          "@type": "Place",
+          "name": "{{ city['name'] }}",
+          "address": {
+            "@type": "PostalAddress",
+            "addressLocality": "{{ city['name'] }}",
+            "addressRegion": "{{ city['region'] }}",
+            "postalCode": "{{ city['department'] }}000",
+            "addressCountry": "FR"
+          }
+        }
+      }
+    }{% if not loop.last %},{% endif %}
+    {% endfor %}
+  ]
+}
+</script>
+
+{# Schema.org BreadcrumbList #}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position": 1,
+      "name": "Accueil",
+      "item": "{{ url_for('home', _external=True) }}"
+    },
+    {
+      "@type": "ListItem",
+      "position": 2,
+      "name": "Catalogue",
+      "item": "{{ url_for('catalogue', _external=True) }}"
+    },
+    {
+      "@type": "ListItem",
+      "position": 3,
+      "name": "{{ city['name'] }}",
+      "item": "{{ url_for('city_spectacles', city_slug=city['slug'], _external=True) }}"
+    },
+    {
+      "@type": "ListItem",
+      "position": 4,
+      "name": "{{ category_label }}",
+      "item": "{{ url_for('seo_category_city', category_slug=category_slug, city_slug=city['slug'], _external=True) }}"
+    }
+  ]
+}
+</script>
+{% endblock %}
+
+{% block content %}
+<div style="max-width:1200px; margin:0 auto; padding:20px;">
+
+  {# Breadcrumb visible #}
+  <nav aria-label="Fil d'Ariane" style="margin-bottom:20px; font-size:14px; color:#aaa;">
+    <a href="{{ url_for('home') }}" style="color:#a78bfa;">Accueil</a>
+    <span style="margin:0 6px;">›</span>
+    <a href="{{ url_for('catalogue') }}" style="color:#a78bfa;">Catalogue</a>
+    <span style="margin:0 6px;">›</span>
+    <a href="{{ url_for('city_spectacles', city_slug=city['slug']) }}" style="color:#a78bfa;">{{ city['name'] }}</a>
+    <span style="margin:0 6px;">›</span>
+    <span style="color:#f5f6f8;">{{ category_label }}</span>
+  </nav>
+
+  <h1 style="font-size:28px; margin-bottom:8px;">
+    {{ category_label }} à {{ city['name'] }} ({{ city['department'] }})
+  </h1>
+  <p style="color:#aaa; margin-bottom:24px;">
+    {{ total_shows }} spectacle{{ 's' if total_shows != 1 else '' }} disponible{{ 's' if total_shows != 1 else '' }} en {{ city['region'] }}
+  </p>
+
+  {# Contenu SEO unique pour la longue traîne #}
+  <div style="max-width:800px; margin-bottom:32px; line-height:1.7; font-size:16px;">
+    <p>
+      Vous cherchez un spectacle de <strong>{{ category_label.lower() }}</strong> à <strong>{{ city['name'] }}</strong> ?
+      Spectacle'ment VØtre met en relation les artistes professionnels et les organisateurs d'événements
+      en <strong>{{ city['region'] }}</strong>. Écoles, mairies, CSE, associations et particuliers trouvent
+      ici l'animation idéale pour leurs événements.
+    </p>
+  </div>
+
+  {# Liens internes vers les autres catégories de cette ville #}
+  <div style="margin-bottom:32px; display:flex; flex-wrap:wrap; gap:8px;">
+    {% for cat_slug in seo_top_categories %}
+      {% if cat_slug != category_slug %}
+        <a href="{{ url_for('seo_category_city', category_slug=cat_slug, city_slug=city['slug']) }}"
+           style="padding:6px 14px; border-radius:20px; background:rgba(167,139,250,0.15); color:#a78bfa; font-size:13px; text-decoration:none; border:1px solid rgba(167,139,250,0.3);">
+          {{ seo_category_labels.get(cat_slug, cat_slug) }} à {{ city['name'] }}
+        </a>
+      {% endif %}
+    {% endfor %}
+  </div>
+
+  {# Grille des spectacles #}
+  {% if shows %}
+  <div class="spectacles-une-grid" style="display:grid; grid-template-columns:repeat(auto-fill, minmax(280px, 1fr)); gap:20px;">
+    {% for show in shows %}
+    <a href="{{ url_for('show_detail', show_id=show.id) }}" style="text-decoration:none; color:inherit;">
+      <div class="card" style="border-radius:12px; overflow:hidden; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); transition:transform .2s;">
+        <div class="card-image" style="height:200px; overflow:hidden; background:#1a1a2e;">
+          {% if show.has_image() %}
+            <img src="{{ url_for('uploaded_file', filename=show.file_name) }}" alt="{{ show.title }} - {{ category_label }} à {{ city['name'] }}" loading="lazy" style="width:100%; height:100%; object-fit:cover;">
+          {% else %}
+            <div style="display:flex; align-items:center; justify-content:center; height:100%; color:#666; font-size:14px;">SPECTACLE</div>
+          {% endif %}
+        </div>
+        <div style="padding:16px;">
+          <h3 style="font-size:16px; margin:0 0 6px; font-weight:600;">{{ show.title }}</h3>
+          {% if show.raison_sociale %}
+            <p style="font-size:13px; color:#888; margin:0 0 4px;">{{ show.raison_sociale }}</p>
+          {% endif %}
+          {% if show.location %}
+            <p style="font-size:12px; color:#666; margin:0;">📍 {{ show.location }}</p>
+          {% endif %}
+        </div>
+      </div>
+    </a>
+    {% endfor %}
+  </div>
+
+  {# Pagination #}
+  {% if pagination.pages > 1 %}
+  <nav style="margin-top:32px; text-align:center;">
+    {% if pagination.has_prev %}
+      <a href="{{ url_for('seo_category_city', category_slug=category_slug, city_slug=city['slug'], page=pagination.prev_num) }}"
+         style="padding:8px 16px; margin:0 4px; border-radius:8px; background:rgba(167,139,250,0.2); color:#a78bfa; text-decoration:none;">← Précédent</a>
+    {% endif %}
+    <span style="color:#aaa; margin:0 12px;">Page {{ pagination.page }} / {{ pagination.pages }}</span>
+    {% if pagination.has_next %}
+      <a href="{{ url_for('seo_category_city', category_slug=category_slug, city_slug=city['slug'], page=pagination.next_num) }}"
+         style="padding:8px 16px; margin:0 4px; border-radius:8px; background:rgba(167,139,250,0.2); color:#a78bfa; text-decoration:none;">Suivant →</a>
+    {% endif %}
+  </nav>
+  {% endif %}
+
+  {% else %}
+  <div style="text-align:center; padding:60px 20px; color:#888;">
+    <p style="font-size:18px; margin-bottom:16px;">Aucun spectacle de {{ category_label.lower() }} trouvé à {{ city['name'] }} pour le moment.</p>
+    <p>
+      <a href="{{ url_for('city_spectacles', city_slug=city['slug']) }}" style="color:#a78bfa;">Voir tous les spectacles à {{ city['name'] }}</a>
+      &nbsp;|&nbsp;
+      <a href="{{ url_for('catalogue', category=category_label) }}" style="color:#a78bfa;">Voir {{ category_label.lower() }} partout en France</a>
+    </p>
+  </div>
+  {% endif %}
+
+  {# Liens SEO vers les autres villes pour cette catégorie #}
+  <div style="margin-top:48px; padding-top:24px; border-top:1px solid rgba(255,255,255,0.1);">
+    <h2 style="font-size:18px; margin-bottom:12px;">{{ category_label }} dans d'autres villes</h2>
+    <div style="display:flex; flex-wrap:wrap; gap:6px;">
+      {% for other_slug in ['paris','lyon','marseille','toulouse','bordeaux','nantes','lille','strasbourg','montpellier','nice','rennes','grenoble','rouen','tours','dijon'] %}
+        {% if other_slug != city['slug'] %}
+          <a href="{{ url_for('seo_category_city', category_slug=category_slug, city_slug=other_slug) }}"
+             style="padding:4px 12px; border-radius:16px; background:rgba(255,255,255,0.05); color:#888; font-size:12px; text-decoration:none; border:1px solid rgba(255,255,255,0.08);">
+            {{ other_slug|replace('-', ' ')|title }}
+          </a>
+        {% endif %}
+      {% endfor %}
+    </div>
+  </div>
+
+</div>
+{% endblock %}

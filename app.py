@@ -1873,6 +1873,29 @@ def register_routes(app: Flask) -> None:
         except Exception:
             pass  # Si la fonction n'est pas encore disponible, on ignore
         
+        # Pages catalogue
+        pages.append({
+            'loc': url_for('catalogue', _external=True),
+            'changefreq': 'daily',
+            'priority': '0.9'
+        })
+        
+        # Pages ville×catégorie (longue traîne SEO)
+        try:
+            seo_top_cats = [
+                "magie", "marionnette", "clown", "theatre", "cirque",
+                "spectacle-enfant", "arbre-de-noel", "animation-ecole"
+            ]
+            for city_slug in get_all_city_slugs():
+                for cat_slug in seo_top_cats:
+                    pages.append({
+                        'loc': url_for('seo_category_city', category_slug=cat_slug, city_slug=city_slug, _external=True),
+                        'changefreq': 'weekly',
+                        'priority': '0.6'
+                    })
+        except Exception:
+            pass
+        
         # Tous les spectacles approuvés
         shows = Show.query.filter(Show.approved.is_(True)).all()
         for show in shows:
@@ -4847,13 +4870,90 @@ Accessibilité: {accessibilite}
             abort(404)
         return redirect(url_for("catalogue", category=SEO_CATEGORIES[category_slug]), code=301)
 
+    # Catégories SEO avec labels lisibles pour les pages ville×catégorie
+    SEO_CATEGORY_LABELS = {
+        "marionnette": "Marionnettes",
+        "magie": "Magie",
+        "clown": "Clowns",
+        "theatre": "Théâtre",
+        "danse": "Danse",
+        "spectacle-enfant": "Spectacles Enfants",
+        "enfant": "Spectacles Enfants",
+        "atelier": "Ateliers",
+        "concert": "Concerts",
+        "cirque": "Cirque",
+        "spectacle-de-rue": "Spectacles de Rue",
+        "orchestre": "Orchestre",
+        "arbre-de-noel": "Arbres de Noël",
+        "animation-ecole": "Animations École",
+    }
+
+    # Top catégories pour les pages ville×catégorie (les plus recherchées)
+    SEO_TOP_CATEGORIES = [
+        "magie", "marionnette", "clown", "theatre", "cirque",
+        "spectacle-enfant", "arbre-de-noel", "animation-ecole"
+    ]
+
     @app.get("/<category_slug>/<city_slug>/")
     def seo_category_city(category_slug, city_slug):
+        """Page SEO ville×catégorie avec contenu unique pour la longue traîne"""
         if category_slug not in SEO_CATEGORIES:
             abort(404)
-        return redirect(
-            url_for("catalogue", category=SEO_CATEGORIES[category_slug], location=city_slug),
-            code=301
+        
+        city = get_city_by_slug(city_slug)
+        if not city:
+            # Fallback : rediriger vers catalogue si ville inconnue
+            return redirect(
+                url_for("catalogue", category=SEO_CATEGORIES[category_slug], location=city_slug),
+                code=301
+            )
+        
+        category_filter = SEO_CATEGORIES[category_slug]
+        category_label = SEO_CATEGORY_LABELS.get(category_slug, category_slug.replace("-", " ").title())
+        city_name = city['name']
+        
+        # Requête des spectacles
+        shows = Show.query.filter(
+            Show.approved == True,
+            Show.category.ilike(f"%{category_filter}%"),
+            or_(
+                Show.location.ilike(f"%{city_name}%"),
+                Show.region.ilike(f"%{city['region']}%")
+            )
+        ).order_by(Show.display_order.asc(), Show.created_at.desc())
+        
+        page = request.args.get("page", 1, type=int)
+        pagination = shows.paginate(page=page, per_page=12, error_out=False)
+        total_shows = shows.count()
+        
+        # Meta SEO longue traîne
+        meta_title = f"{category_label} à {city_name} ({city['department']}) - Artistes Professionnels"
+        meta_description = (
+            f"Trouvez {total_shows} spectacles de {category_label.lower()} à {city_name} "
+            f"en {city['region']}. Artistes professionnels pour écoles, mairies, CSE et "
+            f"particuliers. Devis gratuit sous 3h."
+        )
+        meta_keywords = (
+            f"{category_label.lower()} {city_name.lower()}, "
+            f"spectacle {category_label.lower()} {city_name.lower()}, "
+            f"artiste {category_label.lower()} {city['region'].lower()}, "
+            f"{category_label.lower()} {city['department']}"
+        )
+        
+        return render_template(
+            "city_category.html",
+            user=current_user(),
+            city=city,
+            category_slug=category_slug,
+            category_label=category_label,
+            shows=pagination.items,
+            pagination=pagination,
+            total_shows=total_shows,
+            meta_title=meta_title,
+            meta_description=meta_description,
+            meta_keywords=meta_keywords,
+            seo_top_categories=SEO_TOP_CATEGORIES,
+            seo_category_labels=SEO_CATEGORY_LABELS,
         )
 
 

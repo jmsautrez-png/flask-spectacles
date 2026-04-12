@@ -1,5 +1,24 @@
 {% extends "base.html" %}
-{% block title %}Spectacles de marionnettes - AnimatoSpectacle{% endblock %}
+{% block title %}Spectacles de Marionnettes : Compagnies Professionnelles pour Écoles & Mairies - Spectacle'ment VØtre{% endblock %}
+{% block description %}Spectacles de marionnettes professionnels : marionnettes à fils, à gaine, ombres chinoises. Pour écoles, crèches, mairies et festivals. Devis gratuit.{% endblock %}
+{% block extra_head %}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "CollectionPage",
+  "name": "Spectacles de Marionnettes",
+  "url": "{{ url_for('marionnettes', _external=True) }}",
+  "breadcrumb": {
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      {"@type": "ListItem", "position": 1, "name": "Accueil", "item": "{{ url_for('home', _external=True) }}"},
+      {"@type": "ListItem", "position": 2, "name": "Catalogue", "item": "{{ url_for('catalogue', _external=True) }}"},
+      {"@type": "ListItem", "position": 3, "name": "Marionnettes", "item": "{{ url_for('marionnettes', _external=True) }}"}
+    ]
+  }
+}
+</script>
+{% endblock %}
 {% block content %}
 
 <h1>Spectacles de marionnettes professionnels - Art ancestral vivant</h1>

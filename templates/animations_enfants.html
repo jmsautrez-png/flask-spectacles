@@ -1,5 +1,25 @@
 {% extends "base.html" %}
-{% block title %}Animations pour enfants - AnimatoSpectacle{% endblock %}
+{% block title %}Animations pour Enfants : Ateliers, Jeux, Maquillage | Anniversaires & Écoles - Spectacle'ment VØtre{% endblock %}
+{% block description %}Trouvez les meilleures animations pour enfants : ateliers créatifs, jeux géants, maquillage, sculptures de ballons. Pour anniversaires, écoles, centres de loisirs. Devis gratuit.{% endblock %}
+{% block extra_head %}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "CollectionPage",
+  "name": "Animations pour Enfants",
+  "description": "Animations pour enfants : ateliers créatifs, jeux, maquillage, spectacles interactifs.",
+  "url": "{{ url_for('animations_enfants', _external=True) }}",
+  "breadcrumb": {
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      {"@type": "ListItem", "position": 1, "name": "Accueil", "item": "{{ url_for('home', _external=True) }}"},
+      {"@type": "ListItem", "position": 2, "name": "Catalogue", "item": "{{ url_for('catalogue', _external=True) }}"},
+      {"@type": "ListItem", "position": 3, "name": "Animations Enfants", "item": "{{ url_for('animations_enfants', _external=True) }}"}
+    ]
+  }
+}
+</script>
+{% endblock %}
 {% block content %}
 
 <h1>Animations pour enfants - Ateliers et spectacles interactifs</h1>

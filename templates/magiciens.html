@@ -1,5 +1,24 @@
 {% extends "base.html" %}
-{% block title %}Magiciens - AnimatoSpectacle{% endblock %}
+{% block title %}Magiciens Professionnels : Spectacles de Magie pour Enfants & Entreprises - Spectacle'ment VØtre{% endblock %}
+{% block description %}Magiciens professionnels pour vos événements : magie rapprochée, close-up, grandes illusions, magie pour enfants. Anniversaires, entreprises, mariages.{% endblock %}
+{% block extra_head %}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "CollectionPage",
+  "name": "Magiciens Professionnels",
+  "url": "{{ url_for('magiciens', _external=True) }}",
+  "breadcrumb": {
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      {"@type": "ListItem", "position": 1, "name": "Accueil", "item": "{{ url_for('home', _external=True) }}"},
+      {"@type": "ListItem", "position": 2, "name": "Catalogue", "item": "{{ url_for('catalogue', _external=True) }}"},
+      {"@type": "ListItem", "position": 3, "name": "Magiciens", "item": "{{ url_for('magiciens', _external=True) }}"}
+    ]
+  }
+}
+</script>
+{% endblock %}
 {% block content %}
 
 <h1>Spectacles de magie professionnels pour tous vos événements</h1>

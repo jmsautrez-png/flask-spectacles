@@ -1,5 +1,24 @@
 {% extends "base.html" %}
-{% block title %}Clowns - AnimatoSpectacle{% endblock %}
+{% block title %}Clowns Professionnels : Spectacles & Animations pour Vos Événements - Spectacle'ment VØtre{% endblock %}
+{% block description %}Trouvez les meilleurs clowns professionnels : spectacles pour enfants, anniversaires, fêtes d'école, festivals. Artistes talentueux pour rire et émotion.{% endblock %}
+{% block extra_head %}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "CollectionPage",
+  "name": "Clowns Professionnels",
+  "url": "{{ url_for('clowns', _external=True) }}",
+  "breadcrumb": {
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      {"@type": "ListItem", "position": 1, "name": "Accueil", "item": "{{ url_for('home', _external=True) }}"},
+      {"@type": "ListItem", "position": 2, "name": "Catalogue", "item": "{{ url_for('catalogue', _external=True) }}"},
+      {"@type": "ListItem", "position": 3, "name": "Clowns", "item": "{{ url_for('clowns', _external=True) }}"}
+    ]
+  }
+}
+</script>
+{% endblock %}
 {% block content %}
 
 <h1>Spectacles de clowns professionnels - Rires garantis pour tous</h1>
