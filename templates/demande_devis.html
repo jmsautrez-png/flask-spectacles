@@ -63,10 +63,42 @@
       </div>
     </div>
 
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:16px;">
+      <div>
+        <label style="display:block; font-weight:600; margin-bottom:6px; color:#333;">Date de la manifestation</label>
+        <input type="date" name="date_manifestation"
+               style="width:100%; padding:10px 14px; border:1px solid #ccc; border-radius:8px; font-size:1rem; box-sizing:border-box;">
+      </div>
+      <div>
+        <label style="display:block; font-weight:600; margin-bottom:6px; color:#333;">Budget envisagé</label>
+        <select name="budget" style="width:100%; padding:10px 14px; border:1px solid #ccc; border-radius:8px; font-size:1rem; box-sizing:border-box; background:#fff;">
+          <option value="">-- Sélectionner --</option>
+          <option value="Moins de 300 €">Moins de 300 €</option>
+          <option value="300 – 600 €">300 – 600 €</option>
+          <option value="600 – 1 000 €">600 – 1 000 €</option>
+          <option value="1 000 – 2 000 €">1 000 – 2 000 €</option>
+          <option value="2 000 – 5 000 €">2 000 – 5 000 €</option>
+          <option value="Plus de 5 000 €">Plus de 5 000 €</option>
+          <option value="À définir">À définir</option>
+        </select>
+      </div>
+    </div>
+
+    <div style="margin-bottom:16px;">
+      <label style="display:block; font-weight:600; margin-bottom:8px; color:#333;">Type de lieu / manifestation</label>
+      <div style="display:flex; flex-wrap:wrap; gap:10px;">
+        {% for lieu in ['Festival', 'Spectacle de rue', 'Salle de spectacle', 'Salle des fêtes', 'École / Crèche', 'Médiathèque', 'Mairie / Institution', 'Espace extérieur', 'Centre culturel', 'CSE / Entreprise', 'Autre'] %}
+        <label style="display:flex; align-items:center; gap:6px; cursor:pointer; background:#f5f5f5; padding:7px 13px; border-radius:20px; border:1px solid #ddd; font-size:0.9rem;">
+          <input type="radio" name="type_lieu" value="{{ lieu }}" style="accent-color:#1b5e20;"> {{ lieu }}
+        </label>
+        {% endfor %}
+      </div>
+    </div>
+
     <div style="margin-bottom:24px;">
       <label style="display:block; font-weight:600; margin-bottom:6px; color:#333;">Votre message / question *</label>
-      <textarea name="message" required maxlength="2000" rows="5"
-                placeholder="Ex : Disponibilité en juin, tarif pour 150 personnes, durée du spectacle…"
+      <textarea name="message" required maxlength="2000" rows="4"
+                placeholder="Ex : Disponibilité, durée souhaitée, nombre de représentations, public attendu…"
                 style="width:100%; padding:10px 14px; border:1px solid #ccc; border-radius:8px; font-size:1rem; box-sizing:border-box; resize:vertical;"></textarea>
     </div>
 

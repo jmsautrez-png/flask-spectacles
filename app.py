@@ -1808,6 +1808,9 @@ def register_routes(app: Flask) -> None:
             structure = request.form.get("structure", "").strip()
             email = request.form.get("email", "").strip()
             telephone = request.form.get("telephone", "").strip()
+            date_manifestation = request.form.get("date_manifestation", "").strip()
+            budget = request.form.get("budget", "").strip()
+            type_lieu = request.form.get("type_lieu", "").strip()
             message = request.form.get("message", "").strip()
 
             if not all([nom, email, message]):
@@ -1831,6 +1834,11 @@ Nom       : {nom}
 Structure : {structure or 'Non renseignée'}
 Email     : {email}
 Téléphone : {telephone or 'Non renseigné'}
+
+--- Événement ---
+Date      : {date_manifestation or 'Non renseignée'}
+Type lieu : {type_lieu or 'Non renseigné'}
+Budget    : {budget or 'Non renseigné'}
 
 --- Message ---
 {message}
