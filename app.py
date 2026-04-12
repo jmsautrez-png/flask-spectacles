@@ -406,15 +406,31 @@ def create_app() -> Flask:
         # Si on arrive ici : ISP inconnu/étranger = BOT
         return True
     
-    # Fonction de géolocalisation IP (API gratuite ip-api.com)
+    # Cache en mémoire pour la géolocalisation (évite les appels HTTP répétés)
+    _geo_cache = {}  # {ip: {'data': {...}, 'timestamp': float}}
+    _GEO_CACHE_TTL = 3600  # 1 heure de cache par IP
+    _GEO_CACHE_MAX_SIZE = 5000  # Limite mémoire
+
+    # Cache en mémoire pour les catégories/locations DISTINCT (catalogue)
+    _catalogue_cache = {'categories': None, 'locations': None, 'timestamp': 0}
+    _CATALOGUE_CACHE_TTL = 300  # 5 minutes
+
+    # Fonction de géolocalisation IP (API gratuite ip-api.com) — AVEC CACHE
     def get_ip_geolocation(ip_address):
         """
         Récupère les informations géographiques d'une IP via l'API ip-api.com
         Retourne un dict avec city, region, country, isp
+        Utilise un cache en mémoire pour éviter les appels répétés.
         """
+        import time as _time
+
+        # Vérifier le cache
+        cached = _geo_cache.get(ip_address)
+        if cached and (_time.time() - cached['timestamp']) < _GEO_CACHE_TTL:
+            return cached['data']
+
         try:
             # API gratuite : 45 requêtes/minute sans clé
-            # Format : http://ip-api.com/json/{ip}?fields=city,regionName,country,isp
             response = requests.get(
                 f"http://ip-api.com/json/{ip_address}",
                 params={"fields": "city,regionName,country,isp,status"},
@@ -424,38 +440,43 @@ def create_app() -> Flask:
             if response.status_code == 200:
                 data = response.json()
                 if data.get('status') == 'success':
-                    return {
+                    result = {
                         'city': data.get('city', ''),
                         'region': data.get('regionName', ''),
                         'country': data.get('country', ''),
                         'isp': data.get('isp', '')
                     }
+                    # Stocker en cache (avec nettoyage si trop gros)
+                    if len(_geo_cache) >= _GEO_CACHE_MAX_SIZE:
+                        _geo_cache.clear()
+                    _geo_cache[ip_address] = {'data': result, 'timestamp': _time.time()}
+                    return result
         except Exception as e:
             app.logger.warning(f"[GEO] Erreur géolocalisation pour {ip_address}: {e}")
         
-        # En cas d'erreur, retourner des valeurs vides
-        return {'city': None, 'region': None, 'country': None, 'isp': None}
+        # En cas d'erreur, retourner des valeurs vides (et cacher pour éviter de re-tenter en boucle)
+        fallback = {'city': None, 'region': None, 'country': None, 'isp': None}
+        _geo_cache[ip_address] = {'data': fallback, 'timestamp': _time.time()}
+        return fallback
     
-    # 6. Tracking des visiteurs (anonymisé, conforme RGPD)
+    # 6. Tracking des visiteurs (anonymisé, conforme RGPD) — OPTIMISÉ
     @app.before_request
     def track_visitor():
         """Enregistre chaque visite de manière anonymisée (conforme RGPD)"""
         # Ne pas tracker les fichiers statiques, robots et pages admin
         if (request.path.startswith('/static/') or 
             request.path.startswith('/robots.txt') or 
-            request.path.startswith('/admin')):
+            request.path.startswith('/admin') or
+            request.path.startswith('/favicon')):
             return
         
         try:
             # Récupérer la vraie IP du visiteur (derrière proxy/load balancer)
-            # Essayer plusieurs headers dans l'ordre de priorité
             ip = None
             
             # 1. X-Forwarded-For (standard proxy/load balancer)
             forwarded_for = request.headers.get('X-Forwarded-For')
             if forwarded_for:
-                # X-Forwarded-For peut contenir plusieurs IPs séparées par des virgules
-                # La première est l'IP du client réel
                 ip = forwarded_for.split(',')[0].strip()
             
             # 2. X-Real-IP (utilisé par Nginx et certains proxies)
@@ -470,7 +491,7 @@ def create_app() -> Flask:
                 if cf_ip:
                     ip = cf_ip.strip()
             
-            # 4. Fallback sur remote_addr si toujours pas d'IP publique
+            # 4. Fallback sur remote_addr
             if not ip or ip.startswith('10.') or ip.startswith('192.168.') or ip.startswith('172.'):
                 ip = request.remote_addr or '0.0.0.0'
             
@@ -479,72 +500,63 @@ def create_app() -> Flask:
             if len(ip_parts) == 4:
                 ip_anonymized = f"{ip_parts[0]}.{ip_parts[1]}.0.0"
             else:
-                # IPv6 ou format invalide
                 ip_anonymized = "0.0.0.0"
-            
-            # Log pour debugging (première visite de la session uniquement)
-            if 'visitor_id' not in session:
-                app.logger.info(f"[TRACKING] Nouveau visiteur détecté - IP: {ip_anonymized} (brute: {ip[:15]}...)")
             
             # Créer ou récupérer un identifiant de session anonyme
             if 'visitor_id' not in session:
                 session['visitor_id'] = str(uuid.uuid4())
+                app.logger.info(f"[TRACKING] Nouveau visiteur - IP: {ip_anonymized}")
             
             # Récupérer l'utilisateur connecté (si applicable)
             user_id = session.get('user_id')
             
-            # Géolocaliser l'IP (ville, région, FAI)
+            # Géolocaliser l'IP (AVEC CACHE — pas d'appel HTTP si déjà connu)
             geo_data = get_ip_geolocation(ip)
             
             # Détecter si c'est un robot/crawler
             user_agent_str = request.headers.get('User-Agent', '')[:300]
             is_bot = is_bot_visitor(user_agent_str, geo_data['isp'])
             
-            # Ignorer les actualisations rapides (F5) de la même page
+            # Utiliser la session pour anti-refresh (évite une requête DB)
             session_id = session.get('visitor_id')
-            should_track = True
+            last_track_page = session.get('_last_track_page')
+            last_track_time = session.get('_last_track_time', 0)
+            now_ts = datetime.utcnow().timestamp()
             
-            if session_id:
-                # Vérifier la dernière visite de cette session
-                last_visit = VisitorLog.query.filter_by(session_id=session_id).order_by(
-                    VisitorLog.visited_at.desc()
-                ).first()
-                
-                if last_visit:
-                    # Si même page visitée il y a moins de 10 secondes : c'est un refresh
-                    time_since_last = datetime.utcnow() - last_visit.visited_at.replace(tzinfo=None)
-                    if (last_visit.page_url == request.path and 
-                        time_since_last.total_seconds() < 10):
-                        should_track = False
-                        app.logger.debug(f"[TRACKING] Actualisation ignorée - même page en {time_since_last.total_seconds():.1f}s")
+            # Si même page visitée il y a moins de 10 secondes : c'est un refresh
+            if (last_track_page == request.path and 
+                (now_ts - last_track_time) < 10):
+                return
             
-            # Ne tracker que si ce n'est pas une actualisation rapide
-            if should_track:
-                # Détection par comportement : >10 pages visitées = bot (scraper)
-                if session_id and not is_bot:  # Seulement si pas déjà détecté comme bot
-                    # Compter combien de pages UNIQUES cette session a visitées
-                    page_count = VisitorLog.query.filter_by(session_id=session_id).count()
-                    if page_count >= 10:
-                        # Plus de 10 pages = comportement de scraper/crawler
-                        is_bot = True
-                        app.logger.info(f"[TRACKING] Session {session_id[:20]}... marquée BOT - {page_count+1} pages visitées")
-                
-                # Enregistrer la visite avec géolocalisation et détection de bot
-                visitor_log = VisitorLog(
-                    page_url=request.path[:300],
-                    referrer=request.referrer[:300] if request.referrer else None,
-                    user_agent=user_agent_str,
-                    ip_anonymized=ip_anonymized,
-                    session_id=session_id,
-                    user_id=user_id,
-                    city=geo_data['city'],
-                    region=geo_data['region'],
-                    country=geo_data['country'],
-                    isp=geo_data['isp'],
-                    is_bot=is_bot
-                )
-                db.session.add(visitor_log)
-                db.session.commit()
+            # Détection par comportement : >10 pages visitées = bot (scraper)
+            # Utiliser un compteur en session au lieu d'un COUNT(*) en DB
+            page_count = session.get('_page_count', 0) + 1
+            session['_page_count'] = page_count
+            
+            if session_id and not is_bot and page_count >= 10:
+                is_bot = True
+                app.logger.info(f"[TRACKING] Session {session_id[:20]}... marquée BOT - {page_count} pages")
+            
+            # Mettre à jour la session pour l'anti-refresh
+            session['_last_track_page'] = request.path
+            session['_last_track_time'] = now_ts
+            
+            # Enregistrer la visite
+            visitor_log = VisitorLog(
+                page_url=request.path[:300],
+                referrer=request.referrer[:300] if request.referrer else None,
+                user_agent=user_agent_str,
+                ip_anonymized=ip_anonymized,
+                session_id=session_id,
+                user_id=user_id,
+                city=geo_data['city'],
+                region=geo_data['region'],
+                country=geo_data['country'],
+                isp=geo_data['isp'],
+                is_bot=is_bot
+            )
+            db.session.add(visitor_log)
+            db.session.commit()
         except Exception as e:
             # Ne pas bloquer le site si le tracking échoue
             app.logger.warning(f"[TRACKING] Erreur lors de l'enregistrement: {e}")
@@ -568,6 +580,10 @@ def create_app() -> Flask:
         
         # Permissions-Policy (anciennement Feature-Policy)
         response.headers['Permissions-Policy'] = 'geolocation=(), microphone=(), camera=()'
+        
+        # Cache HTTP pour les images uploadées (1 jour)
+        if request.path.startswith('/uploads/'):
+            response.headers['Cache-Control'] = 'public, max-age=86400'
         
         return response
 
@@ -1573,8 +1589,8 @@ def register_routes(app: Flask) -> None:
         # Incrémenter le compteur de visites (une seule fois par session)
         try:
             # Vérifier si l'utilisateur a déjà été compté dans cette session
+            visit_counter = PageVisit.query.filter_by(page_name='home').first()
             if not session.get('home_visit_counted'):
-                visit_counter = PageVisit.query.filter_by(page_name='home').first()
                 if not visit_counter:
                     visit_counter = PageVisit(page_name='home', visit_count=1)
                     db.session.add(visit_counter)
@@ -1585,8 +1601,6 @@ def register_routes(app: Flask) -> None:
                 # Marquer que cette session a été comptée
                 session['home_visit_counted'] = True
             
-            # Récupérer le compteur actuel
-            visit_counter = PageVisit.query.filter_by(page_name='home').first()
             visit_count = visit_counter.visit_count if visit_counter else 0
         except Exception as e:
             print(f"Erreur lors de l'incrémentation du compteur: {e}")
@@ -1736,8 +1750,16 @@ def register_routes(app: Flask) -> None:
             shows_list = []
 
         try:
-            categories = [c[0] for c in db.session.query(Show.category).distinct().all() if c[0]]
-            locations = [l[0] for l in db.session.query(Show.location).distinct().all() if l[0]]
+            # Utiliser le cache pour les catégories/locations (évite 2 requêtes DISTINCT par page)
+            import time as _time
+            now = _time.time()
+            if (_catalogue_cache['categories'] is None or 
+                (now - _catalogue_cache['timestamp']) > _CATALOGUE_CACHE_TTL):
+                _catalogue_cache['categories'] = sorted([c[0] for c in db.session.query(Show.category).distinct().all() if c[0]])
+                _catalogue_cache['locations'] = sorted([l[0] for l in db.session.query(Show.location).distinct().all() if l[0]])
+                _catalogue_cache['timestamp'] = now
+            categories = _catalogue_cache['categories']
+            locations = _catalogue_cache['locations']
         except Exception:
             db.session.rollback()
             categories = []
@@ -3638,13 +3660,14 @@ Accessibilité: {accessibilite}
         else:
             center = geocode(addr)
 
-        # 2) recherche textuelle
-        base = Show.query
+        # 2) recherche textuelle — filtrer uniquement les approuvés
+        base = Show.query.filter(Show.approved.is_(True))
         if q:
             like = f"%{q}%"
             base = base.filter(Show.title.ilike(like) | Show.description.ilike(like))
 
-        shows = base.all()
+        # Limiter les résultats pour éviter de charger toute la DB en mémoire
+        shows = base.limit(200).all()
         results = []
 
         # 3) filtrage par distance

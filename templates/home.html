@@ -269,7 +269,7 @@
               <div class="carousel-slides">
                 {% for img in images %}
                 <div class="carousel-slide">
-                  <img src="{{ url_for('uploaded_file', filename=img) }}" alt="{{ spectacle.title }}{% if loop.index > 1 %} - Photo {{ loop.index }}{% endif %}">
+                  <img src="{{ url_for('uploaded_file', filename=img) }}" alt="{{ spectacle.title }}{% if loop.index > 1 %} - Photo {{ loop.index }}{% endif %}" loading="lazy">
                 </div>
                 {% endfor %}
               </div>
@@ -282,7 +282,7 @@
               <button class="carousel-nav carousel-next" aria-label="Photo suivante">›</button>
             </div>
           {% elif spectacle.has_image() %}
-            <img src="{{ url_for('uploaded_file', filename=spectacle.file_name) }}" alt="{{ spectacle.title }}">
+            <img src="{{ url_for('uploaded_file', filename=spectacle.file_name) }}" alt="{{ spectacle.title }}" loading="lazy">
           {% else %}
             <div class="placeholder">SPECTACLE</div>
           {% endif %}

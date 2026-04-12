@@ -26,8 +26,8 @@ class DemandeAnimation(db.Model):
     intitule = db.Column(db.String(1000), nullable=True)  # Intitulé de la demande (150 mots max)
     code_postal = db.Column(db.String(10), nullable=True)  # Code postal
     region = db.Column(db.String(200), nullable=True)  # Région (déduite du code postal)
-    is_private = db.Column(db.Boolean, default=False)  # True = visible admin uniquement
-    approved = db.Column(db.Boolean, default=False)  # True = approuvé et publié sur le site
+    is_private = db.Column(db.Boolean, default=False, index=True)  # True = visible admin uniquement
+    approved = db.Column(db.Boolean, default=False, index=True)  # True = approuvé et publié sur le site
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
 
@@ -61,8 +61,8 @@ class Show(db.Model):
     title = db.Column(db.String(150), nullable=False)
     description = db.Column(db.Text, nullable=True)
     region = db.Column(db.String(200), nullable=True)
-    location = db.Column(db.String(500), nullable=True)  # Augmenté à 500 pour plusieurs villes
-    category = db.Column(db.String(500), nullable=True)  # Augmenté à 500 pour plusieurs catégories
+    location = db.Column(db.String(500), nullable=True, index=True)  # Augmenté à 500 pour plusieurs villes
+    category = db.Column(db.String(500), nullable=True, index=True)  # Augmenté à 500 pour plusieurs catégories
     date = db.Column(db.Date, nullable=True)
     age_range = db.Column(db.String(50), nullable=True)
     file_name = db.Column(db.String(255), nullable=True)
@@ -74,8 +74,8 @@ class Show(db.Model):
     file_mimetype3 = db.Column(db.String(120), nullable=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
-    approved = db.Column(db.Boolean, default=False)
-    is_featured = db.Column(db.Boolean, default=False)  # True = affiché "à la une" sur la page d'accueil
+    approved = db.Column(db.Boolean, default=False, index=True)
+    is_featured = db.Column(db.Boolean, default=False, index=True)  # True = affiché "à la une" sur la page d'accueil
     is_event = db.Column(db.Boolean, default=False)  # True = événement annoncé, False = catalogue
     contact_email = db.Column(db.String(255), nullable=True)
     contact_phone = db.Column(db.String(20), nullable=True)
