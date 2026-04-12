@@ -140,6 +140,20 @@
           📧 Répondre maintenant
         </a>
 
+        {% if user and user.is_admin %}
+        <!-- Bouton admin : envoyer aux compagnies -->
+        <a href="{{ url_for('envoyer_demande_animation', demande_id=demande.id) }}"
+           style="display:block; text-align:center; background:linear-gradient(135deg, #e65100, #bf360c); color:#fff; padding:12px 24px; border-radius:10px; text-decoration:none; font-weight:700; font-size:0.95rem; margin-bottom:0.5rem; box-shadow:0 4px 10px rgba(230,81,0,0.3); transition:all 0.3s;"
+           onmouseover="this.style.transform='translateY(-2px)'"
+           onmouseout="this.style.transform='translateY(0)'">
+          🚀 Envoyer aux CIE
+        </a>
+        <a href="{{ url_for('edit_demande_animation', demande_id=demande.id) }}"
+           style="display:block; text-align:center; background:rgba(255,255,255,0.1); color:#aaa; padding:8px 24px; border-radius:8px; text-decoration:none; font-size:0.85rem; border:1px solid rgba(255,255,255,0.15);">
+          ✏️ Modifier cet appel
+        </a>
+        {% endif %}
+
         <!-- Informations complémentaires -->
         {% if demande.contraintes or demande.accessibilite %}
         <div style="background:#fff3e0; padding:12px; border-radius:8px; border-left:4px solid #ff9800;">
