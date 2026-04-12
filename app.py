@@ -1817,36 +1817,98 @@ def register_routes(app: Flask) -> None:
                 flash("Veuillez remplir les champs obligatoires (nom, email, message).", "danger")
                 return render_template("demande_devis.html", show=show, user=current_user())
 
-            # Envoi email à l'admin
+            # Envoi email à la compagnie + admin en copie
             if getattr(current_app, "mail", None) and current_app.config.get("MAIL_USERNAME"):
                 try:
-                    to_addr = current_app.config.get("MAIL_DEFAULT_SENDER") or current_app.config.get("MAIL_USERNAME")
-                    body = f"""Nouvelle demande de renseignement via la fiche spectacle
+                    admin_addr = current_app.config.get("MAIL_DEFAULT_SENDER") or current_app.config.get("MAIL_USERNAME")
+                    compagnie_addr = show.contact_email  # Email de la compagnie (peut être None)
 
-Spectacle : {show.title}
-Compagnie : {show.raison_sociale or 'Non renseignée'}
-Catégorie : {show.category or 'Non renseignée'}
-Région    : {show.region or 'Non renseignée'}
-Lien      : {url_for('show_detail', show_id=show.id, _external=True)}
+                    body_html = f"""<!DOCTYPE html>
+<html lang="fr">
+<head><meta charset="UTF-8"><title>Demande de devis</title></head>
+<body style="font-family:Arial,sans-serif; color:#333; max-width:600px; margin:0 auto;">
+  <div style="background:linear-gradient(135deg,#1b5e20,#2e7d32); padding:20px; text-align:center; border-radius:8px 8px 0 0;">
+    <h2 style="color:#fff; margin:0;">🎭 Nouvelle demande de devis</h2>
+    <p style="color:rgba(255,255,255,0.85); margin:8px 0 0 0;">Via Spectacle'ment VØtre</p>
+  </div>
+  <div style="background:#f9f9f9; padding:24px; border-radius:0 0 8px 8px; border:1px solid #e0e0e0;">
 
---- Coordonnées du demandeur ---
-Nom       : {nom}
-Structure : {structure or 'Non renseignée'}
-Email     : {email}
-Téléphone : {telephone or 'Non renseigné'}
+    <div style="background:#e8f5e9; padding:14px; border-radius:8px; margin-bottom:16px; border-left:4px solid #2e7d32;">
+      <p style="margin:0; font-weight:700; color:#1b5e20; font-size:1.05rem;">🎭 {show.title}</p>
+      <p style="margin:4px 0 0 0; color:#555; font-size:0.9rem;">{show.raison_sociale or ''} — {show.category or ''} — {show.region or ''}</p>
+    </div>
 
---- Événement ---
-Date      : {date_manifestation or 'Non renseignée'}
-Type lieu : {type_lieu or 'Non renseigné'}
-Budget    : {budget or 'Non renseigné'}
+    <h3 style="color:#1b5e20; border-bottom:2px solid #e0e0e0; padding-bottom:8px;">👤 Coordonnées du demandeur</h3>
+    <table style="width:100%; border-collapse:collapse;">
+      <tr><td style="padding:6px 0; color:#666; width:120px;">Nom</td><td style="padding:6px 0; font-weight:600;">{nom}</td></tr>
+      <tr><td style="padding:6px 0; color:#666;">Structure</td><td style="padding:6px 0;">{structure or '—'}</td></tr>
+      <tr><td style="padding:6px 0; color:#666;">Email</td><td style="padding:6px 0;"><a href="mailto:{email}" style="color:#1b5e20;">{email}</a></td></tr>
+      <tr><td style="padding:6px 0; color:#666;">Téléphone</td><td style="padding:6px 0;">{telephone or '—'}</td></tr>
+    </table>
 
---- Message ---
-{message}
-"""
-                    msg = MailMessage(subject=f"Demande de renseignement — {show.title}", recipients=[to_addr])  # type: ignore[arg-type]
-                    msg.body = body  # type: ignore[assignment]
-                    current_app.mail.send(msg)  # type: ignore[attr-defined]
-                    current_app.logger.info(f"[MAIL] ✓ Email devis envoyé pour show #{show.id} de {email}")
+    <h3 style="color:#1b5e20; border-bottom:2px solid #e0e0e0; padding-bottom:8px; margin-top:20px;">📅 Événement</h3>
+    <table style="width:100%; border-collapse:collapse;">
+      <tr><td style="padding:6px 0; color:#666; width:120px;">Date</td><td style="padding:6px 0;">{date_manifestation or '—'}</td></tr>
+      <tr><td style="padding:6px 0; color:#666;">Type de lieu</td><td style="padding:6px 0;">{type_lieu or '—'}</td></tr>
+      <tr><td style="padding:6px 0; color:#666;">Budget</td><td style="padding:6px 0; font-weight:700; color:#2e7d32;">{budget or '—'}</td></tr>
+    </table>
+
+    <h3 style="color:#1b5e20; border-bottom:2px solid #e0e0e0; padding-bottom:8px; margin-top:20px;">💬 Message</h3>
+    <div style="background:#fff; padding:14px; border-radius:6px; border:1px solid #e0e0e0; white-space:pre-wrap;">{message}</div>
+
+    <div style="margin-top:20px; text-align:center;">
+      <a href="mailto:{email}?subject=Réponse à votre demande de devis — {show.title}"
+         style="display:inline-block; padding:12px 28px; background:#1b5e20; color:#fff; text-decoration:none; border-radius:8px; font-weight:700;">
+        ✉️ Répondre au demandeur
+      </a>
+    </div>
+
+    <p style="margin-top:20px; font-size:0.8rem; color:#999; text-align:center;">
+      Fiche spectacle : <a href="{url_for('show_detail', show_id=show.id, _external=True)}" style="color:#1b5e20;">{url_for('show_detail', show_id=show.id, _external=True)}</a>
+    </p>
+  </div>
+</body>
+</html>"""
+
+                    # Destinataires : compagnie (si email dispo) + admin
+                    recipients = []
+                    if compagnie_addr:
+                        recipients.append(compagnie_addr)
+                    if admin_addr and admin_addr not in recipients:
+                        recipients.append(admin_addr)
+
+                    msg = MailMessage(
+                        subject=f"Demande de devis — {show.title} ({type_lieu or 'événement'})",
+                        recipients=recipients
+                    )
+                    msg.html = body_html
+                    current_app.mail.send(msg)
+                    current_app.logger.info(f"[MAIL] ✓ Email devis envoyé pour show #{show.id} à {recipients}")
+
+                    # Accusé de réception au demandeur
+                    try:
+                        accuse_html = f"""<!DOCTYPE html>
+<html lang="fr"><head><meta charset="UTF-8"></head>
+<body style="font-family:Arial,sans-serif; color:#333; max-width:600px; margin:0 auto;">
+  <div style="background:linear-gradient(135deg,#1b5e20,#2e7d32); padding:20px; text-align:center; border-radius:8px 8px 0 0;">
+    <h2 style="color:#fff; margin:0;">✅ Demande bien reçue !</h2>
+  </div>
+  <div style="background:#f9f9f9; padding:24px; border-radius:0 0 8px 8px; border:1px solid #e0e0e0;">
+    <p>Bonjour <strong>{nom}</strong>,</p>
+    <p>Votre demande de devis pour le spectacle <strong>« {show.title} »</strong> a bien été transmise à la compagnie.</p>
+    <p>Elle vous contactera directement par email ou téléphone.</p>
+    <p style="margin-top:20px; font-size:0.85rem; color:#666;">— L'équipe Spectacle'ment VØtre</p>
+  </div>
+</body></html>"""
+                        accuse_msg = MailMessage(
+                            subject=f"Votre demande de devis — {show.title}",
+                            recipients=[email]
+                        )
+                        accuse_msg.html = accuse_html
+                        current_app.mail.send(accuse_msg)
+                    except Exception:
+                        pass  # L'accusé de réception est facultatif
+
                 except Exception as e:
                     current_app.logger.error(f"[MAIL] ✗ Envoi impossible (demande devis): {e}")
 
