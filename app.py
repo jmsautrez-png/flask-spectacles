@@ -1004,6 +1004,22 @@ def register_error_handlers(app: Flask) -> None:
             pass
         return render_template("500.html", user=current_user()), 500
     
+    # Gestionnaire d'erreur CSRF
+    try:
+        from flask_wtf.csrf import CSRFError
+        
+        @app.errorhandler(CSRFError)
+        def handle_csrf_error(e):
+            """Gère les erreurs CSRF (token expiré ou invalide) de manière conviviale"""
+            app.logger.warning(f"Erreur CSRF: {e.description}")
+            # Redirection vers la page précédente avec un message flash
+            flash("Votre session a expiré. Veuillez réessayer.", "warning")
+            # Rediriger vers la page de provenance ou vers l'accueil
+            referrer = request.referrer or url_for('index')
+            return redirect(referrer)
+    except ImportError:
+        app.logger.warning("CSRFError non disponible - gestionnaire CSRF non enregistré")
+    
     @app.errorhandler(Exception)
     def handle_exception(e):
         # Rollback global pour toute exception non gérée

@@ -58,6 +58,9 @@ class Config:
     SESSION_COOKIE_HTTPONLY = True
     SESSION_COOKIE_SAMESITE = "Lax"
     
+    # Configuration CSRF
+    WTF_CSRF_TIME_LIMIT = 7200  # 2 heures (en secondes)
+    
     # En production, forcer HTTPS
     if os.environ.get("FLASK_ENV") == "production":
         SESSION_COOKIE_SECURE = True
