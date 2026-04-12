@@ -86,7 +86,7 @@ from utils.security import (
     is_suspicious_request as _is_suspicious_request,
     is_bot_visitor as _is_bot_visitor_standalone,
 )
-from utils.search import normalize_search_text
+from utils.search import normalize_search_text, generate_accent_variants
 from utils.seo import SEO_CATEGORIES, optimize_title_seo
 
 print("✓ Config, models et utils importés")
@@ -1187,7 +1187,12 @@ def register_routes(app: Flask) -> None:
             q_normalized = normalize_search_text(q)
             like_normalized = f"%{q_normalized}%"
 
+            # Variantes accentuées (pere noel → père noël, etc.)
+            accent_variants = generate_accent_variants(q)
+
             variants = {q, q_normalized}
+            variants.update(accent_variants)
+
             if any(c.isdigit() for c in q):
                 cleaned = q.lower().replace("ans", "").strip()
                 seps = [" - ", "-", "—", "–", "à", "a", "/", " "]
@@ -1207,16 +1212,20 @@ def register_routes(app: Flask) -> None:
                     norm.replace("/", ""),
                 })
 
-            conditions = [
-                Show.title.ilike(like),
-                Show.description.ilike(like),
-                Show.location.ilike(like),
-                Show.category.ilike(like),
-                # Recherches normalisées (tolérantes aux accents)
-                Show.title.ilike(like_normalized),
-                Show.description.ilike(like_normalized),
-                Show.category.ilike(like_normalized),
-            ]
+            conditions = []
+
+            # Chercher chaque variante dans tous les champs texte pertinents
+            for v in {v for v in variants if v}:
+                v_like = f"%{v}%"
+                conditions.append(Show.title.ilike(v_like))
+                conditions.append(Show.description.ilike(v_like))
+                conditions.append(Show.category.ilike(v_like))
+                conditions.append(Show.location.ilike(v_like))
+                conditions.append(Show.raison_sociale.ilike(v_like))
+                try:
+                    conditions.append(Show.age_range.ilike(v_like))
+                except Exception:
+                    pass
 
             # Facultatif si le champ existe
             try:
@@ -1224,14 +1233,6 @@ def register_routes(app: Flask) -> None:
                 conditions.append(Show.contact_email.ilike(like))  # type: ignore[attr-defined]
             except Exception:
                 pass
-
-            for v in {v for v in variants if v}:
-                v_like = f"%{v}%"
-                try:
-                    conditions.append(Show.age_range.ilike(v_like))
-                except Exception:
-                    pass
-                conditions.append(Show.description.ilike(v_like))
 
             shows = shows.filter(or_(*conditions))
 
@@ -3238,8 +3239,15 @@ Accessibilité: {accessibilite}
         # 2) recherche textuelle — filtrer uniquement les approuvés
         base = Show.query.filter(Show.approved.is_(True))
         if q:
-            like = f"%{q}%"
-            base = base.filter(Show.title.ilike(like) | Show.description.ilike(like))
+            accent_vars = generate_accent_variants(q)
+            conditions = []
+            for v in accent_vars:
+                v_like = f"%{v}%"
+                conditions.append(Show.title.ilike(v_like))
+                conditions.append(Show.description.ilike(v_like))
+                conditions.append(Show.category.ilike(v_like))
+                conditions.append(Show.raison_sociale.ilike(v_like))
+            base = base.filter(or_(*conditions))
 
         # Limiter les résultats pour éviter de charger toute la DB en mémoire
         shows = base.limit(200).all()
