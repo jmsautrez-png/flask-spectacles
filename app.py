@@ -3959,9 +3959,14 @@ Accessibilité: {accessibilite}
             # Filtrer par région si des régions sont sélectionnées
             if regions:
                 # Filtrer sur la région du spectacle OU la région de l'utilisateur propriétaire
+                from models.models import User as UserModel
+                user_ids_in_region = db.session.query(UserModel.id).filter(
+                    or_(*[UserModel.region.ilike(f"%{reg}%") for reg in regions])
+                ).subquery()
                 region_filters = []
                 for reg in regions:
                     region_filters.append(Show.region.ilike(f"%{reg}%"))
+                region_filters.append(Show.user_id.in_(user_ids_in_region))
                 query = query.filter(or_(*region_filters))
             
             shows = query.all()
