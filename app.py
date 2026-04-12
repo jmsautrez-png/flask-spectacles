@@ -796,6 +796,200 @@ def register_routes(app: Flask) -> None:
         except Exception as e:
             app.logger.exception(f"Erreur API SEO: {e}")
             return jsonify({"error": "Erreur serveur"}), 500
+
+    # ---------------------------
+    # API - Assistant IA pour titre et description
+    # ---------------------------
+    @app.route("/api/ia-title-assist", methods=["POST"])
+    def api_ia_title_assist():
+        """Génère des suggestions de titre à partir du contexte fourni."""
+        try:
+            data = request.get_json() or {}
+            description = data.get("description", "").strip()
+            category = data.get("category", "").strip()
+            location = data.get("location", "").strip()
+            age_range = data.get("age_range", "").strip()
+            raison_sociale = data.get("raison_sociale", "").strip()
+            current_title = data.get("title", "").strip()
+
+            suggestions = _generate_title_suggestions(
+                description=description,
+                category=category,
+                location=location,
+                age_range=age_range,
+                raison_sociale=raison_sociale,
+                current_title=current_title,
+            )
+
+            return jsonify({"success": True, "suggestions": suggestions}), 200
+        except Exception as e:
+            app.logger.exception(f"Erreur API IA title: {e}")
+            return jsonify({"error": "Erreur serveur"}), 500
+
+    def _generate_title_suggestions(*, description, category, location,
+                                     age_range, raison_sociale, current_title):
+        """Génère 3-6 titres intelligents à partir du contexte du spectacle."""
+        import re as _re
+
+        suggestions = []
+
+        # ── Extraire des mots-clés de la description ──
+        desc_lower = description.lower()
+        keywords = []
+        keyword_map = {
+            "magie": "Spectacle de Magie",
+            "magicien": "Magie",
+            "marionnette": "Spectacle de Marionnettes",
+            "clown": "Spectacle de Clown",
+            "théâtre": "Spectacle de Théâtre",
+            "theatre": "Spectacle de Théâtre",
+            "conte": "Spectacle de Contes",
+            "cirque": "Spectacle de Cirque",
+            "jongleur": "Jonglerie",
+            "jonglage": "Jonglerie",
+            "acrobat": "Acrobaties",
+            "danse": "Spectacle de Danse",
+            "musique": "Spectacle Musical",
+            "musical": "Spectacle Musical",
+            "chant": "Spectacle Musical",
+            "ventriloque": "Ventriloquie",
+            "ballon": "Sculpture sur Ballons",
+            "sculpture": "Sculpture sur Ballons",
+            "noël": "Spectacle de Noël",
+            "noel": "Spectacle de Noël",
+            "père noël": "Animation Père Noël",
+            "halloween": "Spectacle Halloween",
+            "anniversaire": "Animation Anniversaire",
+            "fête": "Animation de Fête",
+            "école": "Animation pour Écoles",
+            "ecole": "Animation pour Écoles",
+            "crèche": "Spectacle pour Crèches",
+            "creche": "Spectacle pour Crèches",
+            "arbre de noël": "Arbre de Noël",
+            "kermesse": "Animation Kermesse",
+            "caricature": "Caricaturiste",
+            "maquillage": "Maquillage Artistique",
+            "bulle": "Spectacle de Bulles",
+            "ombre": "Théâtre d'Ombres",
+            "science": "Spectacle Scientifique",
+            "mentalisme": "Spectacle de Mentalisme",
+            "mentaliste": "Spectacle de Mentalisme",
+            "close-up": "Magie Close-Up",
+            "closeup": "Magie Close-Up",
+            "illusion": "Spectacle d'Illusion",
+            "hypnose": "Spectacle d'Hypnose",
+            "feu": "Spectacle de Feu",
+            "pirate": "Spectacle Pirate",
+            "chevalier": "Spectacle Médiéval",
+            "médiéval": "Spectacle Médiéval",
+            "princesse": "Spectacle Princesse",
+            "féerique": "Spectacle Féerique",
+            "feerique": "Spectacle Féerique",
+            "interactif": "Spectacle Interactif",
+        }
+
+        # Détection multi-mots d'abord (plus spécifique)
+        for phrase, label in sorted(keyword_map.items(), key=lambda x: -len(x[0])):
+            if phrase in desc_lower:
+                keywords.append(label)
+                if len(keywords) >= 3:
+                    break
+
+        # Fallback : utiliser la catégorie
+        if not keywords and category:
+            cat_lower = category.lower()
+            for phrase, label in keyword_map.items():
+                if phrase in cat_lower:
+                    keywords.append(label)
+                    break
+            if not keywords:
+                keywords.append(category.capitalize())
+
+        # Si aucun mot-clé trouvé
+        if not keywords:
+            keywords = ["Spectacle"]
+
+        primary = keywords[0]
+
+        # ── Détection du public ──
+        public_label = ""
+        if age_range:
+            ar = age_range.lower()
+            if "enfant" in ar:
+                public_label = "pour Enfants"
+            elif "familial" in ar or "famille" in ar:
+                public_label = "Familial"
+            elif "adulte" in ar:
+                public_label = "pour Adultes"
+            elif "tout public" in ar:
+                public_label = "Tout Public"
+        if not public_label and ("enfant" in desc_lower or "jeune public" in desc_lower):
+            public_label = "pour Enfants"
+
+        # ── Extraire un mot accrocheur de la description ──
+        hook_words = []
+        hook_patterns = [
+            r"(?:univers|monde|voyage)\s+(?:de\s+)?(\w+)",
+            r"(?:féerique|magique|enchanté|merveilleux|fantastique|extraordinaire)",
+            r"(?:rire|rêve|émerveillement|aventure|mystère|découverte)",
+        ]
+        for pat in hook_patterns:
+            m = _re.search(pat, desc_lower)
+            if m:
+                hook_words.append(m.group(0).strip().title())
+
+        # ── Construire les suggestions ──
+
+        # 1. Titre basique : type + public
+        s1 = primary
+        if public_label:
+            s1 += f" {public_label}"
+        suggestions.append(s1)
+
+        # 2. Avec la compagnie
+        if raison_sociale and len(raison_sociale) <= 30:
+            suggestions.append(f"{primary} par {raison_sociale}")
+
+        # 3. Avec la localisation
+        if location and len(location) <= 25:
+            s3 = f"{primary} à {location.title()}"
+            if public_label:
+                s3 += f" — {public_label}"
+            suggestions.append(s3)
+
+        # 4. Avec mot accrocheur
+        if hook_words:
+            suggestions.append(f"{primary} — {hook_words[0]}")
+
+        # 5. Format professionnel
+        if public_label:
+            suggestions.append(f"{primary} {public_label} — Animation Professionnelle")
+        else:
+            suggestions.append(f"{primary} — Animation Professionnelle")
+
+        # 6. Si plusieurs keywords, combiner
+        if len(keywords) >= 2:
+            suggestions.append(f"{keywords[0]} et {keywords[1]}")
+            if public_label:
+                suggestions[-1] += f" {public_label}"
+
+        # ── Dédupliquer et filtrer ──
+        seen = set()
+        unique = []
+        for s in suggestions:
+            s_clean = s.strip()
+            if s_clean and s_clean.lower() not in seen and len(s_clean) <= 90:
+                seen.add(s_clean.lower())
+                unique.append(s_clean)
+
+        # Si le titre actuel est déjà renseigné, proposer des améliorations
+        if current_title and len(unique) < 6:
+            if location and location.lower() not in current_title.lower():
+                unique.append(f"{current_title} à {location.title()}")
+            if public_label and public_label.lower() not in current_title.lower():
+                unique.append(f"{current_title} — {public_label}")
+
+        return unique[:6]
     
     # ---------------------------
     # Route de test d'envoi de mail (à la fin pour éviter les erreurs)
