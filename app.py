@@ -455,8 +455,10 @@ def create_app() -> Flask:
     @app.before_request
     def track_visitor():
         """Enregistre chaque visite de manière anonymisée (conforme RGPD)"""
-        # Ne pas tracker les fichiers statiques, robots et pages admin
+        # Ne pas tracker les fichiers statiques, uploads, API, robots et pages admin
         if (request.path.startswith('/static/') or 
+            request.path.startswith('/uploads/') or
+            request.path.startswith('/api/') or
             request.path.startswith('/robots.txt') or 
             request.path.startswith('/admin') or
             request.path.startswith('/favicon')):
@@ -520,12 +522,12 @@ def create_app() -> Flask:
                 (now_ts - last_track_time) < 10):
                 return
             
-            # Détection par comportement : >10 pages visitées = bot (scraper)
+            # Détection par comportement : >50 pages visitées = bot (scraper)
             # Utiliser un compteur en session au lieu d'un COUNT(*) en DB
             page_count = session.get('_page_count', 0) + 1
             session['_page_count'] = page_count
             
-            if session_id and not is_bot and page_count >= 10:
+            if session_id and not is_bot and page_count >= 50:
                 is_bot = True
                 app.logger.info(f"[TRACKING] Session {session_id[:20]}... marquée BOT - {page_count} pages")
             
@@ -1226,6 +1228,25 @@ def register_routes(app: Flask) -> None:
                     conditions.append(Show.age_range.ilike(v_like))
                 except Exception:
                     pass
+
+            # Recherche par mots individuels : chaque mot (avec variantes accentuées)
+            # doit matcher dans au moins un champ texte
+            words = q_normalized.split()
+            if len(words) >= 2:
+                word_conditions = []
+                for word in words:
+                    word_variants = generate_accent_variants(word)
+                    word_match = []
+                    for wv in word_variants:
+                        wv_like = f"%{wv}%"
+                        word_match.append(Show.title.ilike(wv_like))
+                        word_match.append(Show.description.ilike(wv_like))
+                        word_match.append(Show.category.ilike(wv_like))
+                        word_match.append(Show.raison_sociale.ilike(wv_like))
+                    word_conditions.append(or_(*word_match))
+                # Tous les mots doivent matcher (AND entre mots, OR entre champs)
+                from sqlalchemy import and_
+                conditions.append(and_(*word_conditions))
 
             # Facultatif si le champ existe
             try:
@@ -5188,6 +5209,7 @@ def messages_new(recipient_id):
 def admin_analytics():
     """Dashboard analytics business."""
     from sqlalchemy import func
+    from models.models import DemandeAnimation
 
     u = current_user()
     today = datetime.utcnow().date()
