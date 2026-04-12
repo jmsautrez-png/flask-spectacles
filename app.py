@@ -3785,7 +3785,7 @@ Accessibilité: {accessibilite}
         <div class="create-notice">
             ✅ NOUVEL APPEL D'OFFRE CRÉÉ
         </div>
-        <h2>Appel d'offre créé : {demande.intitule or demande.genre_recherche}</h2>
+        <p style="font-size:0.95em; color:#444; margin:0 0 16px 0;"><strong>Appel d'offre créé :</strong> {demande.intitule or demande.genre_recherche}</p>
         
         <div class="info-box">
             <p><strong>📋 Informations de l'appel d'offre :</strong></p>
@@ -4315,7 +4315,7 @@ Accessibilité: {accessibilite}
         <div class="admin-notice">
             📋 COPIE ADMIN - Appel d'offre envoyé à {success_count} compagnie(s)
         </div>
-        <h2>Appel d'offre : {demande.intitule or 'Demande d\'animation'}</h2>
+        <p style="font-size:0.95em; color:#444; margin:0 0 16px 0;"><strong>Appel d'offre :</strong> {demande.intitule or 'Demande d\'animation'}</p>
         
         <div class="opportunity-box">
             <h3>📋 {demande.genre_recherche} à {demande.lieu_ville}</h3>
