@@ -1,7 +1,6 @@
 """Search and text normalization utilities."""
 import unicodedata
 import re
-from itertools import product
 
 
 def normalize_search_text(text: str) -> str:
@@ -19,66 +18,45 @@ def normalize_search_text(text: str) -> str:
     return cleaned
 
 
-# Variantes accentuées courantes en français par mot
-_ACCENT_WORDS = {
+# Dictionnaire de mots avec variantes accentuées
+_ACCENT_WORDS: dict[str, list[str]] = {
     "pere": ["père"],
-    "mere": ["mère"],
     "noel": ["noël"],
-    "fete": ["fête"],
-    "foret": ["forêt"],
-    "chateau": ["château"],
-    "theatre": ["théâtre", "théatre"],
-    "cote": ["côte", "côté"],
-    "ecole": ["école"],
-    "creche": ["crèche"],
-    "feerique": ["féerique"],
-    "feerie": ["féerie", "féérie"],
-    "fee": ["fée"],
-    "enchante": ["enchanté", "enchantée"],
-    "anime": ["animé", "animée"],
-    "deguise": ["déguisé", "déguisée"],
-    "conte": ["conté"],
-    "epee": ["épée"],
-    "etoile": ["étoile"],
-    "etincelle": ["étincelle"],
-    "evenement": ["événement", "évènement"],
-    "spectacle": ["spectacle"],
-    "marionnette": ["marionnette"],
+    "theatre": ["théâtre"],
     "magie": ["magie"],
-    "magicien": ["magicien"],
+    "fee": ["fée"],
+    "ecole": ["école"],
+    "evenement": ["événement"],
+    "eveilleur": ["éveilleur"],
+    "etrange": ["étrange"],
+    "ete": ["été"],
+    "etoile": ["étoile"],
+    "general": ["général"],
+    "conte": ["conte"],
+    "comedie": ["comédie"],
+    "danse": ["danse"],
+    "cirque": ["cirque"],
+    "marionnette": ["marionnette"],
     "clown": ["clown"],
-    "anniversaire": ["anniversaire"],
-    "enfant": ["enfant"],
 }
 
 
-def generate_accent_variants(query: str) -> set:
+def generate_accent_variants(query: str) -> set[str]:
     """Génère des variantes accentuées d'une requête de recherche.
 
-    Exemple: 'pere noel' → {'pere noel', 'père noel', 'pere noël', 'père noël'}
+    Exemple : "pere noel" → {"père noel", "pere noël", "père noël", "pere noel"}
     """
-    normalized = normalize_search_text(query)
-    words = normalized.split()
-    if not words:
-        return {query}
+    words = query.lower().split()
+    variants: list[list[str]] = []
+    for word in words:
+        word_variants = [word]
+        if word in _ACCENT_WORDS:
+            word_variants.extend(_ACCENT_WORDS[word])
+        variants.append(word_variants)
 
-    variants = {query, normalized}
-
-    # Pour chaque mot, collecter ses variantes accentuées
-    word_options = []
-    for w in words:
-        options = [w]
-        if w in _ACCENT_WORDS:
-            options.extend(_ACCENT_WORDS[w])
-        # Aussi chercher la version avec accent enlevé en tant que variante
-        word_options.append(options)
-
-    # Produit cartésien (limité à 32 combinaisons max pour la perf)
-    count = 1
-    for opts in word_options:
-        count *= len(opts)
-    if count <= 32:
-        for combo in product(*word_options):
-            variants.add(" ".join(combo))
-
-    return variants
+    # Produit cartésien de toutes les variantes de mots
+    result: set[str] = set()
+    from itertools import product as _product
+    for combo in _product(*variants):
+        result.add(" ".join(combo))
+    return result
