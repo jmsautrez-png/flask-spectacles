@@ -116,7 +116,10 @@
         <!-- Informations principales -->
         <div style="background:#fff; padding:15px; border-radius:10px; border:1px solid #e0e0e0; margin-bottom:1rem;">
           <p style="margin:0.5rem 0;"><strong>🎭 Genre :</strong> <span style="color:#1976d2; font-weight:600;">{{ demande.genre_recherche }}</span></p>
-          <p style="margin:0.5rem 0;"><strong>📍 Lieu :</strong> <span style="color:#222;">{{ demande.lieu_ville }}</span></p>
+          <p style="margin:0.5rem 0;"><strong>📍 Lieu :</strong> <span style="color:#222;">{{ demande.lieu_ville }}{% if demande.code_postal %} ({{ demande.code_postal }}){% endif %}</span></p>
+          {% if demande.region %}
+          <p style="margin:0.5rem 0;"><strong>🗺️ Région :</strong> <span style="color:#222;">{{ demande.region }}</span></p>
+          {% endif %}
           <p style="margin:0.5rem 0;"><strong>📅 Date(s) :</strong> <span style="color:#222;">{{ demande.dates_horaires }}</span></p>
           <p style="margin:0.5rem 0;"><strong>🏢 Espace :</strong> <span style="color:#222;">{{ demande.type_espace }}</span></p>
           <p style="margin:0.5rem 0;"><strong>👶 Public :</strong> <span style="color:#222;">{{ demande.age_range|format_age }}</span></p>
@@ -154,7 +157,7 @@
 
         <!-- Carte Google Maps -->
         <div style="margin-top:1rem;">
-          <iframe width="100%" height="200" style="border-radius:12px; border:2px solid #ddd;" frameborder="0" src="https://www.google.com/maps?q={{ demande.lieu_ville|urlencode }}&output=embed"></iframe>
+          <iframe width="100%" height="200" style="border-radius:12px; border:2px solid #ddd;" frameborder="0" src="https://www.google.com/maps?q={{ demande.lieu_ville|urlencode }}{% if demande.code_postal %}+{{ demande.code_postal|urlencode }}{% endif %}&output=embed"></iframe>
         </div>
 
       </div>
