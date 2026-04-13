@@ -4142,7 +4142,7 @@ Accessibilité: {accessibilite}
                 </div>
             </div>
             <p><strong>🏢 Type d'espace :</strong> {demande.type_espace}</p>
-            <p><strong>� Intitulé de la mission :</strong> {demande.intitule or 'Non précisé'}</p>
+            <p style="color: #333;"><strong>📝 Intitulé de la mission :</strong> {demande.intitule or 'Non précisé'}</p>
             <p><strong>♿ Accessibilité :</strong> {demande.accessibilite or 'Non précisée'}</p>
         </div>
         
@@ -4255,7 +4255,7 @@ Accessibilité: {accessibilite}
                 </div>
             </div>
             <p><strong>🏢 Type d'espace :</strong> {demande.type_espace}</p>
-            <p><strong>� Intitulé de la mission :</strong> {demande.intitule or 'Non précisé'}</p>
+            <p style="color: #333;"><strong>📝 Intitulé de la mission :</strong> {demande.intitule or 'Non précisé'}</p>
             <p><strong>♿ Accessibilité :</strong> {demande.accessibilite or 'Non précisée'}</p>
         </div>
         
@@ -4410,7 +4410,7 @@ Accessibilité: {accessibilite}
                 </div>
             </div>
             <p><strong>🏢 Type d'espace :</strong> {demande.type_espace}</p>
-            <p><strong>📝 Intitulé de la mission :</strong> {demande.intitule or 'Non précisé'}</p>
+            <p style="color: #333;"><strong>📝 Intitulé de la mission :</strong> {demande.intitule or 'Non précisé'}</p>
             <p><strong>♿ Accessibilité :</strong> {demande.accessibilite or 'Non précisée'}</p>
         </div>
         
