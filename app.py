@@ -86,7 +86,7 @@ from utils.security import (
     is_suspicious_request as _is_suspicious_request,
     is_bot_visitor as _is_bot_visitor_standalone,
 )
-from utils.search import normalize_search_text
+from utils.search import normalize_search_text, generate_search_patterns
 from utils.seo import SEO_CATEGORIES, optimize_title_seo
 
 print("✓ Config, models et utils importés")
@@ -1180,14 +1180,22 @@ def register_routes(app: Flask) -> None:
 
         # Recherche texte + âges (6, 6 ans, 6-10, 6/10, 6 à 10, etc.)
         if q:
-            # Recherche originale (pour compatibilité)
-            like = f"%{q}%"
+            # Générer des patterns de recherche avec tolérance aux fautes
+            search_patterns = generate_search_patterns(q)
             
-            # Recherche normalisée (tolérante aux accents et ponctuation)
-            q_normalized = normalize_search_text(q)
-            like_normalized = f"%{q_normalized}%"
-
-            variants = {q, q_normalized}
+            conditions = []
+            
+            # Pour chaque pattern, chercher dans les champs pertinents
+            for pattern in search_patterns:
+                like_pattern = f"%{pattern}%"
+                conditions.extend([
+                    Show.title.ilike(like_pattern),
+                    Show.description.ilike(like_pattern),
+                    Show.location.ilike(like_pattern),
+                    Show.category.ilike(like_pattern),
+                ])
+            
+            # Recherche spécifique pour les âges si la requête contient des chiffres
             if any(c.isdigit() for c in q):
                 cleaned = q.lower().replace("ans", "").strip()
                 seps = [" - ", "-", "—", "–", "à", "a", "/", " "]
@@ -1195,7 +1203,7 @@ def register_routes(app: Flask) -> None:
                 for sep in seps:
                     norm = norm.replace(sep, "/")
 
-                variants.update({
+                age_variants = {
                     cleaned,
                     cleaned.replace(" ", ""),
                     cleaned.replace("-", "/"),
@@ -1205,33 +1213,22 @@ def register_routes(app: Flask) -> None:
                     norm,
                     norm.replace("/", "-"),
                     norm.replace("/", ""),
-                })
+                }
+                
+                for v in {v for v in age_variants if v}:
+                    v_like = f"%{v}%"
+                    try:
+                        conditions.append(Show.age_range.ilike(v_like))
+                    except Exception:
+                        pass
 
-            conditions = [
-                Show.title.ilike(like),
-                Show.description.ilike(like),
-                Show.location.ilike(like),
-                Show.category.ilike(like),
-                # Recherches normalisées (tolérantes aux accents)
-                Show.title.ilike(like_normalized),
-                Show.description.ilike(like_normalized),
-                Show.category.ilike(like_normalized),
-            ]
-
-            # Facultatif si le champ existe
+            # Facultatif si le champ contact_email existe
             try:
                 Show.contact_email  # type: ignore[attr-defined]
-                conditions.append(Show.contact_email.ilike(like))  # type: ignore[attr-defined]
+                for pattern in search_patterns[:5]:  # Limiter pour l'email
+                    conditions.append(Show.contact_email.ilike(f"%{pattern}%"))  # type: ignore[attr-defined]
             except Exception:
                 pass
-
-            for v in {v for v in variants if v}:
-                v_like = f"%{v}%"
-                try:
-                    conditions.append(Show.age_range.ilike(v_like))
-                except Exception:
-                    pass
-                conditions.append(Show.description.ilike(v_like))
 
             shows = shows.filter(or_(*conditions))
 
