@@ -13,8 +13,9 @@ def normalize_search_text(text):
         if unicodedata.category(c) != "Mn"
     )
     lowered = without_accents.lower()
-    cleaned = re.sub(r"[''`]", ' ', lowered)
-    cleaned = re.sub(r'[^\w\s-]', ' ', cleaned)
+    # Remplacer tirets et apostrophes par espaces
+    cleaned = re.sub(r"[''`\-–—]", ' ', lowered)
+    cleaned = re.sub(r'[^\w\s]', ' ', cleaned)
     cleaned = re.sub(r'\s+', ' ', cleaned).strip()
     return cleaned
 
@@ -117,6 +118,11 @@ def generate_search_patterns(query, max_variants=50):
     patterns.add(query)
     patterns.add(normalized_query)
     
+    # Ajouter des variantes avec tirets (pour "pere noel" → "pere-noel")
+    if len(words) >= 2:
+        patterns.add('-'.join(words))
+        patterns.add(' '.join(words))
+    
     # Pour chaque mot, générer des variantes
     for word in words:
         if len(word) >= 3:  # Ignorer les mots trop courts
@@ -124,6 +130,12 @@ def generate_search_patterns(query, max_variants=50):
             # Limiter le nombre de variantes par mot
             for variant in list(word_variants)[:10]:
                 patterns.add(variant)
+                # Ajouter aussi la variante avec tiret si multi-mots
+                if len(words) >= 2:
+                    other_words = [w for w in words if w != word]
+                    for other in other_words:
+                        patterns.add(f"{variant}-{other}")
+                        patterns.add(f"{other}-{variant}")
     
     # Limiter le nombre total de patterns
     return list(patterns)[:max_variants]
