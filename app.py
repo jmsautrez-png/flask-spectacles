@@ -3950,7 +3950,17 @@ Accessibilité: {accessibilite}
             query = Show.query.filter(Show.approved.is_(True))
             
             if categories:
-                category_filters = [Show.category.ilike(f"%{cat}%") for cat in categories]
+                # Chercher dans category, title ET description avec recherche fuzzy
+                category_filters = []
+                for cat in categories:
+                    # Générer des variantes avec tirets, accents, etc.
+                    cat_patterns = generate_search_patterns(cat, max_variants=40)
+                    for pattern in cat_patterns:
+                        category_filters.extend([
+                            Show.category.ilike(f"%{pattern}%"),
+                            Show.title.ilike(f"%{pattern}%"),
+                            Show.description.ilike(f"%{pattern}%"),
+                        ])
                 query = query.filter(or_(*category_filters))
             
             # Filtrer par région si des régions sont sélectionnées
