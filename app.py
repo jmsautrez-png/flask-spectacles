@@ -3553,7 +3553,7 @@ Accessibilité: {accessibilite}
         db.session.delete(demande)
         db.session.commit()
         flash("Appel d'offre supprimé.", "success")
-        return redirect(url_for("demandes_animation"))
+        return redirect(url_for("admin_demandes_animation"))
 
     @app.route("/demandes-animation/edit/<int:demande_id>", methods=["GET", "POST"])
     @login_required

@@ -73,7 +73,7 @@
             <form action="{{ url_for('delete_demande_animation', demande_id=demande.id) }}" method="post"
                   onsubmit="return confirm('Supprimer cette demande ?');" style="flex:1; margin:0;">
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-                <button type="submit" class="danger" style="width:100%;">Supprimer</button>
+                <button type="submit" style="width:100%; padding:12px; background:#dc3545; color:#fff; border:none; border-radius:6px; font-weight:600; cursor:pointer;">🗑️ Supprimer</button>
             </form>
         </div>
     </article>
@@ -166,7 +166,7 @@
             <form action="{{ url_for('delete_demande_animation', demande_id=demande.id) }}" method="post"
                   onsubmit="return confirm('Supprimer cette demande ?');" style="flex:1; margin:0;">
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-                <button type="submit" class="danger" style="width:100%;">Supprimer</button>
+                <button type="submit" style="width:100%; padding:12px; background:#dc3545; color:#fff; border:none; border-radius:6px; font-weight:600; cursor:pointer;">🗑️ Supprimer</button>
             </form>
         </div>
     </article>
