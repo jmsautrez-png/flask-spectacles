@@ -3644,12 +3644,6 @@ Accessibilité: {accessibilite}
         
         <p>Les compagnies de spectacle correspondant à votre recherche vont pouvoir consulter votre demande et vous contacter directement à l'adresse <strong>{demande.contact_email}</strong>.</p>
         
-        <div style="background-color: #fff3cd; padding: 15px; border-radius: 8px; margin: 15px 0;">
-            <p><strong>💼 Besoin d'aide pour l'administratif ?</strong><br>
-            Spectacle'ment Vôtre vous accompagne dans toute la gestion de votre compagnie (URSSAF, DSN, contrats, etc.).<br>
-            <a href="https://spectacleanimation.fr/abonnement-compagnie" style="color: #1976d2;">En savoir plus</a></p>
-        </div>
-        
         <div class="footer">
             <p><strong>L'équipe Spectacle'ment Vôtre</strong><br>
             contact@spectacleanimation.fr</p>
