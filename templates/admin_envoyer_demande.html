@@ -40,17 +40,19 @@
                                             Tout sélectionner
                                         </button>
                                     </div>
-                                    <div class="card-body" style="max-height: 400px; overflow-y: auto;">
+                                    <div class="card-body" style="max-height: 500px; overflow-y: auto;">
                                         {% if categories %}
+                                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
                                             {% for category in categories %}
-                                            <div class="form-check mb-2">
+                                            <div class="form-check">
                                                 <input class="form-check-input category-checkbox" type="checkbox" 
                                                        name="categories" value="{{ category }}" id="cat_{{ loop.index }}">
-                                                <label class="form-check-label" for="cat_{{ loop.index }}">
+                                                <label class="form-check-label" for="cat_{{ loop.index }}" style="font-size: 0.9rem;">
                                                     {{ category }}
                                                 </label>
                                             </div>
                                             {% endfor %}
+                                            </div>
                                         {% else %}
                                             <p class="text-muted">Aucune catégorie disponible</p>
                                         {% endif %}
@@ -66,23 +68,25 @@
                                             Tout sélectionner
                                         </button>
                                     </div>
-                                    <div class="card-body" style="max-height: 400px; overflow-y: auto;">
-                                        <p class="text-muted mb-2"><small>⚡ Laissez vide pour envoyer à toutes les régions</small></p>
+                                    <div class="card-body" style="max-height: 500px; overflow-y: auto;">
+                                        <p class="text-muted mb-3"><small>⚡ Laissez vide pour envoyer à toutes les régions</small></p>
                                         {% set regions = [
                                             'Auvergne-Rhône-Alpes', 'Bourgogne-Franche-Comté', 'Bretagne', 'Centre-Val de Loire',
                                             'Corse', 'Grand Est', 'Hauts-de-France', 'Île-de-France', 'Normandie',
                                             'Nouvelle-Aquitaine', 'Occitanie', 'Pays de la Loire', "Provence-Alpes-Côte d'Azur",
                                             'Guadeloupe', 'Martinique', 'Guyane', 'La Réunion', 'Mayotte', 'France entière'
                                         ] %}
+                                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
                                         {% for region in regions %}
-                                        <div class="form-check mb-2">
+                                        <div class="form-check">
                                             <input class="form-check-input region-checkbox" type="checkbox" 
                                                    name="regions" value="{{ region }}" id="reg_{{ loop.index }}">
-                                            <label class="form-check-label" for="reg_{{ loop.index }}">
+                                            <label class="form-check-label" for="reg_{{ loop.index }}" style="font-size: 0.9rem;">
                                                 {{ region }}
                                             </label>
                                         </div>
                                         {% endfor %}
+                                        </div>
                                     </div>
                                 </div>
                             </div>
