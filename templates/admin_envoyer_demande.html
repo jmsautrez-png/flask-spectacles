@@ -31,73 +31,74 @@
                         <h5 class="mb-3">🎯 Sélectionner les catégories de spectacles :</h5>
                         <p class="text-muted">Cochez les catégories pour envoyer cette demande aux utilisateurs concernés.</p>
                         
-                        <!-- Catégories sur toute la largeur -->
-                        <div class="card mb-4">
-                            <div class="card-header">
-                                <strong>📂 Catégories</strong>
-                                <button type="button" class="btn btn-sm btn-outline-primary float-end" onclick="selectAllCategories()">
-                                    Tout sélectionner
-                                </button>
-                            </div>
-                            <div class="card-body" style="max-height: 400px; overflow-y: auto;">
-                                {% if categories %}
-                                    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 6px;">
-                                    {% for category in categories %}
-                                    <div class="form-check">
-                                        <input class="form-check-input category-checkbox" type="checkbox" 
-                                               name="categories" value="{{ category }}" id="cat_{{ loop.index }}">
-                                        <label class="form-check-label" for="cat_{{ loop.index }}" style="font-size: 0.85rem; line-height: 1.3;">
-                                            {{ category }}
-                                        </label>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="card mb-4">
+                                    <div class="card-header">
+                                        <strong>📂 Catégories</strong>
+                                        <button type="button" class="btn btn-sm btn-outline-primary float-end" onclick="selectAllCategories()">
+                                            Tout sélectionner
+                                        </button>
                                     </div>
-                                    {% endfor %}
+                                    <div class="card-body" style="max-height: 400px; overflow-y: auto;">
+                                        {% if categories %}
+                                            {% for category in categories %}
+                                            <div class="form-check mb-2">
+                                                <input class="form-check-input category-checkbox" type="checkbox" 
+                                                       name="categories" value="{{ category }}" id="cat_{{ loop.index }}">
+                                                <label class="form-check-label" for="cat_{{ loop.index }}">
+                                                    {{ category }}
+                                                </label>
+                                            </div>
+                                            {% endfor %}
+                                        {% else %}
+                                            <p class="text-muted">Aucune catégorie disponible</p>
+                                        {% endif %}
                                     </div>
-                                {% else %}
-                                    <p class="text-muted">Aucune catégorie disponible</p>
-                                {% endif %}
-                            </div>
-                        </div>
-                        
-                        <!-- Régions sur toute la largeur -->
-                        <div class="card mb-4">
-                            <div class="card-header">
-                                <strong>🗺️ Régions</strong>
-                                <button type="button" class="btn btn-sm btn-outline-success float-end" onclick="selectAllRegions()">
-                                    Tout sélectionner
-                                </button>
-                            </div>
-                            <div class="card-body" style="max-height: 300px; overflow-y: auto;">
-                                <p class="text-muted mb-3"><small>⚡ Laissez vide pour envoyer à toutes les régions</small></p>
-                                {% set regions = [
-                                    'Auvergne-Rhône-Alpes', 'Bourgogne-Franche-Comté', 'Bretagne', 'Centre-Val de Loire',
-                                    'Corse', 'Grand Est', 'Hauts-de-France', 'Île-de-France', 'Normandie',
-                                    'Nouvelle-Aquitaine', 'Occitanie', 'Pays de la Loire', "Provence-Alpes-Côte d'Azur",
-                                    'Guadeloupe', 'Martinique', 'Guyane', 'La Réunion', 'Mayotte', 'France entière'
-                                ] %}
-                                <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 6px;">
-                                {% for region in regions %}
-                                <div class="form-check">
-                                    <input class="form-check-input region-checkbox" type="checkbox" 
-                                           name="regions" value="{{ region }}" id="reg_{{ loop.index }}">
-                                    <label class="form-check-label" for="reg_{{ loop.index }}" style="font-size: 0.85rem; line-height: 1.3;">
-                                        {{ region }}
-                                    </label>
                                 </div>
-                                {% endfor %}
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <div class="card mb-4">
+                                    <div class="card-header">
+                                        <strong>🗺️ Régions</strong>
+                                        <button type="button" class="btn btn-sm btn-outline-success float-end" onclick="selectAllRegions()">
+                                            Tout sélectionner
+                                        </button>
+                                    </div>
+                                    <div class="card-body" style="max-height: 400px; overflow-y: auto;">
+                                        <p class="text-muted mb-2"><small>⚡ Laissez vide pour envoyer à toutes les régions</small></p>
+                                        {% set regions = [
+                                            'Auvergne-Rhône-Alpes', 'Bourgogne-Franche-Comté', 'Bretagne', 'Centre-Val de Loire',
+                                            'Corse', 'Grand Est', 'Hauts-de-France', 'Île-de-France', 'Normandie',
+                                            'Nouvelle-Aquitaine', 'Occitanie', 'Pays de la Loire', "Provence-Alpes-Côte d'Azur",
+                                            'Guadeloupe', 'Martinique', 'Guyane', 'La Réunion', 'Mayotte', 'France entière'
+                                        ] %}
+                                        {% for region in regions %}
+                                        <div class="form-check mb-2">
+                                            <input class="form-check-input region-checkbox" type="checkbox" 
+                                                   name="regions" value="{{ region }}" id="reg_{{ loop.index }}">
+                                            <label class="form-check-label" for="reg_{{ loop.index }}">
+                                                {{ region }}
+                                            </label>
+                                        </div>
+                                        {% endfor %}
+                                    </div>
                                 </div>
                             </div>
                         </div>
 
-                        <div class="alert alert-info mt-3">
-                            <strong>ℹ️ Prochaine étape :</strong> Vous pourrez prévisualiser et sélectionner manuellement les destinataires avant l'envoi final.
+                        <div class="alert alert-warning mt-3">
+                            <strong>⚠️ Attention :</strong> Les emails seront envoyés immédiatement après validation.
+                            Vérifiez bien votre sélection avant de continuer.
                         </div>
 
                         <div class="d-flex justify-content-between mt-4">
-                            <a href="{{ url_for('admin_demandes_animation') }}" class="btn btn-secondary">
+                            <a href="{{ url_for('admin_dashboard') }}" class="btn btn-secondary">
                                 ← Retour
                             </a>
-                            <button type="submit" name="action" value="preview" class="btn btn-primary btn-lg" id="btn-preview">
-                                🔍 Prévisualiser les destinataires →
+                            <button type="submit" class="btn btn-success btn-lg" id="btn-envoyer">
+                                📧 Envoyer maintenant
                             </button>
                         </div>
                     </form>
