@@ -214,38 +214,8 @@
                             </div>
                             <div class="col-md-6">
                                 <div class="modern-input-group">
-                                    <label class="modern-label">🎭 Genre de spectacle recherché *</label>
-                                    <select class="modern-input modern-select" id="genre_recherche" name="genre_recherche" required>
-                                        <option value="">-- Sélectionner --</option>
-                                        <option value="Marionnettes">Marionnettes</option>
-                                        <option value="Magie">Magie</option>
-                                        <option value="Clown">Clown</option>
-                                        <option value="Théâtre">Théâtre</option>
-                                        <option value="Danse">Danse</option>
-                                        <option value="Musique">Musique</option>
-                                        <option value="Cirque">Cirque</option>
-                                        <option value="Conte">Conte</option>
-                                        <option value="Animation">Animation</option>
-                                        <option value="Spectacle de rue">Spectacle de rue</option>
-                                        <option value="Animation de rue">Animation de rue</option>
-                                        <option value="Sculpteur de ballons">Sculpteur de ballons</option>
-                                        <option value="Caricaturiste">Caricaturiste</option>
-                                        <option value="Maquillage">Maquillage</option>
-                                        <option value="Humoriste">Humoriste</option>
-                                        <option value="Ventriloque">Ventriloque</option>
-                                        <option value="Père Noël">Père Noël</option>
-                                        <option value="Spectacle animalier">Spectacle animalier</option>
-                                        <option value="Spectacle enfants">Spectacle enfants</option>
-                                        <option value="Spectacle petite enfance">Spectacle petite enfance</option>
-                                        <option value="Spectacle adolescent">Spectacle adolescent</option>
-                                        <option value="Autre">Autre (précisez ci-dessous)</option>
-                                    </select>
-                                </div>
-                            </div>
-                            <div class="col-md-6" id="autre_genre_container" style="display:none;">
-                                <div class="modern-input-group">
-                                    <label class="modern-label">✏️ Précisez le genre *</label>
-                                    <input type="text" class="modern-input" id="autre_genre" name="autre_genre" placeholder="Décrivez le type de spectacle">
+                                    <!-- genre_recherche auto-rempli depuis les checkboxes spécialités -->
+                                    <input type="hidden" id="genre_recherche" name="genre_recherche" value="">
                                 </div>
                             </div>
                             <div class="col-md-6">
@@ -642,20 +612,19 @@
     }
 
     document.addEventListener('DOMContentLoaded', function() {
-        const genreSelect = document.getElementById('genre_recherche');
-        const autreGenreContainer = document.getElementById('autre_genre_container');
-        const autreGenreInput = document.getElementById('autre_genre');
-
-        genreSelect.addEventListener('change', function() {
-            if (this.value === 'Autre') {
-                autreGenreContainer.style.display = 'block';
-                autreGenreInput.required = true;
-            } else {
-                autreGenreContainer.style.display = 'none';
-                autreGenreInput.required = false;
-                autreGenreInput.value = '';
-            }
+        // Auto-remplissage genre_recherche depuis les checkboxes spécialités
+        const genreHidden = document.getElementById('genre_recherche');
+        const specCheckboxes = document.querySelectorAll('input[name="specialites_recherchees"]');
+        
+        function syncGenreFromCheckboxes() {
+            const checked = document.querySelectorAll('input[name="specialites_recherchees"]:checked');
+            genreHidden.value = checked.length > 0 ? checked[0].value : '';
+        }
+        
+        specCheckboxes.forEach(function(cb) {
+            cb.addEventListener('change', syncGenreFromCheckboxes);
         });
+        syncGenreFromCheckboxes();
 
         const typeEvenementSelect = document.getElementById('type_evenement');
         const autreEvenementContainer = document.getElementById('autre_evenement_container');

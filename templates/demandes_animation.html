@@ -1,6 +1,4 @@
 {% extends "base.html" %}
-{% block title %}Appels d'Offre Spectacles & Animations : Trouvez des Événements à Pourvoir - Spectacle'ment VØtre{% endblock %}
-{% block description %}Consultez les appels d'offre de spectacles et animations en France. Écoles, mairies, CSE et associations recherchent des artistes. Répondez aux demandes et décrochez des contrats.{% endblock %}
 {% block content %}
 <style>
 @media (max-width: 768px) {
@@ -88,16 +86,6 @@
         🔒 DEMANDE PRIVÉE (Admin uniquement)
       </div>
       {% endif %}
-      {% if user and user.is_admin and not demande.approved %}
-      <div style="background:linear-gradient(135deg, #ff9800 0%, #ffb74d 100%); color:white; padding:6px 12px; border-radius:8px; margin-bottom:0.5rem; text-align:center; font-weight:700;">
-        ⏳ EN ATTENTE DE VALIDATION
-      </div>
-      {% endif %}
-      {% if user and user.is_admin and demande.approved %}
-      <div style="background:linear-gradient(135deg, #28a745 0%, #34ce57 100%); color:white; padding:6px 12px; border-radius:8px; margin-bottom:0.5rem; text-align:center; font-weight:700; font-size:0.85em;">
-        ✅ PUBLIÉ
-      </div>
-      {% endif %}
       <p style="font-size:0.95em;color:#888; margin-bottom:0.3rem;">🕒 Demande créée le {{ demande.created_at.strftime('%d/%m/%Y %H:%M') }}</p>
       <p style="font-size:0.95em;color:#444; margin-bottom:0.3rem;">bonjour nous sommes un(e)</p>
       <div style="display:flex; align-items:center; gap:0.7rem; margin-bottom:0.3rem;">
@@ -106,33 +94,40 @@
       </div>
       <hr style="margin:0.3rem 0 0.7rem 0;">
       <p style="margin:0.2rem 0 0.2rem 0; color:#444; font-size:1em;">et nous recherchons pour notre manifestation</p>
-      {% if demande.type_evenement %}
-      <p style="margin:0.2rem 0;"><strong>🎪 Type d'événement :</strong> <span style="color:#222; background:#e3f2fd; padding:4px 10px; border-radius:6px; font-weight:600;">{{ demande.type_evenement }}</span></p>
-      {% endif %}
+      {% if demande.type_evenement %}<p style="margin:0.2rem 0;"><strong>🎪 Type d'événement :</strong> <span style="color:#222;">{{ demande.type_evenement }}</span></p>{% endif %}
       <p style="margin:0.2rem 0;"><strong>🎭 Genre recherché :</strong> <span style="color:#222;">{{ demande.genre_recherche }}</span></p>
-      {% if user %}
+      {% if has_show %}
         <p style="margin:0.2rem 0;"><strong>👤 Contact :</strong> <span style="color:#222;">{{ demande.nom }}</span></p>
         <p style="margin:0.2rem 0;"><strong>📞 Téléphone :</strong> <span style="color:#222;">{{ demande.telephone }}</span></p>
         <p style="margin:0.2rem 0;"><strong>✉️ Email :</strong> <a href="mailto:{{ demande.contact_email }}" style="background:#1976d2;color:#fff;padding:6px 16px;border-radius:8px;text-decoration:none;font-weight:600;">Répondre</a></p>
-      {% else %}
-        <p style="margin:0.2rem 0;"><strong>👤 Contact :</strong> <a href="{{ url_for('register') }}" style="color:#1976d2; font-style:italic; text-decoration:underline;" title="Publiez votre manifestation pour accéder aux appels d'offre gratuit">Publier votre manifestation pour accéder aux appels d'offre gratuit</a></p>
-        <p style="margin:0.2rem 0;"><strong>📞 Téléphone :</strong> <a href="{{ url_for('register') }}" style="color:#1976d2; font-style:italic; text-decoration:underline;" title="Publiez votre manifestation pour accéder aux appels d'offre gratuit">Publier votre manifestation pour accéder aux appels d'offre gratuit</a></p>
-        <p style="margin:0.2rem 0;"><strong>✉️ Email :</strong> <a href="{{ url_for('register') }}" style="color:#1976d2; font-style:italic; text-decoration:underline;" title="Publiez votre manifestation pour accéder aux appels d'offre gratuit">Publier votre manifestation pour accéder aux appels d'offre gratuit</a></p>
-      {% endif %}
-      {% if user %}
-        <p style="margin:0.2rem 0;"><strong>📍 Lieu/Ville :</strong> <span style="color:#222;">{{ demande.lieu_ville }}{% if demande.code_postal %} ({{ demande.code_postal }}){% endif %}</span></p>
-        {% if demande.region %}
-        <p style="margin:0.2rem 0;"><strong>🗺️ Région :</strong> <span style="color:#222;">{{ demande.region }}</span></p>
-        {% endif %}
+        <p style="margin:0.2rem 0;"><strong>📍 Lieu/Ville :</strong> <span style="color:#222;">{{ demande.lieu_ville }}</span></p>
         <div style="margin:0.5rem 0;">
-          <iframe width="100%" height="220" style="border-radius:12px;border:1px solid #ccc;" frameborder="0" src="https://www.google.com/maps?q={{ demande.lieu_ville|urlencode }}{% if demande.code_postal %}+{{ demande.code_postal|urlencode }}{% endif %}&output=embed"></iframe>
+          <iframe width="100%" height="220" style="border-radius:12px;border:1px solid #ccc;" frameborder="0" src="https://www.google.com/maps?q={{ demande.lieu_ville|urlencode }}&output=embed"></iframe>
+        </div>
+      {% elif user %}
+        <p style="margin:0.2rem 0;"><strong>👤 Contact :</strong> <a href="{{ url_for('company_dashboard') }}" style="color:#7c4dff; font-style:italic; text-decoration:underline;">Publier votre manifestation pour accéder aux appels d'offre gratuit</a></p>
+        <p style="margin:0.2rem 0;"><strong>📞 Téléphone :</strong> <a href="{{ url_for('company_dashboard') }}" style="color:#7c4dff; font-style:italic; text-decoration:underline;">Publier votre manifestation pour accéder aux appels d'offre gratuit</a></p>
+        <p style="margin:0.2rem 0;"><strong>✉️ Email :</strong> <a href="{{ url_for('company_dashboard') }}" style="color:#7c4dff; font-style:italic; text-decoration:underline;">Publier votre manifestation pour accéder aux appels d'offre gratuit</a></p>
+        <p style="margin:0.2rem 0;"><strong>📍 Lieu/Ville :</strong> <a href="{{ url_for('company_dashboard') }}" style="color:#7c4dff; font-style:italic; text-decoration:underline;">Publier votre manifestation pour accéder aux appels d'offre gratuit</a></p>
+        <div style="margin:0.5rem 0; position:relative; border-radius:12px; overflow:hidden;">
+          <iframe width="100%" height="220" style="border-radius:12px;border:1px solid #ccc;filter:blur(6px);pointer-events:none;" frameborder="0" src="https://www.google.com/maps?q={{ demande.lieu_ville|urlencode }}&output=embed"></iframe>
+          <div style="position:absolute;top:0;left:0;right:0;bottom:0;background:rgba(255,255,255,0.30);display:flex;align-items:center;justify-content:center;text-align:center;border-radius:12px;">
+            <div style="background:rgba(0,0,0,0.55);color:#fff;padding:14px 22px;border-radius:12px;font-weight:700;font-size:0.95em;backdrop-filter:blur(2px);">
+              🔒 Localisation disponible après publication de votre spectacle
+            </div>
+          </div>
         </div>
       {% else %}
-        <p style="margin:0.2rem 0;"><strong>📍 Lieu/Ville :</strong> <a href="{{ url_for('register') }}" style="color:#1976d2; font-style:italic; text-decoration:underline;" title="Publiez votre manifestation pour accéder aux appels d'offre gratuit">Publier votre manifestation pour accéder aux appels d'offre gratuit</a></p>
-        <div style="margin:0.5rem 0; position:relative;">
-          <iframe width="100%" height="220" style="border-radius:12px;border:1px solid #ccc; filter:blur(8px) grayscale(100%); opacity:0.4;" frameborder="0" src="https://www.google.com/maps?q=France&output=embed"></iframe>
-          <div style="position:absolute; top:50%; left:50%; transform:translate(-50%, -50%); background:rgba(25, 118, 210, 0.95); color:white; padding:12px 20px; border-radius:10px; font-weight:600; text-align:center; box-shadow:0 4px 12px rgba(0,0,0,0.3);">
-            🔒 Localisation disponible après publication de votre spectacle
+        <p style="margin:0.2rem 0;"><strong>👤 Contact :</strong> <a href="{{ url_for('register') }}" style="color:#7c4dff; font-style:italic; text-decoration:underline;">Publier votre manifestation pour accéder aux appels d'offre gratuit</a></p>
+        <p style="margin:0.2rem 0;"><strong>📞 Téléphone :</strong> <a href="{{ url_for('register') }}" style="color:#7c4dff; font-style:italic; text-decoration:underline;">Publier votre manifestation pour accéder aux appels d'offre gratuit</a></p>
+        <p style="margin:0.2rem 0;"><strong>✉️ Email :</strong> <a href="{{ url_for('register') }}" style="color:#7c4dff; font-style:italic; text-decoration:underline;">Publier votre manifestation pour accéder aux appels d'offre gratuit</a></p>
+        <p style="margin:0.2rem 0;"><strong>📍 Lieu/Ville :</strong> <a href="{{ url_for('register') }}" style="color:#7c4dff; font-style:italic; text-decoration:underline;">Publier votre manifestation pour accéder aux appels d'offre gratuit</a></p>
+        <div style="margin:0.5rem 0; position:relative; border-radius:12px; overflow:hidden;">
+          <iframe width="100%" height="220" style="border-radius:12px;border:1px solid #ccc;filter:blur(6px);pointer-events:none;" frameborder="0" src="https://www.google.com/maps?q={{ demande.lieu_ville|urlencode }}&output=embed"></iframe>
+          <div style="position:absolute;top:0;left:0;right:0;bottom:0;background:rgba(255,255,255,0.30);display:flex;align-items:center;justify-content:center;text-align:center;border-radius:12px;">
+            <div style="background:rgba(0,0,0,0.55);color:#fff;padding:14px 22px;border-radius:12px;font-weight:700;font-size:0.95em;backdrop-filter:blur(2px);">
+              🔒 Localisation disponible après publication de votre spectacle
+            </div>
           </div>
         </div>
       {% endif %}
@@ -141,34 +136,33 @@
       <p style="margin:0.2rem 0;"><strong>👶 Tranche d'âge :</strong> <span style="color:#222;">{{ demande.age_range|format_age }}</span></p>
       <p style="margin:0.2rem 0;"><strong>👥 Jauge :</strong> <span style="color:#222;">{{ demande.jauge }} personnes</span></p>
       <p style="margin:0.2rem 0;"><strong>💶 Budget :</strong> <span style="color:#222;">{{ demande.budget }} €</span></p>
-      {% if user %}
-        {% if demande.intitule or demande.contraintes %}
-        <div style="margin:0.8rem 0;">
-          <button onclick="openMissionModal({{ loop.index }})" class="btn-mission" style="background:linear-gradient(135deg, #667eea 0%, #764ba2 100%); color:white; border:none; padding:10px 20px; border-radius:10px; font-weight:600; cursor:pointer; box-shadow:0 4px 12px rgba(102, 126, 234, 0.3); transition:all 0.3s ease; display:flex; align-items:center; gap:8px;">
-            📝 Voir l'intitulé de la mission
-          </button>
-        </div>
-        {% endif %}
-      {% else %}
-        <div style="margin:0.8rem 0;">
-          <a href="{{ url_for('register') }}" style="background:linear-gradient(135deg, #667eea 0%, #764ba2 100%); color:white; border:none; padding:10px 20px; border-radius:10px; font-weight:600; cursor:pointer; box-shadow:0 4px 12px rgba(102, 126, 234, 0.3); transition:all 0.3s ease; display:flex; align-items:center; gap:8px; text-decoration:none; justify-content:center;">
-            🔒 Publier votre spectacle pour voir l'intitulé complet
-          </a>
-        </div>
-      {% endif %}
+      {% if demande.specialites_recherchees %}
+      <p style="margin:0.2rem 0;"><strong>🎯 Spécialités :</strong>
+        {% for s in demande.specialites_recherchees.split(',') %}<span style="display:inline-block;background:#6a1b9a22;color:#6a1b9a;border-radius:12px;padding:2px 10px;font-size:0.85em;margin:2px 3px;">{{ s }}</span>{% endfor %}
+      </p>{% endif %}
+      {% if demande.evenements_contexte %}
+      <p style="margin:0.2rem 0;"><strong>📋 Événements :</strong>
+        {% for e in demande.evenements_contexte.split(',') %}<span style="display:inline-block;background:#e6510022;color:#e65100;border-radius:12px;padding:2px 10px;font-size:0.85em;margin:2px 3px;">{{ e }}</span>{% endfor %}
+      </p>{% endif %}
+      {% if demande.lieux_souhaites %}
+      <p style="margin:0.2rem 0;"><strong>🏛️ Lieux :</strong>
+        {% for l in demande.lieux_souhaites.split(',') %}<span style="display:inline-block;background:#2e7d3222;color:#2e7d32;border-radius:12px;padding:2px 10px;font-size:0.85em;margin:2px 3px;">{{ l }}</span>{% endfor %}
+      </p>{% endif %}
+      {% if demande.contraintes %}<p style="margin:0.2rem 0;"><strong>⚠️ Contraintes :</strong> <span style="color:#222;">{{ demande.contraintes }}</span></p>{% endif %}
       {% if demande.accessibilite %}<p style="margin:0.2rem 0;"><strong>♿ Accessibilité :</strong> <span style="color:#222;">{{ demande.accessibilite }}</span></p>{% endif %}
+      {% if has_show %}
+        {% if demande.intitule %}<p style="margin:0.4rem 0;"><strong>📝 Intitulé :</strong> <span style="color:#222;">{{ demande.intitule }}</span></p>{% endif %}
+      {% elif user %}
+        <a href="{{ url_for('company_dashboard') }}" style="display:block;margin-top:0.5rem;background:linear-gradient(135deg,#7c4dff,#536dfe);color:#fff;padding:12px 20px;border-radius:12px;text-decoration:none;font-weight:700;text-align:center;">🔒 Publier votre spectacle pour voir l'intitulé complet</a>
+      {% else %}
+        <a href="{{ url_for('register') }}" style="display:block;margin-top:0.5rem;background:linear-gradient(135deg,#7c4dff,#536dfe);color:#fff;padding:12px 20px;border-radius:12px;text-decoration:none;font-weight:700;text-align:center;">🔒 Publier votre spectacle pour voir l'intitulé complet</a>
+      {% endif %}
       <hr style="margin:0.5rem 0;">
       {% if user and user.is_admin %}
       <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:12px;">
-        {% if not demande.approved %}
-        <a href="{{ url_for('approve_demande_animation', demande_id=demande.id) }}" style="background:linear-gradient(135deg, #28a745 0%, #34ce57 100%);color:#fff;padding:8px 16px;border-radius:8px;font-weight:600;text-decoration:none;flex:1;text-align:center;display:flex;align-items:center;justify-content:center;gap:6px;box-shadow:0 4px 12px rgba(40, 167, 69, 0.3);">
-          ✅ Approuver et publier
-        </a>
-        {% else %}
         <a href="{{ url_for('envoyer_demande_animation', demande_id=demande.id) }}" style="background:#28a745;color:#fff;padding:8px 16px;border-radius:8px;font-weight:600;text-decoration:none;flex:1;text-align:center;display:flex;align-items:center;justify-content:center;gap:6px;">
           📧 Envoyer aux utilisateurs
         </a>
-        {% endif %}
         <a href="{{ url_for('edit_demande_animation', demande_id=demande.id) }}" style="background:#1976d2;color:#fff;padding:8px 16px;border-radius:8px;font-weight:600;text-decoration:none;flex:1;text-align:center;">
           ✏️ Modifier
         </a>
@@ -277,164 +271,6 @@
   .card:hover img {
     transform: scale(1.05);
   }
-  
-  /* Modal styles */
-  .mission-modal {
-    display: none;
-    position: fixed;
-    z-index: 9999;
-    left: 0;
-    top: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.7);
-    animation: fadeIn 0.3s ease;
-  }
-  
-  .mission-modal-content {
-    background: white;
-    margin: 5% auto;
-    padding: 0;
-    border-radius: 20px;
-    width: 90%;
-    max-width: 700px;
-    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-    animation: slideDown 0.3s ease;
-    overflow: hidden;
-  }
-  
-  .mission-modal-header {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    padding: 2rem;
-    color: white;
-    position: relative;
-  }
-  
-  .mission-modal-header h2 {
-    margin: 0;
-    font-size: 1.8rem;
-    font-weight: 700;
-  }
-  
-  .mission-modal-close {
-    position: absolute;
-    right: 1.5rem;
-    top: 1.5rem;
-    color: white;
-    font-size: 2rem;
-    font-weight: bold;
-    cursor: pointer;
-    background: rgba(255, 255, 255, 0.2);
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.3s ease;
-  }
-  
-  .mission-modal-close:hover {
-    background: rgba(255, 255, 255, 0.3);
-    transform: rotate(90deg);
-  }
-  
-  .mission-modal-body {
-    padding: 2rem;
-    max-height: 60vh;
-    overflow-y: auto;
-  }
-  
-  .mission-content {
-    font-size: 1.1rem;
-    line-height: 1.8;
-    color: #2d3748;
-    white-space: pre-wrap;
-    word-wrap: break-word;
-  }
-  
-  @keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
-  }
-  
-  @keyframes slideDown {
-    from {
-      opacity: 0;
-      transform: translateY(-50px);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
-  }
-  
-  .btn-mission:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 16px rgba(102, 126, 234, 0.4);
-  }
-  
-  @media (max-width: 768px) {
-    .mission-modal-content {
-      width: 95%;
-      margin: 10% auto;
-    }
-    
-    .mission-modal-header h2 {
-      font-size: 1.4rem;
-    }
-    
-    .mission-modal-body {
-      padding: 1.5rem;
-    }
-  }
 </style>
-
-<!-- Modal for mission details -->
-{% for demande in demandes %}
-<div id="missionModal{{ loop.index }}" class="mission-modal">
-  <div class="mission-modal-content">
-    <div class="mission-modal-header">
-      <h2>📝 Intitulé de la mission</h2>
-      <span class="mission-modal-close" onclick="closeMissionModal({{ loop.index }})">&times;</span>
-    </div>
-    <div class="mission-modal-body">
-      <div class="mission-content">{{ demande.intitule or "Aucun intitulé précisé" }}</div>
-    </div>
-  </div>
-</div>
-{% endfor %}
-
-<script>
-function openMissionModal(index) {
-  document.getElementById('missionModal' + index).style.display = 'block';
-  document.body.style.overflow = 'hidden';
-}
-
-function closeMissionModal(index) {
-  document.getElementById('missionModal' + index).style.display = 'none';
-  document.body.style.overflow = 'auto';
-}
-
-// Close modal when clicking outside
-window.onclick = function(event) {
-  if (event.target.className === 'mission-modal') {
-    event.target.style.display = 'none';
-    document.body.style.overflow = 'auto';
-  }
-}
-
-// Close modal with ESC key
-document.addEventListener('keydown', function(event) {
-  if (event.key === 'Escape') {
-    const modals = document.querySelectorAll('.mission-modal');
-    modals.forEach(modal => {
-      modal.style.display = 'none';
-    });
-    document.body.style.overflow = 'auto';
-  }
-});
-</script>
-
 {% endif %}
 {% endblock %}

@@ -1204,20 +1204,29 @@ document.addEventListener('DOMContentLoaded', function() {
 
 {% if user %}
 <script>
-// Badge notifications et messages (poll toutes les 60s)
+// Badge notifications et messages (poll toutes les 60s, arrêt si session expirée)
 (function(){
+  var timer;
   function updateBadges(){
-    fetch('/api/notifications/count').then(r=>r.json()).then(d=>{
-      const b=document.getElementById('notif-badge');
+    fetch('/api/notifications/count',{redirect:'manual'}).then(function(r){
+      if(r.type==='opaqueredirect'||!r.ok){clearInterval(timer);return}
+      return r.json();
+    }).then(function(d){
+      if(!d) return;
+      var b=document.getElementById('notif-badge');
       if(b){if(d.unread>0){b.textContent=d.unread;b.style.display='inline'}else{b.style.display='none'}}
-    }).catch(()=>{});
-    fetch('/api/notifications/unread-messages').then(r=>r.json()).then(d=>{
-      const b=document.getElementById('msg-badge');
+    }).catch(function(){clearInterval(timer);});
+    fetch('/api/notifications/unread-messages',{redirect:'manual'}).then(function(r){
+      if(r.type==='opaqueredirect'||!r.ok){clearInterval(timer);return}
+      return r.json();
+    }).then(function(d){
+      if(!d) return;
+      var b=document.getElementById('msg-badge');
       if(b){if(d.unread>0){b.textContent=d.unread;b.style.display='inline'}else{b.style.display='none'}}
-    }).catch(()=>{});
+    }).catch(function(){clearInterval(timer);});
   }
   updateBadges();
-  setInterval(updateBadges,60000);
+  timer=setInterval(updateBadges,60000);
 })();
 </script>
 {% endif %}

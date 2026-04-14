@@ -3107,11 +3107,6 @@ def register_routes(app: Flask) -> None:
                 type_evenement = autre_evenement
             
             genre_recherche = request.form.get("genre_recherche", "").strip()
-            autre_genre = request.form.get("autre_genre", "").strip()
-            
-            # Si "Autre" est sélectionné et qu'un genre personnalisé est renseigné, on l'utilise
-            if genre_recherche == "Autre" and autre_genre:
-                genre_recherche = autre_genre
             
             age_range = request.form.get("age_range", "").strip()
             jauge = request.form.get("jauge", "").strip()
@@ -3126,12 +3121,28 @@ def register_routes(app: Flask) -> None:
             evenements_contexte = ",".join(request.form.getlist("evenements_contexte"))
             lieux_souhaites = ",".join(request.form.getlist("lieux_souhaites"))
 
+            # Si genre_recherche est vide mais des spécialités sont cochées, prendre la première
+            if not genre_recherche and specialites_recherchees:
+                genre_recherche = specialites_recherchees.split(",")[0]
+
+            # Si type_espace vide, le déduire des lieux cochés
+            if not type_espace and lieux_souhaites:
+                type_espace = lieux_souhaites.split(",")[0]
+
             # Validation basique - TELEPHONE est optionnel !
-            if not all([structure, lieu_ville, code_postal, nom, dates_horaires, 
-                       type_espace, genre_recherche, age_range, jauge, budget, contact_email, intitule]):
-                flash("Veuillez remplir tous les champs obligatoires.", "danger")
-                # UX: keep user on page and preserve entered values (no redirect)
-                return render_template("demande_animation.html", user=current_user()), 400
+            champs_requis = {
+                "Structure": structure, "Ville": lieu_ville, "Code postal": code_postal,
+                "Nom": nom, "Dates et horaires": dates_horaires,
+                "Spécialité (cochez au moins une case)": genre_recherche,
+                "Tranche d'âge": age_range, "Jauge": jauge, "Budget": budget,
+                "Email de contact": contact_email, "Intitulé": intitule,
+            }
+            champs_vides = [nom_champ for nom_champ, val in champs_requis.items() if not val]
+            if champs_vides:
+                flash(f"Champs manquants : {', '.join(champs_vides)}", "danger")
+                # Préserver les checkboxes cochées au re-rendu
+                return render_template("demande_animation.html", user=current_user(),
+                                       specialites_data=SPECIALITES, evenements_data=EVENEMENTS, lieux_data=LIEUX), 400
 
             # Envoi d'email si configuré
             if getattr(current_app, "mail", None) and current_app.config.get("MAIL_USERNAME") and current_app.config.get("MAIL_PASSWORD"):
@@ -3534,7 +3545,14 @@ Accessibilité: {accessibilite}
             Show.category.ilike('%Spectacle à la une%')
         ).order_by(Show.created_at.desc()).limit(8).all()
         
-        return render_template("demandes_animation.html", demandes=demandes, page=page, nb_pages=nb_pages, total=total, per_page=per_page, user=current_user(), categories=categories, regions=regions, categorie=categorie, region=region, spectacles_une=spectacles_une)
+        # Vérifier si l'utilisateur a un spectacle approuvé
+        has_show = False
+        if user and user.is_admin:
+            has_show = True
+        elif user:
+            has_show = Show.query.filter(Show.user_id == user.id, Show.approved.is_(True)).count() > 0
+        
+        return render_template("demandes_animation.html", demandes=demandes, page=page, nb_pages=nb_pages, total=total, per_page=per_page, user=current_user(), has_show=has_show, categories=categories, regions=regions, categorie=categorie, region=region, spectacles_une=spectacles_une)
 
     @app.route("/mes-appels-offres")
     @login_required
@@ -3542,16 +3560,16 @@ Accessibilité: {accessibilite}
         """Page pour les utilisateurs connectés avec toutes les informations visibles"""
         from models.models import DemandeAnimation
         
-        # Vérifier que l'utilisateur a au moins un spectacle approuvé
+        # Vérifier que l'utilisateur a un spectacle approuvé
         user = current_user()
-        has_approved_show = Show.query.filter(
+        has_show = Show.query.filter(
             Show.user_id == user.id,
             Show.approved.is_(True)
         ).count() > 0
         
-        if not has_approved_show and not user.is_admin:
+        if not has_show and not user.is_admin:
             flash("Vous devez avoir un spectacle approuvé pour accéder aux appels d'offre.", "warning")
-            return redirect(url_for("espace_perso"))
+            return redirect(url_for("company_dashboard"))
         
         page = request.args.get('page', 1, type=int)
         per_page = 12
@@ -3812,11 +3830,6 @@ Accessibilité: {accessibilite}
             specialites_recherchees = ",".join(request.form.getlist("specialites_recherchees"))
             evenements_contexte = ",".join(request.form.getlist("evenements_contexte"))
             lieux_souhaites = ",".join(request.form.getlist("lieux_souhaites"))
-            
-            # Si "Autre" est sélectionné, utiliser le genre personnalisé
-            autre_genre = request.form.get("autre_genre", "").strip()
-            if genre_recherche == "Autre" and autre_genre:
-                genre_recherche = autre_genre
 
             # Validation basique - TELEPHONE est optionnel !
             if not all([structure, lieu_ville, nom, dates_horaires, 
@@ -3980,14 +3993,16 @@ Accessibilité: {accessibilite}
             print(f"[DEBUG] POST reçu pour demande_id={demande_id}")
             action = request.form.get("action", "preview")
             print(f"[DEBUG] Action: {action}")
-            categories = request.form.getlist("categories")
+            categories = (request.form.getlist("cat_specialites")
+                          + request.form.getlist("cat_evenements")
+                          + request.form.getlist("cat_lieux"))
             regions = request.form.getlist("regions")
             print(f"[DEBUG] Catégories sélectionnées: {categories}")
             print(f"[DEBUG] Régions sélectionnées: {regions}")
             
             if not categories:
                 print("[DEBUG] Aucune catégorie sélectionnée")
-                flash("Veuillez sélectionner au moins une catégorie.", "warning")
+                flash("Veuillez sélectionner au moins une spécialité, un événement ou un lieu.", "warning")
                 return redirect(request.url)
             
             print(f"[DEBUG] Recherche des spectacles pour {len(categories)} catégories et {len(regions)} régions")
@@ -4400,6 +4415,8 @@ Accessibilité: {accessibilite}
             # === PHASE 3 : ENVOYER COPIE ADMIN ===
             # L'admin reçoit TOUJOURS une copie récapitulative, même si son email était dans les destinataires
             admin_email = current_user().email if current_user() and current_user().email else None
+            if not admin_email:
+                admin_email = current_app.config.get("MAIL_DEFAULT_SENDER") or current_app.config.get("MAIL_USERNAME")
             if admin_email:
                 try:
                     admin_body_html = f"""
@@ -4511,66 +4528,23 @@ Accessibilité: {accessibilite}
         all_approved = Show.query.filter(Show.approved.is_(True)).all()
         matched = find_matching_shows(demande, all_approved, min_score=1)
 
-        # Liste des catégories prédéfinies du site
-        predefined_categories = [
-            "Magie",
-            "Marionnette", 
-            "Clown",
-            "Théâtre",
-            "Danse",
-            "Spectacle de danse",
-            "Spectacle enfant",
-            "Spectacle maternelle",
-            "Spectacle primaire",
-            "Spectacle collège",
-            "Spectacle lycée",
-            "Jeune public",
-            "Atelier",
-            "Atelier sculpteur ballon",
-            "Concert",
-            "Cirque",
-            "Spectacle de rue",
-            "Orchestre",
-            "Fanfare",
-            "Banda",
-            "Cinéma plein air",
-            "Arbre de Noël",
-            "Père Noël",
-            "Animation école",
-            "Animation entreprise",
-            "Comité d'entreprise",
-            "CSE",
-            "Fête de village",
-            "Spectacle à la une",
-            "Animation anniversaire",
-            "Anniversaire",
-            "Animation familiale",
-            "Conte",
-            "Musique",
-            "Chanson",
-            "Flamenco",
-            "Tango",
-            "Bal",
-            "DJ",
-            "Boum pour enfant"
-        ]
-        
-        # Récupérer les catégories des spectacles existants
-        try:
-            existing_categories = db.session.query(Show.category).filter(Show.approved.is_(True)).distinct().all()
-            existing_categories_list = [c[0] for c in existing_categories if c[0]]
-        except Exception:
-            db.session.rollback()
-            existing_categories_list = []
-        
-        # Combiner et trier (prédéfinies + existantes, sans doublons)
-        all_categories_set = set(predefined_categories + existing_categories_list)
-        categories_list = sorted(all_categories_set, key=lambda x: x.lower())
-        
+        # Pré-sélection automatique basée sur les critères de la demande
+        pre_specialites = [s.strip() for s in (demande.specialites_recherchees or "").split(",") if s.strip()]
+        pre_evenements = [e.strip() for e in (demande.evenements_contexte or "").split(",") if e.strip()]
+        pre_lieux = [l.strip() for l in (demande.lieux_souhaites or "").split(",") if l.strip()]
+        pre_regions = [demande.region] if demande.region else []
+
         return render_template(
             "admin_envoyer_demande.html", 
             demande=demande, 
-            categories=categories_list,
+            specialites_data=SPECIALITES,
+            evenements_data=EVENEMENTS,
+            lieux_data=LIEUX,
+            regions_list=REGIONS_FRANCE,
+            pre_specialites=pre_specialites,
+            pre_evenements=pre_evenements,
+            pre_lieux=pre_lieux,
+            pre_regions=pre_regions,
             matched_shows=matched,
             user=current_user()
         )
@@ -5522,19 +5496,21 @@ def notifications_page():
 
 
 @app.route("/api/notifications/count")
-@login_required
 def notifications_count():
     """API JSON — nombre de notifications non lues (pour le badge header)."""
     u = current_user()
+    if not u:
+        return {"unread": 0}
     count = Notification.query.filter_by(user_id=u.id, read=False).count()
     return {"unread": count}
 
 
 @app.route("/api/notifications/unread-messages")
-@login_required
 def unread_messages_count():
     """API JSON — nombre de messages non lus."""
     u = current_user()
+    if not u:
+        return {"unread": 0}
     count = Message.query.join(Conversation).filter(
         db.or_(Conversation.user1_id == u.id, Conversation.user2_id == u.id),
         Message.sender_id != u.id,

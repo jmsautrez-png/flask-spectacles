@@ -80,79 +80,10 @@
     <fieldset class="demande-section">
       <legend>2) Type de spectacle recherché</legend>
 
-      <div class="grid-2">
-        <label>
-          <span class="label-text">🎭 Genre de spectacle recherché <span class="req">*</span></span>
-          <select id="genre_recherche" name="genre_recherche" required>
-            <option value="">-- Choisir --</option>
-            <optgroup label="Spectacle et Animation">
-              <option value="Marionnettes">Marionnettes</option>
-              <option value="Magie et Magicien">Magie et Magicien</option>
-              <option value="Clown">Clown</option>
-              <option value="Cirque">Cirque</option>
-              <option value="Conte et Théâtre">Conte et Théâtre</option>
-              <option value="Spectacle de rue">Spectacle de rue</option>
-              <option value="Animation de rue">Animation de rue</option>
-              <option value="Sculpteur de ballons">Sculpteur de ballons</option>
-              <option value="Animation et Atelier Artistique">Animation et Atelier Artistique</option>
-              <option value="Atelier maquillage">Atelier maquillage</option>
-              <option value="Caricaturistes et Silhouettiste">Caricaturistes et Silhouettiste</option>
-              <option value="Humoriste et Imitateur">Humoriste et Imitateur</option>
-              <option value="Ventriloque">Ventriloque</option>
-              <option value="Père Noël">Père Noël</option>
-              <option value="Revue Cabaret et Danse">Revue Cabaret et Danse</option>
-              <option value="Spectacle Animalier">Spectacle Animalier</option>
-              <option value="Spectacle de danse">Spectacle de danse</option>
-              <option value="Spectacle Musical">Spectacle Musical</option>
-              <option value="Spectacle à Thèmes">Spectacle à Thèmes</option>
-              <option value="Spectacle enfants">Spectacle enfants</option>
-              <option value="Spectacle petite enfance">Spectacle petite enfance</option>
-              <option value="Spectacle adolescent">Spectacle adolescent</option>
-              <option value="Location de stand">Location de stand</option>
-              <option value="Manège">Manège</option>
-              <option value="Sosie">Sosie</option>
-            </optgroup>
-            <optgroup label="Théâtre">
-              <option value="Théâtre contemporain">Théâtre contemporain</option>
-              <option value="Théâtre de comédie">Théâtre de comédie</option>
-              <option value="Théâtre d'auteur">Théâtre d'auteur</option>
-              <option value="Théâtre classique">Théâtre classique</option>
-              <option value="Théâtre de boulevard">Théâtre de boulevard</option>
-              <option value="One-man-show">One-man-show</option>
-              <option value="Théâtre d'improvisation">Théâtre d'improvisation</option>
-              <option value="Comédie musicale">Comédie musicale</option>
-              <option value="Théâtre jeune public">Théâtre jeune public</option>
-            </optgroup>
-            <optgroup label="Groupe de Musique et Musicien">
-              <option value="Accordéoniste">Accordéoniste</option>
-              <option value="Animation Musicale">Animation Musicale</option>
-              <option value="Auteur-Interprète">Auteur-Interprète</option>
-              <option value="Chanson française">Chanson française</option>
-              <option value="Chorale et Gospel">Chorale et Gospel</option>
-              <option value="D.J. et Orchestre">D.J. et Orchestre</option>
-              <option value="Fanfare et Batucada">Fanfare et Batucada</option>
-              <option value="Groupe folklorique">Groupe folklorique</option>
-              <option value="Jazz">Jazz</option>
-              <option value="Musique actuelle">Musique actuelle</option>
-              <option value="Musique Classique">Musique Classique</option>
-              <option value="Musique électronique">Musique électronique</option>
-              <option value="Orgue de Barbarie">Orgue de Barbarie</option>
-              <option value="Pianiste">Pianiste</option>
-              <option value="Pop">Pop</option>
-              <option value="R&B">R&B</option>
-              <option value="Rap">Rap</option>
-              <option value="Reggae">Reggae</option>
-              <option value="Rock et Country">Rock et Country</option>
-              <option value="Soul">Soul</option>
-              <option value="Variété française">Variété française</option>
-              <option value="Concert">Concert</option>
-              <option value="Tribute">Tribute</option>
-              <option value="Caricaturiste">Caricaturiste</option>
-            </optgroup>
-            <option value="Autre">Autre (précisez ci-dessous)</option>
-          </select>
-        </label>
+      <!-- genre_recherche est auto-rempli depuis les checkboxes spécialités -->
+      <input type="hidden" id="genre_recherche" name="genre_recherche" value="">
 
+      <div class="grid-2">
         <label>
           <span class="label-text">Tranche d'âge du public <span class="req">*</span></span>
           <select id="age_range" name="age_range" required>
@@ -169,37 +100,49 @@
         </label>
       </div>
 
-      <label id="autre_genre_container" style="display:none;">
-        <span class="label-text">Précisez votre demande</span>
-        <input type="text" id="autre_genre" name="autre_genre" placeholder="Décrivez le type de spectacle ou animation recherché">
-        <small class="hint">Ce champ sera utilisé si vous sélectionnez "Autre" ci-dessus.</small>
-      </label>
     </fieldset>
 
     <!-- SECTION: Spécialités recherchées + Événements + Lieux -->
     <fieldset class="demande-section" style="background: linear-gradient(135deg, rgba(76,175,80,0.1) 0%, rgba(67,160,71,0.1) 100%); border: 2px solid #4caf50;">
       <legend style="color: #4caf50;">Détails de votre recherche</legend>
 
-      {{ accordion_checkboxes("specialites_recherchees", specialites_data, [], "🎭", "Type de spectacle recherché", "#6a1b9a", "Cochez le ou les types de spectacle que vous recherchez.") }}
+      {{ accordion_checkboxes("specialites_recherchees", specialites_data, request.form.getlist("specialites_recherchees"), "", "Type de spectacle recherché", "#6a1b9a", "Cochez le ou les types de spectacle que vous recherchez.", "#fff") }}
+      <div id="specialites-error" style="display:none; color:#ff5252; background:rgba(255,82,82,0.1); border:1px solid #ff5252; border-radius:8px; padding:10px 16px; margin-top:8px; font-weight:500;">
+        ⚠️ Veuillez cocher au moins un type de spectacle recherché.
+      </div>
 
-      {{ accordion_checkboxes("evenements_contexte", evenements_data, [], "🎪", "Contexte de votre événement", "#e65100", "Quel type d'événement organisez-vous ?") }}
+      {{ accordion_checkboxes("evenements_contexte", evenements_data, request.form.getlist("evenements_contexte"), "", "Contexte de votre événement", "#e65100", "Quel type d'événement organisez-vous ?", "#fff") }}
 
-      {{ accordion_checkboxes("lieux_souhaites", lieux_data, [], "🏛️", "Type d'espace mis à disposition", "#2e7d32", "Sélectionnez le ou les types d'espaces disponibles.") }}
+      {{ accordion_checkboxes("lieux_souhaites", lieux_data, request.form.getlist("lieux_souhaites"), "🏛️", "Type d'espace mis à disposition", "#2e7d32", "Sélectionnez le ou les types d'espaces disponibles.", "#fff") }}
 
       <div class="grid-2" style="margin-top:16px;">
         <label>
           <span class="label-text">Jauge estimée <span class="req">*</span></span>
-          <input type="number" id="jauge" name="jauge" min="1" step="1" required inputmode="numeric"
-                 placeholder="Ex : 120"
-                 value="{{ request.form.get('jauge','') }}">
+          <select id="jauge" name="jauge" required>
+            <option value="">-- Nombre de personnes attendues --</option>
+            <option value="Moins de 30" {% if request.form.get('jauge','') == 'Moins de 30' %}selected{% endif %}>Moins de 30</option>
+            <option value="30 à 50" {% if request.form.get('jauge','') == '30 à 50' %}selected{% endif %}>30 à 50</option>
+            <option value="50 à 100" {% if request.form.get('jauge','') == '50 à 100' %}selected{% endif %}>50 à 100</option>
+            <option value="100 à 200" {% if request.form.get('jauge','') == '100 à 200' %}selected{% endif %}>100 à 200</option>
+            <option value="200 à 500" {% if request.form.get('jauge','') == '200 à 500' %}selected{% endif %}>200 à 500</option>
+            <option value="500 à 1000" {% if request.form.get('jauge','') == '500 à 1000' %}selected{% endif %}>500 à 1000</option>
+            <option value="Plus de 1000" {% if request.form.get('jauge','') == 'Plus de 1000' %}selected{% endif %}>Plus de 1000</option>
+          </select>
+          <small class="hint">Approximation suffisante, l'artiste s'adaptera.</small>
         </label>
 
         <label>
           <span class="label-text">Budget indicatif <span class="req">*</span></span>
-          <input type="text" id="budget" name="budget" required
-                 placeholder="Ex : 1000–1500 €"
-                 value="{{ request.form.get('budget','') }}">
-          <small class="hint">Même une fourchette aide à proposer les bonnes options.</small>
+          <select id="budget" name="budget" required>
+            <option value="">-- Fourchette de budget --</option>
+            <option value="Moins de 300 €" {% if request.form.get('budget','') == 'Moins de 300 €' %}selected{% endif %}>Moins de 300 €</option>
+            <option value="300 à 500 €" {% if request.form.get('budget','') == '300 à 500 €' %}selected{% endif %}>300 à 500 €</option>
+            <option value="500 à 1000 €" {% if request.form.get('budget','') == '500 à 1000 €' %}selected{% endif %}>500 à 1000 €</option>
+            <option value="1000 à 2000 €" {% if request.form.get('budget','') == '1000 à 2000 €' %}selected{% endif %}>1000 à 2000 €</option>
+            <option value="2000 à 5000 €" {% if request.form.get('budget','') == '2000 à 5000 €' %}selected{% endif %}>2000 à 5000 €</option>
+            <option value="Plus de 5000 €" {% if request.form.get('budget','') == 'Plus de 5000 €' %}selected{% endif %}>Plus de 5000 €</option>
+          </select>
+          <small class="hint">Même approximatif, ça aide l'artiste à vous proposer la bonne formule.</small>
         </label>
       </div>
 
@@ -357,24 +300,50 @@
       input.value = formatted;
     }
 
-    // Gestion de l'affichage du champ "Autre genre"
-    var genreSelect = document.getElementById('genre_recherche');
-    var autreContainer = document.getElementById('autre_genre_container');
-    var autreInput = document.getElementById('autre_genre');
+    // Gestion de l'auto-remplissage de genre_recherche depuis les checkboxes spécialités
+    var genreHidden = document.getElementById('genre_recherche');
+    var specCheckboxes = document.querySelectorAll('input[name="specialites_recherchees"]');
     
-    if (genreSelect && autreContainer) {
-      genreSelect.addEventListener('change', function() {
-        if (this.value === 'Autre') {
-          autreContainer.style.display = 'block';
-          autreInput.setAttribute('required', 'required');
-          autreInput.focus();
+    function syncGenreFromCheckboxes() {
+      var checked = document.querySelectorAll('input[name="specialites_recherchees"]:checked');
+      if (checked.length > 0) {
+        genreHidden.value = checked[0].value;
+      } else {
+        genreHidden.value = '';
+      }
+    }
+
+    specCheckboxes.forEach(function(cb) {
+      cb.addEventListener('change', syncGenreFromCheckboxes);
+    });
+
+    // Sync au chargement si des cases sont déjà cochées
+    syncGenreFromCheckboxes();
+
+    // Validation : au moins une spécialité doit être cochée
+    var specErrorDiv = document.getElementById('specialites-error');
+    var formEl = document.querySelector('.demande-form');
+    if (formEl) {
+      formEl.addEventListener('submit', function(e) {
+        var checked = document.querySelectorAll('input[name="specialites_recherchees"]:checked');
+        if (checked.length === 0) {
+          e.preventDefault();
+          specErrorDiv.style.display = 'block';
+          specErrorDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          return false;
         } else {
-          autreContainer.style.display = 'none';
-          autreInput.removeAttribute('required');
-          autreInput.value = '';
+          specErrorDiv.style.display = 'none';
         }
       });
     }
+
+    // Cacher l'erreur dès qu'une spécialité est cochée
+    specCheckboxes.forEach(function(cb) {
+      cb.addEventListener('change', function() {
+        var anyChecked = document.querySelectorAll('input[name="specialites_recherchees"]:checked').length > 0;
+        if (anyChecked) specErrorDiv.style.display = 'none';
+      });
+    });
 
     // Détection automatique de la région en fonction du code postal
     var codePostalInput = document.getElementById('code_postal');
@@ -469,57 +438,6 @@
     updateProgress();
   });
 
-  // ========== VALIDATION EVENT CONTEXT ==========
-  document.addEventListener('DOMContentLoaded', function() {
-    var form = document.querySelector('form');
-    var errorDiv = document.getElementById('event-context-error');
-    var checkboxes = document.querySelectorAll('input[name="event_context"]');
-    
-    // Ajouter effet visuel sur hover
-    var labels = document.querySelectorAll('.event-context-label');
-    labels.forEach(function(label) {
-      label.addEventListener('mouseenter', function() {
-        this.style.background = 'rgba(255,255,255,0.08)';
-        this.style.borderColor = '#4caf50';
-      });
-      label.addEventListener('mouseleave', function() {
-        this.style.background = 'rgba(255,255,255,0.03)';
-        this.style.borderColor = 'rgba(255,255,255,0.1)';
-      });
-    });
-    
-    // Valider au submit
-    form.addEventListener('submit', function(e) {
-      var atLeastOneChecked = false;
-      checkboxes.forEach(function(cb) {
-        if (cb.checked) {
-          atLeastOneChecked = true;
-        }
-      });
-      
-      if (!atLeastOneChecked) {
-        e.preventDefault();
-        errorDiv.style.display = 'block';
-        errorDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        return false;
-      } else {
-        errorDiv.style.display = 'none';
-      }
-    });
-    
-    // Cacher l'erreur dès qu'une checkbox est cochée
-    checkboxes.forEach(function(cb) {
-      cb.addEventListener('change', function() {
-        var anyChecked = false;
-        checkboxes.forEach(function(checkbox) {
-          if (checkbox.checked) anyChecked = true;
-        });
-        if (anyChecked) {
-          errorDiv.style.display = 'none';
-        }
-      });
-    });
-  });
   </script>
 </div>
 

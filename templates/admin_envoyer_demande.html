@@ -88,39 +88,23 @@
 
                     <form method="post" class="mt-4">
                         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-                        <h5 class="mb-3">🎯 Sélectionner les catégories de spectacles :</h5>
-                        <p class="text-muted">Cochez les catégories pour envoyer cette demande aux utilisateurs concernés.</p>
+                        <h5 class="mb-3">🎯 Cibler les compagnies par spécialités, événements, lieux et régions :</h5>
+                        <p class="text-muted">Cochez les critères pour envoyer cette demande aux compagnies concernées.</p>
+                        
+                        {% from "_accordion_checkboxes.html" import accordion_checkboxes, regions_checkboxes, accordion_checkboxes_js %}
                         
                         <div class="row">
-                            <div class="col-md-6">
-                                <div class="card mb-4">
-                                    <div class="card-header">
-                                        <strong>📂 Catégories</strong>
-                                        <button type="button" class="btn btn-sm btn-outline-primary float-end" onclick="selectAllCategories()">
-                                            Tout sélectionner
-                                        </button>
-                                    </div>
-                                    <div class="card-body" style="max-height: 400px; overflow-y: auto;">
-                                        {% if categories %}
-                                            <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 8px;">
-                                            {% for category in categories %}
-                                            <div class="form-check">
-                                                <input class="form-check-input category-checkbox" type="checkbox" 
-                                                       name="categories" value="{{ category }}" id="cat_{{ loop.index }}">
-                                                <label class="form-check-label" for="cat_{{ loop.index }}" style="font-size: 0.9rem;">
-                                                    {{ category }}
-                                                </label>
-                                            </div>
-                                            {% endfor %}
-                                            </div>
-                                        {% else %}
-                                            <p class="text-muted">Aucune catégorie disponible</p>
-                                        {% endif %}
-                                    </div>
-                                </div>
+                            <div class="col-12">
+                                {{ accordion_checkboxes("cat_specialites", specialites_data, pre_specialites, "🎭", "Spécialités artistiques", "#6a1b9a", "Types de spectacles et d'animations", "#fff") }}
+                                {{ accordion_checkboxes("cat_evenements", evenements_data, pre_evenements, "🎪", "Types d'événements", "#e65100", "Contextes et occasions", "#fff") }}
+                                {{ accordion_checkboxes("cat_lieux", lieux_data, pre_lieux, "📍", "Types de lieux", "#2e7d32", "Espaces d'intervention", "#fff") }}
                             </div>
-                            
-                            <div class="col-md-6">
+                        </div>
+                        
+                        <hr style="margin: 1.5rem 0;">
+                        
+                        <div class="row">
+                            <div class="col-12">
                                 <div class="card mb-4">
                                     <div class="card-header">
                                         <strong>🗺️ Régions</strong>
@@ -128,19 +112,20 @@
                                             Tout sélectionner
                                         </button>
                                     </div>
-                                    <div class="card-body" style="max-height: 400px; overflow-y: auto;">
+                                    <div class="card-body">
                                         <p class="text-muted mb-2"><small>⚡ Laissez vide pour envoyer à toutes les régions</small></p>
-                                        {% set regions = [
+                                        {% set regions_display = [
                                             'Auvergne-Rhône-Alpes', 'Bourgogne-Franche-Comté', 'Bretagne', 'Centre-Val de Loire',
                                             'Corse', 'Grand Est', 'Hauts-de-France', 'Île-de-France', 'Normandie',
                                             'Nouvelle-Aquitaine', 'Occitanie', 'Pays de la Loire', "Provence-Alpes-Côte d'Azur",
                                             'Guadeloupe', 'Martinique', 'Guyane', 'La Réunion', 'Mayotte', 'France entière'
                                         ] %}
-                                        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 8px;">
-                                        {% for region in regions %}
+                                        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 8px;">
+                                        {% for region in regions_display %}
                                         <div class="form-check">
                                             <input class="form-check-input region-checkbox" type="checkbox" 
-                                                   name="regions" value="{{ region }}" id="reg_{{ loop.index }}">
+                                                   name="regions" value="{{ region }}" id="reg_{{ loop.index }}"
+                                                   {% if region in pre_regions %}checked{% endif %}>
                                             <label class="form-check-label" for="reg_{{ loop.index }}" style="font-size: 0.9rem;">
                                                 {{ region }}
                                             </label>
@@ -161,11 +146,18 @@
                             <a href="{{ url_for('admin_dashboard') }}" class="btn btn-secondary">
                                 ← Retour
                             </a>
-                            <button type="submit" class="btn btn-success btn-lg" id="btn-envoyer">
-                                📧 Envoyer maintenant
-                            </button>
+                            <div>
+                                <button type="submit" name="action" value="preview" class="btn btn-info btn-lg me-2">
+                                    👁️ Prévisualiser les destinataires
+                                </button>
+                                <button type="submit" name="action" value="send" class="btn btn-success btn-lg" id="btn-envoyer">
+                                    📧 Envoyer maintenant
+                                </button>
+                            </div>
                         </div>
                     </form>
+                    
+                    {{ accordion_checkboxes_js() }}
                 </div>
             </div>
         </div>
@@ -181,14 +173,6 @@
         selectAllMatched.addEventListener('change', function() {
             document.querySelectorAll('.matched-cb').forEach(cb => cb.checked = this.checked);
         });
-    }
-    
-    // Fonction pour sélectionner/désélectionner toutes les catégories
-    function selectAllCategories() {
-        console.log('Toggle toutes les catégories');
-        const checkboxes = document.querySelectorAll('.category-checkbox');
-        const allChecked = Array.from(checkboxes).every(cb => cb.checked);
-        checkboxes.forEach(cb => cb.checked = !allChecked);
     }
     
     // Fonction pour sélectionner/désélectionner toutes les régions
@@ -214,18 +198,18 @@
         form.addEventListener('submit', function(e) {
             console.log('📤 Événement submit déclenché');
             
-            const catCheckboxes = document.querySelectorAll('.category-checkbox:checked');
+            const catCheckboxes = document.querySelectorAll('input[name="cat_specialites"]:checked, input[name="cat_evenements"]:checked, input[name="cat_lieux"]:checked');
             const regCheckboxes = document.querySelectorAll('.region-checkbox:checked');
             console.log(`📊 ${catCheckboxes.length} catégorie(s) et ${regCheckboxes.length} région(s) sélectionnée(s)`);
             
             if (catCheckboxes.length === 0) {
                 e.preventDefault();
-                alert('⚠️ Veuillez sélectionner au moins une catégorie');
+                alert('⚠️ Veuillez sélectionner au moins une spécialité, un événement ou un lieu');
                 console.log('❌ Soumission annulée: aucune catégorie');
                 return false;
             }
             
-            let confirmMsg = `Envoyer cette demande à ${catCheckboxes.length} catégorie(s)`;
+            let confirmMsg = `Envoyer cette demande avec ${catCheckboxes.length} critère(s) sélectionné(s)`;
             if (regCheckboxes.length > 0) {
                 confirmMsg += ` et ${regCheckboxes.length} région(s)`;
             } else {
