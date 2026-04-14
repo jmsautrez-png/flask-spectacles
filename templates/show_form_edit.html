@@ -1,4 +1,5 @@
 ﻿{% extends "base.html" %}
+{% from "_accordion_checkboxes.html" import accordion_checkboxes, regions_checkboxes, accordion_checkboxes_js %}
 {% block title %}Compléter le spectacle - Spectacle'ment VØtre{% endblock %}
 {% block content %}
 <h2>Compléter le spectacle</h2>
@@ -21,28 +22,28 @@
 
       <label>Ville
         <input type="text" name="location" id="location-input" value="{{ show.location }}">
-        <span style="font-size:0.95rem;color:#fff;display:block;margin-top:2px;margin-bottom:4px;">Cliquez sur un bouton pour ajouter une ville rapidement (vous pouvez ajouter jusqu'à 10 villes).</span>
+        <span style="font-size:0.9rem;color:#fff;display:block;margin-top:2px;margin-bottom:4px;">Cliquez sur un bouton pour ajouter une ville rapidement (vous pouvez ajouter jusqu'à 10 villes).</span>
         <div style="display:flex; flex-wrap:wrap; gap:8px; margin-bottom:16px; margin-top:6px;">
-          <button type="button" style="min-width:120px;flex:1 1 120px;padding:8px 6px;border-radius:8px;background:linear-gradient(135deg,#e67e22 0%,#f6e58d 100%);color:#222;font-weight:600;border:none;box-shadow:0 2px 8px #e67e2244;transition:all 0.2s;" onclick="addLocation('Paris')">Paris</button>
-          <button type="button" style="min-width:120px;flex:1 1 120px;padding:8px 6px;border-radius:8px;background:linear-gradient(135deg,#8e44ad 0%,#6c3483 100%);color:#fff;font-weight:600;border:none;box-shadow:0 2px 8px #8e44ad44;transition:all 0.2s;" onclick="addLocation('Marseille')">Marseille</button>
-          <button type="button" style="min-width:120px;flex:1 1 120px;padding:8px 6px;border-radius:8px;background:linear-gradient(135deg,#e74c3c 0%,#c0392b 100%);color:#fff;font-weight:600;border:none;box-shadow:0 2px 8px #e74c3c44;transition:all 0.2s;" onclick="addLocation('Lyon')">Lyon</button>
-          <button type="button" style="min-width:120px;flex:1 1 120px;padding:8px 6px;border-radius:8px;background:linear-gradient(135deg,#2980b9 0%,#6dd5fa 100%);color:#fff;font-weight:600;border:none;box-shadow:0 2px 8px #2980b944;transition:all 0.2s;" onclick="addLocation('Toulouse')">Toulouse</button>
-          <button type="button" style="min-width:120px;flex:1 1 120px;padding:8px 6px;border-radius:8px;background:linear-gradient(135deg,#16a085 0%,#1abc9c 100%);color:#fff;font-weight:600;border:none;box-shadow:0 2px 8px #16a08544;transition:all 0.2s;" onclick="addLocation('Nice')">Nice</button>
-          <button type="button" style="min-width:120px;flex:1 1 120px;padding:8px 6px;border-radius:8px;background:linear-gradient(135deg,#f1c40f 0%,#f39c12 100%);color:#222;font-weight:600;border:none;box-shadow:0 2px 8px #f1c40f44;transition:all 0.2s;" onclick="addLocation('Nantes')">Nantes</button>
-          <button type="button" style="min-width:120px;flex:1 1 120px;padding:8px 6px;border-radius:8px;background:linear-gradient(135deg,#2ecc71 0%,#27ae60 100%);color:#fff;font-weight:600;border:none;box-shadow:0 2px 8px #2ecc7144;transition:all 0.2s;" onclick="addLocation('Montpellier')">Montpellier</button>
-          <button type="button" style="min-width:120px;flex:1 1 120px;padding:8px 6px;border-radius:8px;background:linear-gradient(135deg,#e84393 0%,#fd79a8 100%);color:#fff;font-weight:600;border:none;box-shadow:0 2px 8px #e8439344;transition:all 0.2s;" onclick="addLocation('Strasbourg')">Strasbourg</button>
-          <button type="button" style="min-width:120px;flex:1 1 120px;padding:8px 6px;border-radius:8px;background:linear-gradient(135deg,#34495e 0%,#2c3e50 100%);color:#fff;font-weight:600;border:none;box-shadow:0 2px 8px #34495e44;transition:all 0.2s;" onclick="addLocation('Bordeaux')">Bordeaux</button>
-          <button type="button" style="min-width:120px;flex:1 1 120px;padding:8px 6px;border-radius:8px;background:linear-gradient(135deg,#00b894 0%,#00cec9 100%);color:#fff;font-weight:600;border:none;box-shadow:0 2px 8px #00b89444;transition:all 0.2s;" onclick="addLocation('Lille')">Lille</button>
-          <button type="button" style="min-width:120px;flex:1 1 120px;padding:8px 6px;border-radius:8px;background:linear-gradient(135deg,#fdcb6e 0%,#e17055 100%);color:#222;font-weight:600;border:none;box-shadow:0 2px 8px #fdcb6e44;transition:all 0.2s;" onclick="addLocation('Rennes')">Rennes</button>
-          <button type="button" style="min-width:120px;flex:1 1 120px;padding:8px 6px;border-radius:8px;background:linear-gradient(135deg,#00bfff 0%,#0984e3 100%);color:#fff;font-weight:600;border:none;box-shadow:0 2px 8px #00bfff44;transition:all 0.2s;" onclick="addLocation('Reims')">Reims</button>
-          <button type="button" style="min-width:120px;flex:1 1 120px;padding:8px 6px;border-radius:8px;background:linear-gradient(135deg,#636e72 0%,#b2bec3 100%);color:#222;font-weight:600;border:none;box-shadow:0 2px 8px #636e7244;transition:all 0.2s;" onclick="addLocation('Le Havre')">Le Havre</button>
-          <button type="button" style="min-width:120px;flex:1 1 120px;padding:8px 6px;border-radius:8px;background:linear-gradient(135deg,#ff7675 0%,#ffeaa7 100%);color:#222;font-weight:600;border:none;box-shadow:0 2px 8px #ff767544;transition:all 0.2s;" onclick="addLocation('Saint-Étienne')">Saint-Étienne</button>
-          <button type="button" style="min-width:120px;flex:1 1 120px;padding:8px 6px;border-radius:8px;background:linear-gradient(135deg,#00b894 0%,#00cec9 100%);color:#fff;font-weight:600;border:none;box-shadow:0 2px 8px #00b89444;transition:all 0.2s;" onclick="addLocation('Toulon')">Toulon</button>
-          <button type="button" style="min-width:120px;flex:1 1 120px;padding:8px 6px;border-radius:8px;background:linear-gradient(135deg,#fdcb6e 0%,#e17055 100%);color:#222;font-weight:600;border:none;box-shadow:0 2px 8px #fdcb6e44;transition:all 0.2s;" onclick="addLocation('Grenoble')">Grenoble</button>
-          <button type="button" style="min-width:120px;flex:1 1 120px;padding:8px 6px;border-radius:8px;background:linear-gradient(135deg,#00bfff 0%,#0984e3 100%);color:#fff;font-weight:600;border:none;box-shadow:0 2px 8px #00bfff44;transition:all 0.2s;" onclick="addLocation('Dijon')">Dijon</button>
-          <button type="button" style="min-width:120px;flex:1 1 120px;padding:8px 6px;border-radius:8px;background:linear-gradient(135deg,#636e72 0%,#b2bec3 100%);color:#222;font-weight:600;border:none;box-shadow:0 2px 8px #636e7244;transition:all 0.2s;" onclick="addLocation('Angers')">Angers</button>
-          <button type="button" style="min-width:120px;flex:1 1 120px;padding:8px 6px;border-radius:8px;background:linear-gradient(135deg,#e84393 0%,#fd79a8 100%);color:#fff;font-weight:600;border:none;box-shadow:0 2px 8px #e8439344;transition:all 0.2s;" onclick="addLocation('Villeurbanne')">Villeurbanne</button>
-          <button type="button" style="min-width:120px;flex:1 1 120px;padding:8px 6px;border-radius:8px;background:linear-gradient(135deg,#34495e 0%,#2c3e50 100%);color:#fff;font-weight:600;border:none;box-shadow:0 2px 8px #34495e44;transition:all 0.2s;" onclick="addLocation('Saint-Denis')">Saint-Denis</button>
+          <button type="button" style="min-width:120px;flex:1 1 120px;padding:8px 6px;border-radius:6px;background:linear-gradient(135deg,#e67e22 0%,#f6e58d 100%);color:#222;font-weight:600;border:none;box-shadow:0 2px 8px #e67e2244;transition:all 0.2s;" onclick="addLocation('Paris')">Paris</button>
+          <button type="button" style="min-width:120px;flex:1 1 120px;padding:8px 6px;border-radius:6px;background:linear-gradient(135deg,#8e44ad 0%,#6c3483 100%);color:#fff;font-weight:600;border:none;box-shadow:0 2px 8px #8e44ad44;transition:all 0.2s;" onclick="addLocation('Marseille')">Marseille</button>
+          <button type="button" style="min-width:120px;flex:1 1 120px;padding:8px 6px;border-radius:6px;background:linear-gradient(135deg,#e74c3c 0%,#c0392b 100%);color:#fff;font-weight:600;border:none;box-shadow:0 2px 8px #e74c3c44;transition:all 0.2s;" onclick="addLocation('Lyon')">Lyon</button>
+          <button type="button" style="min-width:120px;flex:1 1 120px;padding:8px 6px;border-radius:6px;background:linear-gradient(135deg,#2980b9 0%,#6dd5fa 100%);color:#fff;font-weight:600;border:none;box-shadow:0 2px 8px #2980b944;transition:all 0.2s;" onclick="addLocation('Toulouse')">Toulouse</button>
+          <button type="button" style="min-width:120px;flex:1 1 120px;padding:8px 6px;border-radius:6px;background:linear-gradient(135deg,#16a085 0%,#1abc9c 100%);color:#fff;font-weight:600;border:none;box-shadow:0 2px 8px #16a08544;transition:all 0.2s;" onclick="addLocation('Nice')">Nice</button>
+          <button type="button" style="min-width:120px;flex:1 1 120px;padding:8px 6px;border-radius:6px;background:linear-gradient(135deg,#f1c40f 0%,#f39c12 100%);color:#222;font-weight:600;border:none;box-shadow:0 2px 8px #f1c40f44;transition:all 0.2s;" onclick="addLocation('Nantes')">Nantes</button>
+          <button type="button" style="min-width:120px;flex:1 1 120px;padding:8px 6px;border-radius:6px;background:linear-gradient(135deg,#2ecc71 0%,#27ae60 100%);color:#fff;font-weight:600;border:none;box-shadow:0 2px 8px #2ecc7144;transition:all 0.2s;" onclick="addLocation('Montpellier')">Montpellier</button>
+          <button type="button" style="min-width:120px;flex:1 1 120px;padding:8px 6px;border-radius:6px;background:linear-gradient(135deg,#e84393 0%,#fd79a8 100%);color:#fff;font-weight:600;border:none;box-shadow:0 2px 8px #e8439344;transition:all 0.2s;" onclick="addLocation('Strasbourg')">Strasbourg</button>
+          <button type="button" style="min-width:120px;flex:1 1 120px;padding:8px 6px;border-radius:6px;background:linear-gradient(135deg,#34495e 0%,#2c3e50 100%);color:#fff;font-weight:600;border:none;box-shadow:0 2px 8px #34495e44;transition:all 0.2s;" onclick="addLocation('Bordeaux')">Bordeaux</button>
+          <button type="button" style="min-width:120px;flex:1 1 120px;padding:8px 6px;border-radius:6px;background:linear-gradient(135deg,#00b894 0%,#00cec9 100%);color:#fff;font-weight:600;border:none;box-shadow:0 2px 8px #00b89444;transition:all 0.2s;" onclick="addLocation('Lille')">Lille</button>
+          <button type="button" style="min-width:120px;flex:1 1 120px;padding:8px 6px;border-radius:6px;background:linear-gradient(135deg,#fdcb6e 0%,#e17055 100%);color:#222;font-weight:600;border:none;box-shadow:0 2px 8px #fdcb6e44;transition:all 0.2s;" onclick="addLocation('Rennes')">Rennes</button>
+          <button type="button" style="min-width:120px;flex:1 1 120px;padding:8px 6px;border-radius:6px;background:linear-gradient(135deg,#00bfff 0%,#0984e3 100%);color:#fff;font-weight:600;border:none;box-shadow:0 2px 8px #00bfff44;transition:all 0.2s;" onclick="addLocation('Reims')">Reims</button>
+          <button type="button" style="min-width:120px;flex:1 1 120px;padding:8px 6px;border-radius:6px;background:linear-gradient(135deg,#636e72 0%,#b2bec3 100%);color:#222;font-weight:600;border:none;box-shadow:0 2px 8px #636e7244;transition:all 0.2s;" onclick="addLocation('Le Havre')">Le Havre</button>
+          <button type="button" style="min-width:120px;flex:1 1 120px;padding:8px 6px;border-radius:6px;background:linear-gradient(135deg,#ff7675 0%,#ffeaa7 100%);color:#222;font-weight:600;border:none;box-shadow:0 2px 8px #ff767544;transition:all 0.2s;" onclick="addLocation('Saint-Étienne')">Saint-Étienne</button>
+          <button type="button" style="min-width:120px;flex:1 1 120px;padding:8px 6px;border-radius:6px;background:linear-gradient(135deg,#00b894 0%,#00cec9 100%);color:#fff;font-weight:600;border:none;box-shadow:0 2px 8px #00b89444;transition:all 0.2s;" onclick="addLocation('Toulon')">Toulon</button>
+          <button type="button" style="min-width:120px;flex:1 1 120px;padding:8px 6px;border-radius:6px;background:linear-gradient(135deg,#fdcb6e 0%,#e17055 100%);color:#222;font-weight:600;border:none;box-shadow:0 2px 8px #fdcb6e44;transition:all 0.2s;" onclick="addLocation('Grenoble')">Grenoble</button>
+          <button type="button" style="min-width:120px;flex:1 1 120px;padding:8px 6px;border-radius:6px;background:linear-gradient(135deg,#00bfff 0%,#0984e3 100%);color:#fff;font-weight:600;border:none;box-shadow:0 2px 8px #00bfff44;transition:all 0.2s;" onclick="addLocation('Dijon')">Dijon</button>
+          <button type="button" style="min-width:120px;flex:1 1 120px;padding:8px 6px;border-radius:6px;background:linear-gradient(135deg,#636e72 0%,#b2bec3 100%);color:#222;font-weight:600;border:none;box-shadow:0 2px 8px #636e7244;transition:all 0.2s;" onclick="addLocation('Angers')">Angers</button>
+          <button type="button" style="min-width:120px;flex:1 1 120px;padding:8px 6px;border-radius:6px;background:linear-gradient(135deg,#e84393 0%,#fd79a8 100%);color:#fff;font-weight:600;border:none;box-shadow:0 2px 8px #e8439344;transition:all 0.2s;" onclick="addLocation('Villeurbanne')">Villeurbanne</button>
+          <button type="button" style="min-width:120px;flex:1 1 120px;padding:8px 6px;border-radius:6px;background:linear-gradient(135deg,#34495e 0%,#2c3e50 100%);color:#fff;font-weight:600;border:none;box-shadow:0 2px 8px #34495e44;transition:all 0.2s;" onclick="addLocation('Saint-Denis')">Saint-Denis</button>
         </div>
       </label>
       <script>
@@ -50,7 +51,7 @@
           var input = document.getElementById('location-input');
           var current = input.value.split('|').map(function(s){return s.trim();}).filter(Boolean);
           if (current.length >= 10) {
-            alert('⚠️ Vous ne pouvez pas ajouter plus de 10 villes (limite technique de 500 caractères).');
+            alert('?? Vous ne pouvez pas ajouter plus de 10 villes (limite technique de 500 caractères).');
             return;
           }
           if (!current.includes(city)) {
@@ -62,141 +63,12 @@
 
       <label>Région
         <input type="text" name="region" id="region-input" value="{{ show.region or '' }}" placeholder="Ex: Île-de-France, Bretagne...">
-        <span style="font-size:0.95rem;color:#fff;display:block;margin-top:2px;margin-bottom:4px;">Cliquez sur un bouton pour ajouter une région rapidement (vous pouvez ajouter jusqu'à 10 régions).</span>
       </label>
-      <div style="display:flex; flex-wrap:wrap; gap:8px; margin-bottom:16px;">
-        <button type="button" style="min-width:120px;flex:1 1 120px;padding:8px 6px;border-radius:8px;background:linear-gradient(135deg,#e67e22 0%,#f6e58d 100%);color:#222;font-weight:600;border:none;box-shadow:0 2px 8px #e67e2244;transition:all 0.2s;" onclick="addRegion('Auvergne-Rhône-Alpes')">Auvergne-Rhône-Alpes</button>
-        <button type="button" style="min-width:120px;flex:1 1 120px;padding:8px 6px;border-radius:8px;background:linear-gradient(135deg,#8e44ad 0%,#6c3483 100%);color:#fff;font-weight:600;border:none;box-shadow:0 2px 8px #8e44ad44;transition:all 0.2s;" onclick="addRegion('Bourgogne-Franche-Comté')">Bourgogne-Franche-Comté</button>
-        <button type="button" style="min-width:120px;flex:1 1 120px;padding:8px 6px;border-radius:8px;background:linear-gradient(135deg,#e74c3c 0%,#c0392b 100%);color:#fff;font-weight:600;border:none;box-shadow:0 2px 8px #e74c3c44;transition:all 0.2s;" onclick="addRegion('Bretagne')">Bretagne</button>
-        <button type="button" style="min-width:120px;flex:1 1 120px;padding:8px 6px;border-radius:8px;background:linear-gradient(135deg,#2980b9 0%,#6dd5fa 100%);color:#fff;font-weight:600;border:none;box-shadow:0 2px 8px #2980b944;transition:all 0.2s;" onclick="addRegion('Centre-Val de Loire')">Centre-Val de Loire</button>
-        <button type="button" style="min-width:120px;flex:1 1 120px;padding:8px 6px;border-radius:8px;background:linear-gradient(135deg,#16a085 0%,#1abc9c 100%);color:#fff;font-weight:600;border:none;box-shadow:0 2px 8px #16a08544;transition:all 0.2s;" onclick="addRegion('Corse')">Corse</button>
-        <button type="button" style="min-width:120px;flex:1 1 120px;padding:8px 6px;border-radius:8px;background:linear-gradient(135deg,#f1c40f 0%,#f39c12 100%);color:#222;font-weight:600;border:none;box-shadow:0 2px 8px #f1c40f44;transition:all 0.2s;" onclick="addRegion('Grand Est')">Grand Est</button>
-        <button type="button" style="min-width:120px;flex:1 1 120px;padding:8px 6px;border-radius:8px;background:linear-gradient(135deg,#2ecc71 0%,#27ae60 100%);color:#fff;font-weight:600;border:none;box-shadow:0 2px 8px #2ecc7144;transition:all 0.2s;" onclick="addRegion('Hauts-de-France')">Hauts-de-France</button>
-        <button type="button" style="min-width:120px;flex:1 1 120px;padding:8px 6px;border-radius:8px;background:linear-gradient(135deg,#e84393 0%,#fd79a8 100%);color:#fff;font-weight:600;border:none;box-shadow:0 2px 8px #e8439344;transition:all 0.2s;" onclick="addRegion('Île-de-France')">Île-de-France</button>
-        <button type="button" style="min-width:120px;flex:1 1 120px;padding:8px 6px;border-radius:8px;background:linear-gradient(135deg,#34495e 0%,#2c3e50 100%);color:#fff;font-weight:600;border:none;box-shadow:0 2px 8px #34495e44;transition:all 0.2s;" onclick="addRegion('Normandie')">Normandie</button>
-        <button type="button" style="min-width:120px;flex:1 1 120px;padding:8px 6px;border-radius:8px;background:linear-gradient(135deg,#00b894 0%,#00cec9 100%);color:#fff;font-weight:600;border:none;box-shadow:0 2px 8px #00b89444;transition:all 0.2s;" onclick="addRegion('Nouvelle-Aquitaine')">Nouvelle-Aquitaine</button>
-        <button type="button" style="min-width:120px;flex:1 1 120px;padding:8px 6px;border-radius:8px;background:linear-gradient(135deg,#fdcb6e 0%,#e17055 100%);color:#222;font-weight:600;border:none;box-shadow:0 2px 8px #fdcb6e44;transition:all 0.2s;" onclick="addRegion('Occitanie')">Occitanie</button>
-        <button type="button" style="min-width:120px;flex:1 1 120px;padding:8px 6px;border-radius:8px;background:linear-gradient(135deg,#00bfff 0%,#0984e3 100%);color:#fff;font-weight:600;border:none;box-shadow:0 2px 8px #00bfff44;transition:all 0.2s;" onclick="addRegion('Pays de la Loire')">Pays de la Loire</button>
-        <button type="button" style="min-width:120px;flex:1 1 120px;padding:8px 6px;border-radius:8px;background:linear-gradient(135deg,#636e72 0%,#b2bec3 100%);color:#222;font-weight:600;border:none;box-shadow:0 2px 8px #636e7244;transition:all 0.2s;" onclick="addRegion('Provence-Alpes-Côte d\'Azur')">Provence-Alpes-Côte d'Azur</button>
-        <button type="button" style="min-width:120px;flex:1 1 120px;padding:8px 6px;border-radius:8px;background:linear-gradient(135deg,#ff7675 0%,#ffeaa7 100%);color:#222;font-weight:600;border:none;box-shadow:0 2px 8px #ff767544;transition:all 0.2s;" onclick="addRegion('Guadeloupe')">Guadeloupe</button>
-        <button type="button" style="min-width:120px;flex:1 1 120px;padding:8px 6px;border-radius:8px;background:linear-gradient(135deg,#00b894 0%,#00cec9 100%);color:#fff;font-weight:600;border:none;box-shadow:0 2px 8px #00b89444;transition:all 0.2s;" onclick="addRegion('Martinique')">Martinique</button>
-        <button type="button" style="min-width:120px;flex:1 1 120px;padding:8px 6px;border-radius:8px;background:linear-gradient(135deg,#fdcb6e 0%,#e17055 100%);color:#222;font-weight:600;border:none;box-shadow:0 2px 8px #fdcb6e44;transition:all 0.2s;" onclick="addRegion('Guyane')">Guyane</button>
-        <button type="button" style="min-width:120px;flex:1 1 120px;padding:8px 6px;border-radius:8px;background:linear-gradient(135deg,#00bfff 0%,#0984e3 100%);color:#fff;font-weight:600;border:none;box-shadow:0 2px 8px #00bfff44;transition:all 0.2s;" onclick="addRegion('La Réunion')">La Réunion</button>
-        <button type="button" style="min-width:120px;flex:1 1 120px;padding:8px 6px;border-radius:8px;background:linear-gradient(135deg,#636e72 0%,#b2bec3 100%);color:#222;font-weight:600;border:none;box-shadow:0 2px 8px #636e7244;transition:all 0.2s;" onclick="addRegion('Mayotte')">Mayotte</button>
-      </div>
-    <script>
-      function addRegion(region) {
-        var input = document.getElementById('region-input');
-        var current = input.value.split('|').map(function(s){return s.trim();}).filter(Boolean);
-        if (current.length >= 10) {
-          alert('⚠️ Vous ne pouvez pas ajouter plus de 10 régions (limite technique de 500 caractères).');
-          return;
-        }
-        if (!current.includes(region)) {
-          current.push(region);
-          input.value = current.join(' | ');
-        }
-      }
-    </script>
    </div>
 
   <label>Catégorie
     <input type="text" name="category" id="category-input" value="{{ show.category }}">
-    <span style="font-size:0.95rem;color:#fff;display:block;margin-top:2px;margin-bottom:4px;">Cliquez sur un bouton pour ajouter une catégorie rapidement (vous pouvez ajouter jusqu'à 10 catégories).</span>
   </label>
-  <div style="background:linear-gradient(135deg,#1b2a4e 0%,#355c7d 100%);border:2px solid #355c7d;border-radius:12px;padding:16px;margin-bottom:12px;box-shadow:0 4px 12px rgba(53,92,125,0.3);">
-    <div style="font-weight:700;color:#fff;margin-bottom:10px;font-size:1rem;text-align:center;background:linear-gradient(90deg,#1b2a4e 0%,#355c7d 100%);padding:8px;border-radius:8px;box-shadow:0 2px 6px rgba(27,42,78,0.3);">Spectacle et Animation</div>
-    <div style="display:flex;flex-wrap:wrap;gap:6px;">
-      <button type="button" style="padding:7px 14px;border-radius:8px;background:linear-gradient(135deg,#8e44ad 0%,#6c3483 100%);color:#fff;font-weight:600;border:none;font-size:0.9rem;box-shadow:0 2px 6px rgba(142,68,173,0.4);transition:all 0.2s;cursor:pointer;" onclick="addCategory('Animation et Atelier Artistique')">Animation et Atelier Artistique</button>
-      <button type="button" style="padding:7px 14px;border-radius:8px;background:linear-gradient(135deg,#3498db 0%,#2980b9 100%);color:#fff;font-weight:600;border:none;font-size:0.9rem;box-shadow:0 2px 6px rgba(52,152,219,0.4);transition:all 0.2s;cursor:pointer;" onclick="addCategory('Atelier divers')">Atelier divers</button>
-      <button type="button" style="padding:7px 14px;border-radius:8px;background:linear-gradient(135deg,#9b59b6 0%,#8e44ad 100%);color:#fff;font-weight:600;border:none;font-size:0.9rem;box-shadow:0 2px 6px rgba(155,89,182,0.4);transition:all 0.2s;cursor:pointer;" onclick="addCategory('Atelier maquillage')">Atelier maquillage</button>
-      <button type="button" style="padding:7px 14px;border-radius:8px;background:linear-gradient(135deg,#16a085 0%,#1abc9c 100%);color:#fff;font-weight:600;border:none;font-size:0.9rem;box-shadow:0 2px 6px rgba(22,160,133,0.4);transition:all 0.2s;cursor:pointer;" onclick="addCategory('Caricaturistes et Silhouettiste')">Caricaturistes et Silhouettiste</button>
-      <button type="button" style="padding:7px 14px;border-radius:8px;background:linear-gradient(135deg,#e84393 0%,#fd79a8 100%);color:#fff;font-weight:600;border:none;font-size:0.9rem;box-shadow:0 2px 6px rgba(232,67,147,0.4);transition:all 0.2s;cursor:pointer;" onclick="addCategory('Cirque')">Cirque</button>
-      <button type="button" style="padding:7px 14px;border-radius:8px;background:linear-gradient(135deg,#e74c3c 0%,#c0392b 100%);color:#fff;font-weight:600;border:none;font-size:0.9rem;box-shadow:0 2px 6px rgba(231,76,60,0.4);transition:all 0.2s;cursor:pointer;" onclick="addCategory('Clown')">Clown</button>
-      <button type="button" style="padding:7px 14px;border-radius:8px;background:linear-gradient(135deg,#8d6e63 0%,#6d4c41 100%);color:#fff;font-weight:600;border:none;font-size:0.9rem;box-shadow:0 2px 6px rgba(141,110,99,0.4);transition:all 0.2s;cursor:pointer;" onclick="addCategory('Conte et Théâtre')">Conte et Théâtre</button>
-      <button type="button" style="padding:7px 14px;border-radius:8px;background:linear-gradient(135deg,#636e72 0%,#b2bec3 100%);color:#fff;font-weight:600;border:none;font-size:0.9rem;box-shadow:0 2px 6px rgba(99,110,114,0.4);transition:all 0.2s;cursor:pointer;" onclick="addCategory('Fête de village')">Fête de village</button>
-      <button type="button" style="padding:7px 14px;border-radius:8px;background:linear-gradient(135deg,#f39c12 0%,#e67e22 100%);color:#fff;font-weight:600;border:none;font-size:0.9rem;box-shadow:0 2px 6px rgba(243,156,18,0.4);transition:all 0.2s;cursor:pointer;" onclick="addCategory('Humoriste et Imitateur')">Humoriste et Imitateur</button>
-      <button type="button" style="padding:7px 14px;border-radius:8px;background:linear-gradient(135deg,#95a5a6 0%,#7f8c8d 100%);color:#fff;font-weight:600;border:none;font-size:0.9rem;box-shadow:0 2px 6px rgba(149,165,166,0.4);transition:all 0.2s;cursor:pointer;" onclick="addCategory('Location de stand')">Location de stand</button>
-      <button type="button" style="padding:7px 14px;border-radius:8px;background:linear-gradient(135deg,#8e44ad 0%,#6c3483 100%);color:#fff;font-weight:600;border:none;font-size:0.9rem;box-shadow:0 2px 6px rgba(142,68,173,0.4);transition:all 0.2s;cursor:pointer;" onclick="addCategory('Magie et Magicien')">Magie et Magicien</button>
-      <button type="button" style="padding:7px 14px;border-radius:8px;background:linear-gradient(135deg,#e67e22 0%,#f6e58d 100%);color:#222;font-weight:600;border:none;font-size:0.9rem;box-shadow:0 2px 6px rgba(230,126,34,0.4);transition:all 0.2s;cursor:pointer;" onclick="addCategory('Manège')">Manège</button>
-      <button type="button" style="padding:7px 14px;border-radius:8px;background:linear-gradient(135deg,#f39c12 0%,#e67e22 100%);color:#fff;font-weight:600;border:none;font-size:0.9rem;box-shadow:0 2px 6px rgba(243,156,18,0.4);transition:all 0.2s;cursor:pointer;" onclick="addCategory('Marionnettes')">Marionnettes</button>
-      <button type="button" style="padding:7px 14px;border-radius:8px;background:linear-gradient(135deg,#c0392b 0%,#e74c3c 100%);color:#fff;font-weight:600;border:none;font-size:0.9rem;box-shadow:0 2px 6px rgba(192,57,43,0.4);transition:all 0.2s;cursor:pointer;" onclick="addCategory('Père Noël')">Père Noël</button>
-      <button type="button" style="padding:7px 14px;border-radius:8px;background:linear-gradient(135deg,#e91e63 0%,#ad1457 100%);color:#fff;font-weight:600;border:none;font-size:0.9rem;box-shadow:0 2px 6px rgba(233,30,99,0.4);transition:all 0.2s;cursor:pointer;" onclick="addCategory('Revue Cabaret et Danse')">Revue Cabaret et Danse</button>
-      <button type="button" style="padding:7px 14px;border-radius:8px;background:linear-gradient(135deg,#9c27b0 0%,#7b1fa2 100%);color:#fff;font-weight:600;border:none;font-size:0.9rem;box-shadow:0 2px 6px rgba(156,39,176,0.4);transition:all 0.2s;cursor:pointer;" onclick="addCategory('Sosie')">Sosie</button>
-      <button type="button" style="padding:7px 14px;border-radius:8px;background:linear-gradient(135deg,#673ab7 0%,#512da8 100%);color:#fff;font-weight:600;border:none;font-size:0.9rem;box-shadow:0 2px 6px rgba(103,58,183,0.4);transition:all 0.2s;cursor:pointer;" onclick="addCategory('Spectacle à Thèmes')">Spectacle à Thèmes</button>
-      <button type="button" style="padding:7px 14px;border-radius:8px;background:linear-gradient(135deg,#4caf50 0%,#388e3c 100%);color:#fff;font-weight:600;border:none;font-size:0.9rem;box-shadow:0 2px 6px rgba(76,175,80,0.4);transition:all 0.2s;cursor:pointer;" onclick="addCategory('Spectacle Animalier')">Spectacle Animalier</button>
-      <button type="button" style="padding:7px 14px;border-radius:8px;background:linear-gradient(135deg,#388e3c 0%,#1b5e20 100%);color:#fff;font-weight:600;border:none;font-size:0.9rem;box-shadow:0 2px 6px rgba(56,142,60,0.4);transition:all 0.2s;cursor:pointer;" onclick="addCategory('Spectacle Arbre de Noël')">Spectacle Arbre de Noël</button>
-      <button type="button" style="padding:7px 14px;border-radius:8px;background:linear-gradient(135deg,#ec407a 0%,#ad1457 100%);color:#fff;font-weight:600;border:none;font-size:0.9rem;box-shadow:0 2px 6px rgba(236,64,122,0.4);transition:all 0.2s;cursor:pointer;" onclick="addCategory('Spectacle de danse')">Spectacle de danse</button>
-      <button type="button" style="padding:7px 14px;border-radius:8px;background:linear-gradient(135deg,#607d8b 0%,#455a64 100%);color:#fff;font-weight:600;border:none;font-size:0.9rem;box-shadow:0 2px 6px rgba(96,125,139,0.4);transition:all 0.2s;cursor:pointer;" onclick="addCategory('Spectacle de Rue')">Spectacle de Rue</button>
-      <button type="button" style="padding:7px 14px;border-radius:8px;background:linear-gradient(135deg,#43a047 0%,#2e7d32 100%);color:#fff;font-weight:600;border:none;font-size:0.9rem;box-shadow:0 2px 6px rgba(67,160,71,0.4);transition:all 0.2s;cursor:pointer;" onclick="addCategory('Spectacle Enfants')">Spectacle Enfants</button>
-      <button type="button" style="padding:7px 14px;border-radius:8px;background:linear-gradient(135deg,#66bb6a 0%,#43a047 100%);color:#fff;font-weight:600;border:none;font-size:0.9rem;box-shadow:0 2px 6px rgba(102,187,106,0.4);transition:all 0.2s;cursor:pointer;" onclick="addCategory('Spectacle école maternelle ou élémentaire')">Spectacle école maternelle ou élémentaire</button>
-      <button type="button" style="padding:7px 14px;border-radius:8px;background:linear-gradient(135deg,#26a69a 0%,#00897b 100%);color:#fff;font-weight:600;border:none;font-size:0.9rem;box-shadow:0 2px 6px rgba(38,166,154,0.4);transition:all 0.2s;cursor:pointer;" onclick="addCategory('Spectacle collège ou lycée')">Spectacle collège ou lycée</button>
-      <button type="button" style="padding:7px 14px;border-radius:8px;background:linear-gradient(135deg,#1976d2 0%,#1565c0 100%);color:#fff;font-weight:600;border:none;font-size:0.9rem;box-shadow:0 2px 6px rgba(25,118,210,0.4);transition:all 0.2s;cursor:pointer;" onclick="addCategory('Spectacle Evénementiel')">Spectacle Evénementiel</button>
-      <button type="button" style="padding:7px 14px;border-radius:8px;background:linear-gradient(135deg,#00acc1 0%,#00838f 100%);color:#fff;font-weight:600;border:none;font-size:0.9rem;box-shadow:0 2px 6px rgba(0,172,193,0.4);transition:all 0.2s;cursor:pointer;" onclick="addCategory('Spectacle Musical')">Spectacle Musical</button>
-      <button type="button" style="padding:7px 14px;border-radius:8px;background:linear-gradient(135deg,#5e35b1 0%,#4527a0 100%);color:#fff;font-weight:600;border:none;font-size:0.9rem;box-shadow:0 2px 6px rgba(94,53,177,0.4);transition:all 0.2s;cursor:pointer;" onclick="addCategory('Ventriloque')">Ventriloque</button>
-    </div>
-  </div>
-  <div style="background:linear-gradient(135deg,#4a148c 0%,#6a1b9a 100%);border:2px solid #6a1b9a;border-radius:12px;padding:16px;margin-bottom:12px;box-shadow:0 4px 12px rgba(106,27,154,0.3);">
-    <div style="font-weight:700;color:#fff;margin-bottom:10px;font-size:1rem;text-align:center;background:linear-gradient(90deg,#4a148c 0%,#6a1b9a 100%);padding:8px;border-radius:8px;box-shadow:0 2px 6px rgba(74,20,140,0.3);">Théâtre</div>
-    <div style="display:flex;flex-wrap:wrap;gap:6px;">
-      <button type="button" style="padding:7px 14px;border-radius:8px;background:linear-gradient(135deg,#d32f2f 0%,#b71c1c 100%);color:#fff;font-weight:600;border:none;font-size:0.9rem;box-shadow:0 2px 6px rgba(211,47,47,0.4);transition:all 0.2s;cursor:pointer;" onclick="addCategory('Théâtre contemporain')">Théâtre contemporain</button>
-      <button type="button" style="padding:7px 14px;border-radius:8px;background:linear-gradient(135deg,#ff6f00 0%,#e65100 100%);color:#fff;font-weight:600;border:none;font-size:0.9rem;box-shadow:0 2px 6px rgba(255,111,0,0.4);transition:all 0.2s;cursor:pointer;" onclick="addCategory('Théâtre de comédie')">Théâtre de comédie</button>
-      <button type="button" style="padding:7px 14px;border-radius:8px;background:linear-gradient(135deg,#5d4037 0%,#3e2723 100%);color:#fff;font-weight:600;border:none;font-size:0.9rem;box-shadow:0 2px 6px rgba(93,64,55,0.4);transition:all 0.2s;cursor:pointer;" onclick="addCategory('Théâtre d\'auteur')">Théâtre d'auteur</button>
-      <button type="button" style="padding:7px 14px;border-radius:8px;background:linear-gradient(135deg,#303f9f 0%,#1a237e 100%);color:#fff;font-weight:600;border:none;font-size:0.9rem;box-shadow:0 2px 6px rgba(48,63,159,0.4);transition:all 0.2s;cursor:pointer;" onclick="addCategory('Théâtre classique')">Théâtre classique</button>
-      <button type="button" style="padding:7px 14px;border-radius:8px;background:linear-gradient(135deg,#ffa726 0%,#fb8c00 100%);color:#fff;font-weight:600;border:none;font-size:0.9rem;box-shadow:0 2px 6px rgba(255,167,38,0.4);transition:all 0.2s;cursor:pointer;" onclick="addCategory('Théâtre de boulevard')">Théâtre de boulevard</button>
-      <button type="button" style="padding:7px 14px;border-radius:8px;background:linear-gradient(135deg,#7b1fa2 0%,#6a1b9a 100%);color:#fff;font-weight:600;border:none;font-size:0.9rem;box-shadow:0 2px 6px rgba(123,31,162,0.4);transition:all 0.2s;cursor:pointer;" onclick="addCategory('One-man-show')">One-man-show</button>
-      <button type="button" style="padding:7px 14px;border-radius:8px;background:linear-gradient(135deg,#00897b 0%,#00695c 100%);color:#fff;font-weight:600;border:none;font-size:0.9rem;box-shadow:0 2px 6px rgba(0,137,123,0.4);transition:all 0.2s;cursor:pointer;" onclick="addCategory('Théâtre d\'improvisation')">Théâtre d'improvisation</button>
-      <button type="button" style="padding:7px 14px;border-radius:8px;background:linear-gradient(135deg,#c2185b 0%,#ad1457 100%);color:#fff;font-weight:600;border:none;font-size:0.9rem;box-shadow:0 2px 6px rgba(194,24,91,0.4);transition:all 0.2s;cursor:pointer;" onclick="addCategory('Comédie musicale')">Comédie musicale</button>
-      <button type="button" style="padding:7px 14px;border-radius:8px;background:linear-gradient(135deg,#558b2f 0%,#33691e 100%);color:#fff;font-weight:600;border:none;font-size:0.9rem;box-shadow:0 2px 6px rgba(85,139,47,0.4);transition:all 0.2s;cursor:pointer;" onclick="addCategory('Théâtre jeune public')">Théâtre jeune public</button>
-      <button type="button" style="padding:7px 14px;border-radius:8px;background:linear-gradient(135deg,#0288d1 0%,#01579b 100%);color:#fff;font-weight:600;border:none;font-size:0.9rem;box-shadow:0 2px 6px rgba(2,136,209,0.4);transition:all 0.2s;cursor:pointer;" onclick="addCategory('Théâtre amateur')">Théâtre amateur</button>
-    </div>
-  </div>
-  <div style="background:linear-gradient(135deg,#1b2a4e 0%,#355c7d 100%);border:2px solid #355c7d;border-radius:12px;padding:16px;margin-bottom:16px;box-shadow:0 4px 12px rgba(53,92,125,0.3);">
-    <div style="font-weight:700;color:#fff;margin-bottom:10px;font-size:1rem;text-align:center;background:linear-gradient(90deg,#1b2a4e 0%,#355c7d 100%);padding:8px;border-radius:8px;box-shadow:0 2px 6px rgba(27,42,78,0.3);">Groupe de Musique et Musicien</div>
-    <div style="display:flex;flex-wrap:wrap;gap:6px;">
-      {% if user and user.is_admin %}
-      <button type="button" style="padding:10px 18px;border-radius:10px;background:linear-gradient(135deg,#dc143c 0%,#b01030 100%);color:#fff;font-weight:700;border:none;font-size:1rem;box-shadow:0 4px 10px rgba(220,20,60,0.5);transition:all 0.2s;cursor:pointer;letter-spacing:0.5px;" onclick="addCategory('Spectacle à la Une')">⭐ Spectacle à la Une</button>
-      {% endif %}
-      <button type="button" style="padding:7px 14px;border-radius:8px;background:linear-gradient(135deg,#ff6f00 0%,#e65100 100%);color:#fff;font-weight:600;border:none;font-size:0.9rem;box-shadow:0 2px 6px rgba(255,111,0,0.4);transition:all 0.2s;cursor:pointer;" onclick="addCategory('Accordéoniste')">Accordéoniste</button>
-      <button type="button" style="padding:7px 14px;border-radius:8px;background:linear-gradient(135deg,#ffa726 0%,#fb8c00 100%);color:#fff;font-weight:600;border:none;font-size:0.9rem;box-shadow:0 2px 6px rgba(255,167,38,0.4);transition:all 0.2s;cursor:pointer;" onclick="addCategory('Animation Musicale')">Animation Musicale</button>
-      <button type="button" style="padding:7px 14px;border-radius:8px;background:linear-gradient(135deg,#9c27b0 0%,#7b1fa2 100%);color:#fff;font-weight:600;border:none;font-size:0.9rem;box-shadow:0 2px 6px rgba(156,39,176,0.4);transition:all 0.2s;cursor:pointer;" onclick="addCategory('Chorale et Gospel')">Chorale et Gospel</button>
-      <button type="button" style="padding:7px 14px;border-radius:8px;background:linear-gradient(135deg,#00b894 0%,#00cec9 100%);color:#fff;font-weight:600;border:none;font-size:0.9rem;box-shadow:0 2px 6px rgba(0,184,148,0.4);transition:all 0.2s;cursor:pointer;" onclick="addCategory('D.J. et Orchestre')">D.J. et Orchestre</button>
-      <button type="button" style="padding:7px 14px;border-radius:8px;background:linear-gradient(135deg,#f39c12 0%,#e67e22 100%);color:#fff;font-weight:600;border:none;font-size:0.9rem;box-shadow:0 2px 6px rgba(243,156,18,0.4);transition:all 0.2s;cursor:pointer;" onclick="addCategory('Fanfare et Batucada')">Fanfare et Batucada</button>
-      <button type="button" style="padding:7px 14px;border-radius:8px;background:linear-gradient(135deg,#d35400 0%,#ba4a00 100%);color:#fff;font-weight:600;border:none;font-size:0.9rem;box-shadow:0 2px 6px rgba(211,84,0,0.4);transition:all 0.2s;cursor:pointer;" onclick="addCategory('Groupe folklorique')">Groupe folklorique</button>
-      <button type="button" style="padding:7px 14px;border-radius:8px;background:linear-gradient(135deg,#34495e 0%,#2c3e50 100%);color:#fff;font-weight:600;border:none;font-size:0.9rem;box-shadow:0 2px 6px rgba(52,73,94,0.4);transition:all 0.2s;cursor:pointer;" onclick="addCategory('Jazz')">Jazz</button>
-      <button type="button" style="padding:7px 14px;border-radius:8px;background:linear-gradient(135deg,#8e44ad 0%,#6c3483 100%);color:#fff;font-weight:600;border:none;font-size:0.9rem;box-shadow:0 2px 6px rgba(142,68,173,0.4);transition:all 0.2s;cursor:pointer;" onclick="addCategory('Musique Classique')">Musique Classique</button>
-      <button type="button" style="padding:7px 14px;border-radius:8px;background:linear-gradient(135deg,#c0392b 0%,#a93226 100%);color:#fff;font-weight:600;border:none;font-size:0.9rem;box-shadow:0 2px 6px rgba(192,57,43,0.4);transition:all 0.2s;cursor:pointer;" onclick="addCategory('Orgue de Barbarie')">Orgue de Barbarie</button>
-      <button type="button" style="padding:7px 14px;border-radius:8px;background:linear-gradient(135deg,#2c3e50 0%,#1a252f 100%);color:#fff;font-weight:600;border:none;font-size:0.9rem;box-shadow:0 2px 6px rgba(44,62,80,0.4);transition:all 0.2s;cursor:pointer;" onclick="addCategory('Pianiste')">Pianiste</button>
-      <button type="button" style="padding:7px 14px;border-radius:8px;background:linear-gradient(135deg,#e74c3c 0%,#c0392b 100%);color:#fff;font-weight:600;border:none;font-size:0.9rem;box-shadow:0 2px 6px rgba(231,76,60,0.4);transition:all 0.2s;cursor:pointer;" onclick="addCategory('Rock et Country')">Rock et Country</button>
-      <button type="button" style="padding:7px 14px;border-radius:8px;background:linear-gradient(135deg,#e91e63 0%,#c2185b 100%);color:#fff;font-weight:600;border:none;font-size:0.9rem;box-shadow:0 2px 6px rgba(233,30,99,0.4);transition:all 0.2s;cursor:pointer;" onclick="addCategory('Rap')">Rap</button>
-      <button type="button" style="padding:7px 14px;border-radius:8px;background:linear-gradient(135deg,#00bcd4 0%,#0097a7 100%);color:#fff;font-weight:600;border:none;font-size:0.9rem;box-shadow:0 2px 6px rgba(0,188,212,0.4);transition:all 0.2s;cursor:pointer;" onclick="addCategory('Musique actuelle')">Musique actuelle</button>
-      <button type="button" style="padding:7px 14px;border-radius:8px;background:linear-gradient(135deg,#673ab7 0%,#512da8 100%);color:#fff;font-weight:600;border:none;font-size:0.9rem;box-shadow:0 2px 6px rgba(103,58,183,0.4);transition:all 0.2s;cursor:pointer;" onclick="addCategory('Musique électronique')">Musique électronique</button>
-      <button type="button" style="padding:7px 14px;border-radius:8px;background:linear-gradient(135deg,#2196f3 0%,#1976d2 100%);color:#fff;font-weight:600;border:none;font-size:0.9rem;box-shadow:0 2px 6px rgba(33,150,243,0.4);transition:all 0.2s;cursor:pointer;" onclick="addCategory('Chanson française')">Chanson française</button>
-      <button type="button" style="padding:7px 14px;border-radius:8px;background:linear-gradient(135deg,#ff9800 0%,#f57c00 100%);color:#fff;font-weight:600;border:none;font-size:0.9rem;box-shadow:0 2px 6px rgba(255,152,0,0.4);transition:all 0.2s;cursor:pointer;" onclick="addCategory('Auteur-Interprète')">Auteur-Interprète</button>
-      <button type="button" style="padding:7px 14px;border-radius:8px;background:linear-gradient(135deg,#f06292 0%,#ec407a 100%);color:#fff;font-weight:600;border:none;font-size:0.9rem;box-shadow:0 2px 6px rgba(240,98,146,0.4);transition:all 0.2s;cursor:pointer;" onclick="addCategory('Pop')">Pop</button>
-      <button type="button" style="padding:7px 14px;border-radius:8px;background:linear-gradient(135deg,#9575cd 0%,#7e57c2 100%);color:#fff;font-weight:600;border:none;font-size:0.9rem;box-shadow:0 2px 6px rgba(149,117,205,0.4);transition:all 0.2s;cursor:pointer;" onclick="addCategory('R&B')">R&B</button>
-      <button type="button" style="padding:7px 14px;border-radius:8px;background:linear-gradient(135deg,#66bb6a 0%,#43a047 100%);color:#fff;font-weight:600;border:none;font-size:0.9rem;box-shadow:0 2px 6px rgba(102,187,106,0.4);transition:all 0.2s;cursor:pointer;" onclick="addCategory('Reggae')">Reggae</button>
-      <button type="button" style="padding:7px 14px;border-radius:8px;background:linear-gradient(135deg,#ba68c8 0%,#ab47bc 100%);color:#fff;font-weight:600;border:none;font-size:0.9rem;box-shadow:0 2px 6px rgba(186,104,200,0.4);transition:all 0.2s;cursor:pointer;" onclick="addCategory('Soul')">Soul</button>
-      <button type="button" style="padding:7px 14px;border-radius:8px;background:linear-gradient(135deg,#42a5f5 0%,#1e88e5 100%);color:#fff;font-weight:600;border:none;font-size:0.9rem;box-shadow:0 2px 6px rgba(66,165,245,0.4);transition:all 0.2s;cursor:pointer;" onclick="addCategory('Variété française')">Variété française</button>
-      <button type="button" style="padding:7px 14px;border-radius:8px;background:linear-gradient(135deg,#26a69a 0%,#00897b 100%);color:#fff;font-weight:600;border:none;font-size:0.9rem;box-shadow:0 2px 6px rgba(38,166,154,0.4);transition:all 0.2s;cursor:pointer;" onclick="addCategory('Concert')">Concert</button>
-      <button type="button" style="padding:7px 14px;border-radius:8px;background:linear-gradient(135deg,#ff7043 0%,#f4511e 100%);color:#fff;font-weight:600;border:none;font-size:0.9rem;box-shadow:0 2px 6px rgba(255,112,67,0.4);transition:all 0.2s;cursor:pointer;" onclick="addCategory('Tribute')">Tribute</button>
-      <button type="button" style="padding:7px 14px;border-radius:8px;background:linear-gradient(135deg,#fdd835 0%,#f9a825 100%);color:#fff;font-weight:600;border:none;font-size:0.9rem;box-shadow:0 2px 6px rgba(253,216,53,0.4);transition:all 0.2s;cursor:pointer;" onclick="addCategory('Caricaturiste')">Caricaturiste</button>
-    </div>
-  </div>
-  <script>
-    function addCategory(cat) {
-      var input = document.getElementById('category-input');
-      var current = input.value.split('|').map(function(s){return s.trim();}).filter(Boolean);
-      if (current.length >= 10) {
-        alert('⚠️ Vous ne pouvez pas ajouter plus de 10 catégories (limite technique de 500 caractères).');
-        return;
-      }
-      if (!current.includes(cat)) {
-        current.push(cat);
-        input.value = current.join(' | ');
-      }
-    }
-  </script>
 
   <!-- Champ catégorie 2 supprimé (nettoyé) -->
    
@@ -217,12 +89,12 @@
 
   <label>Site internet
     <input type="url" name="site_internet" placeholder="https://www.monsite.fr" value="{{ show.site_internet if show and show.site_internet else '' }}">
-    <span style="font-size:0.95rem;color:#fff;font-weight:bold;display:block;margin-top:2px;">(visible si abonnement)</span>
+    <span style="font-size:0.9rem;color:#fff;font-weight:bold;display:block;margin-top:2px;">(visible si abonnement)</span>
   </label>
 
   <label>Email de contact
     <input type="email" name="contact_email" placeholder="votre@email.fr" value="{{ show.contact_email if show and show.contact_email else '' }}" required>
-    <span style="font-size:0.95rem;color:#fff;font-weight:bold;display:block;margin-top:2px;">(visible si abonnement)</span>
+    <span style="font-size:0.9rem;color:#fff;font-weight:bold;display:block;margin-top:2px;">(visible si abonnement)</span>
   </label>
 
   <label>Téléphone de contact <span style="font-size:0.85rem;font-weight:normal;color:var(--muted);">(visible uniquement par l'administrateur)</span>
@@ -233,22 +105,22 @@
   <div style="background:linear-gradient(135deg,#e91e63 0%,#9c27b0 100%);border-radius:12px;padding:16px;margin:16px 0;box-shadow:0 4px 15px rgba(233,30,99,0.3);">
     <label style="display:flex;align-items:center;gap:12px;cursor:pointer;color:#fff;font-weight:600;">
       <input type="checkbox" name="is_event" value="1" {% if show and show.is_event %}checked{% endif %} style="width:20px;height:20px;cursor:pointer;">
-      <span>📅 Marquer comme événement annoncé</span>
+      <span>?? Marquer comme événement annoncé</span>
     </label>
     <p style="margin:8px 0 0 32px;font-size:0.9rem;color:rgba(255,255,255,0.8);">
       Les événements sont affichés dans la section "Événements annoncés" et non dans le catalogue principal.
     </p>
     
     <label style="display:block;margin-top:16px;color:#fff;font-weight:600;">
-      📆 Date de l'événement
-      <input type="date" name="date" value="{{ show.date.strftime('%Y-%m-%d') if show and show.date else '' }}" style="display:block;margin-top:8px;padding:10px 14px;border-radius:8px;border:none;font-size:1rem;width:100%;max-width:250px;">
+      ?? Date de l'événement
+      <input type="date" name="date" value="{{ show.date.strftime('%Y-%m-%d') if show and show.date else '' }}" style="display:block;margin-top:8px;padding:10px 14px;border-radius:6px;border:none;font-size:1rem;width:100%;max-width:250px;">
     </label>
   </div>
   
   <div style="background:linear-gradient(135deg,#ffd700 0%,#ff9800 100%);border-radius:12px;padding:16px;margin:16px 0;box-shadow:0 4px 15px rgba(255,215,0,0.3);">
     <label style="display:flex;align-items:center;gap:12px;cursor:pointer;color:#222;font-weight:700;">
       <input type="checkbox" name="is_featured" value="1" {% if show and show.is_featured %}checked{% endif %} style="width:20px;height:20px;cursor:pointer;">
-      <span>⭐ Afficher "À la une" sur la page d'accueil</span>
+      <span>? Afficher "À la une" sur la page d'accueil</span>
     </label>
     <p style="margin:8px 0 0 32px;font-size:0.9rem;color:rgba(0,0,0,0.7);">
       Les spectacles "à la une" sont mis en avant sur la page d'accueil (maximum 8 spectacles).
@@ -260,7 +132,7 @@
     {% if show.is_pdf() %}
         <p>Fichier actuel :
             <a href="{{ url_for('uploaded_file', filename=show.file_name) }}" target="_blank">
-                📄 Voir le PDF ({{ show.file_name }})
+                ?? Voir le PDF ({{ show.file_name }})
             </a>
         </p>
     {% else %}
@@ -268,7 +140,7 @@
         {% set photos_count = (1 if show.file_name else 0) + (1 if show.file_name2 else 0) + (1 if show.file_name3 else 0) %}
         <div style="background:{% if photos_count >= 2 %}linear-gradient(135deg, #27ae60 0%, #2ecc71 100%){% else %}linear-gradient(135deg, #e74c3c 0%, #c0392b 100%){% endif %}; padding:12px 16px; border-radius:10px; margin-bottom:16px; box-shadow:0 4px 12px rgba(0,0,0,0.15);">
           <div style="display:flex; align-items:center; gap:12px;">
-            <span style="font-size:2rem;">{% if photos_count >= 2 %}✅{% else %}⚠️{% endif %}</span>
+            <span style="font-size:2rem;">{% if photos_count >= 2 %}?{% else %}??{% endif %}</span>
             <div style="flex:1;">
               <strong style="color:#fff; display:block; font-size:1rem; margin-bottom:4px;">{{ photos_count }}/2 photos minimum</strong>
               <span style="color:#fff; font-size:0.85rem; opacity:0.95;">
@@ -289,12 +161,12 @@
             <span style="font-size:0.85rem; color:var(--muted); display:block; margin-bottom:6px;">Photo 1 (principale)</span>
             <img src="{{ url_for('uploaded_file', filename=show.file_name) }}"
                  alt="{{ show.title }}"
-                 style="max-width:100%; max-height:150px; border-radius:8px; border:1px solid var(--border);">
+                 style="max-width:100%; max-height:150px; border-radius:6px; border:1px solid var(--border);">
             <button type="button"
                     onclick="deletePhoto({{ show.id }}, 'file_name')"
                     style="position:absolute; top:28px; right:8px; background:#ef4444; color:white; border:none; padding:6px 10px; border-radius:6px; cursor:pointer; font-size:0.85rem; box-shadow:0 2px 4px rgba(0,0,0,0.2);"
                     title="Supprimer cette photo">
-              🗑️ Supprimer
+              ??? Supprimer
             </button>
           </div>
           {% if show.has_image2() %}
@@ -302,18 +174,18 @@
             <span style="font-size:0.85rem; color:var(--muted); display:block; margin-bottom:6px;">Photo 2</span>
             <img src="{{ url_for('uploaded_file', filename=show.file_name2) }}"
                  alt="{{ show.title }} - Photo 2"
-                 style="max-width:100%; max-height:150px; border-radius:8px; border:1px solid var(--border);">
+                 style="max-width:100%; max-height:150px; border-radius:6px; border:1px solid var(--border);">
             <button type="button"
                     onclick="deletePhoto({{ show.id }}, 'file_name2')"
                     style="position:absolute; top:28px; right:8px; background:#ef4444; color:white; border:none; padding:6px 10px; border-radius:6px; cursor:pointer; font-size:0.85rem; box-shadow:0 2px 4px rgba(0,0,0,0.2);"
                     title="Supprimer cette photo">
-              🗑️ Supprimer
+              ??? Supprimer
             </button>
           </div>
           {% else %}
           <div style="text-align:center; opacity:0.5;">
             <span style="font-size:0.85rem; color:var(--muted); display:block; margin-bottom:6px;">Photo 2</span>
-            <div style="height:100px; background:var(--bg); border-radius:8px; border:1px dashed var(--border); display:flex; align-items:center; justify-content:center; color:var(--muted);">Non définie</div>
+            <div style="height:100px; background:var(--bg); border-radius:6px; border:1px dashed var(--border); display:flex; align-items:center; justify-content:center; color:var(--muted);">Non définie</div>
           </div>
           {% endif %}
           {% if show.has_image3() %}
@@ -321,18 +193,18 @@
             <span style="font-size:0.85rem; color:var(--muted); display:block; margin-bottom:6px;">Photo 3</span>
             <img src="{{ url_for('uploaded_file', filename=show.file_name3) }}"
                  alt="{{ show.title }} - Photo 3"
-                 style="max-width:100%; max-height:150px; border-radius:8px; border:1px solid var(--border);">
+                 style="max-width:100%; max-height:150px; border-radius:6px; border:1px solid var(--border);">
             <button type="button"
                     onclick="deletePhoto({{ show.id }}, 'file_name3')"
                     style="position:absolute; top:28px; right:8px; background:#ef4444; color:white; border:none; padding:6px 10px; border-radius:6px; cursor:pointer; font-size:0.85rem; box-shadow:0 2px 4px rgba(0,0,0,0.2);"
                     title="Supprimer cette photo">
-              🗑️ Supprimer
+              ??? Supprimer
             </button>
           </div>
           {% else %}
           <div style="text-align:center; opacity:0.5;">
             <span style="font-size:0.85rem; color:var(--muted); display:block; margin-bottom:6px;">Photo 3</span>
-            <div style="height:100px; background:var(--bg); border-radius:8px; border:1px dashed var(--border); display:flex; align-items:center; justify-content:center; color:var(--muted);">Non définie</div>
+            <div style="height:100px; background:var(--bg); border-radius:6px; border:1px dashed var(--border); display:flex; align-items:center; justify-content:center; color:var(--muted);">Non définie</div>
           </div>
           {% endif %}
         </div>
@@ -351,9 +223,9 @@
     <!-- Avertissement 2 photos minimum -->
     <div style="background:linear-gradient(135deg, #f39c12 0%, #e74c3c 100%); padding:12px 16px; border-radius:10px; margin-bottom:16px; border-left:4px solid #c0392b; box-shadow:0 4px 12px rgba(231, 76, 60, 0.2);">
       <div style="display:flex; align-items:center; gap:10px;">
-        <span style="font-size:1.5rem;">⚠️</span>
+        <span style="font-size:1.5rem;">??</span>
         <div>
-          <strong style="color:#fff; display:block; font-size:0.95rem; margin-bottom:4px;">Minimum 2 photos requis pour la publication</strong>
+          <strong style="color:#fff; display:block; font-size:0.9rem; margin-bottom:4px;">Minimum 2 photos requis pour la publication</strong>
           <span style="color:#fff; font-size:0.85rem; opacity:0.95;">Votre spectacle ne pourra être approuvé et publié que si vous avez ajouté au moins 2 photos. Vous pouvez en ajouter jusqu'à 3.</span>
         </div>
       </div>
@@ -362,8 +234,8 @@
     <div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:12px;">
       <label style="display:flex; flex-direction:column; gap:6px;">
         <span style="font-size:0.85rem; color:var(--muted);">Photo 1 (principale)</span>
-        <input type="file" name="file" id="file" accept=".png,.jpg,.jpeg,.gif,.webp,.pdf" style="padding:8px; background:var(--bg); border:1px solid var(--border); border-radius:8px;">
-        <button type="button" onclick="clearFileInput('file')" id="clear-file" style="display:none; padding:6px 12px; background:#e74c3c; color:#fff; border:none; border-radius:6px; cursor:pointer; font-size:0.85rem;">🗑️ Retirer</button>
+        <input type="file" name="file" id="file" accept=".png,.jpg,.jpeg,.gif,.webp,.pdf" style="padding:8px; background:var(--bg); border:1px solid var(--border); border-radius:6px;">
+        <button type="button" onclick="clearFileInput('file')" id="clear-file" style="display:none; padding:6px 12px; background:#e74c3c; color:#fff; border:none; border-radius:6px; cursor:pointer; font-size:0.85rem;">??? Retirer</button>
         <div class="upload-progress" id="progress-file" style="display:none; margin-top:4px;">
           <div class="progress-bar"><div class="progress-fill" id="progress-fill-file"></div></div>
           <div class="progress-text" id="progress-text-file">0%</div>
@@ -371,8 +243,8 @@
       </label>
       <label style="display:flex; flex-direction:column; gap:6px;">
         <span style="font-size:0.85rem; color:var(--muted);">Photo 2</span>
-        <input type="file" name="file2" id="file2" accept=".png,.jpg,.jpeg,.gif,.webp" style="padding:8px; background:var(--bg); border:1px solid var(--border); border-radius:8px;">
-        <button type="button" onclick="clearFileInput('file2')" id="clear-file2" style="display:none; padding:6px 12px; background:#e74c3c; color:#fff; border:none; border-radius:6px; cursor:pointer; font-size:0.85rem;">🗑️ Retirer</button>
+        <input type="file" name="file2" id="file2" accept=".png,.jpg,.jpeg,.gif,.webp" style="padding:8px; background:var(--bg); border:1px solid var(--border); border-radius:6px;">
+        <button type="button" onclick="clearFileInput('file2')" id="clear-file2" style="display:none; padding:6px 12px; background:#e74c3c; color:#fff; border:none; border-radius:6px; cursor:pointer; font-size:0.85rem;">??? Retirer</button>
         <div class="upload-progress" id="progress-file2" style="display:none; margin-top:4px;">
           <div class="progress-bar"><div class="progress-fill" id="progress-fill-file2"></div></div>
           <div class="progress-text" id="progress-text-file2">0%</div>
@@ -380,14 +252,32 @@
       </label>
       <label style="display:flex; flex-direction:column; gap:6px;">
         <span style="font-size:0.85rem; color:var(--muted);">Photo 3</span>
-        <input type="file" name="file3" id="file3" accept=".png,.jpg,.jpeg,.gif,.webp" style="padding:8px; background:var(--bg); border:1px solid var(--border); border-radius:8px;">
-        <button type="button" onclick="clearFileInput('file3')" id="clear-file3" style="display:none; padding:6px 12px; background:#e74c3c; color:#fff; border:none; border-radius:6px; cursor:pointer; font-size:0.85rem;">🗑️ Retirer</button>
+        <input type="file" name="file3" id="file3" accept=".png,.jpg,.jpeg,.gif,.webp" style="padding:8px; background:var(--bg); border:1px solid var(--border); border-radius:6px;">
+        <button type="button" onclick="clearFileInput('file3')" id="clear-file3" style="display:none; padding:6px 12px; background:#e74c3c; color:#fff; border:none; border-radius:6px; cursor:pointer; font-size:0.85rem;">??? Retirer</button>
         <div class="upload-progress" id="progress-file3" style="display:none; margin-top:4px;">
           <div class="progress-bar"><div class="progress-fill" id="progress-fill-file3"></div></div>
           <div class="progress-text" id="progress-text-file3">0%</div>
         </div>
       </label>
     </div>
+  </div>
+
+  {# ═══ SECTION MATCHING : Spécialités + Événements + Lieux + Régions ════ #}
+  <div style="background: linear-gradient(135deg, rgba(76,175,80,0.1) 0%, rgba(67,160,71,0.1) 100%); border: 2px solid #4caf50; border-radius:12px; padding:20px; margin-bottom:20px;">
+    <h3 style="color: #4caf50; margin:0 0 8px 0; font-size:1.1rem;">🎯 Profil de matching — Cochez uniquement ce que vous savez vraiment faire !</h3>
+
+    {% set current_specialites = (show.specialites or "").split(",") | map('trim') | select | list %}
+    {% set current_evenements = (show.evenements or "").split(",") | map('trim') | select | list %}
+    {% set current_lieux = (show.lieux_intervention or "").split(",") | map('trim') | select | list %}
+    {% set current_regions = (show.regions_intervention or "").split(",") | map('trim') | select | list %}
+
+    {{ accordion_checkboxes("specialites", specialites_data, current_specialites, "🎭", "Vos spécialités artistiques", "#6a1b9a", "Cochez tout ce que votre compagnie sait faire.", "#fff") }}
+
+    {{ accordion_checkboxes("evenements", evenements_data, current_evenements, "🎪", "Types d'événements acceptés", "#e65100", "Pour quels types d'événements êtes-vous disponible ?", "#fff") }}
+
+    {{ accordion_checkboxes("lieux_intervention", lieux_data, current_lieux, "🏛️", "Types de lieux où vous pouvez jouer", "#2e7d32", "Dans quels types de lieux pouvez-vous vous produire ?", "#fff") }}
+
+    {{ regions_checkboxes("regions_intervention", regions_data, current_regions, "#1565c0", "#fff") }}
   </div>
 
   <div class="actions">
@@ -493,7 +383,60 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   });
 });
+
+// ========== VALIDATION EVENT TAGS (EDIT) ==========
+document.addEventListener('DOMContentLoaded', function() {
+  var form = document.querySelector('form');
+  var errorDiv = document.getElementById('event-tags-error-edit');
+  var checkboxes = document.querySelectorAll('input[name="event_tags"]');
+  
+  // Ajouter effet visuel sur hover
+  var labels = document.querySelectorAll('.event-tag-label');
+  labels.forEach(function(label) {
+    label.addEventListener('mouseenter', function() {
+      this.style.background = 'rgba(255,255,255,0.08)';
+      this.style.borderColor = '#4caf50';
+    });
+    label.addEventListener('mouseleave', function() {
+      this.style.background = 'rgba(255,255,255,0.03)';
+      this.style.borderColor = 'rgba(255,255,255,0.1)';
+    });
+  });
+  
+  // Valider au submit
+  form.addEventListener('submit', function(e) {
+    var atLeastOneChecked = false;
+    checkboxes.forEach(function(cb) {
+      if (cb.checked) {
+        atLeastOneChecked = true;
+      }
+    });
+    
+    if (!atLeastOneChecked) {
+      e.preventDefault();
+      errorDiv.style.display = 'block';
+      errorDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      return false;
+    } else {
+      errorDiv.style.display = 'none';
+    }
+  });
+  
+  // Cacher l'erreur dès qu'une checkbox est cochée
+  checkboxes.forEach(function(cb) {
+    cb.addEventListener('change', function() {
+      var anyChecked = false;
+      checkboxes.forEach(function(checkbox) {
+        if (checkbox.checked) anyChecked = true;
+      });
+      if (anyChecked) {
+        errorDiv.style.display = 'none';
+      }
+    });
+  });
+});
 </script>
+{{ accordion_checkboxes_js() }}
 {% endblock %}
 
   <label>Email de contact <span style="font-size:0.85rem;font-weight:normal;color:var(--muted);">(Modifiable uniquement par l'admin)</span>
@@ -519,3 +462,4 @@ document.addEventListener('DOMContentLoaded', function() {
       <input type="url" name="site_internet" placeholder="https://spectacleanimation.fr/" value="{{ request.form.get('site_internet', 'https://spectacleanimation.fr/') }}" readonly style="background:#eee; color:#888; cursor:not-allowed;">
     {% endif %}
   </label>
+

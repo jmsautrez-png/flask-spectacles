@@ -88,6 +88,7 @@ from utils.security import (
 )
 from utils.search import normalize_search_text, generate_search_patterns
 from utils.seo import SEO_CATEGORIES, optimize_title_seo
+from constants import SPECIALITES, EVENEMENTS, LIEUX, REGIONS_FRANCE, REGIONS_VOISINES
 
 print("✓ Config, models et utils importés")
 
@@ -1580,6 +1581,12 @@ def register_routes(app: Flask) -> None:
             site_internet = request.form.get("site_internet", "").strip()
             is_event = request.form.get("is_event", "0") == "1"
 
+            # Nouveaux champs matching (CSV)
+            specialites_list = request.form.getlist("specialites")
+            evenements_list = request.form.getlist("evenements")
+            lieux_list = request.form.getlist("lieux_intervention")
+            regions_list = request.form.getlist("regions_intervention")
+
             date_val = None
             if date_str:
                 try:
@@ -1666,6 +1673,10 @@ def register_routes(app: Flask) -> None:
                 is_event=is_event,
                 approved=False,
                 user_id=current_user().id if current_user() else None,   # associer l'auteur
+                specialites=",".join(specialites_list) if specialites_list else None,
+                evenements=",".join(evenements_list) if evenements_list else None,
+                lieux_intervention=",".join(lieux_list) if lieux_list else None,
+                regions_intervention=",".join(regions_list) if regions_list else None,
             )
             db.session.add(show)
             db.session.commit()
@@ -1709,7 +1720,9 @@ def register_routes(app: Flask) -> None:
             # Afficher uniquement le message flash après création
             return render_template("flash_only_child.html", user=u)
 
-        return render_template("submit_form.html", user=current_user())
+        return render_template("submit_form.html", user=current_user(),
+                               specialites_data=SPECIALITES, evenements_data=EVENEMENTS,
+                               lieux_data=LIEUX, regions_data=REGIONS_FRANCE)
 
     @app.route("/uploads/<path:filename>")
     def uploaded_file(filename):
@@ -1943,6 +1956,16 @@ def register_routes(app: Flask) -> None:
             s.contact_email = request.form.get("contact_email","").strip() or None
             s.contact_phone = request.form.get("contact_phone","").strip() or None
 
+            # Matching : mise à jour des 4 axes
+            spec_list = request.form.getlist("specialites")
+            s.specialites = ",".join(spec_list) if spec_list else None
+            evt_list = request.form.getlist("evenements")
+            s.evenements = ",".join(evt_list) if evt_list else None
+            lieux_list = request.form.getlist("lieux_intervention")
+            s.lieux_intervention = ",".join(lieux_list) if lieux_list else None
+            reg_list = request.form.getlist("regions_intervention")
+            s.regions_intervention = ",".join(reg_list) if reg_list else None
+
             date_str = request.form.get("date","").strip()
             if date_str:
                 try:
@@ -2040,7 +2063,9 @@ def register_routes(app: Flask) -> None:
             flash("Spectacle mis à jour.", "success")
             return render_template("flash_only_child.html", user=u)
 
-        return render_template("show_form_edit.html", show=s, user=u)
+        return render_template("show_form_edit.html", show=s, user=u,
+                               specialites_data=SPECIALITES, evenements_data=EVENEMENTS,
+                               lieux_data=LIEUX, regions_data=REGIONS_FRANCE)
 
     @app.route("/my/shows/<int:show_id>/delete", methods=["POST"], endpoint="show_delete_self")
     @login_required
@@ -2762,11 +2787,19 @@ def register_routes(app: Flask) -> None:
                     flash("Erreur lors de l'enregistrement de la photo 3. Veuillez réessayer.", "danger")
                     return redirect(request.url)
 
+            # Matching fields
+            show.specialites = ",".join(request.form.getlist("specialites"))
+            show.evenements = ",".join(request.form.getlist("evenements"))
+            show.lieux_intervention = ",".join(request.form.getlist("lieux_intervention"))
+            show.regions_intervention = ",".join(request.form.getlist("regions_intervention"))
+
             db.session.commit()
             flash("Annonce mise à jour.", "success")
             return redirect(url_for("admin_dashboard"))
 
-        return render_template("show_form_edit.html", show=show, user=current_user())
+        return render_template("show_form_edit.html", show=show, user=current_user(),
+                               specialites_data=SPECIALITES, evenements_data=EVENEMENTS,
+                               lieux_data=LIEUX, regions_data=REGIONS_FRANCE)
 
     @app.route("/admin/shows/<int:show_id>/delete", methods=["POST"])
     @login_required
@@ -3088,6 +3121,11 @@ def register_routes(app: Flask) -> None:
             contact_email = request.form.get("contact_email", "").strip()
             intitule = request.form.get("intitule", "").strip()
 
+            # Matching fields (accordions)
+            specialites_recherchees = ",".join(request.form.getlist("specialites_recherchees"))
+            evenements_contexte = ",".join(request.form.getlist("evenements_contexte"))
+            lieux_souhaites = ",".join(request.form.getlist("lieux_souhaites"))
+
             # Validation basique - TELEPHONE est optionnel !
             if not all([structure, lieu_ville, code_postal, nom, dates_horaires, 
                        type_espace, genre_recherche, age_range, jauge, budget, contact_email, intitule]):
@@ -3157,6 +3195,9 @@ Accessibilité: {accessibilite}
                 accessibilite=accessibilite,
                 contact_email=contact_email,
                 intitule=intitule,
+                specialites_recherchees=specialites_recherchees,
+                evenements_contexte=evenements_contexte,
+                lieux_souhaites=lieux_souhaites,
                 is_private=False,  # Publique par défaut
                 approved=False  # En attente de validation par l'admin
             )
@@ -3225,7 +3266,8 @@ Accessibilité: {accessibilite}
             Show.category.ilike('%Spectacle à la une%')
         ).order_by(Show.created_at.desc()).limit(8).all()
 
-        return render_template("demande_animation.html", user=current_user(), spectacles_une=spectacles_une)
+        return render_template("demande_animation.html", user=current_user(), spectacles_une=spectacles_une,
+                               specialites_data=SPECIALITES, evenements_data=EVENEMENTS, lieux_data=LIEUX)
 
     @app.route("/informations-legales")
     def legal():
@@ -3765,6 +3807,11 @@ Accessibilité: {accessibilite}
             is_private = request.form.get("is_private") == "on"
             send_emails = request.form.get("send_emails") == "on"
             publish_immediately = request.form.get("publish_immediately") == "on"
+
+            # Matching fields (accordions)
+            specialites_recherchees = ",".join(request.form.getlist("specialites_recherchees"))
+            evenements_contexte = ",".join(request.form.getlist("evenements_contexte"))
+            lieux_souhaites = ",".join(request.form.getlist("lieux_souhaites"))
             
             # Si "Autre" est sélectionné, utiliser le genre personnalisé
             autre_genre = request.form.get("autre_genre", "").strip()
@@ -3797,6 +3844,9 @@ Accessibilité: {accessibilite}
                 contraintes=contraintes,
                 accessibilite=accessibilite,
                 contact_email=contact_email,
+                specialites_recherchees=specialites_recherchees,
+                evenements_contexte=evenements_contexte,
+                lieux_souhaites=lieux_souhaites,
                 is_private=is_private,
                 approved=publish_immediately  # Approuvé seulement si demandé
             )
@@ -3915,7 +3965,8 @@ Accessibilité: {accessibilite}
             
             return redirect(url_for("demandes_animation"))
 
-        return render_template("admin_create_demande.html", user=current_user())
+        return render_template("admin_create_demande.html", user=current_user(),
+                               specialites_data=SPECIALITES, evenements_data=EVENEMENTS, lieux_data=LIEUX)
 
     @app.route("/admin/envoyer-demande/<int:demande_id>", methods=["GET", "POST"])
     @login_required
@@ -4455,6 +4506,11 @@ Accessibilité: {accessibilite}
             return redirect(url_for("admin_demandes_animation"))
         
         # GET : afficher le formulaire de sélection
+        # Auto-matching basé sur les nouveaux champs
+        from utils.matching import find_matching_shows
+        all_approved = Show.query.filter(Show.approved.is_(True)).all()
+        matched = find_matching_shows(demande, all_approved, min_score=1)
+
         # Liste des catégories prédéfinies du site
         predefined_categories = [
             "Magie",
@@ -4515,6 +4571,7 @@ Accessibilité: {accessibilite}
             "admin_envoyer_demande.html", 
             demande=demande, 
             categories=categories_list,
+            matched_shows=matched,
             user=current_user()
         )
 

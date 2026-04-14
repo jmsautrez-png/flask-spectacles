@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% from "_accordion_checkboxes.html" import accordion_checkboxes, accordion_checkboxes_js %}
 
 {% block title %}Créer une demande d'animation - Admin{% endblock %}
 
@@ -312,6 +313,17 @@
                                 </div>
                             </div>
                         </div>
+                    </div>
+
+                    <!-- Section Matching (Accordéons) -->
+                    <div class="form-section">
+                        <h2 class="section-title">
+                            <span class="section-icon">🎯</span>
+                            Critères de matching
+                        </h2>
+                        {{ accordion_checkboxes("specialites_recherchees", specialites_data, [], "🎭", "Spécialités recherchées", "#e91e63", "Quel type de spectacle cherchez-vous ?") }}
+                        {{ accordion_checkboxes("evenements_contexte", evenements_data, [], "📅", "Contexte événement", "#4caf50", "Pour quel type d'événement ?") }}
+                        {{ accordion_checkboxes("lieux_souhaites", lieux_data, [], "📍", "Type de lieu", "#2196f3", "Dans quel type de lieu ?") }}
                     </div>
 
                     <!-- Boutons d'action -->
@@ -743,5 +755,7 @@
         }
     });
 </script>
+
+{{ accordion_checkboxes_js() }}
 
 {% endblock %}

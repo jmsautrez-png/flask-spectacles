@@ -1,0 +1,136 @@
+{# ═══════════════════════════════════════════════════════════════════
+   Macro réutilisable : Accordéons de checkboxes pour le matching
+   Usage :
+     {% from "_accordion_checkboxes.html" import accordion_checkboxes %}
+     {{ accordion_checkboxes("specialites", specialites_data, current_values, "🎭", "Spécialités artistiques") }}
+   ═══════════════════════════════════════════════════════════════════ #}
+
+{% macro accordion_checkboxes(field_name, categories_dict, current_values, icon, title, color="#6a1b9a", description="", text_color="#000") %}
+<div class="matching-accordion-section" style="margin:18px 0;">
+  <h3 style="color:{{ color }}; margin:0 0 6px 0; font-size:1.05rem; display:flex; align-items:center; gap:8px;">
+    {{ icon }} {{ title }}
+    <span class="matching-count" id="count-{{ field_name }}" style="background:{{ color }}; color:#fff; border-radius:12px; padding:2px 10px; font-size:0.8rem; font-weight:600;">0</span>
+  </h3>
+  {% if description %}
+  <p style="color:{{ text_color }}; opacity:0.7; margin:0 0 10px 0; font-size:0.88rem;">{{ description }}</p>
+  {% endif %}
+
+  {% for group_name, items in categories_dict.items() %}
+  <details class="matching-accordion" style="margin-bottom:6px; border:1px solid rgba(128,128,128,0.25); border-radius:8px; overflow:hidden;">
+    <summary style="cursor:pointer; padding:10px 14px; font-weight:600; font-size:0.95rem; background:rgba(128,128,128,0.08); display:flex; align-items:center; justify-content:space-between; user-select:none; color:{{ text_color }};">
+      <span>{{ group_name }}</span>
+      <span class="accordion-group-count" id="gcount-{{ field_name }}-{{ loop.index }}" style="background:rgba(128,128,128,0.2); border-radius:10px; padding:1px 8px; font-size:0.8rem; min-width:20px; text-align:center; color:{{ text_color }};">0</span>
+    </summary>
+    <div style="padding:8px 14px; display:grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap:4px;">
+      {% for item in items %}
+      <label style="display:flex; align-items:center; padding:5px 8px; border-radius:5px; cursor:pointer; transition:background 0.15s;" class="matching-cb-label" onmouseover="this.style.background='rgba(128,128,128,0.1)'" onmouseout="this.style.background='transparent'">
+        <input type="checkbox" name="{{ field_name }}" value="{{ item }}"
+          {% if item in current_values %}checked{% endif %}
+          onchange="updateMatchingCounts('{{ field_name }}', {{ categories_dict | length }})"
+          style="margin-right:8px; width:16px; height:16px; cursor:pointer; accent-color:{{ color }};">
+        <span style="font-size:0.9rem; color:{{ text_color }};">{{ item }}</span>
+      </label>
+      {% endfor %}
+    </div>
+  </details>
+  {% endfor %}
+
+  {# Boutons rapides : tout cocher / décocher #}
+  <div style="display:flex; gap:8px; margin-top:6px;">
+    <button type="button" onclick="toggleAllMatching('{{ field_name }}', true)" style="font-size:0.8rem; padding:3px 10px; border:1px solid {{ color }}; background:transparent; color:{{ color }}; border-radius:5px; cursor:pointer;">✓ Tout cocher</button>
+    <button type="button" onclick="toggleAllMatching('{{ field_name }}', false)" style="font-size:0.8rem; padding:3px 10px; border:1px solid #999; background:transparent; color:#999; border-radius:5px; cursor:pointer;">✗ Tout décocher</button>
+  </div>
+</div>
+{% endmacro %}
+
+
+{# ═══════════════════════════════ RÉGIONS ═══════════════════════════ #}
+{% macro regions_checkboxes(field_name, regions_list, current_values, color="#1565c0", text_color="#000") %}
+<div class="matching-accordion-section" style="margin:18px 0;">
+  <h3 style="color:{{ color }}; margin:0 0 6px 0; font-size:1.05rem; display:flex; align-items:center; gap:8px;">
+    📍 Régions d'intervention
+    <span class="matching-count" id="count-{{ field_name }}" style="background:{{ color }}; color:#fff; border-radius:12px; padding:2px 10px; font-size:0.8rem; font-weight:600;">0</span>
+  </h3>
+  <p style="color:{{ text_color }}; opacity:0.7; margin:0 0 10px 0; font-size:0.88rem;">Sélectionnez les régions où vous pouvez réellement vous déplacer.</p>
+
+  <div style="display:grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap:4px; padding:8px; border:1px solid rgba(128,128,128,0.25); border-radius:8px;">
+    {% for region in regions_list %}
+    <label style="display:flex; align-items:center; padding:5px 8px; border-radius:5px; cursor:pointer; transition:background 0.15s;" class="matching-cb-label" onmouseover="this.style.background='rgba(128,128,128,0.1)'" onmouseout="this.style.background='transparent'">
+      <input type="checkbox" name="{{ field_name }}" value="{{ region }}"
+        {% if region in current_values %}checked{% endif %}
+        onchange="updateRegionCount('{{ field_name }}')"
+        style="margin-right:8px; width:16px; height:16px; cursor:pointer; accent-color:{{ color }};">
+      <span style="font-size:0.9rem; color:{{ text_color }};">{{ region }}</span>
+    </label>
+    {% endfor %}
+  </div>
+
+  <div style="display:flex; gap:8px; margin-top:6px;">
+    <button type="button" onclick="toggleAllMatching('{{ field_name }}', true); updateRegionCount('{{ field_name }}')" style="font-size:0.8rem; padding:3px 10px; border:1px solid {{ color }}; background:transparent; color:{{ color }}; border-radius:5px; cursor:pointer;">🇫🇷 France entière</button>
+    <button type="button" onclick="toggleAllMatching('{{ field_name }}', false); updateRegionCount('{{ field_name }}')" style="font-size:0.8rem; padding:3px 10px; border:1px solid #999; background:transparent; color:#999; border-radius:5px; cursor:pointer;">✗ Tout décocher</button>
+  </div>
+</div>
+{% endmacro %}
+
+
+{# ═══════════════════════════ JAVASCRIPT ═══════════════════════════ #}
+{% macro accordion_checkboxes_js() %}
+<script>
+function updateMatchingCounts(fieldName, groupCount) {
+  // Total
+  var total = document.querySelectorAll('input[name="' + fieldName + '"]:checked').length;
+  var el = document.getElementById('count-' + fieldName);
+  if (el) el.textContent = total;
+
+  // Par groupe
+  var accordions = document.querySelectorAll('.matching-accordion-section');
+  accordions.forEach(function(section) {
+    var inputs = section.querySelectorAll('input[name="' + fieldName + '"]');
+    if (inputs.length === 0) return;
+    var details = section.querySelectorAll('details.matching-accordion');
+    details.forEach(function(det, idx) {
+      var checked = det.querySelectorAll('input[name="' + fieldName + '"]:checked').length;
+      var counter = document.getElementById('gcount-' + fieldName + '-' + (idx + 1));
+      if (counter) {
+        counter.textContent = checked;
+        counter.style.background = checked > 0 ? '#4caf50' : 'rgba(128,128,128,0.2)';
+        counter.style.color = checked > 0 ? '#fff' : 'inherit';
+      }
+    });
+  });
+}
+
+function updateRegionCount(fieldName) {
+  var total = document.querySelectorAll('input[name="' + fieldName + '"]:checked').length;
+  var el = document.getElementById('count-' + fieldName);
+  if (el) el.textContent = total;
+}
+
+function toggleAllMatching(fieldName, checked) {
+  document.querySelectorAll('input[name="' + fieldName + '"]').forEach(function(cb) {
+    cb.checked = checked;
+  });
+  // Mise à jour des compteurs
+  var section = null;
+  document.querySelectorAll('.matching-accordion-section').forEach(function(s) {
+    if (s.querySelector('input[name="' + fieldName + '"]')) section = s;
+  });
+  if (section) {
+    var groupCount = section.querySelectorAll('details.matching-accordion').length;
+    updateMatchingCounts(fieldName, groupCount);
+  }
+}
+
+// Init compteurs au chargement
+document.addEventListener('DOMContentLoaded', function() {
+  ['specialites', 'evenements', 'lieux_intervention', 'regions_intervention',
+   'specialites_recherchees', 'evenements_contexte', 'lieux_souhaites'].forEach(function(f) {
+    var inputs = document.querySelectorAll('input[name="' + f + '"]');
+    if (inputs.length > 0) {
+      updateMatchingCounts(f, 99);
+      updateRegionCount(f);
+    }
+  });
+});
+</script>
+{% endmacro %}

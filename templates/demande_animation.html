@@ -1,9 +1,11 @@
+﻿<!-- UPDATED: 2026-04-14 11:30 -->
 {% extends "base.html" %}
-{% block title %}Demander une animation pour anniversaire, entreprise, école - Spectacle'ment VØtre{% endblock %}
+{% from "_accordion_checkboxes.html" import accordion_checkboxes, accordion_checkboxes_js %}
+{% block title %}Demander une animation pour anniversaire, entreprise, école - Spectacle'ment Vôtre{% endblock %}
 
 {% block content %}
 <div style="margin-bottom:18px; font-size:1.15em; color:#fff; font-weight:600; text-align:center;">
-  Spectacle'ment VØtre la plateforme qui connecte facilement les organisateurs d’événements avec des artistes et compagnies de spectacle vivant.
+  Spectacle'ment Vôtre la plateforme qui connecte facilement les organisateurs d'événements avec des artistes et compagnies de spectacle vivant.
 </div>
 <div class="demande-wrap" style="background:linear-gradient(135deg,#1b2a4e 0%,#355c7d 100%); border:2px solid #355c7d; border-radius:16px; padding:32px; margin-bottom:32px; position:relative; overflow:hidden; box-shadow:0 4px 16px #355c7d22; color:#fff;">
   <div style="background:linear-gradient(90deg,#1b2a4e 0%,#355c7d 100%); color:#fff; border-radius:10px; padding:14px 18px; margin-bottom:18px; text-align:center; font-size:1.18em; font-weight:700; box-shadow:0 2px 8px #1b2a4e33; letter-spacing:0.1px;">
@@ -24,8 +26,8 @@
         <span style="font-size:0.85rem; color:#b0b8d8;">Progression</span>
         <span id="form-progress-text" style="font-size:0.85rem; color:#b0b8d8;">0/9 champs remplis</span>
       </div>
-      <div style="background:#1b2a4e; border-radius:8px; height:6px; overflow:hidden;">
-        <div id="form-progress" style="width:0%; height:100%; background:linear-gradient(90deg,#1976d2,#22c55e); border-radius:8px; transition:width 0.3s ease;"></div>
+      <div style="background:#1b2a4e; border-radius:6px; height:6px; overflow:hidden;">
+        <div id="form-progress" style="width:0%; height:100%; background:linear-gradient(90deg,#1976d2,#22c55e); border-radius:6px; transition:width 0.3s ease;"></div>
       </div>
     </div>
     
@@ -74,75 +76,9 @@
       </label>
     </fieldset>
 
+    <!-- SECTION: Type de spectacle recherché -->
     <fieldset class="demande-section">
-      <legend>2) Votre événement</legend>
-
-      <div class="grid-2">
-        <label>
-          <span class="label-text">Lieu / Ville <span class="req">*</span></span>
-          <input type="text" id="lieu_ville" name="lieu_ville" required autocomplete="address-level2"
-                 placeholder="Paris, Lyon…"
-                 value="{{ request.form.get('lieu_ville','') }}">
-        </label>
-
-        <label>
-          <span class="label-text">Date(s) et horaires <span class="req">*</span></span>
-          <input type="text" id="dates_horaires" name="dates_horaires" required
-                 placeholder="Ex : 15/12 (14h-16h), 18/12 (10h-12h)"
-                 value="{{ request.form.get('dates_horaires','') }}">
-        </label>
-      </div>
-
-      <div class="grid-2">
-        <label>
-          <span class="label-text">Code postal <span class="req">*</span></span>
-          <input type="text" id="code_postal" name="code_postal" required autocomplete="postal-code"
-                 inputmode="numeric" pattern="[0-9]{5}" maxlength="5"
-                 placeholder="Ex : 75001"
-                 value="{{ request.form.get('code_postal','') }}">
-          <small class="hint">Entrez le code postal pour déterminer automatiquement la région.</small>
-        </label>
-
-        <label>
-          <span class="label-text">Région</span>
-          <input type="text" id="region" name="region" readonly
-                 placeholder="Déterminée automatiquement"
-                 value="{{ request.form.get('region','') }}"
-                 style="background:#1b2a4e; cursor:not-allowed;">
-          <small class="hint">La région est remplie automatiquement selon le code postal.</small>
-        </label>
-      </div>
-
-      <div class="grid-2">
-        <label>
-          <span class="label-text">🎪 Type d'événement</span>
-          <select id="type_evenement" name="type_evenement">
-            <option value="">-- Choisir (optionnel) --</option>
-            <option value="Arbre de Noël">Arbre de Noël</option>
-            <option value="Anniversaire">Anniversaire</option>
-            <option value="Festival">Festival</option>
-            <option value="Festival de rue">Festival de rue</option>
-            <option value="Fête de village">Fête de village</option>
-            <option value="Fête d'école">Fête d'école</option>
-            <option value="Spectacle scolaire">Spectacle scolaire (Maternelle/Élémentaire)</option>
-            <option value="Événement CSE/CE">Événement CSE/CE</option>
-            <option value="Salon du livre">Salon du livre</option>
-            <option value="Salon professionnel">Salon professionnel</option>
-            <option value="Fête foraine">Fête foraine</option>
-            <option value="Inauguration">Inauguration</option>
-            <option value="Mariage">Mariage</option>
-            <option value="Événement privé">Événement privé</option>
-            <option value="Autre">Autre (précisez ci-dessous)</option>
-          </select>
-          <small class="hint">Précisez le type d'événement si vous le connaissez</small>
-        </label>
-
-        <label id="autre_evenement_container" style="display:none;">
-          <span class="label-text">✏️ Précisez le type d'événement</span>
-          <input type="text" id="autre_evenement" name="autre_evenement" placeholder="Décrivez le type d'événement">
-          <small class="hint">Ce champ sera utilisé si vous sélectionnez "Autre" pour le type d'événement.</small>
-        </label>
-      </div>
+      <legend>2) Type de spectacle recherché</legend>
 
       <div class="grid-2">
         <label>
@@ -217,12 +153,6 @@
           </select>
         </label>
 
-        <label id="autre_genre_container" style="display:none;">
-          <span class="label-text">Précisez votre demande</span>
-          <input type="text" id="autre_genre" name="autre_genre" placeholder="Décrivez le type de spectacle ou animation recherché">
-          <small class="hint">Ce champ sera utilisé si vous sélectionnez "Autre" ci-dessus.</small>
-        </label>
-
         <label>
           <span class="label-text">Tranche d'âge du public <span class="req">*</span></span>
           <select id="age_range" name="age_range" required>
@@ -239,7 +169,24 @@
         </label>
       </div>
 
-      <div class="grid-2">
+      <label id="autre_genre_container" style="display:none;">
+        <span class="label-text">Précisez votre demande</span>
+        <input type="text" id="autre_genre" name="autre_genre" placeholder="Décrivez le type de spectacle ou animation recherché">
+        <small class="hint">Ce champ sera utilisé si vous sélectionnez "Autre" ci-dessus.</small>
+      </label>
+    </fieldset>
+
+    <!-- SECTION: Spécialités recherchées + Événements + Lieux -->
+    <fieldset class="demande-section" style="background: linear-gradient(135deg, rgba(76,175,80,0.1) 0%, rgba(67,160,71,0.1) 100%); border: 2px solid #4caf50;">
+      <legend style="color: #4caf50;">Détails de votre recherche</legend>
+
+      {{ accordion_checkboxes("specialites_recherchees", specialites_data, [], "🎭", "Type de spectacle recherché", "#6a1b9a", "Cochez le ou les types de spectacle que vous recherchez.") }}
+
+      {{ accordion_checkboxes("evenements_contexte", evenements_data, [], "🎪", "Contexte de votre événement", "#e65100", "Quel type d'événement organisez-vous ?") }}
+
+      {{ accordion_checkboxes("lieux_souhaites", lieux_data, [], "🏛️", "Type d'espace mis à disposition", "#2e7d32", "Sélectionnez le ou les types d'espaces disponibles.") }}
+
+      <div class="grid-2" style="margin-top:16px;">
         <label>
           <span class="label-text">Jauge estimée <span class="req">*</span></span>
           <input type="number" id="jauge" name="jauge" min="1" step="1" required inputmode="numeric"
@@ -255,51 +202,67 @@
           <small class="hint">Même une fourchette aide à proposer les bonnes options.</small>
         </label>
       </div>
+
+      <div class="grid-2" style="margin-top:16px;">
+        <label>
+          <span class="label-text">Contraintes techniques (optionnel)</span>
+          <textarea id="contraintes" name="contraintes" rows="4"
+                    placeholder="Scène, hauteur sous plafond, noir total, régie, puissance électrique…">{{ request.form.get('contraintes','') }}</textarea>
+        </label>
+
+        <label>
+          <span class="label-text">Accessibilité (optionnel)</span>
+          <textarea id="accessibilite" name="accessibilite" rows="4"
+                    placeholder="PMR, parking, déchargement, ascenseur…">{{ request.form.get('accessibilite','') }}</textarea>
+        </label>
+      </div>
     </fieldset>
 
     <fieldset class="demande-section">
-      <legend>3) L'espace / contraintes</legend>
+      <legend>3) Votre événement</legend>
 
-      <label style="margin-bottom: 0;">
-        <span class="label-text">Type d'espace mis à disposition <span class="req">*</span></span>
-        <select id="type_espace" name="type_espace" required>
-          <option value="">-- Choisir --</option>
-          <option value="Salle intérieur">Salle intérieur</option>
-          <option value="Chapiteau">Chapiteau</option>
-          <option value="Espace improvisé">Espace improvisé</option>
-          <option value="Extérieur">Extérieur</option>
-          <option value="Jardin public">Jardin public</option>
-          <option value="Chez l'habitant">Chez l'habitant</option>
-          <option value="École">École</option>
-          <option value="Médiathèque">Médiathèque</option>
-          <option value="Entreprise">Entreprise</option>
-          <option value="Autre">Autre</option>
-        </select>
-      </label>
+      <div class="grid-2">
+        <label>
+          <span class="label-text">Lieu / Ville <span class="req">*</span></span>
+          <input type="text" id="lieu_ville" name="lieu_ville" required autocomplete="address-level2"
+                 placeholder="Paris, Lyon…"
+                 value="{{ request.form.get('lieu_ville','') }}">
+        </label>
 
-      <details class="demande-details">
-        <summary>▸ Ajouter des précisions (optionnel)</summary>
-        <div class="grid-2" style="margin-top:16px;">
-          <label>
-            <span class="label-text">Contraintes techniques</span>
-            <textarea id="contraintes" name="contraintes" rows="4"
-                      placeholder="Scène, hauteur sous plafond, noir total, régie, puissance électrique…">{{ request.form.get('contraintes','') }}</textarea>
-          </label>
+        <label>
+          <span class="label-text">Date(s) et horaires <span class="req">*</span></span>
+          <input type="text" id="dates_horaires" name="dates_horaires" required
+                 placeholder="Ex : 15/12 (14h-16h), 18/12 (10h-12h)"
+                 value="{{ request.form.get('dates_horaires','') }}">
+        </label>
+      </div>
 
-          <label>
-            <span class="label-text">Accessibilité</span>
-            <textarea id="accessibilite" name="accessibilite" rows="4"
-                      placeholder="PMR, parking, déchargement, ascenseur…">{{ request.form.get('accessibilite','') }}</textarea>
-          </label>
-        </div>
-      </details>
+      <div class="grid-2">
+        <label>
+          <span class="label-text">Code postal <span class="req">*</span></span>
+          <input type="text" id="code_postal" name="code_postal" required autocomplete="postal-code"
+                 inputmode="numeric" pattern="[0-9]{5}" maxlength="5"
+                 placeholder="Ex : 75001"
+                 value="{{ request.form.get('code_postal','') }}">
+          <small class="hint">Entrez le code postal pour déterminer automatiquement la région.</small>
+        </label>
+
+        <label>
+          <span class="label-text">Région</span>
+          <input type="text" id="region" name="region" readonly
+                 placeholder="Déterminée automatiquement"
+                 value="{{ request.form.get('region','') }}"
+                 style="background:#1b2a4e; cursor:not-allowed;">
+          <small class="hint">La région est remplie automatiquement selon le code postal.</small>
+        </label>
+      </div>
     </fieldset>
 
     <div class="demande-actions">
       <button type="submit" class="publish-btn" style="width:100%; padding:14px; font-size:1rem;">
         Envoyer la demande
       </button>
-      <span style="display:block; margin-top:10px; font-size:0.95em; color:#b0b8d8; text-align:center;">Réponse rapide — vous serez contacté par e-mail / téléphone.</span>
+      <span style="display:block; margin-top:10px; font-size:0.95em; color:#b0b8d8; text-align:center;">Réponse rapide - vous serez contacté par e-mail / téléphone.</span>
     </div>
   </form>
 
@@ -353,10 +316,10 @@
       '02': 'Hauts-de-France', '59': 'Hauts-de-France', '60': 'Hauts-de-France',
       '62': 'Hauts-de-France', '80': 'Hauts-de-France',
       
-      // Île-de-France
-      '75': 'Île-de-France', '77': 'Île-de-France', '78': 'Île-de-France',
-      '91': 'Île-de-France', '92': 'Île-de-France', '93': 'Île-de-France',
-      '94': 'Île-de-France', '95': 'Île-de-France',
+      // ÃŽle-de-France
+      '75': 'ÃŽle-de-France', '77': 'ÃŽle-de-France', '78': 'ÃŽle-de-France',
+      '91': 'ÃŽle-de-France', '92': 'ÃŽle-de-France', '93': 'ÃŽle-de-France',
+      '94': 'ÃŽle-de-France', '95': 'ÃŽle-de-France',
       
       // Normandie
       '14': 'Normandie', '27': 'Normandie', '50': 'Normandie', '61': 'Normandie', '76': 'Normandie',
@@ -409,23 +372,6 @@
           autreContainer.style.display = 'none';
           autreInput.removeAttribute('required');
           autreInput.value = '';
-        }
-      });
-    }
-
-    // Gestion de l'affichage du champ "Autre type d'événement"
-    var typeEvenementSelect = document.getElementById('type_evenement');
-    var autreEvenementContainer = document.getElementById('autre_evenement_container');
-    var autreEvenementInput = document.getElementById('autre_evenement');
-    
-    if (typeEvenementSelect && autreEvenementContainer) {
-      typeEvenementSelect.addEventListener('change', function() {
-        if (this.value === 'Autre') {
-          autreEvenementContainer.style.display = 'block';
-          autreEvenementInput.focus();
-        } else {
-          autreEvenementContainer.style.display = 'none';
-          autreEvenementInput.value = '';
         }
       });
     }
@@ -522,6 +468,58 @@
 
     updateProgress();
   });
+
+  // ========== VALIDATION EVENT CONTEXT ==========
+  document.addEventListener('DOMContentLoaded', function() {
+    var form = document.querySelector('form');
+    var errorDiv = document.getElementById('event-context-error');
+    var checkboxes = document.querySelectorAll('input[name="event_context"]');
+    
+    // Ajouter effet visuel sur hover
+    var labels = document.querySelectorAll('.event-context-label');
+    labels.forEach(function(label) {
+      label.addEventListener('mouseenter', function() {
+        this.style.background = 'rgba(255,255,255,0.08)';
+        this.style.borderColor = '#4caf50';
+      });
+      label.addEventListener('mouseleave', function() {
+        this.style.background = 'rgba(255,255,255,0.03)';
+        this.style.borderColor = 'rgba(255,255,255,0.1)';
+      });
+    });
+    
+    // Valider au submit
+    form.addEventListener('submit', function(e) {
+      var atLeastOneChecked = false;
+      checkboxes.forEach(function(cb) {
+        if (cb.checked) {
+          atLeastOneChecked = true;
+        }
+      });
+      
+      if (!atLeastOneChecked) {
+        e.preventDefault();
+        errorDiv.style.display = 'block';
+        errorDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        return false;
+      } else {
+        errorDiv.style.display = 'none';
+      }
+    });
+    
+    // Cacher l'erreur dès qu'une checkbox est cochée
+    checkboxes.forEach(function(cb) {
+      cb.addEventListener('change', function() {
+        var anyChecked = false;
+        checkboxes.forEach(function(checkbox) {
+          if (checkbox.checked) anyChecked = true;
+        });
+        if (anyChecked) {
+          errorDiv.style.display = 'none';
+        }
+      });
+    });
+  });
   </script>
 </div>
 
@@ -533,7 +531,7 @@
       background:linear-gradient(135deg,#22335a 0%,#2d4263 100%);
       color:#fff;
       border:1.5px solid #355c7d;
-      border-radius:8px;
+      border-radius:6px;
       font-size:1rem;
       font-family:inherit;
       padding:12px 16px;
@@ -591,7 +589,7 @@
 {% if spectacles_une %}
 <div style="max-width:100%; margin:48px auto 0 auto; padding:0 20px;">
   <div style="text-align:center; margin-bottom:32px;">
-    <h2 style="font-size:2rem; margin:0 0 8px 0; color:var(--text);">✨ Spectacles à la Une</h2>
+    <h2 style="font-size:2rem; margin:0 0 8px 0; color:var(--text);">âœ¨ Spectacles à la Une</h2>
     <p style="color:var(--muted); font-size:1rem;">Découvrez notre sélection de spectacles exceptionnels</p>
   </div>
   
@@ -615,7 +613,7 @@
       <div style="padding:12px;">
         <div style="margin-bottom:8px;">
           <span class="badge" style="background:linear-gradient(135deg, #ffd700 0%, #ffed4e 100%); color:#222; font-weight:700; border:none; font-size:0.7rem; padding:4px 8px;">
-            ⭐
+            â­
           </span>
         </div>
         
@@ -659,4 +657,6 @@
   </div>
 </div>
 {% endif %}
+{{ accordion_checkboxes_js() }}
 {% endblock %}
+

@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% from "_accordion_checkboxes.html" import accordion_checkboxes, regions_checkboxes, accordion_checkboxes_js %}
 {% block title %}VØtre spectacle - Spectacle'ment VØtre{% endblock %}
 {% block content %}
 
@@ -382,6 +383,19 @@
       </div>
     </fieldset>
 
+    {# ═══ SECTION MATCHING : Spécialités + Événements + Lieux + Régions ════ #}
+    <fieldset class="demande-section">
+      <legend>🎯 Votre profil de matching — Cochez uniquement ce que vous savez vraiment faire !</legend>
+
+      {{ accordion_checkboxes("specialites", specialites_data, [], "🎭", "Vos spécialités artistiques", "#6a1b9a", "Cochez tout ce que votre compagnie sait faire.", "#fff") }}
+
+      {{ accordion_checkboxes("evenements", evenements_data, [], "🎪", "Types d'événements acceptés", "#e65100", "Pour quels types d'événements êtes-vous disponible ?", "#fff") }}
+
+      {{ accordion_checkboxes("lieux_intervention", lieux_data, [], "🏛️", "Types de lieux où vous pouvez jouer", "#2e7d32", "Dans quels types de lieux pouvez-vous vous produire ?", "#fff") }}
+
+      {{ regions_checkboxes("regions_intervention", regions_data, [], "#1565c0", "#fff") }}
+    </fieldset>
+
     <div style="display:flex; gap:12px; justify-content:space-between; align-items:center; margin-top:24px;">
       <p style="color:var(--muted); font-size:0.9rem; margin:0;">
         <span style="color:#ffb347;">⚠️</span> Votre annonce sera visible après validation par l'administrateur
@@ -589,4 +603,5 @@ document.addEventListener('DOMContentLoaded', function() {
   });
 });
 </script>
+{{ accordion_checkboxes_js() }}
 {% endblock %}

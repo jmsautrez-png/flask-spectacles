@@ -30,6 +30,11 @@ class DemandeAnimation(db.Model):
     approved = db.Column(db.Boolean, default=False, index=True)  # True = approuvé et publié sur le site
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
+    # ── Matching : axes de correspondance (CSV) ──
+    specialites_recherchees = db.Column(db.Text, nullable=True)  # "Clown,Magie et Magicien"
+    evenements_contexte = db.Column(db.Text, nullable=True)       # "Fête de village / Fête locale"
+    lieux_souhaites = db.Column(db.Text, nullable=True)           # "Salle des fêtes,Parc / Jardin public"
+
 
 class User(db.Model):
     __tablename__ = "users"
@@ -81,6 +86,12 @@ class Show(db.Model):
     contact_phone = db.Column(db.String(20), nullable=True)
     site_internet = db.Column(db.String(255), nullable=True)
     display_order = db.Column(db.Integer, default=0)  # Ordre d'affichage (0 = ordre par défaut, plus petit = plus haut)
+
+    # ── Matching : 3 axes + régions (CSV, séparés par des virgules) ──
+    specialites = db.Column(db.Text, nullable=True)          # "Clown,Magie et Magicien,Cirque"
+    evenements = db.Column(db.Text, nullable=True)            # "Arbre de Noël,Fête de village / Fête locale"
+    lieux_intervention = db.Column(db.Text, nullable=True)    # "Salle des fêtes,Parc / Jardin public"
+    regions_intervention = db.Column(db.Text, nullable=True)  # "Île-de-France,Centre-Val de Loire"
 
     # ⬇⬇⬇ Association au propriétaire (compagnie)
     user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=True)
