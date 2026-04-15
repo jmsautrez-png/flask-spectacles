@@ -123,7 +123,6 @@
           <p style="margin:0.5rem 0;"><span style="display:inline-block; padding:3px 10px; border-radius:6px; font-size:0.85rem; font-weight:600; {% if demande.portee_nationale %}background:#e3f2fd; color:#1565c0; border:1px solid #90caf9;{% else %}background:#fff3e0; color:#e65100; border:1px solid #ffcc80;{% endif %}">{% if demande.portee_nationale %}🇫🇷 Toute la France{% else %}📍 Région uniquement{% endif %}</span></p>
           {% endif %}
           <p style="margin:0.5rem 0;"><strong>📅 Date(s) :</strong> <span style="color:#222;">{{ demande.dates_horaires }}</span></p>
-          <p style="margin:0.5rem 0;"><strong>🏢 Espace :</strong> <span style="color:#222;">{{ demande.type_espace }}</span></p>
           <p style="margin:0.5rem 0;"><strong>👶 Public :</strong> <span style="color:#222;">{{ demande.age_range|format_age }}</span></p>
           <p style="margin:0.5rem 0;"><strong>👥 Jauge :</strong> <span style="color:#222;">{{ demande.jauge }} personnes</span></p>
           <p style="margin:0.5rem 0;"><strong>💶 Budget :</strong> <span style="color:#28a745; font-weight:700; font-size:1.1em;">{{ demande.budget }} €</span></p>

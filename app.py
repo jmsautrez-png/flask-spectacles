@@ -749,7 +749,7 @@ def register_error_handlers(app: Flask) -> None:
             # Redirection vers la page précédente avec un message flash
             flash("Votre session a expiré. Veuillez réessayer.", "warning")
             # Rediriger vers la page de provenance ou vers l'accueil
-            referrer = request.referrer or url_for('index')
+            referrer = request.referrer or url_for('home')
             return redirect(referrer)
     except ImportError:
         app.logger.warning("CSRFError non disponible - gestionnaire CSRF non enregistré")
@@ -2148,6 +2148,14 @@ def register_routes(app: Flask) -> None:
                     except Exception:
                         pass
 
+        # Supprimer les enregistrements liés (FK sans CASCADE)
+        from models.models import ShowView, Review, Conversation, Message
+        ShowView.query.filter_by(show_id=s.id).delete()
+        Review.query.filter_by(show_id=s.id).delete()
+        for conv in Conversation.query.filter_by(show_id=s.id).all():
+            Message.query.filter_by(conversation_id=conv.id).delete()
+            db.session.delete(conv)
+
         db.session.delete(s)
         db.session.commit()
         flash("Spectacle supprimé.", "success")
@@ -2877,6 +2885,14 @@ def register_routes(app: Flask) -> None:
                         p.unlink()
                     except Exception:
                         pass
+
+        # Supprimer les enregistrements liés (FK sans CASCADE)
+        from models.models import ShowView, Review, Conversation, Message
+        ShowView.query.filter_by(show_id=show.id).delete()
+        Review.query.filter_by(show_id=show.id).delete()
+        for conv in Conversation.query.filter_by(show_id=show.id).all():
+            Message.query.filter_by(conversation_id=conv.id).delete()
+            db.session.delete(conv)
 
         db.session.delete(show)
         db.session.commit()
@@ -3994,9 +4010,10 @@ Accessibilité: {accessibilite}
 
             # Validation basique - TELEPHONE est optionnel !
             if not all([structure, lieu_ville, nom, dates_horaires, 
-                       type_espace, genre_recherche, age_range, jauge, budget, contact_email]):
+                       genre_recherche, age_range, jauge, budget, contact_email]):
                 flash("Veuillez remplir tous les champs obligatoires.", "danger")
-                return render_template("admin_create_demande.html", user=current_user()), 400
+                return render_template("admin_create_demande.html", user=current_user(),
+                                       specialites_data=SPECIALITES, evenements_data=EVENEMENTS, lieux_data=LIEUX), 400
 
             # Créer la demande
             demande = DemandeAnimation(
@@ -4183,6 +4200,9 @@ Accessibilité: {accessibilite}
                             Show.category.ilike(f"%{pattern}%"),
                             Show.title.ilike(f"%{pattern}%"),
                             Show.description.ilike(f"%{pattern}%"),
+                            Show.specialites.ilike(f"%{pattern}%"),
+                            Show.evenements.ilike(f"%{pattern}%"),
+                            Show.lieux_intervention.ilike(f"%{pattern}%"),
                         ])
                 query = query.filter(or_(*category_filters))
             
@@ -4196,6 +4216,7 @@ Accessibilité: {accessibilite}
                 region_filters = []
                 for reg in regions:
                     region_filters.append(Show.region.ilike(f"%{reg}%"))
+                    region_filters.append(Show.regions_intervention.ilike(f"%{reg}%"))
                 region_filters.append(Show.user_id.in_(user_ids_in_region))
                 query = query.filter(or_(*region_filters))
             
@@ -4237,6 +4258,9 @@ Accessibilité: {accessibilite}
                                 Show.category.ilike(f"%{pattern}%"),
                                 Show.title.ilike(f"%{pattern}%"),
                                 Show.description.ilike(f"%{pattern}%"),
+                                Show.specialites.ilike(f"%{pattern}%"),
+                                Show.evenements.ilike(f"%{pattern}%"),
+                                Show.lieux_intervention.ilike(f"%{pattern}%"),
                             ])
                     additional_query = additional_query.filter(or_(*cat_filters))
                 additional_users = additional_query.distinct().all()
@@ -5000,10 +5024,22 @@ def admin_delete_user(user_id):
     nb_shows = len(user.shows) if hasattr(user, 'shows') else 0
     
     try:
-        # Supprimer tous les spectacles associés
+        # Supprimer les enregistrements liés à chaque spectacle
+        from models.models import ShowView, Review, Conversation, Message, Notification
         if hasattr(user, 'shows'):
             for show in user.shows:
+                ShowView.query.filter_by(show_id=show.id).delete()
+                Review.query.filter_by(show_id=show.id).delete()
+                for conv in Conversation.query.filter_by(show_id=show.id).all():
+                    Message.query.filter_by(conversation_id=conv.id).delete()
+                    db.session.delete(conv)
                 db.session.delete(show)
+        # Supprimer conversations/messages/notifications de l'utilisateur
+        for conv in Conversation.query.filter((Conversation.user1_id == user.id) | (Conversation.user2_id == user.id)).all():
+            Message.query.filter_by(conversation_id=conv.id).delete()
+            db.session.delete(conv)
+        Notification.query.filter_by(user_id=user.id).delete()
+        Review.query.filter_by(user_id=user.id).delete()
         
         # Supprimer l'utilisateur
         db.session.delete(user)

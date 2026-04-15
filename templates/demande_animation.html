@@ -208,11 +208,11 @@
         <span class="label-text" style="display:block; margin-bottom:8px; color:#e0e0e0;">Portée géographique de votre appel d'offre</span>
         <label style="display:inline-flex; align-items:center; gap:6px; margin-right:24px; cursor:pointer;">
           <input type="radio" name="portee_nationale" value="1" {% if request.form.get('portee_nationale', '1') == '1' %}checked{% endif %} style="accent-color:#1976d2; width:18px; height:18px;">
-          <span style="font-size:0.95rem; color:#90caf9;">🇫🇷 Accepte propositions de toute la France</span>
+          <span style="font-size:0.95rem; color:#90caf9 !important;">🇫🇷 Accepte propositions de toute la France</span>
         </label>
         <label style="display:inline-flex; align-items:center; gap:6px; cursor:pointer;">
           <input type="radio" name="portee_nationale" value="0" {% if request.form.get('portee_nationale') == '0' %}checked{% endif %} style="accent-color:#e65100; width:18px; height:18px;">
-          <span style="font-size:0.95rem; color:#ffcc80;">📍 Accepte propositions régionales uniquement</span>
+          <span style="font-size:0.95rem; color:#333 !important;">📍 Accepte propositions régionales uniquement</span>
         </label>
         <small class="hint" style="display:block; margin-top:6px;">Indicatif : les artistes verront cette préférence sur votre appel d'offre.</small>
       </div>

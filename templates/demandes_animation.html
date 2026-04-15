@@ -94,7 +94,6 @@
       </div>
       <hr style="margin:0.3rem 0 0.7rem 0;">
       <p style="margin:0.2rem 0 0.2rem 0; color:#444; font-size:1em;">et nous recherchons pour notre manifestation</p>
-      {% if demande.type_evenement %}<p style="margin:0.2rem 0;"><strong>🎪 Type d'événement :</strong> <span style="color:#222;">{{ demande.type_evenement }}</span></p>{% endif %}
       <p style="margin:0.2rem 0;"><strong>🎭 Genre recherché :</strong> <span style="color:#222;">{{ demande.genre_recherche }}</span></p>
       {% if has_show %}
         {% if demande.code_postal %}<p style="margin:0.2rem 0;"><strong>🏛️ Département :</strong> <span style="color:#222;">{{ demande.code_postal }}</span></p>{% endif %}
@@ -147,7 +146,6 @@
         </div>
       {% endif %}
       <p style="margin:0.2rem 0;"><strong>📅 Date(s) & horaires :</strong> <span style="color:#222;">{{ demande.dates_horaires }}</span></p>
-      <p style="margin:0.2rem 0;"><strong>🏢 Type d'espace :</strong> <span style="color:#222;">{{ demande.type_espace }}</span></p>
       <p style="margin:0.2rem 0;"><strong>👶 Tranche d'âge :</strong> <span style="color:#222;">{{ demande.age_range|format_age }}</span></p>
       <p style="margin:0.2rem 0;"><strong>👥 Jauge :</strong> <span style="color:#222;">{{ demande.jauge }} personnes</span></p>
       <p style="margin:0.2rem 0;"><strong>💶 Budget :</strong> <span style="color:#222;">{{ demande.budget }} €</span></p>

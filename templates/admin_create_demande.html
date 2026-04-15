@@ -184,11 +184,11 @@
                                     <div style="display:flex; gap:16px; align-items:center; margin-top:6px;">
                                         <label style="display:inline-flex; align-items:center; gap:6px; cursor:pointer;">
                                             <input type="radio" name="portee_nationale" value="1" checked style="accent-color:#1976d2; width:16px; height:16px;">
-                                            <span style="font-size:0.9rem; color:#90caf9;">🇫🇷 Toute la France</span>
+                                            <span style="font-size:0.9rem; color:#90caf9 !important;">🇫🇷 Toute la France</span>
                                         </label>
                                         <label style="display:inline-flex; align-items:center; gap:6px; cursor:pointer;">
                                             <input type="radio" name="portee_nationale" value="0" style="accent-color:#e65100; width:16px; height:16px;">
-                                            <span style="font-size:0.9rem; color:#ffcc80;">📍 Région uniquement</span>
+                                            <span style="font-size:0.9rem; color:#333 !important;">📍 Région uniquement</span>
                                         </label>
                                     </div>
                                 </div>
@@ -201,34 +201,6 @@
                             </div>
                             <div class="col-md-6">
                                 <div class="modern-input-group">
-                                    <label class="modern-label">🎪 Type d'événement</label>
-                                    <select class="modern-input modern-select" id="type_evenement" name="type_evenement">
-                                        <option value="">-- Sélectionner --</option>
-                                        <option value="Arbre de Noël">Arbre de Noël</option>
-                                        <option value="Anniversaire">Anniversaire</option>
-                                        <option value="Festival">Festival</option>
-                                        <option value="Festival de rue">Festival de rue</option>
-                                        <option value="Fête de village">Fête de village</option>
-                                        <option value="Fête d'école">Fête d'école</option>
-                                        <option value="Spectacle scolaire">Spectacle scolaire</option>
-                                        <option value="Événement CSE/CE">Événement CSE/CE</option>
-                                        <option value="Salon du livre">Salon du livre</option>
-                                        <option value="Salon professionnel">Salon professionnel</option>
-                                        <option value="Inauguration">Inauguration</option>
-                                        <option value="Mariage">Mariage</option>
-                                        <option value="Événement privé">Événement privé</option>
-                                        <option value="Autre">Autre (précisez ci-dessous)</option>
-                                    </select>
-                                </div>
-                            </div>
-                            <div class="col-md-6" id="autre_evenement_container" style="display:none;">
-                                <div class="modern-input-group">
-                                    <label class="modern-label">✏️ Précisez le type d'événement</label>
-                                    <input type="text" class="modern-input" id="autre_evenement" name="autre_evenement" placeholder="Décrivez le type d'événement">
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="modern-input-group">
                                     <!-- genre_recherche auto-rempli depuis les checkboxes spécialités -->
                                     <input type="hidden" id="genre_recherche" name="genre_recherche" value="">
                                 </div>
@@ -236,7 +208,16 @@
                             <div class="col-md-6">
                                 <div class="modern-input-group">
                                     <label class="modern-label">👶 Tranche d'âge *</label>
-                                    <input type="text" class="modern-input" id="age_range" name="age_range" placeholder="Ex: 3-6 ans" required>
+                                    <select class="modern-input modern-select" id="age_range" name="age_range" required>
+                                        <option value="">-- Choisir --</option>
+                                        <option value="familial">Familial</option>
+                                        <option value="enfant">Enfant</option>
+                                        <option value="enfant_2_6">Enfant (2/6ans)</option>
+                                        <option value="enfant_5_10">Enfant (5/10ans)</option>
+                                        <option value="enfants_2_10">Enfants (2/10ans)</option>
+                                        <option value="adulte">Adulte</option>
+                                        <option value="tout public">Tout public</option>
+                                    </select>
                                 </div>
                             </div>
                         </div>
@@ -251,32 +232,31 @@
                         <div class="row g-4">
                             <div class="col-md-4">
                                 <div class="modern-input-group">
-                                    <label class="modern-label">🏢 Type d'espace *</label>
-                                    <select class="modern-input modern-select" id="type_espace" name="type_espace" required>
-                                        <option value="">-- Sélectionner --</option>
-                                        <option value="Salle intérieur">Salle intérieur</option>
-                                        <option value="Chapiteau">Chapiteau</option>
-                                        <option value="Espace improvisé">Espace improvisé</option>
-                                        <option value="Extérieur">Extérieur</option>
-                                        <option value="Jardin public">Jardin public</option>
-                                        <option value="Chez l'habitant">Chez l'habitant</option>
-                                        <option value="École">École</option>
-                                        <option value="Médiathèque">Médiathèque</option>
-                                        <option value="Entreprise">Entreprise</option>
-                                        <option value="Autre">Autre</option>
+                                    <label class="modern-label">👥 Jauge (personnes) *</label>
+                                    <select class="modern-input modern-select" id="jauge" name="jauge" required>
+                                        <option value="">-- Nombre de personnes --</option>
+                                        <option value="Moins de 30">Moins de 30</option>
+                                        <option value="30 à 50">30 à 50</option>
+                                        <option value="50 à 100">50 à 100</option>
+                                        <option value="100 à 200">100 à 200</option>
+                                        <option value="200 à 500">200 à 500</option>
+                                        <option value="500 à 1000">500 à 1000</option>
+                                        <option value="Plus de 1000">Plus de 1000</option>
                                     </select>
                                 </div>
                             </div>
                             <div class="col-md-4">
                                 <div class="modern-input-group">
-                                    <label class="modern-label">👥 Jauge (personnes) *</label>
-                                    <input type="text" class="modern-input" id="jauge" name="jauge" placeholder="Ex: 50" required>
-                                </div>
-                            </div>
-                            <div class="col-md-4">
-                                <div class="modern-input-group">
                                     <label class="modern-label">💰 Budget (€) *</label>
-                                    <input type="text" class="modern-input" id="budget" name="budget" placeholder="Ex: 500" required>
+                                    <select class="modern-input modern-select" id="budget" name="budget" required>
+                                        <option value="">-- Fourchette de budget --</option>
+                                        <option value="Moins de 300 €">Moins de 300 €</option>
+                                        <option value="300 à 500 €">300 à 500 €</option>
+                                        <option value="500 à 1000 €">500 à 1000 €</option>
+                                        <option value="1000 à 2000 €">1000 à 2000 €</option>
+                                        <option value="2000 à 5000 €">2000 à 5000 €</option>
+                                        <option value="Plus de 5000 €">Plus de 5000 €</option>
+                                    </select>
                                 </div>
                             </div>
                             <div class="col-12">
@@ -640,19 +620,6 @@
             cb.addEventListener('change', syncGenreFromCheckboxes);
         });
         syncGenreFromCheckboxes();
-
-        const typeEvenementSelect = document.getElementById('type_evenement');
-        const autreEvenementContainer = document.getElementById('autre_evenement_container');
-        const autreEvenementInput = document.getElementById('autre_evenement');
-
-        typeEvenementSelect.addEventListener('change', function() {
-            if (this.value === 'Autre') {
-                autreEvenementContainer.style.display = 'block';
-            } else {
-                autreEvenementContainer.style.display = 'none';
-                autreEvenementInput.value = '';
-            }
-        });
 
         // Gestion de la logique des checkboxes interdépendantes
         const isPrivateCheckbox = document.getElementById('is_private');
