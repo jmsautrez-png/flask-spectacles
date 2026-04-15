@@ -47,10 +47,7 @@
       </div>
 
       <div class="grid-2">
-        <label>
-          <span class="label-text">Catégorie</span>
-          <input type="text" name="category" placeholder="Magie, Théâtre, Clown…">
-        </label>
+        <!-- Catégorie auto-calculée depuis les spécialités -->
 
         <label>
           <span class="label-text">Âge <span class="req">*</span></span>
@@ -74,7 +71,7 @@
           <small class="hint">L'adresse email de la compagnie qui recevra le courriel de confirmation.</small>
         </label>
       <label style="margin-bottom:16px;">
-        <span class="label-text">Téléphone de contact <span style="font-size:0.85rem;font-weight:normal;color:var(--muted);">(visible uniquement par l'administrateur)</span></span>
+        <span class="label-text">Téléphone de contact</span>
         <input type="tel" name="contact_phone" placeholder="06 76 07 01 79" value="{{ request.form.get('contact_phone', '06 76 07 01 79') }}">
       </label>
       <label style="margin-bottom:16px;">

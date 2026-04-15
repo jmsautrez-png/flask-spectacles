@@ -1573,7 +1573,6 @@ def register_routes(app: Flask) -> None:
             description = request.form.get("description", "").strip()
             region = request.form.get("region", "").strip()
             location = request.form.get("location", "").strip()
-            category = request.form.get("category", "").strip()
             date_str = request.form.get("date", "").strip()
             age_range = request.form.get("age_range", "").strip()
             contact_email = request.form.get("contact_email", "").strip()
@@ -1587,6 +1586,30 @@ def register_routes(app: Flask) -> None:
             lieux_list = request.form.getlist("lieux_intervention")
             regions_list = request.form.getlist("regions_intervention")
 
+            # Catégorie auto-dérivée de la 1ère spécialité
+            category = specialites_list[0] if specialites_list else ""
+
+            # Région auto-dérivée de la 1ère région d'intervention
+            if regions_list:
+                region = regions_list[0]
+
+            # Validation : au moins 1 spécialité et 1 région + limites max
+            if not specialites_list:
+                flash("Veuillez cocher au moins une spécialité artistique.", "danger")
+                return redirect(request.url)
+            if len(specialites_list) > 10:
+                flash("Maximum 10 spécialités autorisées.", "danger")
+                return redirect(request.url)
+            if len(evenements_list) > 15:
+                flash("Maximum 15 types d'événements autorisés.", "danger")
+                return redirect(request.url)
+            if len(lieux_list) > 15:
+                flash("Maximum 15 types de lieux autorisés.", "danger")
+                return redirect(request.url)
+            if not regions_list:
+                flash("Veuillez cocher au moins une région d'intervention.", "danger")
+                return redirect(request.url)
+
             date_val = None
             if date_str:
                 try:
@@ -1597,6 +1620,12 @@ def register_routes(app: Flask) -> None:
             file = request.files.get("file")
             file_name = None
             file_mimetype = None
+
+            # Validation : minimum 2 photos obligatoires
+            file2_prelim = request.files.get("file2")
+            if not (file and file.filename) or not (file2_prelim and file2_prelim.filename):
+                flash("Vous devez ajouter au minimum 2 photos pour publier votre spectacle.", "danger")
+                return redirect(request.url)
 
             if file and file.filename:
                 if not allowed_file(file.filename):
@@ -1691,6 +1720,7 @@ def register_routes(app: Flask) -> None:
                         f"📌 Titre: {title}\n"
                         f"📍 Lieu: {location}\n"
                         f"🎪 Catégorie: {category}\n"
+                        f"🎭 Spécialités: {', '.join(specialites_list) if specialites_list else 'Aucune'}\n"
                         f"📋 Type: {type_annonce}\n"
                         + (f"📅 Date: {date_val}\n\n" if date_val else "")
                         + f"Date de création de la fiche : {show.created_at.strftime('%d/%m/%Y %H:%M')}\n\n"
@@ -1950,7 +1980,6 @@ def register_routes(app: Flask) -> None:
             s.description = request.form.get("description","").strip()
             s.region = request.form.get("region","").strip() or None
             s.location = request.form.get("location","").strip()
-            s.category = request.form.get("category","").strip()
             s.age_range = (request.form.get("age_range","") or None)
             s.site_internet = request.form.get("site_internet","").strip() or None
             s.contact_email = request.form.get("contact_email","").strip() or None
@@ -1958,13 +1987,36 @@ def register_routes(app: Flask) -> None:
 
             # Matching : mise à jour des 4 axes
             spec_list = request.form.getlist("specialites")
-            s.specialites = ",".join(spec_list) if spec_list else None
-            evt_list = request.form.getlist("evenements")
-            s.evenements = ",".join(evt_list) if evt_list else None
-            lieux_list = request.form.getlist("lieux_intervention")
-            s.lieux_intervention = ",".join(lieux_list) if lieux_list else None
             reg_list = request.form.getlist("regions_intervention")
+
+            # Validation : au moins 1 spécialité et 1 région + limites max
+            if not spec_list:
+                flash("Veuillez cocher au moins une spécialité artistique.", "danger")
+                return redirect(request.url)
+            if len(spec_list) > 10:
+                flash("Maximum 10 spécialités autorisées.", "danger")
+                return redirect(request.url)
+            if not reg_list:
+                flash("Veuillez cocher au moins une région d'intervention.", "danger")
+                return redirect(request.url)
+
+            evt_list = request.form.getlist("evenements")
+            if len(evt_list) > 15:
+                flash("Maximum 15 types d'événements autorisés.", "danger")
+                return redirect(request.url)
+            lieux_list = request.form.getlist("lieux_intervention")
+            if len(lieux_list) > 15:
+                flash("Maximum 15 types de lieux autorisés.", "danger")
+                return redirect(request.url)
+
+            s.specialites = ",".join(spec_list) if spec_list else None
+            s.category = spec_list[0] if spec_list else (s.category or "")
+            s.evenements = ",".join(evt_list) if evt_list else None
+            s.lieux_intervention = ",".join(lieux_list) if lieux_list else None
             s.regions_intervention = ",".join(reg_list) if reg_list else None
+
+            # Région auto-dérivée de la 1ère région d'intervention
+            s.region = reg_list[0] if reg_list else (s.region or None)
 
             date_str = request.form.get("date","").strip()
             if date_str:
@@ -2565,7 +2617,7 @@ def register_routes(app: Flask) -> None:
             description = request.form.get("description", "").strip()
             region = request.form.get("region", "").strip()
             location = request.form.get("location", "").strip()
-            category = request.form.get("category", "").strip()
+            category = request.form.get("category", "").strip()  # admin peut forcer la catégorie
             age_range = request.form.get("age_range", "").strip()
             date_str = request.form.get("date", "").strip()
             site_internet = request.form.get("site_internet", "").strip()
@@ -2683,7 +2735,7 @@ def register_routes(app: Flask) -> None:
             show.description = request.form.get("description", "").strip()
             show.region = request.form.get("region", "").strip() or None
             show.location = request.form.get("location", "").strip()
-            show.category = request.form.get("category", "").strip()
+            show.category = request.form.get("category", "").strip()  # admin peut forcer la catégorie
             show.age_range = request.form.get("age_range", "").strip() or None
             show.contact_email = request.form.get("contact_email", "").strip() or None
             show.contact_phone = request.form.get("contact_phone", "").strip() or None

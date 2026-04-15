@@ -24,26 +24,26 @@
         <input type="text" name="location" id="location-input" value="{{ show.location }}">
         <span style="font-size:0.9rem;color:#fff;display:block;margin-top:2px;margin-bottom:4px;">Cliquez sur un bouton pour ajouter une ville rapidement (vous pouvez ajouter jusqu'à 10 villes).</span>
         <div style="display:flex; flex-wrap:wrap; gap:8px; margin-bottom:16px; margin-top:6px;">
-          <button type="button" style="min-width:120px;flex:1 1 120px;padding:8px 6px;border-radius:6px;background:linear-gradient(135deg,#e67e22 0%,#f6e58d 100%);color:#222;font-weight:600;border:none;box-shadow:0 2px 8px #e67e2244;transition:all 0.2s;" onclick="addLocation('Paris')">Paris</button>
-          <button type="button" style="min-width:120px;flex:1 1 120px;padding:8px 6px;border-radius:6px;background:linear-gradient(135deg,#8e44ad 0%,#6c3483 100%);color:#fff;font-weight:600;border:none;box-shadow:0 2px 8px #8e44ad44;transition:all 0.2s;" onclick="addLocation('Marseille')">Marseille</button>
-          <button type="button" style="min-width:120px;flex:1 1 120px;padding:8px 6px;border-radius:6px;background:linear-gradient(135deg,#e74c3c 0%,#c0392b 100%);color:#fff;font-weight:600;border:none;box-shadow:0 2px 8px #e74c3c44;transition:all 0.2s;" onclick="addLocation('Lyon')">Lyon</button>
-          <button type="button" style="min-width:120px;flex:1 1 120px;padding:8px 6px;border-radius:6px;background:linear-gradient(135deg,#2980b9 0%,#6dd5fa 100%);color:#fff;font-weight:600;border:none;box-shadow:0 2px 8px #2980b944;transition:all 0.2s;" onclick="addLocation('Toulouse')">Toulouse</button>
-          <button type="button" style="min-width:120px;flex:1 1 120px;padding:8px 6px;border-radius:6px;background:linear-gradient(135deg,#16a085 0%,#1abc9c 100%);color:#fff;font-weight:600;border:none;box-shadow:0 2px 8px #16a08544;transition:all 0.2s;" onclick="addLocation('Nice')">Nice</button>
-          <button type="button" style="min-width:120px;flex:1 1 120px;padding:8px 6px;border-radius:6px;background:linear-gradient(135deg,#f1c40f 0%,#f39c12 100%);color:#222;font-weight:600;border:none;box-shadow:0 2px 8px #f1c40f44;transition:all 0.2s;" onclick="addLocation('Nantes')">Nantes</button>
-          <button type="button" style="min-width:120px;flex:1 1 120px;padding:8px 6px;border-radius:6px;background:linear-gradient(135deg,#2ecc71 0%,#27ae60 100%);color:#fff;font-weight:600;border:none;box-shadow:0 2px 8px #2ecc7144;transition:all 0.2s;" onclick="addLocation('Montpellier')">Montpellier</button>
-          <button type="button" style="min-width:120px;flex:1 1 120px;padding:8px 6px;border-radius:6px;background:linear-gradient(135deg,#e84393 0%,#fd79a8 100%);color:#fff;font-weight:600;border:none;box-shadow:0 2px 8px #e8439344;transition:all 0.2s;" onclick="addLocation('Strasbourg')">Strasbourg</button>
-          <button type="button" style="min-width:120px;flex:1 1 120px;padding:8px 6px;border-radius:6px;background:linear-gradient(135deg,#34495e 0%,#2c3e50 100%);color:#fff;font-weight:600;border:none;box-shadow:0 2px 8px #34495e44;transition:all 0.2s;" onclick="addLocation('Bordeaux')">Bordeaux</button>
-          <button type="button" style="min-width:120px;flex:1 1 120px;padding:8px 6px;border-radius:6px;background:linear-gradient(135deg,#00b894 0%,#00cec9 100%);color:#fff;font-weight:600;border:none;box-shadow:0 2px 8px #00b89444;transition:all 0.2s;" onclick="addLocation('Lille')">Lille</button>
-          <button type="button" style="min-width:120px;flex:1 1 120px;padding:8px 6px;border-radius:6px;background:linear-gradient(135deg,#fdcb6e 0%,#e17055 100%);color:#222;font-weight:600;border:none;box-shadow:0 2px 8px #fdcb6e44;transition:all 0.2s;" onclick="addLocation('Rennes')">Rennes</button>
-          <button type="button" style="min-width:120px;flex:1 1 120px;padding:8px 6px;border-radius:6px;background:linear-gradient(135deg,#00bfff 0%,#0984e3 100%);color:#fff;font-weight:600;border:none;box-shadow:0 2px 8px #00bfff44;transition:all 0.2s;" onclick="addLocation('Reims')">Reims</button>
-          <button type="button" style="min-width:120px;flex:1 1 120px;padding:8px 6px;border-radius:6px;background:linear-gradient(135deg,#636e72 0%,#b2bec3 100%);color:#222;font-weight:600;border:none;box-shadow:0 2px 8px #636e7244;transition:all 0.2s;" onclick="addLocation('Le Havre')">Le Havre</button>
-          <button type="button" style="min-width:120px;flex:1 1 120px;padding:8px 6px;border-radius:6px;background:linear-gradient(135deg,#ff7675 0%,#ffeaa7 100%);color:#222;font-weight:600;border:none;box-shadow:0 2px 8px #ff767544;transition:all 0.2s;" onclick="addLocation('Saint-Étienne')">Saint-Étienne</button>
-          <button type="button" style="min-width:120px;flex:1 1 120px;padding:8px 6px;border-radius:6px;background:linear-gradient(135deg,#00b894 0%,#00cec9 100%);color:#fff;font-weight:600;border:none;box-shadow:0 2px 8px #00b89444;transition:all 0.2s;" onclick="addLocation('Toulon')">Toulon</button>
-          <button type="button" style="min-width:120px;flex:1 1 120px;padding:8px 6px;border-radius:6px;background:linear-gradient(135deg,#fdcb6e 0%,#e17055 100%);color:#222;font-weight:600;border:none;box-shadow:0 2px 8px #fdcb6e44;transition:all 0.2s;" onclick="addLocation('Grenoble')">Grenoble</button>
-          <button type="button" style="min-width:120px;flex:1 1 120px;padding:8px 6px;border-radius:6px;background:linear-gradient(135deg,#00bfff 0%,#0984e3 100%);color:#fff;font-weight:600;border:none;box-shadow:0 2px 8px #00bfff44;transition:all 0.2s;" onclick="addLocation('Dijon')">Dijon</button>
-          <button type="button" style="min-width:120px;flex:1 1 120px;padding:8px 6px;border-radius:6px;background:linear-gradient(135deg,#636e72 0%,#b2bec3 100%);color:#222;font-weight:600;border:none;box-shadow:0 2px 8px #636e7244;transition:all 0.2s;" onclick="addLocation('Angers')">Angers</button>
-          <button type="button" style="min-width:120px;flex:1 1 120px;padding:8px 6px;border-radius:6px;background:linear-gradient(135deg,#e84393 0%,#fd79a8 100%);color:#fff;font-weight:600;border:none;box-shadow:0 2px 8px #e8439344;transition:all 0.2s;" onclick="addLocation('Villeurbanne')">Villeurbanne</button>
-          <button type="button" style="min-width:120px;flex:1 1 120px;padding:8px 6px;border-radius:6px;background:linear-gradient(135deg,#34495e 0%,#2c3e50 100%);color:#fff;font-weight:600;border:none;box-shadow:0 2px 8px #34495e44;transition:all 0.2s;" onclick="addLocation('Saint-Denis')">Saint-Denis</button>
+          <button type="button" style="min-width:120px;flex:1 1 120px;padding:8px 6px;border-radius:6px;background:linear-gradient(135deg,#e67e22 0%,#f6e58d 100%);color:#222;font-weight:600;border:none;box-shadow:0 2px 8px #e67e2244;transition:all 0.2s;" onclick="addLocation('Paris')">75 - Paris</button>
+          <button type="button" style="min-width:120px;flex:1 1 120px;padding:8px 6px;border-radius:6px;background:linear-gradient(135deg,#8e44ad 0%,#6c3483 100%);color:#fff;font-weight:600;border:none;box-shadow:0 2px 8px #8e44ad44;transition:all 0.2s;" onclick="addLocation('Marseille')">13 - Marseille</button>
+          <button type="button" style="min-width:120px;flex:1 1 120px;padding:8px 6px;border-radius:6px;background:linear-gradient(135deg,#e74c3c 0%,#c0392b 100%);color:#fff;font-weight:600;border:none;box-shadow:0 2px 8px #e74c3c44;transition:all 0.2s;" onclick="addLocation('Lyon')">69 - Lyon</button>
+          <button type="button" style="min-width:120px;flex:1 1 120px;padding:8px 6px;border-radius:6px;background:linear-gradient(135deg,#2980b9 0%,#6dd5fa 100%);color:#fff;font-weight:600;border:none;box-shadow:0 2px 8px #2980b944;transition:all 0.2s;" onclick="addLocation('Toulouse')">31 - Toulouse</button>
+          <button type="button" style="min-width:120px;flex:1 1 120px;padding:8px 6px;border-radius:6px;background:linear-gradient(135deg,#16a085 0%,#1abc9c 100%);color:#fff;font-weight:600;border:none;box-shadow:0 2px 8px #16a08544;transition:all 0.2s;" onclick="addLocation('Nice')">06 - Nice</button>
+          <button type="button" style="min-width:120px;flex:1 1 120px;padding:8px 6px;border-radius:6px;background:linear-gradient(135deg,#f1c40f 0%,#f39c12 100%);color:#222;font-weight:600;border:none;box-shadow:0 2px 8px #f1c40f44;transition:all 0.2s;" onclick="addLocation('Nantes')">44 - Nantes</button>
+          <button type="button" style="min-width:120px;flex:1 1 120px;padding:8px 6px;border-radius:6px;background:linear-gradient(135deg,#2ecc71 0%,#27ae60 100%);color:#fff;font-weight:600;border:none;box-shadow:0 2px 8px #2ecc7144;transition:all 0.2s;" onclick="addLocation('Montpellier')">34 - Montpellier</button>
+          <button type="button" style="min-width:120px;flex:1 1 120px;padding:8px 6px;border-radius:6px;background:linear-gradient(135deg,#e84393 0%,#fd79a8 100%);color:#fff;font-weight:600;border:none;box-shadow:0 2px 8px #e8439344;transition:all 0.2s;" onclick="addLocation('Strasbourg')">67 - Strasbourg</button>
+          <button type="button" style="min-width:120px;flex:1 1 120px;padding:8px 6px;border-radius:6px;background:linear-gradient(135deg,#34495e 0%,#2c3e50 100%);color:#fff;font-weight:600;border:none;box-shadow:0 2px 8px #34495e44;transition:all 0.2s;" onclick="addLocation('Bordeaux')">33 - Bordeaux</button>
+          <button type="button" style="min-width:120px;flex:1 1 120px;padding:8px 6px;border-radius:6px;background:linear-gradient(135deg,#00b894 0%,#00cec9 100%);color:#fff;font-weight:600;border:none;box-shadow:0 2px 8px #00b89444;transition:all 0.2s;" onclick="addLocation('Lille')">59 - Lille</button>
+          <button type="button" style="min-width:120px;flex:1 1 120px;padding:8px 6px;border-radius:6px;background:linear-gradient(135deg,#fdcb6e 0%,#e17055 100%);color:#222;font-weight:600;border:none;box-shadow:0 2px 8px #fdcb6e44;transition:all 0.2s;" onclick="addLocation('Rennes')">35 - Rennes</button>
+          <button type="button" style="min-width:120px;flex:1 1 120px;padding:8px 6px;border-radius:6px;background:linear-gradient(135deg,#00bfff 0%,#0984e3 100%);color:#fff;font-weight:600;border:none;box-shadow:0 2px 8px #00bfff44;transition:all 0.2s;" onclick="addLocation('Reims')">51 - Reims</button>
+          <button type="button" style="min-width:120px;flex:1 1 120px;padding:8px 6px;border-radius:6px;background:linear-gradient(135deg,#636e72 0%,#b2bec3 100%);color:#222;font-weight:600;border:none;box-shadow:0 2px 8px #636e7244;transition:all 0.2s;" onclick="addLocation('Le Havre')">76 - Le Havre</button>
+          <button type="button" style="min-width:120px;flex:1 1 120px;padding:8px 6px;border-radius:6px;background:linear-gradient(135deg,#ff7675 0%,#ffeaa7 100%);color:#222;font-weight:600;border:none;box-shadow:0 2px 8px #ff767544;transition:all 0.2s;" onclick="addLocation('Saint-Étienne')">42 - Saint-Étienne</button>
+          <button type="button" style="min-width:120px;flex:1 1 120px;padding:8px 6px;border-radius:6px;background:linear-gradient(135deg,#00b894 0%,#00cec9 100%);color:#fff;font-weight:600;border:none;box-shadow:0 2px 8px #00b89444;transition:all 0.2s;" onclick="addLocation('Toulon')">83 - Toulon</button>
+          <button type="button" style="min-width:120px;flex:1 1 120px;padding:8px 6px;border-radius:6px;background:linear-gradient(135deg,#fdcb6e 0%,#e17055 100%);color:#222;font-weight:600;border:none;box-shadow:0 2px 8px #fdcb6e44;transition:all 0.2s;" onclick="addLocation('Grenoble')">38 - Grenoble</button>
+          <button type="button" style="min-width:120px;flex:1 1 120px;padding:8px 6px;border-radius:6px;background:linear-gradient(135deg,#00bfff 0%,#0984e3 100%);color:#fff;font-weight:600;border:none;box-shadow:0 2px 8px #00bfff44;transition:all 0.2s;" onclick="addLocation('Dijon')">21 - Dijon</button>
+          <button type="button" style="min-width:120px;flex:1 1 120px;padding:8px 6px;border-radius:6px;background:linear-gradient(135deg,#636e72 0%,#b2bec3 100%);color:#222;font-weight:600;border:none;box-shadow:0 2px 8px #636e7244;transition:all 0.2s;" onclick="addLocation('Angers')">49 - Angers</button>
+          <button type="button" style="min-width:120px;flex:1 1 120px;padding:8px 6px;border-radius:6px;background:linear-gradient(135deg,#e84393 0%,#fd79a8 100%);color:#fff;font-weight:600;border:none;box-shadow:0 2px 8px #e8439344;transition:all 0.2s;" onclick="addLocation('Villeurbanne')">69 - Villeurbanne</button>
+          <button type="button" style="min-width:120px;flex:1 1 120px;padding:8px 6px;border-radius:6px;background:linear-gradient(135deg,#34495e 0%,#2c3e50 100%);color:#fff;font-weight:600;border:none;box-shadow:0 2px 8px #34495e44;transition:all 0.2s;" onclick="addLocation('Saint-Denis')">93 - Saint-Denis</button>
         </div>
       </label>
       <script>
@@ -61,19 +61,7 @@
         }
       </script>
 
-      <label>Région
-        <input type="text" name="region" id="region-input" value="{{ show.region or '' }}" placeholder="Ex: Île-de-France, Bretagne...">
-      </label>
-   </div>
-
-  <label>Catégorie
-    <input type="text" name="category" id="category-input" value="{{ show.category }}">
-  </label>
-
-  <!-- Champ catégorie 2 supprimé (nettoyé) -->
-   
-
-  <label>Âge
+      <label>Âge
     <select name="age_range" required>
       <option value="">-- Choisir --</option>
       <option value="familial" {% if (request.form.get('age_range') if request.method=='POST' else (show.age_range if show else '')) == 'familial' %}selected{% endif %}>Familial</option>
@@ -89,15 +77,13 @@
 
   <label>Site internet
     <input type="url" name="site_internet" placeholder="https://www.monsite.fr" value="{{ show.site_internet if show and show.site_internet else '' }}">
-    <span style="font-size:0.9rem;color:#fff;font-weight:bold;display:block;margin-top:2px;">(visible si abonnement)</span>
   </label>
 
   <label>Email de contact
     <input type="email" name="contact_email" placeholder="votre@email.fr" value="{{ show.contact_email if show and show.contact_email else '' }}" required>
-    <span style="font-size:0.9rem;color:#fff;font-weight:bold;display:block;margin-top:2px;">(visible si abonnement)</span>
   </label>
 
-  <label>Téléphone de contact <span style="font-size:0.85rem;font-weight:normal;color:var(--muted);">(visible uniquement par l'administrateur)</span>
+  <label>Téléphone de contact
     <input type="tel" name="contact_phone" value="{{ show.contact_phone if show and show.contact_phone else '' }}" placeholder="06 12 34 56 78">
   </label>
 
@@ -264,26 +250,84 @@
 
   {# ═══ SECTION MATCHING : Spécialités + Événements + Lieux + Régions ════ #}
   <div style="background: linear-gradient(135deg, rgba(76,175,80,0.1) 0%, rgba(67,160,71,0.1) 100%); border: 2px solid #4caf50; border-radius:12px; padding:20px; margin-bottom:20px;">
-    <h3 style="color: #4caf50; margin:0 0 8px 0; font-size:1.1rem;">🎯 Profil de matching — Cochez uniquement ce que vous savez vraiment faire !</h3>
+    <h3 style="color: #4caf50; margin:0 0 8px 0; font-size:1.1rem;">Profil de matching — Cochez uniquement ce que vous savez vraiment faire !</h3>
 
     {% set current_specialites = (show.specialites or "").split(",") | map('trim') | select | list %}
     {% set current_evenements = (show.evenements or "").split(",") | map('trim') | select | list %}
     {% set current_lieux = (show.lieux_intervention or "").split(",") | map('trim') | select | list %}
     {% set current_regions = (show.regions_intervention or "").split(",") | map('trim') | select | list %}
 
-    {{ accordion_checkboxes("specialites", specialites_data, current_specialites, "🎭", "Vos spécialités artistiques", "#6a1b9a", "Cochez tout ce que votre compagnie sait faire.", "#fff") }}
+    <div id="specialites-error" style="display:none; color:#ff1744; font-weight:600; margin:0 0 4px 8px; font-size:0.95em;">⚠️ Veuillez cocher au moins une spécialité artistique.</div>
+    {{ accordion_checkboxes("specialites", specialites_data, current_specialites, "", "Vos spécialités artistiques", "#6a1b9a", "Cochez tout ce que votre compagnie sait faire.", "#fff", 10) }}
 
-    {{ accordion_checkboxes("evenements", evenements_data, current_evenements, "🎪", "Types d'événements acceptés", "#e65100", "Pour quels types d'événements êtes-vous disponible ?", "#fff") }}
+    <div id="evenements-warning" style="display:none; color:#ffb347; font-weight:500; margin:0 0 4px 8px; font-size:0.9em;">💡 Aucun type d'événement sélectionné — votre annonce sera moins visible dans les recherches.</div>
+    {{ accordion_checkboxes("evenements", evenements_data, current_evenements, "", "Types d'événements acceptés", "#e65100", "Pour quels types d'événements êtes-vous disponible ?", "#fff", 15) }}
 
-    {{ accordion_checkboxes("lieux_intervention", lieux_data, current_lieux, "🏛️", "Types de lieux où vous pouvez jouer", "#2e7d32", "Dans quels types de lieux pouvez-vous vous produire ?", "#fff") }}
+    <div id="lieux-warning" style="display:none; color:#ffb347; font-weight:500; margin:0 0 4px 8px; font-size:0.9em;">💡 Aucun type de lieu sélectionné — votre annonce sera moins visible dans les recherches.</div>
+    {{ accordion_checkboxes("lieux_intervention", lieux_data, current_lieux, "", "Types de lieux où vous pouvez jouer", "#2e7d32", "Dans quels types de lieux pouvez-vous vous produire ?", "#fff", 15) }}
 
+    <div id="regions-error" style="display:none; color:#ff1744; font-weight:600; margin:0 0 4px 8px; font-size:0.95em;">⚠️ Veuillez cocher au moins une région d'intervention.</div>
     {{ regions_checkboxes("regions_intervention", regions_data, current_regions, "#1565c0", "#fff") }}
   </div>
 
-  <div class="actions">
-    <button type="submit">Mettre à jour</button>
-    <a class="btn-secondary" href="{{ url_for('home') }}">Annuler</a>
-    <a class="btn-secondary" href="{{ url_for('company_dashboard') }}" style="margin-left:8px;">Retour au tableau de bord</a>
+  <style>
+    @keyframes border-spin {
+      0% { --angle: 0deg; }
+      100% { --angle: 360deg; }
+    }
+    @property --angle {
+      syntax: '<angle>';
+      initial-value: 0deg;
+      inherits: false;
+    }
+    .actions-box {
+      position: relative;
+      display: flex; flex-wrap: wrap; gap: 14px; justify-content: center;
+      margin: 36px 0 16px; padding: 28px 20px;
+      background: linear-gradient(135deg, rgba(30,30,60,0.9), rgba(20,20,50,0.95), rgba(40,20,60,0.9));
+      border-radius: 14px;
+      overflow: hidden;
+      z-index: 0;
+    }
+    .actions-box::before {
+      content: '';
+      position: absolute; inset: -2px;
+      background: conic-gradient(from var(--angle), #43a047, #42a5f5, #e040fb, #ff9800, #43a047);
+      border-radius: 16px;
+      z-index: -2;
+      animation: border-spin 3s linear infinite;
+    }
+    .actions-box::after {
+      content: '';
+      position: absolute; inset: 2px;
+      background: linear-gradient(135deg, rgba(30,30,60,0.97), rgba(20,20,50,0.98), rgba(40,20,60,0.97));
+      border-radius: 12px;
+      z-index: -1;
+    }
+    .btn-update {
+      padding: 14px 40px; font-size: 1.1rem; font-weight: 700; border: none; border-radius: 8px;
+      background: linear-gradient(135deg, #43a047, #66bb6a); color: #fff; cursor: pointer;
+      box-shadow: 0 4px 15px rgba(67,160,71,0.4); transition: all 0.3s; letter-spacing: 0.5px;
+    }
+    .btn-update:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(67,160,71,0.6); }
+    .btn-dashboard {
+      padding: 14px 28px; font-size: 1rem; font-weight: 600; border: none; border-radius: 8px;
+      background: linear-gradient(135deg, #1565c0, #42a5f5); color: #fff; text-decoration: none;
+      cursor: pointer; box-shadow: 0 4px 15px rgba(21,101,192,0.3); transition: all 0.3s;
+      display: inline-flex; align-items: center; gap: 6px;
+    }
+    .btn-dashboard:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(21,101,192,0.5); }
+    .btn-cancel {
+      padding: 14px 28px; font-size: 1rem; font-weight: 600; border: 1px solid rgba(255,255,255,0.25);
+      border-radius: 8px; background: rgba(255,255,255,0.08); color: #ccc; text-decoration: none;
+      cursor: pointer; transition: all 0.3s; display: inline-flex; align-items: center; gap: 6px;
+    }
+    .btn-cancel:hover { background: rgba(255,255,255,0.15); color: #fff; transform: translateY(-2px); }
+  </style>
+  <div class="actions-box">
+    <button type="submit" class="btn-update">✅ Mettre à jour</button>
+    <a href="{{ url_for('company_dashboard') }}" class="btn-dashboard">📋 Tableau de bord</a>
+    <a href="{{ url_for('home') }}" class="btn-cancel">← Annuler</a>
   </div>
 </form>
 
@@ -315,7 +359,43 @@
       if (words.length > MAX) {
         e.preventDefault();
         alert("La description ne doit pas dépasser 70 mots.");
+        return;
       }
+
+      // Validation accordéons obligatoires (spécialités + régions)
+      var hasBlocking = false;
+      var specChecked = document.querySelectorAll('input[name="specialites"]:checked').length;
+      var specErr = document.getElementById('specialites-error');
+      if (specChecked === 0) {
+        hasBlocking = true;
+        if (specErr) specErr.style.display = 'block';
+      } else {
+        if (specErr) specErr.style.display = 'none';
+      }
+
+      var regChecked = document.querySelectorAll('input[name="regions_intervention"]:checked').length;
+      var regErr = document.getElementById('regions-error');
+      if (regChecked === 0) {
+        hasBlocking = true;
+        if (regErr) regErr.style.display = 'block';
+      } else {
+        if (regErr) regErr.style.display = 'none';
+      }
+
+      if (hasBlocking) {
+        e.preventDefault();
+        var firstErr = specChecked === 0 ? specErr : regErr;
+        if (firstErr) firstErr.scrollIntoView({behavior:'smooth', block:'center'});
+        return;
+      }
+
+      // Avertissements non bloquants (événements + lieux)
+      var evtWarn = document.getElementById('evenements-warning');
+      var lieuxWarn = document.getElementById('lieux-warning');
+      var evtChecked = document.querySelectorAll('input[name="evenements"]:checked').length;
+      var lieuxChecked = document.querySelectorAll('input[name="lieux_intervention"]:checked').length;
+      if (evtWarn) evtWarn.style.display = evtChecked === 0 ? 'block' : 'none';
+      if (lieuxWarn) lieuxWarn.style.display = lieuxChecked === 0 ? 'block' : 'none';
     });
   });
 })();
@@ -385,56 +465,7 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 // ========== VALIDATION EVENT TAGS (EDIT) ==========
-document.addEventListener('DOMContentLoaded', function() {
-  var form = document.querySelector('form');
-  var errorDiv = document.getElementById('event-tags-error-edit');
-  var checkboxes = document.querySelectorAll('input[name="event_tags"]');
-  
-  // Ajouter effet visuel sur hover
-  var labels = document.querySelectorAll('.event-tag-label');
-  labels.forEach(function(label) {
-    label.addEventListener('mouseenter', function() {
-      this.style.background = 'rgba(255,255,255,0.08)';
-      this.style.borderColor = '#4caf50';
-    });
-    label.addEventListener('mouseleave', function() {
-      this.style.background = 'rgba(255,255,255,0.03)';
-      this.style.borderColor = 'rgba(255,255,255,0.1)';
-    });
-  });
-  
-  // Valider au submit
-  form.addEventListener('submit', function(e) {
-    var atLeastOneChecked = false;
-    checkboxes.forEach(function(cb) {
-      if (cb.checked) {
-        atLeastOneChecked = true;
-      }
-    });
-    
-    if (!atLeastOneChecked) {
-      e.preventDefault();
-      errorDiv.style.display = 'block';
-      errorDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      return false;
-    } else {
-      errorDiv.style.display = 'none';
-    }
-  });
-  
-  // Cacher l'erreur dès qu'une checkbox est cochée
-  checkboxes.forEach(function(cb) {
-    cb.addEventListener('change', function() {
-      var anyChecked = false;
-      checkboxes.forEach(function(checkbox) {
-        if (checkbox.checked) anyChecked = true;
-      });
-      if (anyChecked) {
-        errorDiv.style.display = 'none';
-      }
-    });
-  });
-});
+// Désactivé : pas de checkboxes event_tags dans le formulaire d'édition
 </script>
 {{ accordion_checkboxes_js() }}
 {% endblock %}

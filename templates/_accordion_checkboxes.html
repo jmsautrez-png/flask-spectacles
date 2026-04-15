@@ -5,15 +5,21 @@
      {{ accordion_checkboxes("specialites", specialites_data, current_values, "🎭", "Spécialités artistiques") }}
    ═══════════════════════════════════════════════════════════════════ #}
 
-{% macro accordion_checkboxes(field_name, categories_dict, current_values, icon, title, color="#6a1b9a", description="", text_color="#000") %}
-<div class="matching-accordion-section" style="margin:18px 0;">
+{% macro accordion_checkboxes(field_name, categories_dict, current_values, icon, title, color="#6a1b9a", description="", text_color="#000", max_checked=0) %}
+<div class="matching-accordion-section" style="margin:18px 0;" data-field="{{ field_name }}" {% if max_checked > 0 %}data-max="{{ max_checked }}"{% endif %}>
   <h3 style="color:{{ color }}; margin:0 0 6px 0; font-size:1.05rem; display:flex; align-items:center; gap:8px;">
     {{ icon }} {{ title }}
     <span class="matching-count" id="count-{{ field_name }}" style="background:{{ color }}; color:#fff; border-radius:12px; padding:2px 10px; font-size:0.8rem; font-weight:600;">0</span>
+    {% if max_checked > 0 %}<span style="font-size:0.8rem; color:{{ text_color }}; opacity:0.6;">({{ max_checked }} max)</span>{% endif %}
   </h3>
   {% if description %}
   <p style="color:{{ text_color }}; opacity:0.7; margin:0 0 10px 0; font-size:0.88rem;">{{ description }}</p>
   {% endif %}
+
+  <div style="display:flex; gap:8px; margin-bottom:8px;">
+    <button type="button" onclick="toggleAllMatching('{{ field_name }}', false)" style="font-size:0.8rem; padding:3px 10px; border:1px solid #999; background:transparent; color:#999; border-radius:5px; cursor:pointer;">✗ Tout décocher</button>
+  </div>
+  <div id="limit-{{ field_name }}" style="display:none; color:#ff1744; font-weight:600; margin:0 0 8px 8px; font-size:0.9em;"></div>
 
   {% for group_name, items in categories_dict.items() %}
   <details class="matching-accordion" style="margin-bottom:6px; border:2px solid {{ color }}40; border-radius:8px; overflow:hidden;">
@@ -26,7 +32,7 @@
       <label style="display:flex; align-items:center; padding:5px 8px; border-radius:5px; cursor:pointer; transition:background 0.15s;" class="matching-cb-label" onmouseover="this.style.background='rgba(128,128,128,0.1)'" onmouseout="this.style.background='transparent'">
         <input type="checkbox" name="{{ field_name }}" value="{{ item }}"
           {% if item in current_values %}checked{% endif %}
-          onchange="updateMatchingCounts('{{ field_name }}', {{ categories_dict | length }})"
+          onchange="checkMatchingLimit('{{ field_name }}', this); updateMatchingCounts('{{ field_name }}', {{ categories_dict | length }})"
           style="margin-right:8px; width:16px; height:16px; cursor:pointer; accent-color:{{ color }};">
         <span style="font-size:0.9rem; color:{{ text_color }};">{{ item }}</span>
       </label>
@@ -34,12 +40,6 @@
     </div>
   </details>
   {% endfor %}
-
-  {# Boutons rapides : tout cocher / décocher #}
-  <div style="display:flex; gap:8px; margin-top:6px;">
-    <button type="button" onclick="toggleAllMatching('{{ field_name }}', true)" style="font-size:0.8rem; padding:3px 10px; border:1px solid {{ color }}; background:transparent; color:{{ color }}; border-radius:5px; cursor:pointer;">✓ Tout cocher</button>
-    <button type="button" onclick="toggleAllMatching('{{ field_name }}', false)" style="font-size:0.8rem; padding:3px 10px; border:1px solid #999; background:transparent; color:#999; border-radius:5px; cursor:pointer;">✗ Tout décocher</button>
-  </div>
 </div>
 {% endmacro %}
 
@@ -53,6 +53,11 @@
   </h3>
   <p style="color:{{ text_color }}; opacity:0.7; margin:0 0 10px 0; font-size:0.88rem;">Sélectionnez les régions où vous pouvez réellement vous déplacer.</p>
 
+  <div style="display:flex; gap:8px; margin-bottom:8px;">
+    <button type="button" onclick="toggleAllMatching('{{ field_name }}', true); updateRegionCount('{{ field_name }}')" style="font-size:0.8rem; padding:5px 14px; border:none; background:linear-gradient(135deg,#1565c0,#42a5f5); color:#fff; border-radius:6px; cursor:pointer; font-weight:600; box-shadow:0 2px 8px rgba(21,101,192,0.3); transition:all 0.2s;">🇫🇷 France entière</button>
+    <button type="button" onclick="toggleAllMatching('{{ field_name }}', false); updateRegionCount('{{ field_name }}')" style="font-size:0.8rem; padding:5px 14px; border:1px solid rgba(255,255,255,0.25); background:rgba(255,255,255,0.08); color:#ccc; border-radius:6px; cursor:pointer; font-weight:600; transition:all 0.2s;">✗ Tout décocher</button>
+  </div>
+
   <div style="display:grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap:4px; padding:8px; border:1px solid rgba(128,128,128,0.25); border-radius:8px;">
     {% for region in regions_list %}
     <label style="display:flex; align-items:center; padding:5px 8px; border-radius:5px; cursor:pointer; transition:background 0.15s;" class="matching-cb-label" onmouseover="this.style.background='rgba(128,128,128,0.1)'" onmouseout="this.style.background='transparent'">
@@ -65,10 +70,6 @@
     {% endfor %}
   </div>
 
-  <div style="display:flex; gap:8px; margin-top:6px;">
-    <button type="button" onclick="toggleAllMatching('{{ field_name }}', true); updateRegionCount('{{ field_name }}')" style="font-size:0.8rem; padding:3px 10px; border:1px solid {{ color }}; background:transparent; color:{{ color }}; border-radius:5px; cursor:pointer;">🇫🇷 France entière</button>
-    <button type="button" onclick="toggleAllMatching('{{ field_name }}', false); updateRegionCount('{{ field_name }}')" style="font-size:0.8rem; padding:3px 10px; border:1px solid #999; background:transparent; color:#999; border-radius:5px; cursor:pointer;">✗ Tout décocher</button>
-  </div>
 </div>
 {% endmacro %}
 
@@ -104,6 +105,27 @@ function updateRegionCount(fieldName) {
   var total = document.querySelectorAll('input[name="' + fieldName + '"]:checked').length;
   var el = document.getElementById('count-' + fieldName);
   if (el) el.textContent = total;
+}
+
+function checkMatchingLimit(fieldName, cb) {
+  var section = null;
+  document.querySelectorAll('.matching-accordion-section').forEach(function(s) {
+    if (s.getAttribute('data-field') === fieldName) section = s;
+  });
+  if (!section) return;
+  var maxVal = parseInt(section.getAttribute('data-max') || '0', 10);
+  if (maxVal <= 0) return;
+  var checked = document.querySelectorAll('input[name="' + fieldName + '"]:checked').length;
+  var limitDiv = document.getElementById('limit-' + fieldName);
+  if (checked > maxVal) {
+    cb.checked = false;
+    if (limitDiv) {
+      limitDiv.textContent = '⚠️ Maximum ' + maxVal + ' sélections autorisées.';
+      limitDiv.style.display = 'block';
+    }
+  } else {
+    if (limitDiv) limitDiv.style.display = 'none';
+  }
 }
 
 function toggleAllMatching(fieldName, checked) {

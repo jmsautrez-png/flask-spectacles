@@ -209,21 +209,18 @@
         </div>
       {% endif %}
 
-      <!-- Bloc CTA conversion : Demander ce spectacle -->
+      {% if not user %}
+      <!-- Bloc CTA conversion : visible uniquement pour les visiteurs non connectés -->
       <div style="margin-bottom:32px; padding:24px; background:linear-gradient(135deg,#1b5e20 0%,#2e7d32 100%); border-radius:12px; text-align:center; box-shadow:0 4px 16px rgba(27,94,32,0.25);">
         <p style="margin:0 0 12px 0; color:#fff; font-size:1.05rem; font-weight:500;">Ce spectacle vous intéresse ?</p>
         <div style="display:flex; justify-content:center; gap:12px; flex-wrap:wrap;">
           <a href="{{ url_for('demande_devis', show_id=show.id) }}" style="display:inline-flex; align-items:center; gap:10px; padding:14px 32px; border-radius:10px; background:#fff; color:#1b5e20; font-weight:700; font-size:1.1rem; text-decoration:none; box-shadow:0 2px 8px rgba(0,0,0,0.15); transition:all 0.2s;">
             <i class="fa fa-magic"></i> Demander un devis gratuit
           </a>
-          {% if show.user_id and user and user.id != show.user_id %}
-          <a href="{{ url_for('messages_new', recipient_id=show.user_id, show_id=show.id) }}" style="display:inline-flex; align-items:center; gap:10px; padding:14px 28px; border-radius:10px; background:rgba(255,255,255,0.15); color:#fff; font-weight:600; font-size:1rem; text-decoration:none; border:2px solid rgba(255,255,255,0.4); transition:all 0.2s;">
-            <i class="fa fa-envelope"></i> Contacter la compagnie
-          </a>
-          {% endif %}
         </div>
         <p style="margin:10px 0 0 0; color:rgba(255,255,255,0.8); font-size:0.85rem;">Réponse rapide — sans engagement</p>
       </div>
+      {% endif %}
 
       <!-- Compteur de vues & avis résumé -->
       <div style="display:flex; gap:20px; flex-wrap:wrap; margin-bottom:24px; font-size:0.9rem; color:var(--muted);">

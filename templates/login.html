@@ -3,7 +3,10 @@
 
 {% block content %}
 <div class="demande-wrap" style="max-width:500px;background:linear-gradient(135deg,#162447 0%,#283e5e 100%); border:2px solid #283e5e; border-radius:16px; padding:32px; margin-bottom:32px; position:relative; overflow:hidden; box-shadow:0 4px 16px #16244722; color:#fff;">
-  <h1 style="margin:0 0 8px 0; font-size:1.4rem; font-weight:700;">Connexion</h1>
+  <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px; margin:0 0 8px 0;">
+    <h1 style="margin:0; font-size:1.4rem; font-weight:700;">Connexion</h1>
+    <a href="{{ url_for('register') }}" style="color:#22c55e; font-weight:700; text-decoration:none; border-bottom:2px solid #22c55e; font-size:0.95rem;">Créer un compte gratuitement</a>
+  </div>
   <p class="text-muted" style="margin:0 0 24px 0;">
     Connectez-vous pour accéder à votre espace personnel.
   </p>

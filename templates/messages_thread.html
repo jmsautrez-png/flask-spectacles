@@ -27,6 +27,7 @@
 
   <!-- Formulaire réponse -->
   <form method="post" style="display:flex; gap:10px;">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
     <input type="text" name="content" required maxlength="2000" placeholder="Écrire un message..." autocomplete="off" style="flex:1; padding:12px 16px; border:1px solid var(--border); border-radius:10px; background:var(--panel); color:var(--text); font-size:1rem;">
     <button type="submit" style="padding:12px 24px; border:none; border-radius:10px; background:var(--primary); color:#fff; font-weight:600; cursor:pointer; white-space:nowrap;">Envoyer</button>
   </form>

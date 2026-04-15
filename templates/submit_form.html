@@ -20,7 +20,7 @@
         <label style="flex:1; min-width:200px; cursor:pointer;">
           <div style="background:#1a1a2e; border:2px solid #283e5e; border-radius:12px; padding:16px; transition:all 0.2s;" id="option-catalogue">
             <input type="radio" name="is_event" value="0" checked style="margin-right:8px;" onchange="updateTypeSelection()">
-            <span style="font-weight:600; color:#fff;">🎭 Ajouter au catalogue</span>
+            <span style="font-weight:600; color:#fff;">Ajouter au catalogue</span>
             <p style="color:var(--muted); font-size:0.85em; margin:8px 0 0 24px;">
               Votre spectacle sera visible sur la page d'accueil
             </p>
@@ -79,7 +79,6 @@
           <label>
             <span class="label-text">Votre téléphone <span class="req">*</span></span>
             <input type="tel" name="contact_phone" placeholder="06 12 34 56 78" required>
-            <span class="hint">Visible uniquement par l'administrateur</span>
           </label>
         </div>
       </div>
@@ -112,19 +111,10 @@
                    inputmode="numeric" pattern="[0-9]{5}" maxlength="5"
                    placeholder="Ex : 75001"
                    value="{{ request.form.get('code_postal','') }}">
-            <span class="hint">Entrez le code postal pour déterminer automatiquement la région.</span>
+            <span class="hint">Entrez le code postal.</span>
           </label>
         </div>
         <div>
-          <label>
-            <span class="label-text">Région</span>
-            <input type="text" name="region" id="region-input" readonly
-                   placeholder="Déterminée automatiquement"
-                   value="{{ request.form.get('region','') }}"
-                   style="background:#1a1a2e; cursor:not-allowed;">
-            <span class="hint">La région est remplie automatiquement selon le code postal.</span>
-          </label>
-        </div>
       </div>
       <div class="grid-2">
         <div>
@@ -144,6 +134,13 @@
               'Lille', 'Rennes', 'Reims', 'Le Havre', 'Saint-Étienne', 'Toulon', 'Grenoble', 'Dijon', 'Angers',
               'Nîmes', 'Villeurbanne'
             ] %}
+            {% set ville_depts = {
+              'Paris': '75', 'Marseille': '13', 'Lyon': '69', 'Toulouse': '31', 'Nice': '06',
+              'Nantes': '44', 'Montpellier': '34', 'Strasbourg': '67', 'Bordeaux': '33',
+              'Lille': '59', 'Rennes': '35', 'Reims': '51', 'Le Havre': '76',
+              'Saint-Étienne': '42', 'Toulon': '83', 'Grenoble': '38', 'Dijon': '21',
+              'Angers': '49', 'Nîmes': '30', 'Villeurbanne': '69'
+            } %}
             {% set ville_styles = {
               'Paris':         'background:#1976d2; color:#fff; border:1px solid #0d47a1;',
               'Marseille':     'background:#ffb300; color:#fff; border:1px solid #ff6f00;',
@@ -172,7 +169,7 @@
                 onmouseover="document.getElementById('ville-hover-banner').style.display='block'; document.getElementById('ville-hover-banner').style.opacity='1';"
                 onmouseout="document.getElementById('ville-hover-banner').style.opacity='0'; setTimeout(function(){document.getElementById('ville-hover-banner').style.display='none';},200);"
                  onclick="ajouterVille('{{ ville }}')"
-              >{{ ville }}</button>
+              >{{ ville_depts[ville] }} - {{ ville }}</button>
             {% endfor %}
           </div>
             <script>
@@ -188,137 +185,6 @@
         </div>
       </div>
       <div class="grid-2">
-        <div>
-          <label>
-            <span class="label-text">Catégorie</span>
-            <select name="category">
-              <option value="">-- Choisir --</option>
-              <optgroup label="Spectacle et Animation">
-                <option value="Spectacle Maternelle">Spectacle Maternelle</option>
-                <option value="Spectacle Élémentaire">Spectacle Élémentaire</option>
-                <option value="Spectacle École">Spectacle École</option>
-                <option value="Spectacle CSE">Spectacle CSE</option>
-                <option value="Festival">Festival</option>
-                <option value="Fête Foraine">Fête Foraine</option>
-                <option value="Sculpteur de ballons">Sculpteur de ballons</option>
-                <option value="Animation et Atelier Artistique">Animation et Atelier Artistique</option>
-                <option value="Atelier divers">Atelier divers</option>
-                <option value="Atelier maquillage">Atelier maquillage</option>
-                <option value="Caricaturistes et Silhouettiste">Caricaturistes et Silhouettiste</option>
-                <option value="Cirque">Cirque</option>
-                <option value="Clown">Clown</option>
-                <option value="Conte et Théâtre">Conte et Théâtre</option>
-                <option value="Fête de village">Fête de village</option>
-                <option value="Humoriste et Imitateur">Humoriste et Imitateur</option>
-                <option value="Location de stand">Location de stand</option>
-                <option value="Magie et Magicien">Magie et Magicien</option>
-                <option value="Manège">Manège</option>
-                <option value="Marionnettes">Marionnettes</option>
-                <option value="Père Noël">Père Noël</option>
-                <option value="Revue Cabaret et Danse">Revue Cabaret et Danse</option>
-                <option value="Sosie">Sosie</option>
-                <option value="Spectacle à Thèmes">Spectacle à Thèmes</option>
-                <option value="Spectacle Animalier">Spectacle Animalier</option>
-                <option value="Spectacle Arbre de Noël">Spectacle Arbre de Noël</option>
-                <option value="Spectacle de danse">Spectacle de danse</option>
-                <option value="Spectacle de Rue">Spectacle de Rue</option>
-                <option value="Spectacle Enfants">Spectacle Enfants</option>
-                <option value="Spectacle Evénementiel">Spectacle Evénementiel</option>
-                <option value="Spectacle Musical">Spectacle Musical</option>
-                <option value="Ventriloque">Ventriloque</option>
-              </optgroup>
-              <optgroup label="Théâtre">
-                <option value="Théâtre contemporain">Théâtre contemporain</option>
-                <option value="Théâtre de comédie">Théâtre de comédie</option>
-                <option value="Théâtre d'auteur">Théâtre d'auteur</option>
-                <option value="Théâtre classique">Théâtre classique</option>
-                <option value="Théâtre de boulevard">Théâtre de boulevard</option>
-                <option value="One-man-show">One-man-show</option>
-                <option value="Théâtre d'improvisation">Théâtre d'improvisation</option>
-                <option value="Comédie musicale">Comédie musicale</option>
-                <option value="Théâtre jeune public">Théâtre jeune public</option>
-                <option value="Théâtre amateur">Théâtre amateur</option>
-              </optgroup>
-              <optgroup label="Groupe de Musique et Musicien">
-                <option value="Accordéoniste">Accordéoniste</option>
-                <option value="Animation Musicale">Animation Musicale</option>
-                <option value="Auteur-Interprète">Auteur-Interprète</option>
-                <option value="Chanson française">Chanson française</option>
-                <option value="Chorale et Gospel">Chorale et Gospel</option>
-                <option value="D.J. et Orchestre">D.J. et Orchestre</option>
-                <option value="Fanfare et Batucada">Fanfare et Batucada</option>
-                <option value="Groupe folklorique">Groupe folklorique</option>
-                <option value="Jazz">Jazz</option>
-                <option value="Musique actuelle">Musique actuelle</option>
-                <option value="Musique Classique">Musique Classique</option>
-                <option value="Musique électronique">Musique électronique</option>
-                <option value="Orgue de Barbarie">Orgue de Barbarie</option>
-                <option value="Pianiste">Pianiste</option>
-                <option value="Pop">Pop</option>
-                <option value="R&B">R&B</option>
-                <option value="Rap">Rap</option>
-                <option value="Reggae">Reggae</option>
-                <option value="Rock et Country">Rock et Country</option>
-                <option value="Soul">Soul</option>
-                <option value="Variété française">Variété française</option>
-                <option value="Concert">Concert</option>
-                <option value="Tribute">Tribute</option>
-                <option value="Caricaturiste">Caricaturiste</option>
-              </optgroup>
-              <option value="Autre">Autre (précisez ci-dessous)</option>
-            </select>
-          </label>
-          <label id="autre_category_container" style="display:none; margin-top:10px;">
-            <span class="label-text">Précisez votre catégorie</span>
-            <input type="text" id="autre_category" name="autre_category" placeholder="Décrivez votre type de spectacle">
-          </label>
-          <div style="display:none; background:#e3f2fd; color:#1565c0; border:1px solid #90caf9; border-radius:7px; padding:7px 12px; margin:10px 0 8px 0; font-size:0.97em; font-weight:500;">
-            Cliquez sur une catégorie pour remplir automatiquement le champ ci-dessus&nbsp;:
-          </div>
-          <div class="category-buttons" style="display:none; flex-wrap:wrap; gap:6px; margin-bottom:14px; position:relative;">
-            <div id="category-hover-banner" style="display:none; position:absolute; left:0; right:0; top:-38px; background:#fffde7; color:#795548; border:1px solid #ffe082; border-radius:7px; padding:7px 12px; font-size:0.97em; font-weight:500; z-index:10; text-align:center; pointer-events:none; transition:opacity 0.2s; opacity:0;">
-              Cliquez pour sélectionner cette catégorie
-            </div>
-            <script>
-            function ajouterCategorie(cat) {
-                var input = document.getElementById('category-input');
-                var cats = input.value.split(',').map(function(c) { return c.trim(); }).filter(function(c) { return c.length > 0; });
-                if (cats.indexOf(cat) === -1) {
-                    cats.push(cat);
-                    input.value = cats.join(' | ');
-                }
-            }
-            </script>
-            {% set categories = [
-              'Marionnette', 'Magie', 'Clown', 'Théâtre', 'Spectacle enfant', 'Atelier', 'Concert', 'Cirque',
-              'Spectacle de rue', 'Orchestre', 'Arbre de Noël', 'Animation école', 'Fête de village', 'Danse'
-            ] %}
-            {% set cat_styles = {
-              'Marionnette':   'background:#a084ca; color:#fff; border:1px solid #7c5eb6;',
-              'Magie':         'background:#1976d2; color:#fff; border:1px solid #1565c0;',
-              'Clown':         'background:#ff9800; color:#fff; border:1px solid #f57c00;',
-              'Théâtre':       'background:#8d6e63; color:#fff; border:1px solid #6d4c41;',
-              'Spectacle enfant': 'background:#43a047; color:#fff; border:1px solid #2e7d32;',
-              'Atelier':       'background:#00bcd4; color:#fff; border:1px solid #008ba3;',
-              'Concert':       'background:#e53935; color:#fff; border:1px solid #b71c1c;',
-              'Cirque':        'background:#fbc02d; color:#fff; border:1px solid #f9a825;',
-              'Spectacle de rue': 'background:#607d8b; color:#fff; border:1px solid #455a64;',
-              'Orchestre':     'background:#6d4c41; color:#fff; border:1px solid #3e2723;',
-              'Arbre de Noël': 'background:#388e3c; color:#fff; border:1px solid #1b5e20;',
-              'Animation école': 'background:#ec407a; color:#fff; border:1px solid #ad1457;',
-              'Fête de village': 'background:#ffb300; color:#fff; border:1px solid #ff6f00;',
-              'Danse': 'background:#ab47bc; color:#fff; border:1px solid #7c43bd;'
-            } %}
-            {% for cat in categories %}
-              <button type="button" class="btn-category"
-                style="padding:4px 10px; border-radius:5px; font-size:0.95em; cursor:pointer; margin-bottom:2px; {{ cat_styles[cat] }}"
-                onmouseover="document.getElementById('category-hover-banner').style.display='block'; document.getElementById('category-hover-banner').style.opacity='1';"
-                onmouseout="document.getElementById('category-hover-banner').style.opacity='0'; setTimeout(function(){document.getElementById('category-hover-banner').style.display='none';},200);"
-                onclick="ajouterCategorie('{{ cat }}')"
-              >{{ cat }}</button>
-            {% endfor %}
-          </div>
-        </div>
         <div>
           <label>
             <span class="label-text">Âge / Public</span>
@@ -340,13 +206,15 @@
 
     <!-- SECTION: Photos -->
     <fieldset class="demande-section">
-      <legend>📷 Photos du spectacle (jusqu'à 3)</legend>
-      <p style="color:var(--muted); font-size:0.9em; margin-bottom:16px;">Ajoutez jusqu'à 3 photos pour créer un diaporama attractif sur votre fiche.</p>
+      <legend>📷 Photos du spectacle (2 minimum, 3 max)</legend>
+      <p style="color:var(--muted); font-size:0.9em; margin-bottom:16px;">Ajoutez au moins <strong style="color:#e53935;">2 photos</strong> pour publier votre fiche (3 recommandées pour un diaporama attractif).</p>
+      <p style="color:#b0bec5; font-size:0.85em; margin-bottom:16px; padding:10px 14px; background:rgba(255,255,255,0.04); border-left:3px solid #42a5f5; border-radius:4px;">📸 <strong>Conseil qualité</strong> : Pour garantir une présentation optimale de votre fiche, notre équipe se réserve la possibilité d'ajuster ou remplacer les visuels si nécessaire, afin de maintenir une harmonie visuelle sur l'ensemble du catalogue. Nous vous contacterons au préalable.</p>
+      <div id="photos-error" style="display:none; background:#ffebee; color:#c62828; border:1px solid #ef9a9a; border-radius:7px; padding:10px 14px; margin-bottom:12px; font-weight:600; font-size:0.95rem;">⚠️ Vous devez ajouter au minimum 2 photos pour publier votre spectacle.</div>
       
       <div class="grid-3" style="display:grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap:16px;">
         <div>
           <label>
-            <span class="label-text">Photo 1 (principale)</span>
+            <span class="label-text">Photo 1 (principale) <span class="req">*</span></span>
             <input type="file" name="file" id="file" accept=".png,.jpg,.jpeg,.gif,.webp,.pdf">
             <span class="hint">Max 500 Ko - PNG, JPG, JPEG, GIF, WEBP, PDF</span>
             <button type="button" onclick="clearFileInput('file')" id="clear-file" style="display:none; margin-top:8px; padding:6px 12px; background:#e74c3c; color:#fff; border:none; border-radius:6px; cursor:pointer; font-size:0.85rem;">🗑️ Retirer</button>
@@ -358,7 +226,7 @@
         </div>
         <div>
           <label>
-            <span class="label-text">Photo 2 (optionnelle)</span>
+            <span class="label-text">Photo 2 (obligatoire) <span class="req">*</span></span>
             <input type="file" name="file2" id="file2" accept=".png,.jpg,.jpeg,.gif,.webp">
             <span class="hint">Max 500 Ko - PNG, JPG, JPEG, GIF, WEBP</span>
             <button type="button" onclick="clearFileInput('file2')" id="clear-file2" style="display:none; margin-top:8px; padding:6px 12px; background:#e74c3c; color:#fff; border:none; border-radius:6px; cursor:pointer; font-size:0.85rem;">🗑️ Retirer</button>
@@ -385,14 +253,18 @@
 
     {# ═══ SECTION MATCHING : Spécialités + Événements + Lieux + Régions ════ #}
     <fieldset class="demande-section">
-      <legend>🎯 Votre profil de matching — Cochez uniquement ce que vous savez vraiment faire !</legend>
+      <legend>Votre profil de matching — Cochez uniquement ce que vous savez vraiment faire !</legend>
 
-      {{ accordion_checkboxes("specialites", specialites_data, [], "🎭", "Vos spécialités artistiques", "#6a1b9a", "Cochez tout ce que votre compagnie sait faire.", "#fff") }}
+      <div id="specialites-error" style="display:none; color:#ff1744; font-weight:600; margin:0 0 4px 8px; font-size:0.95em;">⚠️ Veuillez cocher au moins une spécialité artistique.</div>
+      {{ accordion_checkboxes("specialites", specialites_data, [], "", "Vos spécialités artistiques", "#6a1b9a", "Cochez tout ce que votre compagnie sait faire.", "#fff", 10) }}
 
-      {{ accordion_checkboxes("evenements", evenements_data, [], "🎪", "Types d'événements acceptés", "#e65100", "Pour quels types d'événements êtes-vous disponible ?", "#fff") }}
+      <div id="evenements-warning" style="display:none; color:#ffb347; font-weight:500; margin:0 0 4px 8px; font-size:0.9em;">💡 Aucun type d'événement sélectionné — votre annonce sera moins visible dans les recherches.</div>
+      {{ accordion_checkboxes("evenements", evenements_data, [], "", "Types d'événements acceptés", "#e65100", "Pour quels types d'événements êtes-vous disponible ?", "#fff", 15) }}
 
-      {{ accordion_checkboxes("lieux_intervention", lieux_data, [], "🏛️", "Types de lieux où vous pouvez jouer", "#2e7d32", "Dans quels types de lieux pouvez-vous vous produire ?", "#fff") }}
+      <div id="lieux-warning" style="display:none; color:#ffb347; font-weight:500; margin:0 0 4px 8px; font-size:0.9em;">💡 Aucun type de lieu sélectionné — votre annonce sera moins visible dans les recherches.</div>
+      {{ accordion_checkboxes("lieux_intervention", lieux_data, [], "", "Types de lieux où vous pouvez jouer", "#2e7d32", "Dans quels types de lieux pouvez-vous vous produire ?", "#fff", 15) }}
 
+      <div id="regions-error" style="display:none; color:#ff1744; font-weight:600; margin:0 0 4px 8px; font-size:0.95em;">⚠️ Veuillez cocher au moins une région d'intervention.</div>
       {{ regions_checkboxes("regions_intervention", regions_data, [], "#1565c0", "#fff") }}
     </fieldset>
 
@@ -540,22 +412,6 @@
   ta.addEventListener('input', update);
   update();
 
-  // Gestion de l'affichage du champ "Autre catégorie"
-  var categorySelect = document.querySelector('select[name="category"]');
-  var autreContainer = document.getElementById('autre_category_container');
-  var autreInput = document.getElementById('autre_category');
-  
-  if (categorySelect && autreContainer) {
-    categorySelect.addEventListener('change', function() {
-      if (this.value === 'Autre') {
-        autreContainer.style.display = 'block';
-      } else {
-        autreContainer.style.display = 'none';
-        if (autreInput) autreInput.value = '';
-      }
-    });
-  }
-
   // Sécurité supplémentaire à la soumission
   document.querySelectorAll('form').forEach(form => {
     form.addEventListener('submit', (e) => {
@@ -563,7 +419,56 @@
       if (words.length > MAX) {
         e.preventDefault();
         alert('La description ne doit pas dépasser 300 mots.');
+        return;
       }
+      // Validation minimum 2 photos
+      var file1 = document.getElementById('file');
+      var file2 = document.getElementById('file2');
+      var photosErr = document.getElementById('photos-error');
+      var nbPhotos = 0;
+      if (file1 && file1.files && file1.files.length > 0) nbPhotos++;
+      if (file2 && file2.files && file2.files.length > 0) nbPhotos++;
+      if (nbPhotos < 2) {
+        e.preventDefault();
+        if (photosErr) { photosErr.style.display = 'block'; photosErr.scrollIntoView({behavior:'smooth', block:'center'}); }
+        return;
+      }
+      if (photosErr) photosErr.style.display = 'none';
+
+      // Validation accordéons obligatoires (spécialités + régions)
+      var hasBlocking = false;
+      var specChecked = document.querySelectorAll('input[name="specialites"]:checked').length;
+      var specErr = document.getElementById('specialites-error');
+      if (specChecked === 0) {
+        hasBlocking = true;
+        if (specErr) { specErr.style.display = 'block'; }
+      } else {
+        if (specErr) specErr.style.display = 'none';
+      }
+
+      var regChecked = document.querySelectorAll('input[name="regions_intervention"]:checked').length;
+      var regErr = document.getElementById('regions-error');
+      if (regChecked === 0) {
+        hasBlocking = true;
+        if (regErr) { regErr.style.display = 'block'; }
+      } else {
+        if (regErr) regErr.style.display = 'none';
+      }
+
+      if (hasBlocking) {
+        e.preventDefault();
+        var firstErr = specChecked === 0 ? specErr : regErr;
+        if (firstErr) firstErr.scrollIntoView({behavior:'smooth', block:'center'});
+        return;
+      }
+
+      // Avertissements non bloquants (événements + lieux)
+      var evtWarn = document.getElementById('evenements-warning');
+      var lieuxWarn = document.getElementById('lieux-warning');
+      var evtChecked = document.querySelectorAll('input[name="evenements"]:checked').length;
+      var lieuxChecked = document.querySelectorAll('input[name="lieux_intervention"]:checked').length;
+      if (evtWarn) evtWarn.style.display = evtChecked === 0 ? 'block' : 'none';
+      if (lieuxWarn) lieuxWarn.style.display = lieuxChecked === 0 ? 'block' : 'none';
     });
   });
 })();
