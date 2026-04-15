@@ -117,6 +117,11 @@
         <div style="background:#fff; padding:15px; border-radius:10px; border:1px solid #e0e0e0; margin-bottom:1rem;">
           <p style="margin:0.5rem 0;"><strong>🎭 Genre :</strong> <span style="color:#1976d2; font-weight:600;">{{ demande.genre_recherche }}</span></p>
           <p style="margin:0.5rem 0;"><strong>📍 Lieu :</strong> <span style="color:#222;">{{ demande.lieu_ville }}</span></p>
+          {% if demande.code_postal %}<p style="margin:0.5rem 0;"><strong>🏛️ Département :</strong> <span style="color:#222;">{{ demande.code_postal }}</span></p>{% endif %}
+          {% if demande.region %}<p style="margin:0.5rem 0;"><strong>🗺️ Région :</strong> <span style="color:#222;">{{ demande.region }}</span></p>{% endif %}
+          {% if demande.portee_nationale is defined %}
+          <p style="margin:0.5rem 0;"><span style="display:inline-block; padding:3px 10px; border-radius:6px; font-size:0.85rem; font-weight:600; {% if demande.portee_nationale %}background:#e3f2fd; color:#1565c0; border:1px solid #90caf9;{% else %}background:#fff3e0; color:#e65100; border:1px solid #ffcc80;{% endif %}">{% if demande.portee_nationale %}🇫🇷 Toute la France{% else %}📍 Région uniquement{% endif %}</span></p>
+          {% endif %}
           <p style="margin:0.5rem 0;"><strong>📅 Date(s) :</strong> <span style="color:#222;">{{ demande.dates_horaires }}</span></p>
           <p style="margin:0.5rem 0;"><strong>🏢 Espace :</strong> <span style="color:#222;">{{ demande.type_espace }}</span></p>
           <p style="margin:0.5rem 0;"><strong>👶 Public :</strong> <span style="color:#222;">{{ demande.age_range|format_age }}</span></p>

@@ -9,7 +9,11 @@
 </div>
 <div class="demande-wrap" style="background:linear-gradient(135deg,#1b2a4e 0%,#355c7d 100%); border:2px solid #355c7d; border-radius:16px; padding:32px; margin-bottom:32px; position:relative; overflow:hidden; box-shadow:0 4px 16px #355c7d22; color:#fff;">
   <div style="background:linear-gradient(90deg,#1b2a4e 0%,#355c7d 100%); color:#fff; border-radius:10px; padding:14px 18px; margin-bottom:18px; text-align:center; font-size:1.18em; font-weight:700; box-shadow:0 2px 8px #1b2a4e33; letter-spacing:0.1px;">
-    Demande d'un devis, d'une animation ou d'un spectacle
+    Faire un appel d'offre animation, spectacle et autres
+  </div>
+  <div style="background:#e8f5e9; border:1px solid #a5d6a7; border-radius:10px; padding:14px 18px; margin-bottom:18px; text-align:center;">
+    <p style="margin:0 0 6px 0; font-size:1.05rem; color:#2e7d32; font-weight:700;">Appel d'offre GRATUIT - Un gain de temps considérable</p>
+    <p style="margin:0; font-size:0.95rem; color:#388e3c;">Vous ne cherchez plus, ce sont les artistes qui viennent à vous !</p>
   </div>
   <p class="text-muted" style="margin:0 0 24px 0; text-align:center;">
     Remplissez les informations essentielles. Les champs marqués <span style="color:var(--primary); font-weight:700;">*</span> sont obligatoires.<br>
@@ -53,11 +57,11 @@
 
       <div class="grid-2">
         <label>
-          <span class="label-text">📧 Contact (Email, Facebook, Instagram, site web...) <span class="req">*</span></span>
-          <input type="text" id="contact_email" name="contact_email" required
-                 placeholder="email@exemple.fr, @instagram, facebook.com/page, www.site.fr..."
+          <span class="label-text">Adresse mail <span class="req">*</span></span>
+          <input type="email" id="contact_email" name="contact_email" required
+                 placeholder="email@exemple.fr"
                  value="{{ request.form.get('contact_email','') }}">
-          <small class="hint">Email, lien Facebook/Instagram, site web... Nous l'utilisons pour vous contacter.</small>
+          <small class="hint">Nous l'utilisons pour vous contacter.</small>
         </label>
 
         <label>
@@ -106,14 +110,14 @@
     <fieldset class="demande-section" style="background: linear-gradient(135deg, rgba(76,175,80,0.1) 0%, rgba(67,160,71,0.1) 100%); border: 2px solid #4caf50;">
       <legend style="color: #4caf50;">Détails de votre recherche</legend>
 
-      {{ accordion_checkboxes("specialites_recherchees", specialites_data, request.form.getlist("specialites_recherchees"), "", "Type de spectacle recherché", "#6a1b9a", "Cochez le ou les types de spectacle que vous recherchez.", "#fff") }}
+      {{ accordion_checkboxes("specialites_recherchees", specialites_data, request.form.getlist("specialites_recherchees"), "", "Type de spectacle recherché", "#6a1b9a", "Cochez le ou les types de spectacle que vous recherchez.", "#fff", 3) }}
       <div id="specialites-error" style="display:none; color:#ff5252; background:rgba(255,82,82,0.1); border:1px solid #ff5252; border-radius:8px; padding:10px 16px; margin-top:8px; font-weight:500;">
         ⚠️ Veuillez cocher au moins un type de spectacle recherché.
       </div>
 
-      {{ accordion_checkboxes("evenements_contexte", evenements_data, request.form.getlist("evenements_contexte"), "", "Contexte de votre événement", "#e65100", "Quel type d'événement organisez-vous ?", "#fff") }}
+      {{ accordion_checkboxes("evenements_contexte", evenements_data, request.form.getlist("evenements_contexte"), "", "Contexte de votre événement", "#e65100", "Quel type d'événement organisez-vous ?", "#fff", 3) }}
 
-      {{ accordion_checkboxes("lieux_souhaites", lieux_data, request.form.getlist("lieux_souhaites"), "🏛️", "Type d'espace mis à disposition", "#2e7d32", "Sélectionnez le ou les types d'espaces disponibles.", "#fff") }}
+      {{ accordion_checkboxes("lieux_souhaites", lieux_data, request.form.getlist("lieux_souhaites"), "🏛️", "Type d'espace mis à disposition", "#2e7d32", "Sélectionnez le ou les types d'espaces disponibles.", "#fff", 3) }}
 
       <div class="grid-2" style="margin-top:16px;">
         <label>
@@ -198,6 +202,19 @@
                  style="background:#1b2a4e; cursor:not-allowed;">
           <small class="hint">La région est remplie automatiquement selon le code postal.</small>
         </label>
+      </div>
+
+      <div style="margin-top:16px; padding:14px 18px; background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.15); border-radius:10px;">
+        <span class="label-text" style="display:block; margin-bottom:8px; color:#e0e0e0;">Portée géographique de votre appel d'offre</span>
+        <label style="display:inline-flex; align-items:center; gap:6px; margin-right:24px; cursor:pointer;">
+          <input type="radio" name="portee_nationale" value="1" {% if request.form.get('portee_nationale', '1') == '1' %}checked{% endif %} style="accent-color:#1976d2; width:18px; height:18px;">
+          <span style="font-size:0.95rem; color:#90caf9;">🇫🇷 Accepte propositions de toute la France</span>
+        </label>
+        <label style="display:inline-flex; align-items:center; gap:6px; cursor:pointer;">
+          <input type="radio" name="portee_nationale" value="0" {% if request.form.get('portee_nationale') == '0' %}checked{% endif %} style="accent-color:#e65100; width:18px; height:18px;">
+          <span style="font-size:0.95rem; color:#ffcc80;">📍 Accepte propositions régionales uniquement</span>
+        </label>
+        <small class="hint" style="display:block; margin-top:6px;">Indicatif : les artistes verront cette préférence sur votre appel d'offre.</small>
       </div>
     </fieldset>
 

@@ -847,6 +847,14 @@ def register_routes(app: Flask) -> None:
                 flash("Veuillez remplir tous les champs obligatoires.", "danger")
                 return render_template("register.html")
 
+            if not raison_sociale:
+                flash("La raison sociale est obligatoire.", "danger")
+                return render_template("register.html")
+
+            if not region:
+                flash("La région est obligatoire.", "danger")
+                return render_template("register.html")
+
             # Validation du mot de passe (minimum 6 caractères)
             if len(password) < 6:
                 flash("Le mot de passe doit contenir au moins 6 caractères.", "danger")
@@ -3004,42 +3012,111 @@ def register_routes(app: Flask) -> None:
 </body>
 </html>"""
                 else:
-                    # Carte créée par l'admin → Email de découverte
-                    subject = "⭐ Votre spectacle a été repéré pour notre annuaire Spectacle'ment VØtre !"
+                    # Carte créée par l'admin → Email de découverte (HTML)
+                    subject = "Votre spectacle a été repéré pour notre annuaire Spectacle'ment VØtre !"
                     abonnement_url = url_for('abonnement_compagnie', _external=True)
-                    body = (
-                        "Bonjour,\n\n"
-                        "Depuis plus de trente ans, Spectacle'ment VØtre accompagne les acteurs culturels français (Centres Culturels, Mairies, CSE, Écoles, MJC, etc.) en leur proposant des spectacles de qualité exceptionnelle.\n\n"
-                        "🎭 Notre mission : Repérer les meilleurs artistes et compagnies pour offrir de l'excellence aux programmateurs qui recherchent des spectacles professionnels.\n\n"
-                        "✨ Votre talent a retenu notre attention et nous avons créé une fiche pour vous sur notre annuaire gratuit :\n\n"
-                        "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
-                        f"Compagnie : {show.raison_sociale or 'Non renseignée'}\n"
-                        f"Titre : {show.title}\n"
-                        f"Lieu : {show.location}\n"
-                        f"Catégorie : {show.category}\n"
-                        + (f"Date : {show.date}\n" if show.date else "")
-                        + f"Date de publication : {show.created_at.strftime('%d/%m/%Y %H:%M') if show.created_at else 'N/A'}\n"
-                        + "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n"
-                        + f"👉 Lien direct vers votre annonce : {show_url}\n\n"
-                        + "✅ Votre déploiement sur notre plateforme est ENTIÈREMENT GRATUIT.\n\n"
-                        + "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
-                        + "💼 L'ACCOMPAGNEMENT ADMINISTRATIF COMPLET\n"
-                        + "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n"
-                        + "Au-delà de la visibilité, Spectacle'ment VØtre propose un service d'administration complet pour libérer les compagnies de la gestion administrative :\n\n"
-                        + "📊 URSSAF - Déclarations et cotisations\n"
-                        + "📝 DSN - Déclaration Sociale Nominative\n"
-                        + "🎫 DUE - Déclaration Unique d'Embauche\n"
-                        + "👥 AEM - Attestation Employeur Mensuelle\n"
-                        + "💰 Fiches de paie - Édition et gestion\n"
-                        + "📄 Contrats de cession - Rédaction et suivi\n\n"
-                        + "⏰ Gagnez un temps précieux • 🎯 Sécurité juridique • ✨ Expertise dédiée\n\n"
-                        + "Plus de 30 ans d'expérience au service des compagnies de spectacle vivant.\n\n"
-+ f"Découvrez notre accompagnement Premium :\n{abonnement_url}\n\n"
-                        + "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n"
-                        + "Pour retirer ou modifier votre fiche, contactez-nous par simple retour de mail.\n\n"
-                        + "Spectaclement vôtre,\n"
-                        + "L'équipe Spectacle'ment VØtre"
-                    )
+                    date_publication = show.created_at.strftime('%d/%m/%Y %H:%M') if show.created_at else 'N/A'
+                    body_html_decouverte = f"""<!DOCTYPE html>
+<html lang="fr">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"></head>
+<body style="margin:0; padding:0; background:#f4f4f7; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f4f4f7; padding:30px 0;">
+    <tr>
+        <td align="center">
+            <table role="presentation" width="620" cellpadding="0" cellspacing="0" style="background:#ffffff; border-radius:12px; box-shadow:0 4px 24px rgba(0,0,0,0.08); overflow:hidden; max-width:620px;">
+                <tr>
+                    <td style="background:linear-gradient(135deg,#667eea 0%,#764ba2 100%); padding:40px 40px 30px; text-align:center;">
+                        <img src="https://spectacleanimation.fr/static/img/logo_spectaclement_votre.png" alt="Spectacle'ment VØtre" width="120" style="display:block; margin:0 auto 16px; max-width:120px; height:auto;">
+                        <h1 style="margin:0 0 8px 0; font-size:26px; color:#fff; font-weight:700; letter-spacing:0.5px;">Spectacle'ment V&Oslash;tre</h1>
+                        <p style="margin:0; font-size:14px; color:rgba(255,255,255,0.8); letter-spacing:2px; text-transform:uppercase;">Annuaire du spectacle vivant</p>
+                    </td>
+                </tr>
+                <tr>
+                    <td style="padding:35px 40px 20px;">
+                        <p style="margin:0 0 18px 0; font-size:16px; color:#333; line-height:1.7;">Bonjour,</p>
+                        <p style="margin:0 0 18px 0; font-size:16px; color:#333; line-height:1.7;"><strong>F&eacute;licitations !</strong> Votre talent a retenu notre attention et nous avons cr&eacute;&eacute; une fiche pour vous sur notre annuaire gratuit.</p>
+                        <p style="margin:0 0 18px 0; font-size:15px; color:#444; line-height:1.7;">Vous profitez d&eacute;sormais des <strong>appels d'offres</strong> du site Spectacle'ment V&Oslash;tre gratuitement. En vous inscrivant, vous pourrez aller plus loin : annoncer vos &eacute;v&eacute;nements, d&eacute;ployer vos spectacles sur notre plateforme et recevoir directement les appels d'offres de nos partenaires, le tout <strong>gratuitement</strong>.</p>
+                        <div style="background:#e8f5e9; border:1px solid #a5d6a7; border-radius:8px; padding:16px 20px; margin-bottom:18px; text-align:center;">
+                            <p style="margin:0 0 8px 0; font-size:15px; color:#2e7d32; font-weight:600;">Votre d&eacute;ploiement sur notre plateforme est enti&egrave;rement gratuit.</p>
+                            <p style="margin:0 0 8px 0; font-size:13px; color:#388e3c; line-height:1.5;">Pourquoi ? Notre vocation depuis plus de 30 ans est de connecter artistes et programmateurs. Votre visibilit&eacute; enrichit notre annuaire et profite &agrave; l'ensemble du r&eacute;seau culturel. C'est en accompagnant les compagnies qui le souhaitent sur le volet administratif que nous p&eacute;rennisons ce mod&egrave;le gratuit.</p>
+                            <p style="margin:0; font-size:13px; color:#388e3c; line-height:1.5;">Chaque compagnie inscrite apporte sa pierre &agrave; l'&eacute;difice : plus l'annuaire est riche, plus les programmateurs y trouvent leur bonheur, et plus les opportunit&eacute;s reviennent vers vous.</p>
+                        </div>
+                        <p style="margin:0; font-size:15px; color:#444; line-height:1.7;"><strong>Notre mission :</strong> Rep&eacute;rer les meilleurs artistes et compagnies pour offrir de l'excellence aux programmateurs qui recherchent des spectacles professionnels.</p>
+                    </td>
+                </tr>
+                <tr>
+                    <td style="padding:0 40px;">
+                        <div style="background:linear-gradient(135deg,#f5f7fa 0%,#e8ecf1 100%); border-radius:10px; padding:24px; border-left:5px solid #764ba2;">
+                            <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+                                <tr><td style="padding:6px 0;"><span style="font-size:12px; color:#888; text-transform:uppercase; letter-spacing:1px;">Compagnie</span><br><span style="font-size:16px; color:#1a1a2e; font-weight:600;">{show.raison_sociale or 'Non renseign&eacute;e'}</span></td></tr>
+                                <tr><td style="padding:6px 0;"><span style="font-size:12px; color:#888; text-transform:uppercase; letter-spacing:1px;">Titre du spectacle</span><br><span style="font-size:16px; color:#1a1a2e; font-weight:600;">{show.title}</span></td></tr>
+                                <tr><td style="padding:6px 0;"><span style="font-size:12px; color:#888; text-transform:uppercase; letter-spacing:1px;">Lieu</span><br><span style="font-size:15px; color:#333;">{show.location}</span></td></tr>
+                                <tr><td style="padding:6px 0;"><span style="font-size:12px; color:#888; text-transform:uppercase; letter-spacing:1px;">Cat&eacute;gorie</span><br><span style="font-size:15px; color:#333;">{show.category}</span></td></tr>
+                                <tr><td style="padding:6px 0;"><span style="font-size:12px; color:#888; text-transform:uppercase; letter-spacing:1px;">Date de publication</span><br><span style="font-size:15px; color:#333;">{date_publication}</span></td></tr>
+                            </table>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td style="padding:30px 40px; text-align:center;">
+                        <a href="{show_url}" style="display:inline-block; background:linear-gradient(135deg,#667eea 0%,#764ba2 100%); color:#fff; text-decoration:none; padding:16px 44px; border-radius:8px; font-weight:700; font-size:16px; letter-spacing:0.5px; box-shadow:0 4px 16px rgba(102,126,234,0.35);">Voir mon annonce</a>
+                    </td>
+                </tr>
+                <tr><td style="padding:30px 40px 0;"><hr style="border:none; border-top:1px solid #e0e0e0; margin:0;"></td></tr>
+                <tr>
+                    <td style="padding:30px 40px 10px;">
+                        <h2 style="margin:0 0 6px 0; font-size:18px; color:#1a1a2e; font-weight:700;">L'accompagnement administratif complet</h2>
+                        <p style="margin:0 0 12px 0; font-size:14px; color:#666; line-height:1.6;">Au-del&agrave; de la visibilit&eacute;, Spectacle'ment V&Oslash;tre propose un service d'administration complet pour lib&eacute;rer les compagnies de la gestion administrative.</p>
+                        <p style="margin:0 0 20px 0; font-size:14px; color:#666; line-height:1.6;">Nous accompagnons &eacute;galement les <strong>compagnies &eacute;mergentes et artistes en devenir</strong> avec du conseil personnalis&eacute; sur tous les aspects administratifs li&eacute;s &agrave; la vie d'une compagnie : cr&eacute;ation de structure, obligations l&eacute;gales, gestion sociale, strat&eacute;gie de d&eacute;veloppement et bien plus encore.</p>
+                    </td>
+                </tr>
+                <tr>
+                    <td style="padding:0 40px 10px;">
+                        <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+                            <tr>
+                                <td width="50%" style="padding:8px 8px 8px 0; vertical-align:top;"><div style="background:#f8f9fa; border-radius:8px; padding:14px 16px; border-left:3px solid #764ba2;"><span style="font-size:14px; color:#333; font-weight:600;">URSSAF</span><br><span style="font-size:13px; color:#666;">D&eacute;clarations et cotisations</span></div></td>
+                                <td width="50%" style="padding:8px 0 8px 8px; vertical-align:top;"><div style="background:#f8f9fa; border-radius:8px; padding:14px 16px; border-left:3px solid #764ba2;"><span style="font-size:14px; color:#333; font-weight:600;">DSN</span><br><span style="font-size:13px; color:#666;">D&eacute;claration Sociale Nominative</span></div></td>
+                            </tr>
+                            <tr>
+                                <td width="50%" style="padding:8px 8px 8px 0; vertical-align:top;"><div style="background:#f8f9fa; border-radius:8px; padding:14px 16px; border-left:3px solid #764ba2;"><span style="font-size:14px; color:#333; font-weight:600;">DUE</span><br><span style="font-size:13px; color:#666;">D&eacute;claration Unique d'Embauche</span></div></td>
+                                <td width="50%" style="padding:8px 0 8px 8px; vertical-align:top;"><div style="background:#f8f9fa; border-radius:8px; padding:14px 16px; border-left:3px solid #764ba2;"><span style="font-size:14px; color:#333; font-weight:600;">AEM</span><br><span style="font-size:13px; color:#666;">Attestation Employeur Mensuelle</span></div></td>
+                            </tr>
+                            <tr>
+                                <td width="50%" style="padding:8px 8px 8px 0; vertical-align:top;"><div style="background:#f8f9fa; border-radius:8px; padding:14px 16px; border-left:3px solid #764ba2;"><span style="font-size:14px; color:#333; font-weight:600;">Fiches de paie</span><br><span style="font-size:13px; color:#666;">&Eacute;dition et gestion</span></div></td>
+                                <td width="50%" style="padding:8px 0 8px 8px; vertical-align:top;"><div style="background:#f8f9fa; border-radius:8px; padding:14px 16px; border-left:3px solid #764ba2;"><span style="font-size:14px; color:#333; font-weight:600;">Contrats de cession</span><br><span style="font-size:13px; color:#666;">R&eacute;daction et suivi</span></div></td>
+                            </tr>
+                        </table>
+                    </td>
+                </tr>
+                <tr>
+                    <td style="padding:10px 40px 5px; text-align:center;">
+                        <table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 auto;">
+                            <tr>
+                                <td style="padding:0 14px; text-align:center;"><span style="display:block; font-size:20px; color:#764ba2; font-weight:700;">30+</span><span style="font-size:12px; color:#888;">ans d'exp&eacute;rience</span></td>
+                                <td style="border-left:1px solid #e0e0e0; padding:0 14px; text-align:center;"><span style="display:block; font-size:14px; color:#764ba2; font-weight:700;">S&eacute;curit&eacute;</span><span style="font-size:12px; color:#888;">juridique</span></td>
+                                <td style="border-left:1px solid #e0e0e0; padding:0 14px; text-align:center;"><span style="display:block; font-size:14px; color:#764ba2; font-weight:700;">Expertise</span><span style="font-size:12px; color:#888;">d&eacute;di&eacute;e</span></td>
+                            </tr>
+                        </table>
+                    </td>
+                </tr>
+                <tr>
+                    <td style="padding:25px 40px; text-align:center;">
+                        <a href="{abonnement_url}" style="display:inline-block; background:#fff; color:#764ba2; text-decoration:none; padding:14px 36px; border-radius:8px; font-weight:700; font-size:15px; border:2px solid #764ba2; letter-spacing:0.3px;">D&eacute;couvrir l'accompagnement Premium</a>
+                    </td>
+                </tr>
+                <tr>
+                    <td style="background:linear-gradient(135deg,#667eea 0%,#764ba2 100%); padding:30px 40px; text-align:center;">
+                        <p style="margin:0 0 12px 0; font-size:13px; color:rgba(255,255,255,0.75); line-height:1.6;">Pour retirer ou modifier votre fiche, contactez-nous par simple retour de mail.</p>
+                        <p style="margin:0 0 4px 0; font-size:14px; color:#fff; font-weight:600;">Spectaclement v&ocirc;tre,</p>
+                        <p style="margin:0; font-size:13px; color:rgba(255,255,255,0.65);">L'&eacute;quipe Spectacle'ment V&Oslash;tre</p>
+                    </td>
+                </tr>
+            </table>
+        </td>
+    </tr>
+</table>
+</body>
+</html>"""
                 
                 msg = MailMessage(subject=subject, recipients=[to_addr])  # type: ignore[arg-type]
                 
@@ -3054,8 +3131,9 @@ def register_routes(app: Flask) -> None:
                     msg.html = body_html  # type: ignore[assignment]
                     msg.body = f"Votre spectacle '{show.title}' a été validé et publié sur Spectacle'ment VØtre !\n\nConsultez votre annonce : {show_url}\n\nSpectaclement vôtre,\nL'équipe Spectacle'ment VØtre"  # type: ignore[assignment]
                 else:
-                    # Spectacle créé par admin : email texte simple
-                    msg.body = body  # type: ignore[assignment]
+                    # Spectacle créé par admin : email HTML découverte
+                    msg.html = body_html_decouverte  # type: ignore[assignment]
+                    msg.body = f"Félicitations ! Votre talent a retenu notre attention. Nous avons créé une fiche pour vous sur notre annuaire gratuit.\n\nConsultez votre annonce : {show_url}\n\nSpectaclement vôtre,\nL'équipe Spectacle'ment VØtre"  # type: ignore[assignment]
                 
                 current_app.mail.send(msg)  # type: ignore[attr-defined]
                 current_app.logger.info(f"[MAIL] ✓ Email envoyé à {to_addr} (copie admin: {admin_email}) pour validation de spectacle: {show.title}")
@@ -3173,6 +3251,9 @@ def register_routes(app: Flask) -> None:
             evenements_contexte = ",".join(request.form.getlist("evenements_contexte"))
             lieux_souhaites = ",".join(request.form.getlist("lieux_souhaites"))
 
+            # Portée géographique
+            portee_nationale = request.form.get("portee_nationale", "1") == "1"
+
             # Si genre_recherche est vide mais des spécialités sont cochées, prendre la première
             if not genre_recherche and specialites_recherchees:
                 genre_recherche = specialites_recherchees.split(",")[0]
@@ -3261,6 +3342,7 @@ Accessibilité: {accessibilite}
                 specialites_recherchees=specialites_recherchees,
                 evenements_contexte=evenements_contexte,
                 lieux_souhaites=lieux_souhaites,
+                portee_nationale=portee_nationale,
                 is_private=False,  # Publique par défaut
                 approved=False  # En attente de validation par l'admin
             )
@@ -3271,43 +3353,67 @@ Accessibilité: {accessibilite}
             if getattr(current_app, "mail", None) and current_app.config.get("MAIL_USERNAME"):
                 try:
                     confirmation_html = f"""<!DOCTYPE html>
-<html>
-<head><meta charset="UTF-8">
-<style>
-  body {{ font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; }}
-  .logo {{ text-align: center; margin: 20px 0; }}
-  .logo img {{ max-width: 200px; height: auto; }}
-  .content {{ padding: 20px; background-color: #f9f9f9; border-radius: 8px; }}
-  .pending-box {{ background: linear-gradient(135deg, #1565c0, #1976d2); color: white; padding: 20px; border-radius: 8px; margin: 20px 0; text-align: center; }}
-  .pending-box h3 {{ margin: 0; color: white; }}
-  .info-box {{ background-color: #e3f2fd; padding: 15px; border-radius: 8px; margin: 15px 0; }}
-  .footer {{ text-align: center; margin-top: 20px; color: #666; font-size: 0.9em; }}
-</style>
-</head>
-<body>
-  <div class="logo">
-    <img src="https://www.spectacleanimation.fr/static/img/logo_spectaclement_votre.png" alt="Spectacle'ment Vôtre">
-  </div>
-  <div class="content">
-    <div class="pending-box">
-      <h3>⏳ Votre demande est en cours de validation</h3>
-    </div>
-    <p>Bonjour {nom},</p>
-    <p>Nous avons bien reçu votre appel d'offre <strong>"{intitule}"</strong>.<br>
-    Notre équipe va le vérifier et le publier dans les <strong>24 heures</strong>.</p>
-    <div class="info-box">
-      <p><strong>📋 Récapitulatif :</strong></p>
-      <p><strong>Structure :</strong> {structure}<br>
-      <strong>Genre recherché :</strong> {genre_recherche}<br>
-      <strong>Lieu :</strong> {lieu_ville}{f' ({code_postal})' if code_postal else ''}<br>
-      <strong>Date(s) :</strong> {dates_horaires}<br>
-      <strong>Budget :</strong> {budget}</p>
-    </div>
-    <p>Vous recevrez un second email dès que votre annonce sera en ligne.</p>
-    <div class="footer">
-      <p><strong>L'équipe Spectacle'ment Vôtre</strong><br>contact@spectacleanimation.fr</p>
-    </div>
-  </div>
+<html lang="fr">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"></head>
+<body style="margin:0; padding:0; background:#f4f4f7; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f4f4f7; padding:30px 0;">
+    <tr>
+        <td align="center">
+            <table role="presentation" width="620" cellpadding="0" cellspacing="0" style="background:#ffffff; border-radius:12px; box-shadow:0 4px 24px rgba(0,0,0,0.08); overflow:hidden; max-width:620px;">
+                <tr>
+                    <td style="background:linear-gradient(135deg,#667eea 0%,#764ba2 100%); padding:40px 40px 30px; text-align:center;">
+                        <img src="https://spectacleanimation.fr/static/img/logo_spectaclement_votre.png" alt="Spectacle'ment VØtre" width="120" style="display:block; margin:0 auto 16px; max-width:120px; height:auto;">
+                        <h1 style="margin:0 0 8px 0; font-size:26px; color:#fff; font-weight:700; letter-spacing:0.5px;">Spectacle'ment V&Oslash;tre</h1>
+                        <p style="margin:0; font-size:14px; color:rgba(255,255,255,0.8); letter-spacing:2px; text-transform:uppercase;">Annuaire du spectacle vivant</p>
+                        <p style="margin:12px 0 0 0; font-size:15px; color:rgba(255,255,255,0.95); font-style:italic;">Vous ne cherchez plus, ce sont les artistes qui viennent &agrave; vous !</p>
+                    </td>
+                </tr>
+                <tr>
+                    <td style="padding:0 40px;">
+                        <div style="background:#e8f5e9; border:1px solid #a5d6a7; padding:20px; border-radius:0 0 10px 10px; text-align:center; margin-bottom:25px;">
+                            <p style="margin:0; font-size:20px; font-weight:700; color:#2e7d32;">Bravo et merci ! Votre demande est en cours de validation</p>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td style="padding:0 40px 20px;">
+                        <p style="margin:0 0 18px 0; font-size:16px; color:#333; line-height:1.7;">Bonjour <strong>{nom}</strong>,</p>
+                        <p style="margin:0 0 18px 0; font-size:15px; color:#444; line-height:1.7;">Nous avons bien re&ccedil;u votre appel d'offre et son intitul&eacute; <strong>&laquo; {intitule} &raquo;</strong>.<br>Notre &eacute;quipe va le v&eacute;rifier et le publier dans les <strong>24 heures</strong>.</p>
+                    </td>
+                </tr>
+                <tr>
+                    <td style="padding:0 40px 25px;">
+                        <div style="background:linear-gradient(135deg,#f5f7fa 0%,#e8ecf1 100%); border-radius:10px; padding:24px; border-left:5px solid #764ba2;">
+                            <p style="margin:0 0 14px 0; font-size:15px; color:#764ba2; font-weight:700; text-transform:uppercase; letter-spacing:1px;">R&eacute;capitulatif</p>
+                            <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+                                <tr><td style="padding:6px 0;"><span style="font-size:12px; color:#888; text-transform:uppercase; letter-spacing:1px;">Structure</span><br><span style="font-size:15px; color:#333; font-weight:600;">{structure}</span></td></tr>
+                                <tr><td style="padding:6px 0;"><span style="font-size:12px; color:#888; text-transform:uppercase; letter-spacing:1px;">Genre recherch&eacute;</span><br><span style="font-size:15px; color:#333; font-weight:600;">{genre_recherche}</span></td></tr>
+                                <tr><td style="padding:6px 0;"><span style="font-size:12px; color:#888; text-transform:uppercase; letter-spacing:1px;">Lieu</span><br><span style="font-size:15px; color:#333;">{lieu_ville}{f' ({code_postal})' if code_postal else ''}</span></td></tr>
+                                <tr><td style="padding:6px 0;"><span style="font-size:12px; color:#888; text-transform:uppercase; letter-spacing:1px;">R&eacute;gion</span><br><span style="font-size:15px; color:#333;">{region or 'Non pr&eacute;cis&eacute;e'}</span></td></tr>
+                                <tr><td style="padding:6px 0;"><span style="font-size:12px; color:#888; text-transform:uppercase; letter-spacing:1px;">Date(s)</span><br><span style="font-size:15px; color:#333;">{dates_horaires}</span></td></tr>
+                                <tr><td style="padding:6px 0;"><span style="font-size:12px; color:#888; text-transform:uppercase; letter-spacing:1px;">Budget</span><br><span style="font-size:15px; color:#333; font-weight:600;">{budget}</span></td></tr>
+                            </table>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td style="padding:0 40px 25px;">
+                        <div style="background:#e8f5e9; border:1px solid #a5d6a7; border-radius:8px; padding:14px 18px; text-align:center;">
+                            <p style="margin:0; font-size:14px; color:#2e7d32; font-weight:600;">Vous recevrez un second email d&egrave;s que votre annonce sera en ligne.</p>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td style="background:linear-gradient(135deg,#667eea 0%,#764ba2 100%); padding:30px 40px; text-align:center;">
+                        <p style="margin:0 0 4px 0; font-size:14px; color:#fff; font-weight:600;">Spectaclement v&ocirc;tre,</p>
+                        <p style="margin:0 0 8px 0; font-size:13px; color:rgba(255,255,255,0.65);">L'&eacute;quipe Spectacle'ment V&Oslash;tre</p>
+                        <p style="margin:0; font-size:12px; color:rgba(255,255,255,0.5);">contact@spectacleanimation.fr</p>
+                    </td>
+                </tr>
+            </table>
+        </td>
+    </tr>
+</table>
 </body>
 </html>"""
                     msg_conf = MailMessage(
@@ -3883,6 +3989,9 @@ Accessibilité: {accessibilite}
             evenements_contexte = ",".join(request.form.getlist("evenements_contexte"))
             lieux_souhaites = ",".join(request.form.getlist("lieux_souhaites"))
 
+            # Portée géographique
+            portee_nationale = request.form.get("portee_nationale", "1") == "1"
+
             # Validation basique - TELEPHONE est optionnel !
             if not all([structure, lieu_ville, nom, dates_horaires, 
                        type_espace, genre_recherche, age_range, jauge, budget, contact_email]):
@@ -3912,6 +4021,7 @@ Accessibilité: {accessibilite}
                 specialites_recherchees=specialites_recherchees,
                 evenements_contexte=evenements_contexte,
                 lieux_souhaites=lieux_souhaites,
+                portee_nationale=portee_nationale,
                 is_private=is_private,
                 approved=publish_immediately  # Approuvé seulement si demandé
             )
@@ -4047,7 +4157,8 @@ Accessibilité: {accessibilite}
             print(f"[DEBUG] Action: {action}")
             categories = (request.form.getlist("cat_specialites")
                           + request.form.getlist("cat_evenements")
-                          + request.form.getlist("cat_lieux"))
+                          + request.form.getlist("cat_lieux")
+                          + request.form.getlist("categories"))
             regions = request.form.getlist("regions")
             print(f"[DEBUG] Catégories sélectionnées: {categories}")
             print(f"[DEBUG] Régions sélectionnées: {regions}")
@@ -4104,20 +4215,32 @@ Accessibilité: {accessibilite}
                 return redirect(url_for("admin_demandes_animation"))
             
             # Si des régions sont sélectionnées, ajouter aussi les utilisateurs directement
-            # (ceux qui ont une région correspondante ET au moins un spectacle approuvé)
+            # (ceux qui ont une région correspondante ET au moins un spectacle approuvé ET correspondant aux catégories)
             additional_users = []
             if regions:
                 from models.models import User as UserModel
                 user_region_filters = []
                 for reg in regions:
                     user_region_filters.append(UserModel.region.ilike(f"%{reg}%"))
-                # Ne récupérer QUE les utilisateurs avec au moins un spectacle approuvé
-                additional_users = UserModel.query.join(Show).filter(
+                # Filtrer aussi par catégorie pour ne cibler que les artistes pertinents
+                additional_query = UserModel.query.join(Show).filter(
                     UserModel.email.isnot(None),
                     or_(*user_region_filters),
                     Show.approved.is_(True)
-                ).distinct().all()
-                print(f"[DEBUG] {len(additional_users)} utilisateurs supplémentaires avec région correspondante ET spectacle approuvé")
+                )
+                if categories:
+                    cat_filters = []
+                    for cat in categories:
+                        cat_patterns = generate_search_patterns(cat, max_variants=40)
+                        for pattern in cat_patterns:
+                            cat_filters.extend([
+                                Show.category.ilike(f"%{pattern}%"),
+                                Show.title.ilike(f"%{pattern}%"),
+                                Show.description.ilike(f"%{pattern}%"),
+                            ])
+                    additional_query = additional_query.filter(or_(*cat_filters))
+                additional_users = additional_query.distinct().all()
+                print(f"[DEBUG] {len(additional_users)} utilisateurs supplémentaires avec région + catégorie correspondantes")
             
             # === SI ACTION = PREVIEW : Retourner liste des destinataires pour sélection manuelle ===
             if action == "preview":
@@ -4578,7 +4701,7 @@ Accessibilité: {accessibilite}
         # Auto-matching basé sur les nouveaux champs
         from utils.matching import find_matching_shows
         all_approved = Show.query.filter(Show.approved.is_(True)).all()
-        matched = find_matching_shows(demande, all_approved, min_score=1)
+        matched = find_matching_shows(demande, all_approved, min_score=10)
 
         # Pré-sélection automatique basée sur les critères de la demande
         pre_specialites = [s.strip() for s in (demande.specialites_recherchees or "").split(",") if s.strip()]

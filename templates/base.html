@@ -253,6 +253,18 @@
       box-shadow: 0 4px 15px rgba(76, 175, 80, 0.5);
     }
     
+    .hamburger-menu a.menu-abonnement {
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      border: 2px solid rgba(255, 255, 255, 0.3);
+      font-weight: 700;
+    }
+    
+    .hamburger-menu a.menu-abonnement:hover {
+      background: linear-gradient(135deg, #7b93ff, #8b5fbf);
+      transform: scale(1.03);
+      box-shadow: 0 4px 15px rgba(102, 126, 234, 0.5);
+    }
+    
     @media (max-width: 900px) {
       .hamburger-container {
         right: 0.5rem;
@@ -958,6 +970,7 @@
     <a href="{{ url_for('contact') }}" class="menu-contact">Contact</a>
     <a href="{{ url_for('about') }}" class="menu-about">Qui sommes-nous</a>
     <a href="/ecoles" class="menu-pedagogique">Intervention pédagogique</a>
+    <a href="{{ url_for('abonnement_compagnie') }}" class="menu-abonnement">Accompagnement Premium</a>
   </div>
 </div>
 

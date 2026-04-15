@@ -63,14 +63,14 @@ def compute_score(show, demande):
         match_ratio = len(show_events & dem_events) / len(dem_events)
         event_ratio = match_ratio * _specificity(len(show_events), _TOTAL_EVENTS)
     else:
-        event_ratio = 1.0 if show_events else 0.5
+        event_ratio = 0.0
 
     # -- Lieux (20%) --
     if dem_lieux:
         match_ratio = len(show_lieux & dem_lieux) / len(dem_lieux)
         lieu_ratio = match_ratio * _specificity(len(show_lieux), _TOTAL_LIEUX)
     else:
-        lieu_ratio = 1.0 if show_lieux else 0.5
+        lieu_ratio = 0.0
 
     # -- Région (15%) --
     if dem_region and show_regions:

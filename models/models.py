@@ -28,6 +28,7 @@ class DemandeAnimation(db.Model):
     region = db.Column(db.String(200), nullable=True)  # Région (déduite du code postal)
     is_private = db.Column(db.Boolean, default=False, index=True)  # True = visible admin uniquement
     approved = db.Column(db.Boolean, default=False, index=True)  # True = approuvé et publié sur le site
+    portee_nationale = db.Column(db.Boolean, default=True)  # True = toute la France, False = région uniquement
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
     # ── Matching : axes de correspondance (CSV) ──

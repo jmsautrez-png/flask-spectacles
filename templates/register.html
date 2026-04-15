@@ -9,8 +9,12 @@
   </p>
 
   <div style="background:#fffde7;border:1px solid #ffe082;padding:14px 18px;margin-bottom:20px;border-radius:10px;font-size:0.95rem;line-height:1.6;color:#795548;">
-    <strong>• Publication 100 % gratuite et visibilité renforcée :</strong> vØtre spectacle est mis en ligne sans frais, avec un placement privilégié auprès de notre réseau d'acheteurs. Notre équipe s'occupe ensuite des demandes, des contacts et des ventes, sans commission tant qu'aucune réservation n'est conclue.<br>
-    • Diffusion gratuite de vos projets auprès de plus de 100 000 contacts professionnels grâce à des campagnes de mails annuelles.
+    <strong style="display:block; text-align:center; font-size:1.05rem; margin-bottom:10px;">Votre inscription et la publication de vos spectacles sont entièrement gratuites.</strong>
+    <strong>• Publication 100 % gratuite et visibilité renforcée :</strong> vØtre spectacle est mis en ligne sans frais, avec un placement privilégié auprès de notre réseau d'acheteurs.<br>
+    • Diffusion gratuite de vos projets auprès de plus de 100 000 contacts professionnels grâce à des campagnes de mails annuelles.<br><br>
+    <strong>Pourquoi ?</strong> Notre vocation depuis plus de 30 ans est de connecter artistes et programmateurs. Votre visibilité enrichit notre annuaire et profite à l'ensemble du réseau culturel. C'est en accompagnant les compagnies qui le souhaitent sur le volet administratif que nous pérennisons ce modèle gratuit.<br><br>
+    Chaque compagnie inscrite apporte sa pierre à l'édifice : plus l'annuaire est riche, plus les programmateurs y trouvent leur bonheur, et plus les opportunités reviennent vers vous.<br><br>
+    <em style="display:block; text-align:center; color:#5d4037;">Merci à vous et belle chance sur Spectacle'ment VØtre !</em>
   </div>
 
   <form method="post" class="form demande-form" novalidate>
@@ -66,8 +70,8 @@
         </label>
 
         <label>
-          <span class="label-text">Raison sociale</span>
-          <input type="text" name="raison_sociale" placeholder="Nom de votre compagnie"
+          <span class="label-text">Raison sociale <span class="req">*</span></span>
+          <input type="text" name="raison_sociale" required placeholder="Nom de votre compagnie"
                  value="{{ request.form.get('raison_sociale','') }}">
         </label>
       </div>
@@ -75,8 +79,8 @@
       
 
         <label>
-          <span class="label-text">Région</span>
-          <input type="text" name="region" id="region-input" placeholder="Ex: Île-de-France"
+          <span class="label-text">Région <span class="req">*</span></span>
+          <input type="text" name="region" id="region-input" required placeholder="Cliquez sur une région ci-dessous"
                  value="{{ request.form.get('region','') }}">
         </label>
 
