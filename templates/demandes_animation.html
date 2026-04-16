@@ -99,7 +99,7 @@
         {% if demande.code_postal %}<p style="margin:0.2rem 0;"><strong>🏛️ Département :</strong> <span style="color:#222;">{{ demande.code_postal }}</span></p>{% endif %}
         {% if demande.region %}<p style="margin:0.2rem 0;"><strong>🗺️ Région :</strong> <span style="color:#222;">{{ demande.region }}</span></p>{% endif %}
         {% if demande.portee_nationale is defined %}
-        <p style="margin:0.4rem 0;"><span style="display:inline-block; padding:3px 10px; border-radius:6px; font-size:0.85rem; font-weight:600; {% if demande.portee_nationale %}background:#e3f2fd; color:#1565c0; border:1px solid #90caf9;{% else %}background:#fff3e0; color:#e65100; border:1px solid #ffcc80;{% endif %}">{% if demande.portee_nationale %}🇫🇷 Toute la France{% else %}📍 Région uniquement{% endif %}</span></p>
+        <p style="margin:0.4rem 0;"><span style="display:inline-block; padding:3px 10px; border-radius:6px; font-size:0.85rem; font-weight:600; {% if demande.portee_nationale %}background:#e3f2fd; color:#1565c0; border:1px solid #90caf9;{% else %}background:#fff3e0; color:#e65100; border:1px solid #ffcc80;{% endif %}">{% if demande.portee_nationale %}🇫🇷 Accepte propositions de toute la France{% else %}📍 Accepte propositions régionales uniquement{% endif %}</span></p>
         {% endif %}
         <p style="margin:0.2rem 0;"><strong>👤 Contact :</strong> <span style="color:#222;">{{ demande.nom }}</span></p>
         <p style="margin:0.2rem 0;"><strong>📞 Téléphone :</strong> <span style="color:#222;">{{ demande.telephone }}</span></p>
@@ -112,7 +112,7 @@
         {% if demande.code_postal %}<p style="margin:0.2rem 0;"><strong>🏛️ Département :</strong> <span style="color:#aaa;">{{ demande.code_postal }}</span></p>{% endif %}
         {% if demande.region %}<p style="margin:0.2rem 0;"><strong>🗺️ Région :</strong> <span style="color:#aaa;">{{ demande.region }}</span></p>{% endif %}
         {% if demande.portee_nationale is defined %}
-        <p style="margin:0.4rem 0;"><span style="display:inline-block; padding:3px 10px; border-radius:6px; font-size:0.85rem; font-weight:600; {% if demande.portee_nationale %}background:#e3f2fd; color:#1565c0; border:1px solid #90caf9;{% else %}background:#fff3e0; color:#e65100; border:1px solid #ffcc80;{% endif %}">{% if demande.portee_nationale %}🇫🇷 Toute la France{% else %}📍 Région uniquement{% endif %}</span></p>
+        <p style="margin:0.4rem 0;"><span style="display:inline-block; padding:3px 10px; border-radius:6px; font-size:0.85rem; font-weight:600; {% if demande.portee_nationale %}background:#e3f2fd; color:#1565c0; border:1px solid #90caf9;{% else %}background:#fff3e0; color:#e65100; border:1px solid #ffcc80;{% endif %}">{% if demande.portee_nationale %}🇫🇷 Accepte propositions de toute la France{% else %}📍 Accepte propositions régionales uniquement{% endif %}</span></p>
         {% endif %}
         <p style="margin:0.2rem 0;"><strong>👤 Contact :</strong> <a href="{{ url_for('company_dashboard') }}" style="color:#7c4dff; font-style:italic; text-decoration:underline;">Publier votre manifestation pour accéder aux appels d'offre gratuit</a></p>
         <p style="margin:0.2rem 0;"><strong>📞 Téléphone :</strong> <a href="{{ url_for('company_dashboard') }}" style="color:#7c4dff; font-style:italic; text-decoration:underline;">Publier votre manifestation pour accéder aux appels d'offre gratuit</a></p>
@@ -130,7 +130,7 @@
         {% if demande.code_postal %}<p style="margin:0.2rem 0;"><strong>🏛️ Département :</strong> <span style="color:#aaa;">{{ demande.code_postal }}</span></p>{% endif %}
         {% if demande.region %}<p style="margin:0.2rem 0;"><strong>🗺️ Région :</strong> <span style="color:#aaa;">{{ demande.region }}</span></p>{% endif %}
         {% if demande.portee_nationale is defined %}
-        <p style="margin:0.4rem 0;"><span style="display:inline-block; padding:3px 10px; border-radius:6px; font-size:0.85rem; font-weight:600; {% if demande.portee_nationale %}background:#e3f2fd; color:#1565c0; border:1px solid #90caf9;{% else %}background:#fff3e0; color:#e65100; border:1px solid #ffcc80;{% endif %}">{% if demande.portee_nationale %}🇫🇷 Toute la France{% else %}📍 Région uniquement{% endif %}</span></p>
+        <p style="margin:0.4rem 0;"><span style="display:inline-block; padding:3px 10px; border-radius:6px; font-size:0.85rem; font-weight:600; {% if demande.portee_nationale %}background:#e3f2fd; color:#1565c0; border:1px solid #90caf9;{% else %}background:#fff3e0; color:#e65100; border:1px solid #ffcc80;{% endif %}">{% if demande.portee_nationale %}🇫🇷 Accepte propositions de toute la France{% else %}📍 Accepte propositions régionales uniquement{% endif %}</span></p>
         {% endif %}
         <p style="margin:0.2rem 0;"><strong>👤 Contact :</strong> <a href="{{ url_for('register') }}" style="color:#7c4dff; font-style:italic; text-decoration:underline;">Publier votre manifestation pour accéder aux appels d'offre gratuit</a></p>
         <p style="margin:0.2rem 0;"><strong>📞 Téléphone :</strong> <a href="{{ url_for('register') }}" style="color:#7c4dff; font-style:italic; text-decoration:underline;">Publier votre manifestation pour accéder aux appels d'offre gratuit</a></p>
@@ -148,7 +148,7 @@
       <p style="margin:0.2rem 0;"><strong>📅 Date(s) & horaires :</strong> <span style="color:#222;">{{ demande.dates_horaires }}</span></p>
       <p style="margin:0.2rem 0;"><strong>👶 Tranche d'âge :</strong> <span style="color:#222;">{{ demande.age_range|format_age }}</span></p>
       <p style="margin:0.2rem 0;"><strong>👥 Jauge :</strong> <span style="color:#222;">{{ demande.jauge }} personnes</span></p>
-      <p style="margin:0.2rem 0;"><strong>💶 Budget :</strong> <span style="color:#222;">{{ demande.budget }} €</span></p>
+      <p style="margin:0.2rem 0;"><strong>💶 Budget :</strong> <span style="color:#222;">{{ demande.budget }}</span></p>
       {% if demande.specialites_recherchees %}
       <p style="margin:0.2rem 0;"><strong>🎯 Spécialités :</strong>
         {% for s in demande.specialites_recherchees.split(',') %}<span style="display:inline-block;background:#6a1b9a22;color:#6a1b9a;border-radius:12px;padding:2px 10px;font-size:0.85em;margin:2px 3px;">{{ s }}</span>{% endfor %}
@@ -164,7 +164,16 @@
       {% if demande.contraintes %}<p style="margin:0.2rem 0;"><strong>⚠️ Contraintes :</strong> <span style="color:#222;">{{ demande.contraintes }}</span></p>{% endif %}
       {% if demande.accessibilite %}<p style="margin:0.2rem 0;"><strong>♿ Accessibilité :</strong> <span style="color:#222;">{{ demande.accessibilite }}</span></p>{% endif %}
       {% if has_show %}
-        {% if demande.intitule %}<p style="margin:0.4rem 0;"><strong>📝 Intitulé :</strong> <span style="color:#222;">{{ demande.intitule }}</span></p>{% endif %}
+        {% if demande.intitule %}
+        <p style="margin:0.4rem 0;"><strong>📝 Intitulé :</strong>
+          {% if demande.intitule|length > 80 %}
+            <span style="color:#222;" id="intitule-short-{{ demande.id }}">{{ demande.intitule[:80] }}… <a href="#" onclick="document.getElementById('intitule-short-{{ demande.id }}').style.display='none';document.getElementById('intitule-full-{{ demande.id }}').style.display='inline';return false;" style="color:#1976d2;font-size:0.85em;font-weight:600;">voir plus</a></span>
+            <span style="color:#222;display:none;" id="intitule-full-{{ demande.id }}">{{ demande.intitule }} <a href="#" onclick="document.getElementById('intitule-full-{{ demande.id }}').style.display='none';document.getElementById('intitule-short-{{ demande.id }}').style.display='inline';return false;" style="color:#1976d2;font-size:0.85em;font-weight:600;">voir moins</a></span>
+          {% else %}
+            <span style="color:#222;">{{ demande.intitule }}</span>
+          {% endif %}
+        </p>
+        {% endif %}
       {% elif user %}
         <a href="{{ url_for('company_dashboard') }}" style="display:block;margin-top:0.5rem;background:linear-gradient(135deg,#7c4dff,#536dfe);color:#fff;padding:12px 20px;border-radius:12px;text-decoration:none;font-weight:700;text-align:center;">🔒 Publier votre spectacle pour voir l'intitulé complet</a>
       {% else %}

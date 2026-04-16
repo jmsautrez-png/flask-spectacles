@@ -16,15 +16,13 @@
   <p style="color:{{ text_color }}; opacity:0.7; margin:0 0 10px 0; font-size:0.88rem;">{{ description }}</p>
   {% endif %}
 
+  {% if max_checked <= 0 %}
   <div style="display:flex; gap:8px; margin-bottom:8px; align-items:center; flex-wrap:wrap;">
-    {% if max_checked <= 0 %}
     <button type="button" onclick="toggleAllMatching('{{ field_name }}', true); updateMatchingCounts('{{ field_name }}', {{ categories_dict | length }})" style="font-size:0.8rem; padding:4px 12px; border:none; background:{{ color }}; color:#fff; border-radius:6px; cursor:pointer; font-weight:600; box-shadow:0 2px 6px rgba(0,0,0,0.15);">✓ Tout cocher</button>
-    {% endif %}
     <button type="button" onclick="toggleAllMatching('{{ field_name }}', false); updateMatchingCounts('{{ field_name }}', {{ categories_dict | length }})" style="font-size:0.8rem; padding:3px 10px; border:1px solid #999; background:transparent; color:#999; border-radius:5px; cursor:pointer;">✗ Tout décocher</button>
-    {% if max_checked <= 0 %}
     <span style="font-size:0.8rem; color:{{ text_color }}; opacity:0.6; font-style:italic;">💡 Cochez au moins 1 choix, ou tout d'un coup si vous êtes polyvalent !</span>
-    {% endif %}
   </div>
+  {% endif %}
   <div id="limit-{{ field_name }}" style="display:none; color:#ff1744; font-weight:600; margin:0 0 8px 8px; font-size:0.9em;"></div>
 
   {% for group_name, items in categories_dict.items() %}

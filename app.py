@@ -2072,13 +2072,7 @@ def register_routes(app: Flask) -> None:
                 return redirect(request.url)
 
             evt_list = request.form.getlist("evenements")
-            if len(evt_list) > 15:
-                flash("Maximum 15 types d'événements autorisés.", "danger")
-                return redirect(request.url)
             lieux_list = request.form.getlist("lieux_intervention")
-            if len(lieux_list) > 15:
-                flash("Maximum 15 types de lieux autorisés.", "danger")
-                return redirect(request.url)
 
             s.specialites = ",".join(spec_list) if spec_list else None
             s.category = spec_list[0] if spec_list else (s.category or "")
@@ -3771,9 +3765,9 @@ Accessibilité: {accessibilite}
             demande.contact_email = request.form.get("contact_email", demande.contact_email)
             demande.code_postal = request.form.get("code_postal", demande.code_postal)
             demande.region = request.form.get("region", demande.region)
-            demande.specialites_recherchees = ",".join(request.form.getlist("specialites_recherchees")) or demande.specialites_recherchees
-            demande.evenements_contexte = ",".join(request.form.getlist("evenements_contexte")) or demande.evenements_contexte
-            demande.lieux_souhaites = ",".join(request.form.getlist("lieux_souhaites")) or demande.lieux_souhaites
+            demande.specialites_recherchees = ",".join(request.form.getlist("specialites_recherchees")[:3]) or demande.specialites_recherchees
+            demande.evenements_contexte = ",".join(request.form.getlist("evenements_contexte")[:3]) or demande.evenements_contexte
+            demande.lieux_souhaites = ",".join(request.form.getlist("lieux_souhaites")[:3]) or demande.lieux_souhaites
             demande.portee_nationale = request.form.get("portee_nationale", "1") == "1"
             demande.is_private = request.form.get("is_private") == "on"
             db.session.commit()
