@@ -825,7 +825,7 @@ h2 {{ color: #1b2a4e; margin-top: 0; }}
             <div class="info-item"><div class="info-label">📅 Date(s)</div>{demande.dates_horaires}</div>
             <div class="info-item"><div class="info-label">Type recherché</div>{demande.genre_recherche}</div>
             <div class="info-item"><div class="info-label">👥 Jauge</div>{demande.jauge}</div>
-            <div class="info-item"><div class="info-label">💰 Budget</div>{demande.budget} €</div>
+            <div class="info-item"><div class="info-label">💰 Budget</div>{demande.budget}</div>
             <div class="info-item"><div class="info-label">👶 Public</div>{demande.age_range}</div>
         </div>
         <p><strong>🏢 Type d'espace :</strong> {demande.type_espace}</p>
@@ -4217,12 +4217,59 @@ Accessibilité: {accessibilite}
                     admin_email = current_app.config.get("MAIL_DEFAULT_SENDER") or current_app.config.get("MAIL_USERNAME")
                 if admin_email:
                     try:
+                        # Liste des compagnies contactées
+                        cie_rows = ""
+                        for show in shows:
+                            s_email = show.contact_email or (show.user.email if show.user and hasattr(show.user, 'email') else "—")
+                            cie_rows += f'<tr><td style="padding:6px 10px;border-bottom:1px solid #eee;">{show.title}</td><td style="padding:6px 10px;border-bottom:1px solid #eee;">{show.category or "—"}</td><td style="padding:6px 10px;border-bottom:1px solid #eee;">{s_email}</td></tr>'
+                        # Erreurs éventuelles
+                        err_html = ""
+                        if errors_detail:
+                            err_html = '<div style="background:#fff3cd;padding:10px;border-radius:6px;margin:12px 0;"><strong>⚠️ Erreurs :</strong><ul style="margin:4px 0;">'
+                            for ed in errors_detail[:10]:
+                                err_html += f"<li>{ed}</li>"
+                            err_html += "</ul></div>"
+
+                        admin_body = f"""<!DOCTYPE html><html><head><meta charset="UTF-8"></head><body style="font-family:Arial,sans-serif;max-width:650px;margin:0 auto;color:#333;">
+<div style="text-align:center;margin:16px 0;"><img src="https://www.spectacleanimation.fr/static/img/logo_spectaclement_votre.png" alt="Logo" style="max-width:180px;"></div>
+<div style="background:#1b2a4e;color:#fff;padding:14px 20px;border-radius:8px 8px 0 0;text-align:center;font-weight:700;font-size:1.1em;">📋 COPIE ADMIN — Auto-matching envoyé à {success_count} compagnie(s)</div>
+<div style="background:#f9f9f9;padding:18px;border-radius:0 0 8px 8px;">
+<h3 style="margin:0 0 10px 0;color:#6a1b9a;">🎭 {demande.genre_recherche} à {demande.lieu_ville}</h3>
+<table style="width:100%;font-size:0.9em;margin:8px 0;" cellpadding="0" cellspacing="0">
+<tr><td style="padding:3px 0;"><strong>📝 Intitulé :</strong></td><td>{demande.intitule or 'Non précisé'}</td></tr>
+<tr><td style="padding:3px 0;"><strong>📅 Dates :</strong></td><td>{demande.dates_horaires}</td></tr>
+<tr><td style="padding:3px 0;"><strong>🏢 Structure :</strong></td><td>{demande.structure}</td></tr>
+<tr><td style="padding:3px 0;"><strong>👤 Contact :</strong></td><td>{demande.nom} — {demande.telephone}</td></tr>
+<tr><td style="padding:3px 0;"><strong>✉️ Email :</strong></td><td>{demande.contact_email}</td></tr>
+<tr><td style="padding:3px 0;"><strong>👥 Jauge :</strong></td><td>{demande.jauge}</td></tr>
+<tr><td style="padding:3px 0;"><strong>💰 Budget :</strong></td><td>{demande.budget}</td></tr>
+<tr><td style="padding:3px 0;"><strong>👶 Public :</strong></td><td>{demande.age_range}</td></tr>
+<tr><td style="padding:3px 0;"><strong>🏛️ Espace :</strong></td><td>{demande.type_espace}</td></tr>
+<tr><td style="padding:3px 0;"><strong>📍 Région :</strong></td><td>{demande.region or '—'}</td></tr>
+</table>
+<h4 style="margin:16px 0 8px 0;color:#1b2a4e;">✅ {success_count} compagnie(s) contactée(s) :</h4>
+<table style="width:100%;border-collapse:collapse;font-size:0.85em;background:#fff;border-radius:6px;">
+<tr style="background:#e8eaf6;"><th style="padding:8px 10px;text-align:left;">Spectacle</th><th style="padding:8px 10px;text-align:left;">Catégorie</th><th style="padding:8px 10px;text-align:left;">Email</th></tr>
+{cie_rows}
+</table>
+{err_html}
+<p style="text-align:center;margin-top:16px;color:#888;font-size:0.85em;">Spectacle'ment Vôtre — contact@spectacleanimation.fr</p>
+</div></body></html>"""
                         admin_msg = MailMessage(
-                            subject=f"[ADMIN] Appel d'offre envoyé : {demande.genre_recherche} à {demande.lieu_ville}",
+                            subject=f"[ADMIN] Appel d'offre envoyé : {demande.genre_recherche} à {demande.lieu_ville} ({success_count} cie)",
                             recipients=[admin_email]
                         )
-                        admin_msg.html = f"<p>Appel d'offre envoyé à {success_count} compagnie(s) via auto-matching.</p><p>Demande: {demande.intitule or demande.genre_recherche} à {demande.lieu_ville}</p>"
+                        admin_msg.html = admin_body
                         current_app.mail.send(admin_msg)
+                        # Copie de l'email artiste (tel que reçu par les compagnies)
+                        if shows:
+                            sample_show = shows[0]
+                            artist_copy = MailMessage(
+                                subject=f"[ADMIN COPIE ARTISTE] Nouvelle Opportunité - {demande.genre_recherche} à {demande.lieu_ville}",
+                                recipients=[admin_email]
+                            )
+                            artist_copy.html = _build_appel_offre_email(demande, sample_show)
+                            current_app.mail.send(artist_copy)
                     except Exception as e:
                         print(f"[MAIL] ⚠️ Erreur copie admin: {e}")
                 

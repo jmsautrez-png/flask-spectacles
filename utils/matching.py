@@ -8,12 +8,15 @@ _TOTAL_EVENTS = sum(len(v) for v in EVENEMENTS.values())
 _TOTAL_LIEUX = sum(len(v) for v in LIEUX.values())
 _TOTAL_REGIONS = len(REGIONS_FRANCE)
 
+# Lookup case-insensitive pour REGIONS_VOISINES
+_REGIONS_VOISINES_LOWER = {k.lower(): [r.lower() for r in v] for k, v in REGIONS_VOISINES.items()}
+
 
 def _csv_to_set(value):
-    """Convert a CSV string (or None) to a set of stripped, non-empty values."""
+    """Convert a CSV string (or None) to a set of stripped, lower-cased, non-empty values."""
     if not value:
         return set()
-    return {v.strip() for v in value.split(",") if v.strip()}
+    return {v.strip().lower() for v in value.split(",") if v.strip()}
 
 
 def _specificity(n_checked, n_total):
@@ -49,7 +52,7 @@ def compute_score(show, demande):
     dem_specs = _csv_to_set(demande.specialites_recherchees)
     dem_events = _csv_to_set(demande.evenements_contexte)
     dem_lieux = _csv_to_set(demande.lieux_souhaites)
-    dem_region = (demande.region or "").strip()
+    dem_region = (demande.region or "").strip().lower()
 
     # -- Spécialités (40%) --
     if dem_specs:
@@ -77,7 +80,7 @@ def compute_score(show, demande):
         if dem_region in show_regions:
             region_ratio = 1.0
         else:
-            neighbours = set(REGIONS_VOISINES.get(dem_region, []))
+            neighbours = set(_REGIONS_VOISINES_LOWER.get(dem_region, []))
             if show_regions & neighbours:
                 region_ratio = 0.5
             else:
