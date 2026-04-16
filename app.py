@@ -764,6 +764,74 @@ def register_error_handlers(app: Flask) -> None:
         app.logger.exception("Erreur non gérée: %s", e)
         return render_template("500.html", user=current_user()), 500
 
+
+def _build_appel_offre_email(demande, show):
+    """Génère le HTML d'email pour un appel d'offre envoyé à un artiste."""
+    return f"""<!DOCTYPE html>
+<html>
+<head><meta charset="UTF-8">
+<style>
+body {{ font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; }}
+.content {{ padding: 20px; background-color: #f9f9f9; border-radius: 8px; }}
+h2 {{ color: #1b2a4e; margin-top: 0; }}
+.opportunity-box {{ background: linear-gradient(135deg, #6a1b9a 0%, #8e44ad 100%); color: white; padding: 20px; border-radius: 8px; margin: 20px 0; }}
+.opportunity-box h3 {{ margin-top: 0; color: white; }}
+.info-grid {{ display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 15px 0; }}
+.info-item {{ background-color: rgba(255,255,255,0.1); padding: 10px; border-radius: 5px; }}
+.info-label {{ font-weight: bold; font-size: 0.9em; }}
+.contact-box {{ background-color: #fff; padding: 15px; border-left: 4px solid #6a1b9a; margin: 15px 0; }}
+.footer {{ text-align: center; margin-top: 20px; color: #666; font-size: 0.9em; }}
+.btn {{ display: inline-block; padding: 12px 24px; background-color: #6a1b9a; color: white; text-decoration: none; border-radius: 5px; margin: 10px 0; }}
+</style>
+</head>
+<body>
+<div style="text-align:center;margin:20px 0;">
+    <img src="https://www.spectacleanimation.fr/static/img/logo_spectaclement_votre.png" alt="Spectacle'ment Vôtre" style="max-width:200px;">
+</div>
+<div class="content">
+    <h2>Nouvelle Opportunité à {demande.lieu_ville}</h2>
+    <p>Bonjour,</p>
+    <p>Bonne nouvelle ! Nous avons reçu une demande d'animation pour <strong>{demande.genre_recherche}</strong> qui correspond à votre profil :</p>
+    <div class="opportunity-box">
+        <h3>📋 {demande.genre_recherche} à {demande.lieu_ville}</h3>
+        <div class="info-grid">
+            <div class="info-item"><div class="info-label">📍 Lieu</div>{demande.lieu_ville}</div>
+            <div class="info-item"><div class="info-label">📅 Date(s)</div>{demande.dates_horaires}</div>
+            <div class="info-item"><div class="info-label">Type recherché</div>{demande.genre_recherche}</div>
+            <div class="info-item"><div class="info-label">👥 Jauge</div>{demande.jauge}</div>
+            <div class="info-item"><div class="info-label">💰 Budget</div>{demande.budget} €</div>
+            <div class="info-item"><div class="info-label">👶 Public</div>{demande.age_range}</div>
+        </div>
+        <p><strong>🏢 Type d'espace :</strong> {demande.type_espace}</p>
+        <p style="color:#333;"><strong>📝 Intitulé :</strong> {demande.intitule or 'Non précisé'}</p>
+        <p><strong>♿ Accessibilité :</strong> {demande.accessibilite or 'Non précisée'}</p>
+    </div>
+    <div class="contact-box">
+        <h3>📞 Coordonnées du demandeur</h3>
+        <p><strong>Structure :</strong> {demande.structure}<br>
+        <strong>Contact :</strong> {demande.nom}<br>
+        <strong>Email :</strong> <a href="mailto:{demande.contact_email}" style="color:#6a1b9a;">{demande.contact_email}</a><br>
+        <strong>Téléphone :</strong> {demande.telephone}</p>
+        <p style="text-align:center;"><a href="mailto:{demande.contact_email}" class="btn">✉️ Contacter le demandeur</a></p>
+    </div>
+    <div style="background-color:#e8eaf6;padding:15px;border-radius:8px;margin:15px 0;">
+        <p><strong>✨ Votre spectacle concerné :</strong><br>{show.title} - {show.category}</p>
+    </div>
+    <div style="background-color:#e3f2fd;padding:15px;border-radius:8px;margin:15px 0;text-align:center;">
+        <p><strong>Publiez vos spectacles GRATUITEMENT toute l'année !</strong><br>
+        <a href="https://www.spectacleanimation.fr/submit" style="color:#6a1b9a;font-weight:bold;">👉 Publier un spectacle</a></p>
+    </div>
+    <div style="background:linear-gradient(135deg,#d32f2f 0%,#c62828 100%);color:white;padding:20px;border-radius:8px;margin:15px 0;">
+        <p style="margin:0 0 10px 0;font-size:1.1em;"><strong>💼 SPECTACLE'MENT VÔTRE VOUS ACCOMPAGNE</strong></p>
+        <p style="margin:0 0 15px 0;font-size:0.95em;">Gestion administrative : URSSAF, DSN, DUE, AEM, fiches de salaire, contrats de cession...</p>
+        <p style="text-align:center;margin:0;"><a href="https://spectacleanimation.fr/abonnement-compagnie" style="display:inline-block;background-color:white;color:#d32f2f;padding:12px 28px;border-radius:25px;text-decoration:none;font-weight:bold;">📋 Découvrir nos services</a></p>
+    </div>
+    <div class="footer"><p><strong>L'équipe Spectacle'ment VØtre</strong><br>contact@spectacleanimation.fr</p></div>
+</div>
+</body>
+</html>"""
+
+
 # -----------------------------------------------------
 # Routes
 # -----------------------------------------------------
@@ -1608,12 +1676,7 @@ def register_routes(app: Flask) -> None:
             if len(specialites_list) > 10:
                 flash("Maximum 10 spécialités autorisées.", "danger")
                 return redirect(request.url)
-            if len(evenements_list) > 15:
-                flash("Maximum 15 types d'événements autorisés.", "danger")
-                return redirect(request.url)
-            if len(lieux_list) > 15:
-                flash("Maximum 15 types de lieux autorisés.", "danger")
-                return redirect(request.url)
+
             if not regions_list:
                 flash("Veuillez cocher au moins une région d'intervention.", "danger")
                 return redirect(request.url)
@@ -2621,124 +2684,22 @@ def register_routes(app: Flask) -> None:
         
         return render_template("change_password.html", user=user)
 
-    @app.route("/admin/shows/new", methods=["GET", "POST"])
+    @app.route("/admin/shows/new", methods=["GET"])
     @login_required
     @admin_required
     def show_new():
-
-        if request.method == "POST":
-
-            raison_sociale = request.form.get("raison_sociale", "").strip()
-            title = request.form.get("title", "").strip()
-            description = request.form.get("description", "").strip()
-            region = request.form.get("region", "").strip()
-            location = request.form.get("location", "").strip()
-            category = request.form.get("category", "").strip()  # admin peut forcer la catégorie
-            age_range = request.form.get("age_range", "").strip()
-            date_str = request.form.get("date", "").strip()
-            site_internet = request.form.get("site_internet", "").strip()
-            contact_email = request.form.get("contact_email", "").strip()
-
-            date_val = None
-            if date_str:
-                try:
-                    date_val = datetime.strptime(date_str, "%Y-%m-%d").date()
-                except Exception:
-                    flash("Format de date invalide (AAAA-MM-JJ).", "warning")
-
-            file = request.files.get("file")
-            file_name = None
-            file_mimetype = None
-
-            if file and file.filename:
-                if not allowed_file(file.filename):
-                    flash("Type de fichier non autorisé (png/jpg/jpeg/gif/webp/pdf).", "danger")
-                    return redirect(request.url)
-
-                # Vérifier la taille du fichier
-                is_valid, error_msg = validate_file_size(file)
-                if not is_valid:
-                    flash(error_msg, "danger")
-                    return redirect(request.url)
-
-                # 🔥 Envoi sur S3 au lieu du disque local
-                try:
-                    file_name = upload_file_local(file)
-                    file_mimetype = file.mimetype
-                except Exception as e:
-                    current_app.logger.error(f"Erreur upload fichier principal: {e}")
-                    flash("Erreur lors de l'enregistrement du fichier. Veuillez réessayer.", "danger")
-                    return redirect(request.url)
-
-            # Gestion des photos 2 et 3 pour le diaporama
-            file2 = request.files.get("file2")
-            file_name2 = None
-            file_mimetype2 = None
-
-            if file2 and file2.filename:
-                if not allowed_file(file2.filename):
-                    flash("Photo 2 : Type de fichier non autorisé.", "danger")
-                    return redirect(request.url)
-                is_valid, error_msg = validate_file_size(file2)
-                if not is_valid:
-                    flash(f"Photo 2 : {error_msg}", "danger")
-                    return redirect(request.url)
-                try:
-                    file_name2 = upload_file_local(file2)
-                    file_mimetype2 = file2.mimetype
-                except Exception as e:
-                    current_app.logger.error(f"Erreur upload photo 2: {e}")
-                    flash("Erreur lors de l'enregistrement de la photo 2. Veuillez réessayer.", "danger")
-                    return redirect(request.url)
-
-            file3 = request.files.get("file3")
-            file_name3 = None
-            file_mimetype3 = None
-
-            if file3 and file3.filename:
-                if not allowed_file(file3.filename):
-                    flash("Photo 3 : Type de fichier non autorisé.", "danger")
-                    return redirect(request.url)
-                is_valid, error_msg = validate_file_size(file3)
-                if not is_valid:
-                    flash(f"Photo 3 : {error_msg}", "danger")
-                    return redirect(request.url)
-                try:
-                    file_name3 = upload_file_local(file3)
-                    file_mimetype3 = file3.mimetype
-                except Exception as e:
-                    current_app.logger.error(f"Erreur upload photo 3: {e}")
-                    flash("Erreur lors de l'enregistrement de la photo 3. Veuillez réessayer.", "danger")
-                    return redirect(request.url)
-
-            show = Show(
-                raison_sociale=raison_sociale or None,
-                title=title,
-                description=description,
-                region=region or None,
-                location=location,
-                category=category,
-                age_range=age_range or None,
-                date=date_val,
-                file_name=file_name,
-                file_mimetype=file_mimetype,
-                file_name2=file_name2,
-                file_mimetype2=file_mimetype2,
-                file_name3=file_name3,
-                file_mimetype3=file_mimetype3,
-                site_internet=site_internet or None,
-                contact_email=contact_email or None,
-                approved=False,
-            )
-            db.session.add(show)
-            db.session.commit()
-
-            # L'email de notification sera envoyé lors de la validation par l'admin
-
-            flash("Annonce créée (en attente de validation).", "success")
-            return redirect(url_for("admin_dashboard"))
-
-        return render_template("show_form_new.html", user=current_user())
+        u = current_user()
+        show = Show(
+            raison_sociale=u.raison_sociale if u and u.raison_sociale else (u.username if u else None),
+            title="",
+            description="",
+            category="",
+            approved=False,
+        )
+        db.session.add(show)
+        db.session.commit()
+        flash("Nouvelle fiche créée — complétez les informations ci-dessous.", "info")
+        return redirect(url_for("show_edit", show_id=show.id))
 
     @app.route("/admin/shows/<int:show_id>/edit", methods=["GET", "POST"])
     @login_required
@@ -3808,12 +3769,18 @@ Accessibilité: {accessibilite}
             demande.contraintes = request.form.get("contraintes", demande.contraintes)
             demande.accessibilite = request.form.get("accessibilite", demande.accessibilite)
             demande.contact_email = request.form.get("contact_email", demande.contact_email)
+            demande.code_postal = request.form.get("code_postal", demande.code_postal)
+            demande.region = request.form.get("region", demande.region)
+            demande.specialites_recherchees = ",".join(request.form.getlist("specialites_recherchees")) or demande.specialites_recherchees
+            demande.evenements_contexte = ",".join(request.form.getlist("evenements_contexte")) or demande.evenements_contexte
+            demande.lieux_souhaites = ",".join(request.form.getlist("lieux_souhaites")) or demande.lieux_souhaites
+            demande.portee_nationale = request.form.get("portee_nationale", "1") == "1"
             demande.is_private = request.form.get("is_private") == "on"
             db.session.commit()
             flash("✅ Demande modifiée avec succès !", "success")
-            # Rediriger vers la page admin pour voir toutes les demandes et avoir accès au bouton d'envoi
             return redirect(url_for("admin_demandes_animation"))
-        return render_template("edit_demande_animation.html", demande=demande, user=current_user())
+        return render_template("demande_animation.html", demande=demande, user=current_user(),
+                               specialites_data=SPECIALITES, evenements_data=EVENEMENTS, lieux_data=LIEUX)
 
     @app.route("/admin/approve-demande/<int:demande_id>")
     @login_required
@@ -4172,6 +4139,83 @@ Accessibilité: {accessibilite}
             print(f"[DEBUG] POST reçu pour demande_id={demande_id}")
             action = request.form.get("action", "preview")
             print(f"[DEBUG] Action: {action}")
+            
+            # === ACTION send_matched : envoi direct aux shows sélectionnés par auto-matching ===
+            if action == "send_matched":
+                matched_ids = request.form.getlist("matched_show_ids")
+                print(f"[DEBUG] Envoi auto-matching : {len(matched_ids)} shows sélectionnés: {matched_ids}")
+                if not matched_ids:
+                    flash("Veuillez sélectionner au moins une compagnie.", "warning")
+                    return redirect(request.url)
+                
+                # Charger les shows par ID
+                try:
+                    show_ids = [int(sid) for sid in matched_ids]
+                except ValueError:
+                    flash("IDs invalides.", "danger")
+                    return redirect(request.url)
+                
+                shows = Show.query.filter(Show.id.in_(show_ids), Show.approved.is_(True)).all()
+                print(f"[DEBUG] {len(shows)} shows chargés pour envoi")
+                
+                # Vérifier si mail est configuré
+                if not getattr(current_app, "mail", None):
+                    flash("❌ Erreur : le service email n'est pas configuré.", "danger")
+                    return redirect(url_for("admin_demandes_animation"))
+                
+                import time
+                emails_sent = set()
+                success_count = 0
+                error_count = 0
+                errors_detail = []
+                
+                for show in shows:
+                    email = show.contact_email
+                    if not email and show.user:
+                        email = show.user.email if hasattr(show.user, 'email') else None
+                    
+                    if email and email not in emails_sent:
+                        emails_sent.add(email)
+                        body_html = _build_appel_offre_email(demande, show)
+                        try:
+                            msg = MailMessage(
+                                subject=f"Nouvelle Opportunité - {demande.genre_recherche} à {demande.lieu_ville}",
+                                recipients=[email]
+                            )
+                            msg.html = body_html
+                            current_app.mail.send(msg)
+                            success_count += 1
+                            print(f"[DEBUG] ✅ Email envoyé à {email}")
+                        except Exception as e:
+                            error_count += 1
+                            errors_detail.append(f"{email}: {str(e)[:100]}")
+                            print(f"[MAIL] ❌ Erreur envoi à {email}: {e}")
+                
+                # Copie admin
+                admin_email = current_user().email if current_user() and current_user().email else None
+                if not admin_email:
+                    admin_email = current_app.config.get("MAIL_DEFAULT_SENDER") or current_app.config.get("MAIL_USERNAME")
+                if admin_email:
+                    try:
+                        admin_msg = MailMessage(
+                            subject=f"[ADMIN] Appel d'offre envoyé : {demande.genre_recherche} à {demande.lieu_ville}",
+                            recipients=[admin_email]
+                        )
+                        admin_msg.html = f"<p>Appel d'offre envoyé à {success_count} compagnie(s) via auto-matching.</p><p>Demande: {demande.intitule or demande.genre_recherche} à {demande.lieu_ville}</p>"
+                        current_app.mail.send(admin_msg)
+                    except Exception as e:
+                        print(f"[MAIL] ⚠️ Erreur copie admin: {e}")
+                
+                if success_count > 0:
+                    flash(f"✅ Appel d'offre envoyé à {success_count} compagnie(s) !", "success")
+                if error_count > 0:
+                    flash(f"⚠️ {error_count} email(s) en erreur.", "warning")
+                if success_count == 0 and error_count == 0:
+                    flash("⚠️ Aucun email à envoyer.", "warning")
+                
+                return redirect(url_for("admin_demandes_animation"))
+            
+            # === ACTIONS preview / send : recherche manuelle par catégories ===
             categories = (request.form.getlist("cat_specialites")
                           + request.form.getlist("cat_evenements")
                           + request.form.getlist("cat_lieux")
@@ -4190,20 +4234,15 @@ Accessibilité: {accessibilite}
             query = Show.query.filter(Show.approved.is_(True))
             
             if categories:
-                # Chercher dans category, title ET description avec recherche fuzzy
+                # Recherche directe par valeur exacte (les valeurs viennent des checkboxes = mêmes que en DB)
                 category_filters = []
                 for cat in categories:
-                    # Générer des variantes avec tirets, accents, etc.
-                    cat_patterns = generate_search_patterns(cat, max_variants=40)
-                    for pattern in cat_patterns:
-                        category_filters.extend([
-                            Show.category.ilike(f"%{pattern}%"),
-                            Show.title.ilike(f"%{pattern}%"),
-                            Show.description.ilike(f"%{pattern}%"),
-                            Show.specialites.ilike(f"%{pattern}%"),
-                            Show.evenements.ilike(f"%{pattern}%"),
-                            Show.lieux_intervention.ilike(f"%{pattern}%"),
-                        ])
+                    category_filters.extend([
+                        Show.category.ilike(f"%{cat}%"),
+                        Show.specialites.ilike(f"%{cat}%"),
+                        Show.evenements.ilike(f"%{cat}%"),
+                        Show.lieux_intervention.ilike(f"%{cat}%"),
+                    ])
                 query = query.filter(or_(*category_filters))
             
             # Filtrer par région si des régions sont sélectionnées
@@ -4252,16 +4291,12 @@ Accessibilité: {accessibilite}
                 if categories:
                     cat_filters = []
                     for cat in categories:
-                        cat_patterns = generate_search_patterns(cat, max_variants=40)
-                        for pattern in cat_patterns:
-                            cat_filters.extend([
-                                Show.category.ilike(f"%{pattern}%"),
-                                Show.title.ilike(f"%{pattern}%"),
-                                Show.description.ilike(f"%{pattern}%"),
-                                Show.specialites.ilike(f"%{pattern}%"),
-                                Show.evenements.ilike(f"%{pattern}%"),
-                                Show.lieux_intervention.ilike(f"%{pattern}%"),
-                            ])
+                        cat_filters.extend([
+                            Show.category.ilike(f"%{cat}%"),
+                            Show.specialites.ilike(f"%{cat}%"),
+                            Show.evenements.ilike(f"%{cat}%"),
+                            Show.lieux_intervention.ilike(f"%{cat}%"),
+                        ])
                     additional_query = additional_query.filter(or_(*cat_filters))
                 additional_users = additional_query.distinct().all()
                 print(f"[DEBUG] {len(additional_users)} utilisateurs supplémentaires avec région + catégorie correspondantes")

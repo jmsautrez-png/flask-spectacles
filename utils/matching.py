@@ -107,11 +107,18 @@ def find_matching_shows(demande, all_shows, min_score=1):
     """Return a list of (show, score_dict) sorted by total score desc.
 
     Only shows with total >= min_score are included.
+    If the demande specifies specialites, shows with 0% specialites match
+    are excluded (they matched only on generic criteria like events/lieux).
     """
+    dem_specs = _csv_to_set(demande.specialites_recherchees)
     results = []
     for show in all_shows:
         score = compute_score(show, demande)
         if score["total"] >= min_score:
+            # Exclure les shows sans aucun match sur les spécialités
+            # quand la demande en spécifie (critère principal à 40%)
+            if dem_specs and score["specialites"] == 0:
+                continue
             results.append((show, score))
     results.sort(key=lambda x: x[1]["total"], reverse=True)
     return results

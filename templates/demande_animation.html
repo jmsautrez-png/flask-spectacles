@@ -1,7 +1,8 @@
-﻿<!-- UPDATED: 2026-04-14 11:30 -->
+﻿<!-- UPDATED: 2026-04-15 -->
 {% extends "base.html" %}
 {% from "_accordion_checkboxes.html" import accordion_checkboxes, accordion_checkboxes_js %}
-{% block title %}Demander une animation pour anniversaire, entreprise, école - Spectacle'ment Vôtre{% endblock %}
+{% set d = demande if demande is defined and demande else none %}
+{% block title %}{% if d %}Modifier l'appel d'offre{% else %}Demander une animation pour anniversaire, entreprise, école{% endif %} - Spectacle'ment Vôtre{% endblock %}
 
 {% block content %}
 <div style="margin-bottom:18px; font-size:1.15em; color:#fff; font-weight:600; text-align:center;">
@@ -9,18 +10,20 @@
 </div>
 <div class="demande-wrap" style="background:linear-gradient(135deg,#1b2a4e 0%,#355c7d 100%); border:2px solid #355c7d; border-radius:16px; padding:32px; margin-bottom:32px; position:relative; overflow:hidden; box-shadow:0 4px 16px #355c7d22; color:#fff;">
   <div style="background:linear-gradient(90deg,#1b2a4e 0%,#355c7d 100%); color:#fff; border-radius:10px; padding:14px 18px; margin-bottom:18px; text-align:center; font-size:1.18em; font-weight:700; box-shadow:0 2px 8px #1b2a4e33; letter-spacing:0.1px;">
-    Faire un appel d'offre animation, spectacle et autres
+    {% if d %}Modifier l'appel d'offre #{{ d.id }}{% else %}Faire un appel d'offre animation, spectacle et autres{% endif %}
   </div>
+  {% if not d %}
   <div style="background:#e8f5e9; border:1px solid #a5d6a7; border-radius:10px; padding:14px 18px; margin-bottom:18px; text-align:center;">
     <p style="margin:0 0 6px 0; font-size:1.05rem; color:#2e7d32; font-weight:700;">Appel d'offre GRATUIT - Un gain de temps considérable</p>
     <p style="margin:0; font-size:0.95rem; color:#388e3c;">Vous ne cherchez plus, ce sont les artistes qui viennent à vous !</p>
   </div>
+  {% endif %}
   <p class="text-muted" style="margin:0 0 24px 0; text-align:center;">
     Remplissez les informations essentielles. Les champs marqués <span style="color:var(--primary); font-weight:700;">*</span> sont obligatoires.<br>
     <span style="display:block; margin-top:10px; font-size:0.95em; color:hsl(210, 12%, 97%);">Votre demande sera envoyée à tout nos abonnés</span>
   </p>
 
-  <form action="{{ url_for('demande_animation') }}" method="POST" class="form demande-form" novalidate>
+  <form action="{{ url_for('edit_demande_animation', demande_id=d.id) if d else url_for('demande_animation') }}" method="POST" class="form demande-form" novalidate>
       <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
       <input type="hidden" name="auto_datetime" id="auto_datetime" value="">
 
@@ -43,7 +46,7 @@
           <span class="label-text">Structure / Organisateur <span class="req">*</span></span>
           <input type="text" id="structure" name="structure" required autocomplete="organization"
                  placeholder="Mairie, école, association…"
-                 value="{{ request.form.get('structure','') }}">
+                 value="{{ request.form.get('structure','') or (d.structure if d else '') }}">
           <small class="hint">Ex : Mairie de X, École Y, Association Z…</small>
         </label>
 
@@ -51,7 +54,7 @@
           <span class="label-text">Nom / Prénom (contact principal) <span class="req">*</span></span>
           <input type="text" id="nom" name="nom" required autocomplete="name"
                  placeholder="Votre nom"
-                 value="{{ request.form.get('nom','') }}">
+                 value="{{ request.form.get('nom','') or (d.nom if d else '') }}">
         </label>
       </div>
 
@@ -60,7 +63,7 @@
           <span class="label-text">Adresse mail <span class="req">*</span></span>
           <input type="email" id="contact_email" name="contact_email" required
                  placeholder="email@exemple.fr"
-                 value="{{ request.form.get('contact_email','') }}">
+                 value="{{ request.form.get('contact_email','') or (d.contact_email if d else '') }}">
           <small class="hint">Nous l'utilisons pour vous contacter.</small>
         </label>
 
@@ -68,14 +71,14 @@
           <span class="label-text">Téléphone (optionnel)</span>
           <input type="tel" id="telephone" name="telephone" autocomplete="tel"
                  inputmode="tel" placeholder="06 00 00 00 00"
-                 value="{{ request.form.get('telephone','') }}">
+                 value="{{ request.form.get('telephone','') or (d.telephone if d else '') }}">
         </label>
       </div>
 
       <label style="margin-top: 16px;">
         <span class="label-text">Intitulé de votre demande <span class="req">*</span></span>
         <textarea id="intitule" name="intitule" rows="4" required maxlength="1000"
-                  placeholder="Décrivez brièvement votre demande (150 mots maximum)...">{{ request.form.get('intitule','') }}</textarea>
+                  placeholder="Décrivez brièvement votre demande (150 mots maximum)...">{{ request.form.get('intitule','') or (d.intitule if d else '') }}</textarea>
         <small class="hint">Résumez votre demande en quelques phrases (150 mots max).</small>
       </label>
     </fieldset>
@@ -89,16 +92,17 @@
 
       <div class="grid-2">
         <label>
+          {% set v_age = request.form.get('age_range','') or (d.age_range if d else '') %}
           <span class="label-text">Tranche d'âge du public <span class="req">*</span></span>
           <select id="age_range" name="age_range" required>
             <option value="">-- Choisir --</option>
-            <option value="familial" {% if request.form.get('age_range','') == 'familial' %}selected{% endif %}>Familial</option>
-            <option value="enfant" {% if request.form.get('age_range','') == 'enfant' %}selected{% endif %}>Enfant</option>
-            <option value="enfant_2_6" {% if request.form.get('age_range','') == 'enfant_2_6' %}selected{% endif %}>Enfant (2/6ans)</option>
-            <option value="enfant_5_10" {% if request.form.get('age_range','') == 'enfant_5_10' %}selected{% endif %}>Enfant (5/10ans)</option>
-            <option value="enfants_2_10" {% if request.form.get('age_range','') == 'enfants_2_10' %}selected{% endif %}>Enfants (2/10ans)</option>
-            <option value="adulte" {% if request.form.get('age_range','') == 'adulte' %}selected{% endif %}>Adulte</option>
-            <option value="tout public" {% if request.form.get('age_range','') == 'tout public' %}selected{% endif %}>Tout public</option>
+            <option value="familial" {% if v_age == 'familial' %}selected{% endif %}>Familial</option>
+            <option value="enfant" {% if v_age == 'enfant' %}selected{% endif %}>Enfant</option>
+            <option value="enfant_2_6" {% if v_age == 'enfant_2_6' %}selected{% endif %}>Enfant (2/6ans)</option>
+            <option value="enfant_5_10" {% if v_age == 'enfant_5_10' %}selected{% endif %}>Enfant (5/10ans)</option>
+            <option value="enfants_2_10" {% if v_age == 'enfants_2_10' %}selected{% endif %}>Enfants (2/10ans)</option>
+            <option value="adulte" {% if v_age == 'adulte' %}selected{% endif %}>Adulte</option>
+            <option value="tout public" {% if v_age == 'tout public' %}selected{% endif %}>Tout public</option>
           </select>
           <small class="hint">Aide au choix de l'artiste / spectacle.</small>
         </label>
@@ -110,41 +114,43 @@
     <fieldset class="demande-section" style="background: linear-gradient(135deg, rgba(76,175,80,0.1) 0%, rgba(67,160,71,0.1) 100%); border: 2px solid #4caf50;">
       <legend style="color: #4caf50;">Détails de votre recherche</legend>
 
-      {{ accordion_checkboxes("specialites_recherchees", specialites_data, request.form.getlist("specialites_recherchees"), "", "Type de spectacle recherché", "#6a1b9a", "Cochez le ou les types de spectacle que vous recherchez.", "#fff", 3) }}
+      {{ accordion_checkboxes("specialites_recherchees", specialites_data, request.form.getlist("specialites_recherchees") or ((d.specialites_recherchees or '').split(',') if d else []), "", "Type de spectacle recherché", "#6a1b9a", "Cochez le ou les types de spectacle que vous recherchez.", "#fff", 3) }}
       <div id="specialites-error" style="display:none; color:#ff5252; background:rgba(255,82,82,0.1); border:1px solid #ff5252; border-radius:8px; padding:10px 16px; margin-top:8px; font-weight:500;">
         ⚠️ Veuillez cocher au moins un type de spectacle recherché.
       </div>
 
-      {{ accordion_checkboxes("evenements_contexte", evenements_data, request.form.getlist("evenements_contexte"), "", "Contexte de votre événement", "#e65100", "Quel type d'événement organisez-vous ?", "#fff", 3) }}
+      {{ accordion_checkboxes("evenements_contexte", evenements_data, request.form.getlist("evenements_contexte") or ((d.evenements_contexte or '').split(',') if d else []), "", "Contexte de votre événement", "#e65100", "Quel type d'événement organisez-vous ?", "#fff", 3) }}
 
-      {{ accordion_checkboxes("lieux_souhaites", lieux_data, request.form.getlist("lieux_souhaites"), "🏛️", "Type d'espace mis à disposition", "#2e7d32", "Sélectionnez le ou les types d'espaces disponibles.", "#fff", 3) }}
+      {{ accordion_checkboxes("lieux_souhaites", lieux_data, request.form.getlist("lieux_souhaites") or ((d.lieux_souhaites or '').split(',') if d else []), "🏛️", "Type d'espace mis à disposition", "#2e7d32", "Sélectionnez le ou les types d'espaces disponibles.", "#fff", 3) }}
 
       <div class="grid-2" style="margin-top:16px;">
         <label>
           <span class="label-text">Jauge estimée <span class="req">*</span></span>
+          {% set v_jauge = request.form.get('jauge','') or (d.jauge if d else '') %}
           <select id="jauge" name="jauge" required>
             <option value="">-- Nombre de personnes attendues --</option>
-            <option value="Moins de 30" {% if request.form.get('jauge','') == 'Moins de 30' %}selected{% endif %}>Moins de 30</option>
-            <option value="30 à 50" {% if request.form.get('jauge','') == '30 à 50' %}selected{% endif %}>30 à 50</option>
-            <option value="50 à 100" {% if request.form.get('jauge','') == '50 à 100' %}selected{% endif %}>50 à 100</option>
-            <option value="100 à 200" {% if request.form.get('jauge','') == '100 à 200' %}selected{% endif %}>100 à 200</option>
-            <option value="200 à 500" {% if request.form.get('jauge','') == '200 à 500' %}selected{% endif %}>200 à 500</option>
-            <option value="500 à 1000" {% if request.form.get('jauge','') == '500 à 1000' %}selected{% endif %}>500 à 1000</option>
-            <option value="Plus de 1000" {% if request.form.get('jauge','') == 'Plus de 1000' %}selected{% endif %}>Plus de 1000</option>
+            <option value="Moins de 30" {% if v_jauge == 'Moins de 30' %}selected{% endif %}>Moins de 30</option>
+            <option value="30 à 50" {% if v_jauge == '30 à 50' %}selected{% endif %}>30 à 50</option>
+            <option value="50 à 100" {% if v_jauge == '50 à 100' %}selected{% endif %}>50 à 100</option>
+            <option value="100 à 200" {% if v_jauge == '100 à 200' %}selected{% endif %}>100 à 200</option>
+            <option value="200 à 500" {% if v_jauge == '200 à 500' %}selected{% endif %}>200 à 500</option>
+            <option value="500 à 1000" {% if v_jauge == '500 à 1000' %}selected{% endif %}>500 à 1000</option>
+            <option value="Plus de 1000" {% if v_jauge == 'Plus de 1000' %}selected{% endif %}>Plus de 1000</option>
           </select>
           <small class="hint">Approximation suffisante, l'artiste s'adaptera.</small>
         </label>
 
         <label>
           <span class="label-text">Budget indicatif <span class="req">*</span></span>
+          {% set v_budget = request.form.get('budget','') or (d.budget if d else '') %}
           <select id="budget" name="budget" required>
             <option value="">-- Fourchette de budget --</option>
-            <option value="Moins de 300 €" {% if request.form.get('budget','') == 'Moins de 300 €' %}selected{% endif %}>Moins de 300 €</option>
-            <option value="300 à 500 €" {% if request.form.get('budget','') == '300 à 500 €' %}selected{% endif %}>300 à 500 €</option>
-            <option value="500 à 1000 €" {% if request.form.get('budget','') == '500 à 1000 €' %}selected{% endif %}>500 à 1000 €</option>
-            <option value="1000 à 2000 €" {% if request.form.get('budget','') == '1000 à 2000 €' %}selected{% endif %}>1000 à 2000 €</option>
-            <option value="2000 à 5000 €" {% if request.form.get('budget','') == '2000 à 5000 €' %}selected{% endif %}>2000 à 5000 €</option>
-            <option value="Plus de 5000 €" {% if request.form.get('budget','') == 'Plus de 5000 €' %}selected{% endif %}>Plus de 5000 €</option>
+            <option value="Moins de 300 €" {% if v_budget == 'Moins de 300 €' %}selected{% endif %}>Moins de 300 €</option>
+            <option value="300 à 500 €" {% if v_budget == '300 à 500 €' %}selected{% endif %}>300 à 500 €</option>
+            <option value="500 à 1000 €" {% if v_budget == '500 à 1000 €' %}selected{% endif %}>500 à 1000 €</option>
+            <option value="1000 à 2000 €" {% if v_budget == '1000 à 2000 €' %}selected{% endif %}>1000 à 2000 €</option>
+            <option value="2000 à 5000 €" {% if v_budget == '2000 à 5000 €' %}selected{% endif %}>2000 à 5000 €</option>
+            <option value="Plus de 5000 €" {% if v_budget == 'Plus de 5000 €' %}selected{% endif %}>Plus de 5000 €</option>
           </select>
           <small class="hint">Même approximatif, ça aide l'artiste à vous proposer la bonne formule.</small>
         </label>
@@ -154,13 +160,13 @@
         <label>
           <span class="label-text">Contraintes techniques (optionnel)</span>
           <textarea id="contraintes" name="contraintes" rows="4"
-                    placeholder="Scène, hauteur sous plafond, noir total, régie, puissance électrique…">{{ request.form.get('contraintes','') }}</textarea>
+                    placeholder="Scène, hauteur sous plafond, noir total, régie, puissance électrique…">{{ request.form.get('contraintes','') or (d.contraintes if d else '') }}</textarea>
         </label>
 
         <label>
           <span class="label-text">Accessibilité (optionnel)</span>
           <textarea id="accessibilite" name="accessibilite" rows="4"
-                    placeholder="PMR, parking, déchargement, ascenseur…">{{ request.form.get('accessibilite','') }}</textarea>
+                    placeholder="PMR, parking, déchargement, ascenseur…">{{ request.form.get('accessibilite','') or (d.accessibilite if d else '') }}</textarea>
         </label>
       </div>
     </fieldset>
@@ -173,14 +179,14 @@
           <span class="label-text">Lieu / Ville <span class="req">*</span></span>
           <input type="text" id="lieu_ville" name="lieu_ville" required autocomplete="address-level2"
                  placeholder="Paris, Lyon…"
-                 value="{{ request.form.get('lieu_ville','') }}">
+                 value="{{ request.form.get('lieu_ville','') or (d.lieu_ville if d else '') }}">
         </label>
 
         <label>
           <span class="label-text">Date(s) et horaires <span class="req">*</span></span>
           <input type="text" id="dates_horaires" name="dates_horaires" required
                  placeholder="Ex : 15/12 (14h-16h), 18/12 (10h-12h)"
-                 value="{{ request.form.get('dates_horaires','') }}">
+                 value="{{ request.form.get('dates_horaires','') or (d.dates_horaires if d else '') }}">
         </label>
       </div>
 
@@ -190,7 +196,7 @@
           <input type="text" id="code_postal" name="code_postal" required autocomplete="postal-code"
                  inputmode="numeric" pattern="[0-9]{5}" maxlength="5"
                  placeholder="Ex : 75001"
-                 value="{{ request.form.get('code_postal','') }}">
+                 value="{{ request.form.get('code_postal','') or (d.code_postal if d else '') }}">
           <small class="hint">Entrez le code postal pour déterminer automatiquement la région.</small>
         </label>
 
@@ -198,7 +204,7 @@
           <span class="label-text">Région</span>
           <input type="text" id="region" name="region" readonly
                  placeholder="Déterminée automatiquement"
-                 value="{{ request.form.get('region','') }}"
+                 value="{{ request.form.get('region','') or (d.region if d else '') }}"
                  style="background:#1b2a4e; cursor:not-allowed;">
           <small class="hint">La région est remplie automatiquement selon le code postal.</small>
         </label>
@@ -206,13 +212,14 @@
 
       <div style="margin-top:16px; padding:14px 18px; background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.15); border-radius:10px;">
         <span class="label-text" style="display:block; margin-bottom:8px; color:#e0e0e0;">Portée géographique de votre appel d'offre</span>
+        {% set v_portee = request.form.get('portee_nationale') or ('1' if (not d or d.portee_nationale) else '0') %}
         <label style="display:inline-flex; align-items:center; gap:6px; margin-right:24px; cursor:pointer;">
-          <input type="radio" name="portee_nationale" value="1" {% if request.form.get('portee_nationale', '1') == '1' %}checked{% endif %} style="accent-color:#1976d2; width:18px; height:18px;">
+          <input type="radio" name="portee_nationale" value="1" {% if v_portee == '1' %}checked{% endif %} style="accent-color:#1976d2; width:18px; height:18px;">
           <span style="font-size:0.95rem; color:#90caf9 !important;">🇫🇷 Accepte propositions de toute la France</span>
         </label>
         <label style="display:inline-flex; align-items:center; gap:6px; cursor:pointer;">
-          <input type="radio" name="portee_nationale" value="0" {% if request.form.get('portee_nationale') == '0' %}checked{% endif %} style="accent-color:#e65100; width:18px; height:18px;">
-          <span style="font-size:0.95rem; color:#333 !important;">📍 Accepte propositions régionales uniquement</span>
+          <input type="radio" name="portee_nationale" value="0" {% if v_portee == '0' %}checked{% endif %} style="accent-color:#e65100; width:18px; height:18px;">
+          <span style="font-size:0.95rem; color:#ffab91 !important;">📍 Accepte propositions régionales uniquement</span>
         </label>
         <small class="hint" style="display:block; margin-top:6px;">Indicatif : les artistes verront cette préférence sur votre appel d'offre.</small>
       </div>
@@ -220,9 +227,11 @@
 
     <div class="demande-actions">
       <button type="submit" class="publish-btn" style="width:100%; padding:14px; font-size:1rem;">
-        Envoyer la demande
+        {{ 'Sauvegarder les modifications' if d else 'Envoyer la demande' }}
       </button>
+      {% if not d %}
       <span style="display:block; margin-top:10px; font-size:0.95em; color:#b0b8d8; text-align:center;">Réponse rapide - vous serez contacté par e-mail / téléphone.</span>
+      {% endif %}
     </div>
   </form>
 

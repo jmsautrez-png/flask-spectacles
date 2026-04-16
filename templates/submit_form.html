@@ -114,18 +114,17 @@
             <span class="hint">Entrez le code postal.</span>
           </label>
         </div>
-        <div>
       </div>
       <div class="grid-2">
         <div>
           <label>
             <span class="label-text">Lieu</span>
-            <input type="text" name="location" id="ville-input" placeholder="Ville ou salle">
+            <input type="text" name="location" id="ville-input" placeholder="Ville">
           </label>
           <div style="background:#e3f2fd; color:#1565c0; border:1px solid #90caf9; border-radius:7px; padding:7px 12px; margin:10px 0 8px 0; font-size:0.97em; font-weight:500;">
             Cliquez sur une ville pour remplir automatiquement le champ ci-dessus, ou inscrivez votre ville&nbsp;:
           </div>
-          <div class="ville-buttons" style="display:flex; flex-wrap:wrap; gap:6px; margin-bottom:14px; position:relative;">
+          <div class="ville-buttons" style="display:flex; flex-wrap:wrap; gap:4px 6px; margin-bottom:14px; position:relative; max-height:160px; overflow-y:auto;">
             <div id="ville-hover-banner" style="display:none; position:absolute; left:0; right:0; top:-38px; background:#fffde7; color:#795548; border:1px solid #ffe082; border-radius:7px; padding:7px 12px; font-size:0.97em; font-weight:500; z-index:10; text-align:center; pointer-events:none; transition:opacity 0.2s; opacity:0;">
               Cliquez pour sélectionner cette ville
             </div>
@@ -253,16 +252,16 @@
 
     {# ═══ SECTION MATCHING : Spécialités + Événements + Lieux + Régions ════ #}
     <fieldset class="demande-section">
-      <legend>Votre profil de matching — Cochez uniquement ce que vous savez vraiment faire !</legend>
+      <legend>Vos domaines d'intervention</legend>
 
       <div id="specialites-error" style="display:none; color:#ff1744; font-weight:600; margin:0 0 4px 8px; font-size:0.95em;">⚠️ Veuillez cocher au moins une spécialité artistique.</div>
-      {{ accordion_checkboxes("specialites", specialites_data, [], "", "Vos spécialités artistiques", "#6a1b9a", "Cochez tout ce que votre compagnie sait faire.", "#fff", 10) }}
+      {{ accordion_checkboxes("specialites", specialites_data, [], "", "Vos spécialités artistiques", "#6a1b9a", "Cochez vos domaines d'intervention", "#fff", 10) }}
 
       <div id="evenements-warning" style="display:none; color:#ffb347; font-weight:500; margin:0 0 4px 8px; font-size:0.9em;">💡 Aucun type d'événement sélectionné — votre annonce sera moins visible dans les recherches.</div>
-      {{ accordion_checkboxes("evenements", evenements_data, [], "", "Types d'événements acceptés", "#e65100", "Pour quels types d'événements êtes-vous disponible ?", "#fff") }}
+      {{ accordion_checkboxes("evenements", evenements_data, [], "", "Types d'événements acceptés", "#e65100", "Cochez au moins 1 choix, ou tout d'un coup si vous êtes polyvalent !", "#fff") }}
 
       <div id="lieux-warning" style="display:none; color:#ffb347; font-weight:500; margin:0 0 4px 8px; font-size:0.9em;">💡 Aucun type de lieu sélectionné — votre annonce sera moins visible dans les recherches.</div>
-      {{ accordion_checkboxes("lieux_intervention", lieux_data, [], "", "Types de lieux où vous pouvez jouer", "#2e7d32", "Dans quels types de lieux pouvez-vous vous produire ?", "#fff") }}
+      {{ accordion_checkboxes("lieux_intervention", lieux_data, [], "", "Types de lieux où vous pouvez jouer", "#2e7d32", "Cochez au moins 1 choix, ou tout d'un coup si vous êtes polyvalent !", "#fff") }}
 
       <div id="regions-error" style="display:none; color:#ff1744; font-weight:600; margin:0 0 4px 8px; font-size:0.95em;">⚠️ Veuillez cocher au moins une région d'intervention.</div>
       {{ regions_checkboxes("regions_intervention", regions_data, [], "#1565c0", "#fff") }}
@@ -469,9 +468,30 @@
       var lieuxChecked = document.querySelectorAll('input[name="lieux_intervention"]:checked').length;
       if (evtWarn) evtWarn.style.display = evtChecked === 0 ? 'block' : 'none';
       if (lieuxWarn) lieuxWarn.style.display = lieuxChecked === 0 ? 'block' : 'none';
+
+      // Bloquer si trop de cases cochées
+      if (specChecked > 10) { e.preventDefault(); alert('Maximum 10 spécialités.'); return; }
+
     });
   });
 })();
+
+// Limiter le nombre de cases cochées en temps réel
+document.addEventListener('DOMContentLoaded', function() {
+  function limitCheckboxes(name, max) {
+    document.querySelectorAll('input[name="' + name + '"]').forEach(function(cb) {
+      cb.addEventListener('change', function() {
+        var checked = document.querySelectorAll('input[name="' + name + '"]:checked').length;
+        if (checked > max) {
+          this.checked = false;
+          alert('Maximum ' + max + ' sélections pour ce champ.');
+        }
+      });
+    });
+  }
+  limitCheckboxes('specialites', 10);
+
+});
 
 // Fonction pour réinitialiser un input de fichier
 function clearFileInput(inputId) {
