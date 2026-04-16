@@ -96,6 +96,22 @@
       <p style="margin:0.2rem 0 0.2rem 0; color:#444; font-size:1em;">et nous recherchons pour notre manifestation</p>
       <p style="margin:0.2rem 0;"><strong>🎭 Genre recherché :</strong> <span style="color:#222;">{{ demande.genre_recherche }}</span></p>
       {% if has_show %}
+        {% if demande.intitule %}
+        <p style="margin:0.4rem 0;"><strong>📝 Intitulé :</strong>
+          {% if demande.intitule|length > 80 %}
+            <span style="color:#222;" id="intitule-short-{{ demande.id }}">{{ demande.intitule[:80] }}… <a href="#" onclick="document.getElementById('intitule-short-{{ demande.id }}').style.display='none';document.getElementById('intitule-full-{{ demande.id }}').style.display='inline';return false;" style="color:#1976d2;font-size:0.85em;font-weight:600;">voir plus</a></span>
+            <span style="color:#222;display:none;" id="intitule-full-{{ demande.id }}">{{ demande.intitule }} <a href="#" onclick="document.getElementById('intitule-full-{{ demande.id }}').style.display='none';document.getElementById('intitule-short-{{ demande.id }}').style.display='inline';return false;" style="color:#1976d2;font-size:0.85em;font-weight:600;">voir moins</a></span>
+          {% else %}
+            <span style="color:#222;">{{ demande.intitule }}</span>
+          {% endif %}
+        </p>
+        {% endif %}
+      {% elif user %}
+        <a href="{{ url_for('company_dashboard') }}" style="display:block;margin-top:0.5rem;background:linear-gradient(135deg,#7c4dff,#536dfe);color:#fff;padding:12px 20px;border-radius:12px;text-decoration:none;font-weight:700;text-align:center;">🔒 Publier votre spectacle pour voir l'intitulé complet</a>
+      {% else %}
+        <a href="{{ url_for('register') }}" style="display:block;margin-top:0.5rem;background:linear-gradient(135deg,#7c4dff,#536dfe);color:#fff;padding:12px 20px;border-radius:12px;text-decoration:none;font-weight:700;text-align:center;">🔒 Publier votre spectacle pour voir l'intitulé complet</a>
+      {% endif %}
+      {% if has_show %}
         {% if demande.code_postal %}<p style="margin:0.2rem 0;"><strong>🏛️ Département :</strong> <span style="color:#222;">{{ demande.code_postal }}</span></p>{% endif %}
         {% if demande.region %}<p style="margin:0.2rem 0;"><strong>🗺️ Région :</strong> <span style="color:#222;">{{ demande.region }}</span></p>{% endif %}
         {% if demande.portee_nationale is defined %}
@@ -163,22 +179,6 @@
       </p>{% endif %}
       {% if demande.contraintes %}<p style="margin:0.2rem 0;"><strong>⚠️ Contraintes :</strong> <span style="color:#222;">{{ demande.contraintes }}</span></p>{% endif %}
       {% if demande.accessibilite %}<p style="margin:0.2rem 0;"><strong>♿ Accessibilité :</strong> <span style="color:#222;">{{ demande.accessibilite }}</span></p>{% endif %}
-      {% if has_show %}
-        {% if demande.intitule %}
-        <p style="margin:0.4rem 0;"><strong>📝 Intitulé :</strong>
-          {% if demande.intitule|length > 80 %}
-            <span style="color:#222;" id="intitule-short-{{ demande.id }}">{{ demande.intitule[:80] }}… <a href="#" onclick="document.getElementById('intitule-short-{{ demande.id }}').style.display='none';document.getElementById('intitule-full-{{ demande.id }}').style.display='inline';return false;" style="color:#1976d2;font-size:0.85em;font-weight:600;">voir plus</a></span>
-            <span style="color:#222;display:none;" id="intitule-full-{{ demande.id }}">{{ demande.intitule }} <a href="#" onclick="document.getElementById('intitule-full-{{ demande.id }}').style.display='none';document.getElementById('intitule-short-{{ demande.id }}').style.display='inline';return false;" style="color:#1976d2;font-size:0.85em;font-weight:600;">voir moins</a></span>
-          {% else %}
-            <span style="color:#222;">{{ demande.intitule }}</span>
-          {% endif %}
-        </p>
-        {% endif %}
-      {% elif user %}
-        <a href="{{ url_for('company_dashboard') }}" style="display:block;margin-top:0.5rem;background:linear-gradient(135deg,#7c4dff,#536dfe);color:#fff;padding:12px 20px;border-radius:12px;text-decoration:none;font-weight:700;text-align:center;">🔒 Publier votre spectacle pour voir l'intitulé complet</a>
-      {% else %}
-        <a href="{{ url_for('register') }}" style="display:block;margin-top:0.5rem;background:linear-gradient(135deg,#7c4dff,#536dfe);color:#fff;padding:12px 20px;border-radius:12px;text-decoration:none;font-weight:700;text-align:center;">🔒 Publier votre spectacle pour voir l'intitulé complet</a>
-      {% endif %}
       <hr style="margin:0.5rem 0;">
       {% if user and user.is_admin %}
       <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:12px;">
