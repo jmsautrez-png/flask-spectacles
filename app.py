@@ -664,40 +664,66 @@ def _run_critical_migrations(app: Flask) -> None:
     """
     Exécute les migrations critiques nécessaires au démarrage.
     Utilise du SQL brut pour éviter les problèmes avec les modèles SQLAlchemy.
+    db.create_all() ne crée PAS les colonnes manquantes sur des tables existantes,
+    donc on le fait manuellement ici.
     """
     from sqlalchemy import text
-    
+
+    # Colonnes à garantir : (table, colonne, type_postgres, type_sqlite, default)
+    REQUIRED_COLUMNS = [
+        # ── users ──
+        ("users", "site_internet", "VARCHAR(255)", "VARCHAR(255)", None),
+        # ── shows ──
+        ("shows", "file_name2", "VARCHAR(255)", "VARCHAR(255)", None),
+        ("shows", "file_mimetype2", "VARCHAR(120)", "VARCHAR(120)", None),
+        ("shows", "file_name3", "VARCHAR(255)", "VARCHAR(255)", None),
+        ("shows", "file_mimetype3", "VARCHAR(120)", "VARCHAR(120)", None),
+        ("shows", "is_featured", "BOOLEAN DEFAULT FALSE", "BOOLEAN DEFAULT 0", "FALSE"),
+        ("shows", "is_event", "BOOLEAN DEFAULT FALSE", "BOOLEAN DEFAULT 0", "FALSE"),
+        ("shows", "display_order", "INTEGER DEFAULT 0", "INTEGER DEFAULT 0", "0"),
+        ("shows", "site_internet", "VARCHAR(255)", "VARCHAR(255)", None),
+        ("shows", "specialites", "TEXT", "TEXT", None),
+        ("shows", "evenements", "TEXT", "TEXT", None),
+        ("shows", "lieux_intervention", "TEXT", "TEXT", None),
+        ("shows", "regions_intervention", "TEXT", "TEXT", None),
+        # ── demande_animation ──
+        ("demande_animation", "is_private", "BOOLEAN DEFAULT FALSE", "BOOLEAN DEFAULT 0", "FALSE"),
+        ("demande_animation", "approved", "BOOLEAN DEFAULT FALSE", "BOOLEAN DEFAULT 0", "FALSE"),
+        ("demande_animation", "portee_nationale", "BOOLEAN DEFAULT TRUE", "BOOLEAN DEFAULT 1", "TRUE"),
+        ("demande_animation", "specialites_recherchees", "TEXT", "TEXT", None),
+        ("demande_animation", "evenements_contexte", "TEXT", "TEXT", None),
+        ("demande_animation", "lieux_souhaites", "TEXT", "TEXT", None),
+    ]
+
+    is_pg = 'postgresql' in str(db.engine.url)
+
     try:
         with db.engine.connect() as conn:
-            # Migration: Ajouter site_internet à users si elle n'existe pas
-            # Vérifier d'abord si la colonne existe
-            if 'postgresql' in str(db.engine.url):
-                # PostgreSQL
-                result = conn.execute(text("""
-                    SELECT column_name 
-                    FROM information_schema.columns 
-                    WHERE table_name = 'users' AND column_name = 'site_internet'
-                """))
-                
-                if not result.fetchone():
-                    app.logger.info("[MIGRATION] Ajout de la colonne site_internet à users...")
-                    conn.execute(text("ALTER TABLE users ADD COLUMN site_internet VARCHAR(255)"))
-                    conn.commit()
-                    app.logger.info("[MIGRATION] ✓ Colonne site_internet ajoutée")
-            else:
-                # SQLite
-                result = conn.execute(text("PRAGMA table_info(users)"))
-                columns = [row[1] for row in result.fetchall()]
-                
-                if 'site_internet' not in columns:
-                    app.logger.info("[MIGRATION] Ajout de la colonne site_internet à users...")
-                    conn.execute(text("ALTER TABLE users ADD COLUMN site_internet VARCHAR(255)"))
-                    conn.commit()
-                    app.logger.info("[MIGRATION] ✓ Colonne site_internet ajoutée")
-                    
+            for table, column, pg_type, sqlite_type, _default in REQUIRED_COLUMNS:
+                try:
+                    if is_pg:
+                        result = conn.execute(text(
+                            "SELECT column_name FROM information_schema.columns "
+                            "WHERE table_name = :t AND column_name = :c"
+                        ), {"t": table, "c": column})
+                        if not result.fetchone():
+                            col_def = pg_type
+                            conn.execute(text(f'ALTER TABLE "{table}" ADD COLUMN "{column}" {col_def}'))
+                            conn.commit()
+                            app.logger.info(f"[MIGRATION] ✓ {table}.{column} ajoutée (PG)")
+                    else:
+                        result = conn.execute(text(f'PRAGMA table_info("{table}")'))
+                        columns = [row[1] for row in result.fetchall()]
+                        if column not in columns:
+                            col_def = sqlite_type
+                            conn.execute(text(f'ALTER TABLE "{table}" ADD COLUMN "{column}" {col_def}'))
+                            conn.commit()
+                            app.logger.info(f"[MIGRATION] ✓ {table}.{column} ajoutée (SQLite)")
+                except Exception as col_err:
+                    app.logger.warning(f"[MIGRATION] {table}.{column}: {col_err}")
+
     except Exception as e:
-        app.logger.warning(f"[MIGRATION] Avertissement lors de la migration: {e}")
-        # Ne pas bloquer le démarrage si la colonne existe déjà
+        app.logger.warning(f"[MIGRATION] Erreur générale: {e}")
 
 def _bootstrap_admin(app: Flask) -> None:
     """
