@@ -1244,6 +1244,18 @@ document.addEventListener('DOMContentLoaded', function() {
 </script>
 {% endif %}
 
+<script>
+// Protection des images contre le téléchargement
+document.addEventListener('contextmenu', function(e) {
+  if (e.target.tagName === 'IMG' && e.target.closest('.media, .detail-carousel, .card')) {
+    e.preventDefault();
+  }
+});
+document.addEventListener('dragstart', function(e) {
+  if (e.target.tagName === 'IMG') e.preventDefault();
+});
+</script>
+
 </body>
 </html>
 

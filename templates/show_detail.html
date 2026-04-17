@@ -97,14 +97,14 @@
   <article class="card show-detail-article" style="max-width:none; box-shadow:0 4px 16px rgba(0,0,0,0.2);">
     {% set all_images = show.get_all_images() %}
     {% if all_images|length > 0 or show.is_pdf() %}
-      <div class="media" style="aspect-ratio:16/9; max-height:450px; position:relative;">
+      <div class="media" style="aspect-ratio:16/9; max-height:450px; position:relative; -webkit-touch-callout:none;">
         {% if all_images|length > 0 %}
           <!-- Diaporama des photos -->
           <div class="detail-carousel" data-carousel>
             <div class="carousel-slides">
               {% for img in all_images %}
               <div class="carousel-slide {% if loop.first %}active{% endif %}">
-                <img src="{{ url_for('uploaded_file', filename=img) }}" alt="{{ show.title }} - Photo {{ loop.index }}" style="width:100%; height:100%; object-fit:contain; background:#162447;">
+                <img src="{{ url_for('uploaded_file', filename=img) }}" alt="{{ show.title }} - Photo {{ loop.index }}" style="width:100%; height:100%; object-fit:contain; background:#162447; -webkit-user-drag:none; user-select:none; pointer-events:none;" oncontextmenu="return false;" draggable="false">
               </div>
               {% endfor %}
             </div>
