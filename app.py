@@ -663,6 +663,20 @@ def create_app() -> Flask:
             return url_for('thumbnail_file', filename=filename)
         return {'thumbnail_url': thumbnail_url}
 
+    @app.context_processor
+    def inject_user_has_show():
+        """Indique si l'utilisateur connecté a au moins un spectacle approuvé."""
+        u = current_user()
+        if not u:
+            return {'user_has_show': False}
+        if u.is_admin:
+            return {'user_has_show': True}
+        has = Show.query.filter(
+            Show.user_id == u.id,
+            Show.approved.is_(True)
+        ).count() > 0
+        return {'user_has_show': has}
+
     register_routes(app)
     register_error_handlers(app)
     return app

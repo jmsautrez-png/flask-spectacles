@@ -842,6 +842,7 @@
               Mon espace
             </a>
           </li>
+          {% if user_has_show %}
           <li>
             <a href="{{ url_for('demandes_animation') }}" style="padding:8px 14px; background:linear-gradient(135deg, #00acc1, #0097a7); color:#fff; border-radius:6px; font-weight:600; font-size:0.85rem; text-decoration:none; display:inline-block; transition:opacity 0.2s;">
               Appels d'offres
@@ -852,6 +853,7 @@
               Mes appels d'offres
             </a>
           </li>
+          {% endif %}
           <li>
             <a href="{{ url_for('catalogue') }}" style="padding:8px 14px; background:linear-gradient(135deg, #673ab7, #9c27b0); color:white; border-radius:6px; font-weight:600; font-size:0.85rem; text-decoration:none; display:inline-block; transition:opacity 0.2s;">
               Catalogue
@@ -963,7 +965,9 @@
     <a href="{{ url_for('messages_inbox') }}" style="position:relative;">📬 Messages <span id="msg-badge" style="display:none; position:absolute; top:-4px; right:-8px; background:#f44336; color:#fff; font-size:0.7rem; padding:2px 6px; border-radius:10px; font-weight:700;"></span></a>
     <a href="{{ url_for('notifications_page') }}" style="position:relative;">🔔 Notifications <span id="notif-badge" style="display:none; position:absolute; top:-4px; right:-8px; background:#f44336; color:#fff; font-size:0.7rem; padding:2px 6px; border-radius:10px; font-weight:700;"></span></a>
     <a href="{{ url_for('my_analytics') }}">📈 Mes stats</a>
+    {% if user_has_show %}
     <a href="{{ url_for('mes_appels_offres') }}" class="menu-mes-appels">Mes appels d'offres</a>
+    {% endif %}
     {% endif %}
     <a href="{{ url_for('catalogue') }}" class="menu-catalogue">Catalogue</a>
     <a href="{{ url_for('demandes_animation') }}" class="menu-appels">Appels d'offres</a>
