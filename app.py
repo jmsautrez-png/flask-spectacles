@@ -1866,8 +1866,7 @@ def register_routes(app: Flask) -> None:
 
     @app.route("/uploads/<path:filename>")
     def uploaded_file(filename):
-        from flask import abort, Response
-        import mimetypes
+        from flask import abort
         
         # Tente d'abord de servir le fichier localement (pour compatibilité)
         local_path = Path(current_app.config["UPLOAD_FOLDER"]) / filename
@@ -1876,7 +1875,7 @@ def register_routes(app: Flask) -> None:
             response.headers["Cache-Control"] = "public, max-age=31536000"
             return response
         
-        # Sinon, tente de servir depuis S3
+        # Sinon, rediriger vers une URL S3 presigned (pas de proxy = 0 mémoire)
         s3_bucket = current_app.config.get("S3_BUCKET")
         s3_key = current_app.config.get("S3_KEY")
         s3_secret = current_app.config.get("S3_SECRET")
@@ -1894,20 +1893,21 @@ def register_routes(app: Flask) -> None:
                 aws_access_key_id=s3_key,
                 aws_secret_access_key=s3_secret
             )
-            s3_response = s3_client.get_object(Bucket=s3_bucket, Key=filename)
-            file_data = s3_response["Body"].read()
-            content_type = s3_response.get("ContentType") or mimetypes.guess_type(filename)[0] or "application/octet-stream"
-            
-            # Add cache headers for better performance
-            response = Response(file_data, mimetype=content_type)
-            response.headers["Cache-Control"] = "public, max-age=31536000"  # 1 year cache
-            return response
+            # Vérifier que le fichier existe
+            s3_client.head_object(Bucket=s3_bucket, Key=filename)
+            # Générer URL presigned (1h) — le navigateur télécharge directement depuis S3
+            presigned_url = s3_client.generate_presigned_url(
+                'get_object',
+                Params={'Bucket': s3_bucket, 'Key': filename},
+                ExpiresIn=3600
+            )
+            return redirect(presigned_url)
             
         except botocore.exceptions.ClientError as e:
-            current_app.logger.error(f"[S3] Erreur lecture fichier {filename}: {e}")
+            current_app.logger.error(f"[S3] Fichier introuvable {filename}: {e}")
             abort(404)
         except Exception as e:
-            current_app.logger.error(f"[S3] Erreur inattendue pour {filename}: {e}")
+            current_app.logger.error(f"[S3] Erreur presigned URL {filename}: {e}")
             abort(404)
 
     @app.route("/thumbnails/<path:filename>")
@@ -1939,25 +1939,26 @@ def register_routes(app: Flask) -> None:
                 response.headers["Cache-Control"] = "public, max-age=31536000"
                 return response
 
-        # 3) Servir le thumbnail depuis S3 (petit fichier ~30KB, pas de pic mémoire)
+        # 3) Rediriger vers le thumbnail sur S3 (presigned URL = 0 mémoire)
         s3_bucket = current_app.config.get("S3_BUCKET")
         s3_key = current_app.config.get("S3_KEY")
         s3_secret = current_app.config.get("S3_SECRET")
         s3_region = current_app.config.get("S3_REGION")
         if s3_bucket and s3_key and s3_secret and boto3:
             try:
-                import botocore
                 s3_client = boto3.client("s3", region_name=s3_region,
                     aws_access_key_id=s3_key, aws_secret_access_key=s3_secret)
-                s3_response = s3_client.get_object(Bucket=s3_bucket, Key=thumb_name)
-                file_data = s3_response["Body"].read()
-                response = Response(file_data, mimetype="image/webp")
-                response.headers["Cache-Control"] = "public, max-age=31536000"
-                return response
+                s3_client.head_object(Bucket=s3_bucket, Key=thumb_name)
+                presigned_url = s3_client.generate_presigned_url(
+                    'get_object',
+                    Params={'Bucket': s3_bucket, 'Key': thumb_name},
+                    ExpiresIn=3600
+                )
+                return redirect(presigned_url)
             except Exception:
                 pass
 
-        # 4) Fallback vers l'image originale
+        # 4) Fallback : rediriger vers l'image originale (aussi en presigned)
         return redirect(url_for('uploaded_file', filename=filename))
 
     @app.route("/show/<int:show_id>")
