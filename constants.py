@@ -34,6 +34,8 @@ SPECIALITES = {
         "Manège",
         "Location de stand",
         "Fête Foraine",
+        "Échassier",
+        "Fanfare (Parade de rue / Défilé)",
     ],
     "Théâtre": [
         "Théâtre contemporain",
@@ -54,6 +56,7 @@ SPECIALITES = {
         "Tango",
         "Danse contemporaine",
         "Danse classique",
+        "Danse Traditionnelle",
     ],
     "Musique": [
         "Accordéoniste",
