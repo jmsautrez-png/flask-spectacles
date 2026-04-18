@@ -1248,6 +1248,28 @@ document.addEventListener('DOMContentLoaded', function() {
 </script>
 {% endif %}
 
+<script>
+/* Fallback global : si un thumbnail S3 n'existe pas (anciennes images),
+   charge l'image originale via /uploads/ */
+document.addEventListener('error', function(e) {
+  var img = e.target;
+  if (img.tagName === 'IMG' && !img.dataset.thumbRetried) {
+    var src = img.getAttribute('src') || '';
+    if (src.indexOf('/thumb_') > -1 || src.indexOf('%2Fthumb_') > -1) {
+      img.dataset.thumbRetried = '1';
+      try {
+        var u = new URL(src);
+        var parts = u.pathname.split('/');
+        var key = decodeURIComponent(parts[parts.length - 1]);
+        if (key.startsWith('thumb_')) {
+          img.src = '/uploads/' + key.substring(6);
+        }
+      } catch(ex) {}
+    }
+  }
+}, true);
+</script>
+
 </body>
 </html>
 

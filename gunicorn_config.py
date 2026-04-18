@@ -5,10 +5,9 @@ import multiprocessing
 # Bind sur l'interface publique avec le port fourni par Render/Heroku
 bind = f"0.0.0.0:{os.environ.get('PORT', '10000')}"
 
-# Nombre de workers (2-4 x nombre de CPU cores)
-workers = int(os.environ.get('GUNICORN_WORKERS', multiprocessing.cpu_count() * 2 + 1))
-# Limite à 4 workers pour le plan gratuit de Render
-workers = min(workers, 4)
+# Nombre de workers — limité à 2 pour rester sous 512MB RAM sur Render
+workers = int(os.environ.get('GUNICORN_WORKERS', 2))
+workers = min(workers, 2)
 
 # Type de worker
 worker_class = 'sync'
@@ -25,8 +24,8 @@ loglevel = 'debug'  # Level debug pour voir toutes les erreurs
 # Preload désactivé pour mieux voir les erreurs au démarrage
 preload_app = False
 
-# Nombre de requêtes par worker avant redémarrage (évite les fuites mémoire)
-max_requests = 1000
+# Recycler les workers souvent pour éviter les fuites mémoire (512MB)
+max_requests = 200
 max_requests_jitter = 50
 
 # Configuration des connexions

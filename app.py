@@ -653,15 +653,66 @@ def create_app() -> Flask:
 
     @app.context_processor
     def inject_thumbnail_url():
-        """Fournit thumbnail_url() dans tous les templates pour les images de cartes."""
+        """Fournit thumbnail_url() et original_url() — URLs S3 directes dans le HTML."""
+        _state = {}
+        _cache = {}
+
+        def _ensure_s3():
+            if 'done' not in _state:
+                s3_bucket = current_app.config.get("S3_BUCKET")
+                if s3_bucket and current_app.config.get("S3_KEY") and boto3:
+                    from utils.files import _s3_client
+                    _state['client'] = _s3_client()
+                    _state['bucket'] = s3_bucket
+                _state['done'] = True
+
         def thumbnail_url(filename):
             if not filename:
                 return ''
+            if filename in _cache:
+                return _cache[filename]
             ext = filename.rsplit(".", 1)[-1].lower() if "." in filename else ""
             if ext not in ("png", "jpg", "jpeg", "gif", "webp"):
-                return url_for('uploaded_file', filename=filename)
-            return url_for('thumbnail_file', filename=filename)
-        return {'thumbnail_url': thumbnail_url}
+                r = url_for('uploaded_file', filename=filename)
+                _cache[filename] = r
+                return r
+            _ensure_s3()
+            client = _state.get('client')
+            bucket = _state.get('bucket')
+            if client and bucket:
+                thumb_key = "thumb_" + filename.rsplit(".", 1)[0] + ".webp"
+                try:
+                    r = client.generate_presigned_url(
+                        'get_object',
+                        Params={'Bucket': bucket, 'Key': thumb_key},
+                        ExpiresIn=3600
+                    )
+                    _cache[filename] = r
+                    return r
+                except Exception:
+                    pass
+            r = url_for('thumbnail_file', filename=filename)
+            _cache[filename] = r
+            return r
+
+        def original_url(filename):
+            if not filename:
+                return ''
+            _ensure_s3()
+            client = _state.get('client')
+            bucket = _state.get('bucket')
+            if client and bucket:
+                try:
+                    return client.generate_presigned_url(
+                        'get_object',
+                        Params={'Bucket': bucket, 'Key': filename},
+                        ExpiresIn=3600
+                    )
+                except Exception:
+                    pass
+            return url_for('uploaded_file', filename=filename)
+
+        return {'thumbnail_url': thumbnail_url, 'original_url': original_url}
 
     @app.context_processor
     def inject_user_has_show():
