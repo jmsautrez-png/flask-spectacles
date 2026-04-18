@@ -147,7 +147,7 @@
       <div class="card" style="border-radius:12px; overflow:hidden; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); transition:transform .2s;">
         <div class="card-image" style="height:200px; overflow:hidden; background:#1a1a2e;">
           {% if show.has_image() %}
-            <img src="{{ url_for('uploaded_file', filename=show.file_name) }}" alt="{{ show.title }} - {{ category_label }} à {{ city['name'] }}" loading="lazy" style="width:100%; height:100%; object-fit:cover;">
+            <img src="{{ thumbnail_url(show.file_name) }}" alt="{{ show.title }} - {{ category_label }} à {{ city['name'] }}" loading="lazy" style="width:100%; height:100%; object-fit:cover;">
           {% else %}
             <div style="display:flex; align-items:center; justify-content:center; height:100%; color:#666; font-size:14px;">SPECTACLE</div>
           {% endif %}

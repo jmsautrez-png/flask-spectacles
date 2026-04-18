@@ -17,7 +17,8 @@ SPECIALITES = {
         "Spectacle de Rue",
         "Père Noël",
         "Spectacle Enfants",
-        "Spectacle Médiéval",
+        "Spectacle Maternelle",
+        "Spectacle Élémentaire",
         "Spectacle Animalier",
         "Spectacle à Thèmes",
         "Spectacle Musical",
@@ -201,7 +202,6 @@ LIEUX = {
         "Restaurant (salle privée)",
         "Café / Bar",
         "Domaine / Château / Lieu de réception",
-        "Château ext/int",
         "Chapiteau / Tente événementielle",
     ],
     "Espaces extérieurs": [

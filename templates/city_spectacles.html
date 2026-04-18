@@ -421,7 +421,7 @@
     <a href="{{ url_for('show_detail', show_id=show.id) }}">
       <div class="media">
         {% if show.has_image() %}
-          <img src="{{ url_for('uploaded_file', filename=show.file_name) }}" alt="{{ show.title }} - {{ city['name'] }}">
+          <img src="{{ thumbnail_url(show.file_name) }}" alt="{{ show.title }} - {{ city['name'] }}" loading="lazy">
         {% else %}
           <div class="placeholder">🎭 {{ show.title[:20] }}</div>
         {% endif %}

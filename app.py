@@ -79,6 +79,7 @@ from utils.files import (
     ALLOWED_EXTENSIONS, ALLOWED_MIMETYPES, allowed_file,
     secure_upload_filename, validate_file_size, optimize_image_to_webp,
     delete_file_s3, upload_file_to_s3, upload_file_local,
+    generate_thumbnail,
 )
 from utils.security import (
     current_user, login_required, admin_required,
@@ -649,6 +650,18 @@ def create_app() -> Flask:
         except Exception:
             db.session.rollback()
             return {'header_featured_shows': []}
+
+    @app.context_processor
+    def inject_thumbnail_url():
+        """Fournit thumbnail_url() dans tous les templates pour les images de cartes."""
+        def thumbnail_url(filename):
+            if not filename:
+                return ''
+            ext = filename.rsplit(".", 1)[-1].lower() if "." in filename else ""
+            if ext not in ("png", "jpg", "jpeg", "gif", "webp"):
+                return url_for('uploaded_file', filename=filename)
+            return url_for('thumbnail_file', filename=filename)
+        return {'thumbnail_url': thumbnail_url}
 
     register_routes(app)
     register_error_handlers(app)
@@ -1859,7 +1872,9 @@ def register_routes(app: Flask) -> None:
         # Tente d'abord de servir le fichier localement (pour compatibilité)
         local_path = Path(current_app.config["UPLOAD_FOLDER"]) / filename
         if local_path.exists():
-            return send_from_directory(current_app.config["UPLOAD_FOLDER"], filename, as_attachment=False)
+            response = send_from_directory(current_app.config["UPLOAD_FOLDER"], filename, as_attachment=False)
+            response.headers["Cache-Control"] = "public, max-age=31536000"
+            return response
         
         # Sinon, tente de servir depuis S3
         s3_bucket = current_app.config.get("S3_BUCKET")
@@ -1894,6 +1909,27 @@ def register_routes(app: Flask) -> None:
         except Exception as e:
             current_app.logger.error(f"[S3] Erreur inattendue pour {filename}: {e}")
             abort(404)
+
+    @app.route("/thumbnails/<path:filename>")
+    def thumbnail_file(filename):
+        """Sert un thumbnail (400x300 WebP) d'une image uploadée, avec génération à la volée."""
+        from flask import abort, Response
+        thumb_dir = Path(current_app.config.get("THUMBNAIL_FOLDER",
+                         Path(current_app.config["UPLOAD_FOLDER"]).parent / "thumbnails"))
+
+        # Générer le thumbnail s'il n'existe pas
+        thumb_name = generate_thumbnail(filename)
+        if not thumb_name:
+            # Fallback vers l'image originale
+            return redirect(url_for('uploaded_file', filename=filename))
+
+        thumb_path = thumb_dir / thumb_name
+        if thumb_path.exists():
+            response = send_from_directory(str(thumb_dir), thumb_name, as_attachment=False)
+            response.headers["Cache-Control"] = "public, max-age=31536000"
+            return response
+
+        return redirect(url_for('uploaded_file', filename=filename))
 
     @app.route("/show/<int:show_id>")
     def show_detail(show_id: int):

@@ -154,3 +154,50 @@ def upload_file_to_s3(file) -> str:
 
 
 upload_file_local = upload_file_to_s3
+
+
+def generate_thumbnail(filename, thumb_size=(400, 300), quality=80):
+    """Génère un thumbnail WebP à partir d'un fichier uploadé (local ou S3).
+    Retourne le chemin du thumbnail si créé, None sinon."""
+    from pathlib import Path as _Path
+    from io import BytesIO
+
+    # Ne pas générer pour les PDFs
+    ext = filename.rsplit(".", 1)[-1].lower() if "." in filename else ""
+    if ext not in ("png", "jpg", "jpeg", "gif", "webp"):
+        return None
+
+    thumb_dir = _Path(current_app.config.get("THUMBNAIL_FOLDER",
+                      _Path(current_app.config["UPLOAD_FOLDER"]).parent / "thumbnails"))
+    thumb_dir.mkdir(parents=True, exist_ok=True)
+
+    thumb_name = filename.rsplit(".", 1)[0] + ".webp"
+    thumb_path = thumb_dir / thumb_name
+
+    if thumb_path.exists():
+        return thumb_name
+
+    try:
+        from PIL import Image
+
+        # Chercher le fichier source localement
+        local_path = _Path(current_app.config["UPLOAD_FOLDER"]) / filename
+        if local_path.exists():
+            img = Image.open(local_path)
+        else:
+            # Tenter depuis S3
+            s3_client = _s3_client()
+            s3_bucket = current_app.config.get("S3_BUCKET")
+            if not (s3_client and s3_bucket):
+                return None
+            s3_response = s3_client.get_object(Bucket=s3_bucket, Key=filename)
+            img = Image.open(BytesIO(s3_response["Body"].read()))
+
+        img = img.convert("RGB")
+        img.thumbnail(thumb_size, Image.Resampling.LANCZOS)
+        img.save(str(thumb_path), "WEBP", quality=quality)
+        current_app.logger.info(f"[THUMB] Thumbnail créé: {thumb_name}")
+        return thumb_name
+    except Exception as e:
+        current_app.logger.warning(f"[THUMB] Erreur génération thumbnail {filename}: {e}")
+        return None

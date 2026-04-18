@@ -73,7 +73,7 @@
                     <div class="carousel-slides">
                       {% for img in images %}
                       <div class="carousel-slide">
-                        <img src="{{ url_for('uploaded_file', filename=img) }}" alt="{{ show.title }}{% if loop.index > 1 %} - Photo {{ loop.index }}{% endif %}">
+                        <img src="{{ thumbnail_url(img) }}" alt="{{ show.title }}{% if loop.index > 1 %} - Photo {{ loop.index }}{% endif %}" loading="lazy">
                       </div>
                       {% endfor %}
                     </div>
@@ -86,7 +86,7 @@
                     <button class="carousel-nav carousel-next" aria-label="Photo suivante">›</button>
                   </div>
                 {% elif show.has_image() %}
-                    <img src="{{ url_for('uploaded_file', filename=show.file_name) }}" alt="{{ show.title }}">
+                    <img src="{{ thumbnail_url(show.file_name) }}" alt="{{ show.title }}" loading="lazy">
                 {% elif show.is_pdf() %}
                     <div class="pdf-thumb">
                         <a href="{{ url_for('uploaded_file', filename=show.file_name) }}" target="_blank" rel="noopener">PDF</a>

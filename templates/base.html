@@ -905,7 +905,7 @@
             {% if all_images|length > 0 %}
               {% for img in all_images %}
               <div class="slideshow-slide {% if ns.first_slide %}active{% endif %}">
-                <img src="{{ url_for('uploaded_file', filename=img) }}" alt="{{ show.title }}{% if loop.index > 1 %} - Photo {{ loop.index }}{% endif %}">
+                <img src="{{ thumbnail_url(img) }}" alt="{{ show.title }}{% if loop.index > 1 %} - Photo {{ loop.index }}{% endif %}">
                 <span class="slideshow-label">{{ show.title[:20] }}{% if show.title|length > 20 %}...{% endif %}</span>
                 <span class="slideshow-badge">⭐ À la une</span>
               </div>
@@ -914,7 +914,7 @@
             {% else %}
               {% if show.file_name %}
               <div class="slideshow-slide {% if ns.first_slide %}active{% endif %}">
-                <img src="{{ url_for('uploaded_file', filename=show.file_name) }}" alt="{{ show.title }}">
+                <img src="{{ thumbnail_url(show.file_name) }}" alt="{{ show.title }}">
                 <span class="slideshow-label">{{ show.title[:20] }}{% if show.title|length > 20 %}...{% endif %}</span>
                 <span class="slideshow-badge">⭐ À la une</span>
               </div>
@@ -1243,18 +1243,6 @@ document.addEventListener('DOMContentLoaded', function() {
 })();
 </script>
 {% endif %}
-
-<script>
-// Protection des images contre le téléchargement
-document.addEventListener('contextmenu', function(e) {
-  if (e.target.tagName === 'IMG' && e.target.closest('.media, .detail-carousel, .card')) {
-    e.preventDefault();
-  }
-});
-document.addEventListener('dragstart', function(e) {
-  if (e.target.tagName === 'IMG') e.preventDefault();
-});
-</script>
 
 </body>
 </html>

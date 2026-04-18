@@ -349,21 +349,6 @@ main.container {
   /* max-height retiré, retour à la taille d'origine */
   object-position: center center;  /* Center the image instead of 30% from top */
   display: block;
-  -webkit-user-drag: none;
-  user-select: none;
-  pointer-events: none;
-}
-
-/* Protection images contre le téléchargement */
-.card .media {
-  -webkit-touch-callout: none;
-}
-.card .media::after {
-  content: '';
-  position: absolute;
-  top: 0; left: 0; right: 0; bottom: 0;
-  z-index: 2;
-  pointer-events: auto;
 }
 
 /* ============================================
