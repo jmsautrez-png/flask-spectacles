@@ -1712,8 +1712,8 @@ def register_routes(app: Flask) -> None:
             if not specialites_list:
                 flash("Veuillez cocher au moins une spécialité artistique.", "danger")
                 return redirect(request.url)
-            if len(specialites_list) > 10:
-                flash("Maximum 10 spécialités autorisées.", "danger")
+            if len(specialites_list) > 4:
+                flash("Maximum 4 spécialités autorisées.", "danger")
                 return redirect(request.url)
 
             if not regions_list:
@@ -2126,8 +2126,8 @@ def register_routes(app: Flask) -> None:
             if not spec_list:
                 flash("Veuillez cocher au moins une spécialité artistique.", "danger")
                 return redirect(request.url)
-            if len(spec_list) > 10:
-                flash("Maximum 10 spécialités autorisées.", "danger")
+            if len(spec_list) > 4:
+                flash("Maximum 4 spécialités autorisées.", "danger")
                 return redirect(request.url)
             if not reg_list:
                 flash("Veuillez cocher au moins une région d'intervention.", "danger")
@@ -3827,9 +3827,9 @@ Accessibilité: {accessibilite}
             demande.contact_email = request.form.get("contact_email", demande.contact_email)
             demande.code_postal = request.form.get("code_postal", demande.code_postal)
             demande.region = request.form.get("region", demande.region)
-            demande.specialites_recherchees = ",".join(request.form.getlist("specialites_recherchees")[:3]) or demande.specialites_recherchees
-            demande.evenements_contexte = ",".join(request.form.getlist("evenements_contexte")[:3]) or demande.evenements_contexte
-            demande.lieux_souhaites = ",".join(request.form.getlist("lieux_souhaites")[:3]) or demande.lieux_souhaites
+            demande.specialites_recherchees = ",".join(request.form.getlist("specialites_recherchees")[:4]) or demande.specialites_recherchees
+            demande.evenements_contexte = ",".join(request.form.getlist("evenements_contexte")) or demande.evenements_contexte
+            demande.lieux_souhaites = ",".join(request.form.getlist("lieux_souhaites")) or demande.lieux_souhaites
             demande.portee_nationale = request.form.get("portee_nationale", "1") == "1"
             demande.is_private = request.form.get("is_private") == "on"
             db.session.commit()
