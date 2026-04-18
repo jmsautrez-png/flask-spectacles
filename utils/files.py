@@ -56,6 +56,7 @@ def optimize_image_to_webp(file, quality=85, max_width=1920):
         if file.content_type == 'application/pdf':
             return None
         file.seek(0)
+        Image.MAX_IMAGE_PIXELS = 10_000_000
         img = Image.open(file)
         if img.mode in ('RGBA', 'LA', 'P'):
             background = Image.new('RGB', img.size, (255, 255, 255))
@@ -109,6 +110,14 @@ def delete_file_s3(key: str) -> None:
         current_app.logger.info("[S3] Fichier supprimé: %s", key)
     except Exception as e:
         current_app.logger.warning("[S3] Suppression impossible (%s): %s", key, e)
+    # Supprimer aussi le thumbnail associé
+    ext = key.rsplit(".", 1)[-1].lower() if "." in key else ""
+    if ext in ("png", "jpg", "jpeg", "gif", "webp"):
+        thumb_key = "thumb_" + key.rsplit(".", 1)[0] + ".webp"
+        try:
+            client.delete_object(Bucket=s3_bucket, Key=thumb_key)
+        except Exception:
+            pass
 
 
 def upload_file_to_s3(file) -> str:
@@ -133,6 +142,16 @@ def upload_file_to_s3(file) -> str:
                 ExtraArgs={"ContentType": content_type}
             )
             current_app.logger.info(f"[S3] Fichier uploadé: {unique_name}")
+            # Générer le thumbnail à l'upload (évite la génération à la volée)
+            if optimized_file:
+                try:
+                    optimized_file.seek(0)
+                    _generate_thumbnail_from_data(
+                        optimized_file,
+                        "thumb_" + unique_name.rsplit(".", 1)[0] + ".webp"
+                    )
+                except Exception as e:
+                    current_app.logger.warning(f"[THUMB] Erreur thumbnail upload: {e}")
             return unique_name
         except Exception as e:
             current_app.logger.error(f"[S3] Erreur, fallback local: {e}")
@@ -147,6 +166,16 @@ def upload_file_to_s3(file) -> str:
             with open(save_path, 'wb') as f:
                 f.write(file_to_upload.getvalue())
         current_app.logger.info(f"[LOCAL] Fichier sauvegardé: {unique_name}")
+        # Générer le thumbnail à l'upload
+        if optimized_file:
+            try:
+                optimized_file.seek(0)
+                _generate_thumbnail_from_data(
+                    optimized_file,
+                    "thumb_" + unique_name.rsplit(".", 1)[0] + ".webp"
+                )
+            except Exception as e:
+                current_app.logger.warning(f"[THUMB] Erreur thumbnail local: {e}")
         return unique_name
     except Exception as e:
         current_app.logger.error(f"[LOCAL] Erreur sauvegarde: {e}")
@@ -156,48 +185,109 @@ def upload_file_to_s3(file) -> str:
 upload_file_local = upload_file_to_s3
 
 
+def _generate_thumbnail_from_data(image_data, thumb_name, thumb_size=(400, 300), quality=80):
+    """Génère un thumbnail depuis des données image en mémoire et le stocke (S3 ou local)."""
+    from pathlib import Path as _Path
+    from io import BytesIO
+    try:
+        from PIL import Image
+        Image.MAX_IMAGE_PIXELS = 10_000_000
+        image_data.seek(0)
+        img = Image.open(image_data)
+        img = img.convert("RGB")
+        img.thumbnail(thumb_size, Image.Resampling.LANCZOS)
+        output = BytesIO()
+        img.save(output, "WEBP", quality=quality)
+        img.close()
+        output.seek(0)
+
+        s3_client = _s3_client()
+        s3_bucket = current_app.config.get("S3_BUCKET")
+        if s3_client and s3_bucket:
+            try:
+                s3_client.upload_fileobj(
+                    output, s3_bucket, thumb_name,
+                    ExtraArgs={"ContentType": "image/webp"}
+                )
+                current_app.logger.info(f"[THUMB] Thumbnail S3: {thumb_name}")
+                return thumb_name
+            except Exception as e:
+                current_app.logger.warning(f"[THUMB] Erreur upload S3 thumbnail: {e}")
+                output.seek(0)
+
+        thumb_dir = _Path(current_app.config.get("THUMBNAIL_FOLDER",
+                          _Path(current_app.config["UPLOAD_FOLDER"]).parent / "thumbnails"))
+        thumb_dir.mkdir(parents=True, exist_ok=True)
+        with open(thumb_dir / thumb_name, 'wb') as f:
+            f.write(output.getvalue())
+        current_app.logger.info(f"[THUMB] Thumbnail local: {thumb_name}")
+        return thumb_name
+    except Exception as e:
+        current_app.logger.warning(f"[THUMB] Erreur génération thumbnail: {e}")
+        return None
+
+
 def generate_thumbnail(filename, thumb_size=(400, 300), quality=80):
-    """Génère un thumbnail WebP à partir d'un fichier uploadé (local ou S3).
-    Retourne le chemin du thumbnail si créé, None sinon."""
+    """Vérifie si un thumbnail existe (local/S3). Génère uniquement depuis fichier local.
+    Ne télécharge PAS l'original depuis S3 (évite les pics mémoire)."""
     from pathlib import Path as _Path
     from io import BytesIO
 
-    # Ne pas générer pour les PDFs
     ext = filename.rsplit(".", 1)[-1].lower() if "." in filename else ""
     if ext not in ("png", "jpg", "jpeg", "gif", "webp"):
         return None
 
+    thumb_name = "thumb_" + filename.rsplit(".", 1)[0] + ".webp"
+
+    # Vérifier cache local
     thumb_dir = _Path(current_app.config.get("THUMBNAIL_FOLDER",
                       _Path(current_app.config["UPLOAD_FOLDER"]).parent / "thumbnails"))
-    thumb_dir.mkdir(parents=True, exist_ok=True)
-
-    thumb_name = filename.rsplit(".", 1)[0] + ".webp"
-    thumb_path = thumb_dir / thumb_name
-
-    if thumb_path.exists():
+    if (thumb_dir / thumb_name).exists():
         return thumb_name
+
+    # Vérifier S3
+    s3_client = _s3_client()
+    s3_bucket = current_app.config.get("S3_BUCKET")
+    if s3_client and s3_bucket:
+        try:
+            s3_client.head_object(Bucket=s3_bucket, Key=thumb_name)
+            return thumb_name  # Existe sur S3
+        except Exception:
+            pass
+
+    # Générer uniquement depuis fichier local (pas de download S3 = pas de pic mémoire)
+    local_path = _Path(current_app.config["UPLOAD_FOLDER"]) / filename
+    if not local_path.exists():
+        return None
 
     try:
         from PIL import Image
+        Image.MAX_IMAGE_PIXELS = 10_000_000
+        img = Image.open(local_path)
+        img_rgb = img.convert("RGB")
+        img_rgb.thumbnail(thumb_size, Image.Resampling.LANCZOS)
+        output = BytesIO()
+        img_rgb.save(output, "WEBP", quality=quality)
+        img.close()
+        img_rgb.close()
+        output.seek(0)
 
-        # Chercher le fichier source localement
-        local_path = _Path(current_app.config["UPLOAD_FOLDER"]) / filename
-        if local_path.exists():
-            img = Image.open(local_path)
-        else:
-            # Tenter depuis S3
-            s3_client = _s3_client()
-            s3_bucket = current_app.config.get("S3_BUCKET")
-            if not (s3_client and s3_bucket):
-                return None
-            s3_response = s3_client.get_object(Bucket=s3_bucket, Key=filename)
-            img = Image.open(BytesIO(s3_response["Body"].read()))
+        if s3_client and s3_bucket:
+            try:
+                s3_client.upload_fileobj(
+                    output, s3_bucket, thumb_name,
+                    ExtraArgs={"ContentType": "image/webp"}
+                )
+                current_app.logger.info(f"[THUMB] Thumbnail S3: {thumb_name}")
+                return thumb_name
+            except Exception:
+                output.seek(0)
 
-        img = img.convert("RGB")
-        img.thumbnail(thumb_size, Image.Resampling.LANCZOS)
-        img.save(str(thumb_path), "WEBP", quality=quality)
-        current_app.logger.info(f"[THUMB] Thumbnail créé: {thumb_name}")
+        thumb_dir.mkdir(parents=True, exist_ok=True)
+        with open(thumb_dir / thumb_name, 'wb') as f:
+            f.write(output.getvalue())
+        current_app.logger.info(f"[THUMB] Thumbnail local: {thumb_name}")
         return thumb_name
     except Exception as e:
-        current_app.logger.warning(f"[THUMB] Erreur génération thumbnail {filename}: {e}")
+        current_app.logger.warning(f"[THUMB] Erreur thumbnail {filename}: {e}")
         return None

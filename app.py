@@ -1912,23 +1912,52 @@ def register_routes(app: Flask) -> None:
 
     @app.route("/thumbnails/<path:filename>")
     def thumbnail_file(filename):
-        """Sert un thumbnail (400x300 WebP) d'une image uploadée, avec génération à la volée."""
-        from flask import abort, Response
+        """Sert un thumbnail pré-généré (local ou S3). Ne génère PAS depuis l'original S3."""
+        from flask import Response
+
+        ext = filename.rsplit(".", 1)[-1].lower() if "." in filename else ""
+        if ext not in ("png", "jpg", "jpeg", "gif", "webp"):
+            return redirect(url_for('uploaded_file', filename=filename))
+
+        thumb_name = "thumb_" + filename.rsplit(".", 1)[0] + ".webp"
         thumb_dir = Path(current_app.config.get("THUMBNAIL_FOLDER",
                          Path(current_app.config["UPLOAD_FOLDER"]).parent / "thumbnails"))
 
-        # Générer le thumbnail s'il n'existe pas
-        thumb_name = generate_thumbnail(filename)
-        if not thumb_name:
-            # Fallback vers l'image originale
-            return redirect(url_for('uploaded_file', filename=filename))
-
+        # 1) Servir depuis le cache local
         thumb_path = thumb_dir / thumb_name
         if thumb_path.exists():
             response = send_from_directory(str(thumb_dir), thumb_name, as_attachment=False)
             response.headers["Cache-Control"] = "public, max-age=31536000"
             return response
 
+        # 2) Tenter de générer depuis un fichier local (pas de download S3)
+        local_original = Path(current_app.config["UPLOAD_FOLDER"]) / filename
+        if local_original.exists():
+            result = generate_thumbnail(filename)
+            if result and (thumb_dir / result).exists():
+                response = send_from_directory(str(thumb_dir), result, as_attachment=False)
+                response.headers["Cache-Control"] = "public, max-age=31536000"
+                return response
+
+        # 3) Servir le thumbnail depuis S3 (petit fichier ~30KB, pas de pic mémoire)
+        s3_bucket = current_app.config.get("S3_BUCKET")
+        s3_key = current_app.config.get("S3_KEY")
+        s3_secret = current_app.config.get("S3_SECRET")
+        s3_region = current_app.config.get("S3_REGION")
+        if s3_bucket and s3_key and s3_secret and boto3:
+            try:
+                import botocore
+                s3_client = boto3.client("s3", region_name=s3_region,
+                    aws_access_key_id=s3_key, aws_secret_access_key=s3_secret)
+                s3_response = s3_client.get_object(Bucket=s3_bucket, Key=thumb_name)
+                file_data = s3_response["Body"].read()
+                response = Response(file_data, mimetype="image/webp")
+                response.headers["Cache-Control"] = "public, max-age=31536000"
+                return response
+            except Exception:
+                pass
+
+        # 4) Fallback vers l'image originale
         return redirect(url_for('uploaded_file', filename=filename))
 
     @app.route("/show/<int:show_id>")
