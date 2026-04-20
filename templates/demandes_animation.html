@@ -112,9 +112,9 @@
         <hr style="margin:0.2rem 0 0.5rem 0;">
         <p style="margin:0.1rem 0; color:#444; font-size:0.9em;">et nous recherchons pour notre manifestation</p>
         <details style="margin:0.2rem 0;">
-          <summary style="cursor:pointer;font-weight:700;font-size:0.95em;">Genre recherché : {{ demande.genre_recherche }} ({{ demande.specialites_recherchees.split(',')|length }})</summary>
+          <summary style="cursor:pointer;font-weight:700;font-size:0.95em;">Genre recherché : {{ demande.genre_recherche }} ({% if demande.specialites_recherchees %}{{ demande.specialites_recherchees.split(',')|length }}{% else %}0{% endif %})</summary>
           <div style="margin-top:4px;">
-            {% for s in demande.specialites_recherchees.split(',') %}<span style="display:inline-block;background:#6a1b9a22;color:#6a1b9a;border-radius:10px;padding:1px 8px;font-size:0.8em;margin:1px 2px;">{{ s }}</span>{% endfor %}
+            {% if demande.specialites_recherchees %}{% for s in demande.specialites_recherchees.split(',') %}<span style="display:inline-block;background:#6a1b9a22;color:#6a1b9a;border-radius:10px;padding:1px 8px;font-size:0.8em;margin:1px 2px;">{{ s }}</span>{% endfor %}{% endif %}
           </div>
         </details>
 
