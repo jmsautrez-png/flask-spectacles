@@ -183,9 +183,13 @@
         <p style="margin:0.2rem 0;"><strong>💶 Budget :</strong> {{ demande.budget }}</p>
 
         {% if demande.specialites_recherchees %}
-        <p style="margin:0.2rem 0;"><strong>🎯 Spécialités :</strong>
-          {% for s in demande.specialites_recherchees.split(',') %}<span style="display:inline-block;background:#6a1b9a22;color:#6a1b9a;border-radius:10px;padding:1px 8px;font-size:0.8em;margin:1px 2px;">{{ s }}</span>{% endfor %}
-        </p>{% endif %}
+        <details style="margin:0.2rem 0;">
+          <summary style="cursor:pointer;font-weight:700;font-size:0.95em;">🎯 Spécialités ({{ demande.specialites_recherchees.split(',')|length }})</summary>
+          <div style="margin-top:4px;">
+            {% for s in demande.specialites_recherchees.split(',') %}<span style="display:inline-block;background:#6a1b9a22;color:#6a1b9a;border-radius:10px;padding:1px 8px;font-size:0.8em;margin:1px 2px;">{{ s }}</span>{% endfor %}
+          </div>
+        </details>
+        {% endif %}
         {% if demande.evenements_contexte %}
         <details style="margin:0.2rem 0;">
           <summary style="cursor:pointer;font-weight:700;font-size:0.95em;">📋 Événements ({{ demande.evenements_contexte.split(',')|length }})</summary>
