@@ -907,6 +907,7 @@ h2 {{ color: #1b2a4e; margin-top: 0; }}
             <div class="info-item"><div class="info-label">📍 Lieu</div>{demande.lieu_ville}</div>
             <div class="info-item"><div class="info-label">📅 Date(s)</div>{demande.dates_horaires}</div>
             <div class="info-item"><div class="info-label">Type recherché</div>{demande.genre_recherche}</div>
+            <div class="info-item"><div class="info-label">🎭 Spécialités</div>{demande.specialites_recherchees.replace(',', ', ') if demande.specialites_recherchees else 'Non précisées'}</div>
             <div class="info-item"><div class="info-label">👥 Jauge</div>{demande.jauge}</div>
             <div class="info-item"><div class="info-label">💰 Budget</div>{demande.budget}</div>
             <div class="info-item"><div class="info-label">👶 Public</div>{demande.age_range}</div>
@@ -922,6 +923,7 @@ h2 {{ color: #1b2a4e; margin-top: 0; }}
         <strong>Email :</strong> <a href="mailto:{demande.contact_email}" style="color:#6a1b9a;">{demande.contact_email}</a><br>
         <strong>Téléphone :</strong> {demande.telephone}</p>
         <p style="text-align:center;"><a href="mailto:{demande.contact_email}" class="btn">✉️ Contacter le demandeur</a></p>
+        <p style="text-align:center;margin-top:8px;"><a href="https://www.spectacleanimation.fr/demandes-animation" style="display:inline-block;padding:10px 24px;background:#1b5e20;color:white;text-decoration:none;border-radius:5px;font-weight:bold;">👁️ Voir l'appel d'offre</a></p>
     </div>
     <div style="background-color:#e8eaf6;padding:15px;border-radius:8px;margin:15px 0;">
         <p><strong>✨ Votre spectacle concerné :</strong><br>{show.title} - {show.category}</p>
@@ -3430,6 +3432,7 @@ Date(s) et horaires: {dates_horaires}
 Type d'espace: {type_espace}
 Type d'événement: {type_evenement or 'Non précisé'}
 Genre recherché: {genre_recherche}
+Spécialités recherchées: {specialites_recherchees or 'Non précisées'}
 Tranche d'âge: {age_range}
 Jauge: {jauge}
 Budget: {budget}
@@ -3521,6 +3524,7 @@ Accessibilité: {accessibilite}
                             <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
                                 <tr><td style="padding:6px 0;"><span style="font-size:12px; color:#888; text-transform:uppercase; letter-spacing:1px;">Structure</span><br><span style="font-size:15px; color:#333; font-weight:600;">{structure}</span></td></tr>
                                 <tr><td style="padding:6px 0;"><span style="font-size:12px; color:#888; text-transform:uppercase; letter-spacing:1px;">Genre recherch&eacute;</span><br><span style="font-size:15px; color:#333; font-weight:600;">{genre_recherche}</span></td></tr>
+                                <tr><td style="padding:6px 0;"><span style="font-size:12px; color:#888; text-transform:uppercase; letter-spacing:1px;">Sp&eacute;cialit&eacute;s</span><br><span style="font-size:15px; color:#333;">{specialites_recherchees.replace(',', ', ') if specialites_recherchees else 'Non pr&eacute;cis&eacute;es'}</span></td></tr>
                                 <tr><td style="padding:6px 0;"><span style="font-size:12px; color:#888; text-transform:uppercase; letter-spacing:1px;">Lieu</span><br><span style="font-size:15px; color:#333;">{lieu_ville}{f' ({code_postal})' if code_postal else ''}</span></td></tr>
                                 <tr><td style="padding:6px 0;"><span style="font-size:12px; color:#888; text-transform:uppercase; letter-spacing:1px;">R&eacute;gion</span><br><span style="font-size:15px; color:#333;">{region or 'Non pr&eacute;cis&eacute;e'}</span></td></tr>
                                 <tr><td style="padding:6px 0;"><span style="font-size:12px; color:#888; text-transform:uppercase; letter-spacing:1px;">Date(s)</span><br><span style="font-size:15px; color:#333;">{dates_horaires}</span></td></tr>
@@ -3991,6 +3995,7 @@ Accessibilité: {accessibilite}
         <div class="info-box">
             <p><strong>📋 Votre demande :</strong></p>
             <p><strong>Genre recherché :</strong> {demande.genre_recherche}<br>
+            <strong>Spécialités :</strong> {demande.specialites_recherchees.replace(',', ', ') if demande.specialites_recherchees else 'Non précisées'}<br>
             <strong>Lieu :</strong> {demande.lieu_ville}<br>
             <strong>Date(s) :</strong> {demande.dates_horaires}</p>
         </div>
@@ -4632,6 +4637,10 @@ Accessibilité: {accessibilite}
                     {demande.genre_recherche}
                 </div>
                 <div class="info-item">
+                    <div class="info-label">🎭 Spécialités</div>
+                    {demande.specialites_recherchees.replace(',', ', ') if demande.specialites_recherchees else 'Non précisées'}
+                </div>
+                <div class="info-item">
                     <div class="info-label">👥 Jauge</div>
                     {demande.jauge}
                 </div>
@@ -4657,6 +4666,9 @@ Accessibilité: {accessibilite}
             <strong>Téléphone :</strong> {demande.telephone}</p>
             <p style="text-align: center;">
                 <a href="mailto:{demande.contact_email}" class="btn">✉️ Contacter le demandeur</a>
+            </p>
+            <p style="text-align: center; margin-top: 8px;">
+                <a href="https://www.spectacleanimation.fr/demandes-animation" style="display:inline-block;padding:10px 24px;background:#1b5e20;color:white;text-decoration:none;border-radius:5px;font-weight:bold;">👁️ Voir l'appel d'offre</a>
             </p>
         </div>
         
@@ -4745,6 +4757,10 @@ Accessibilité: {accessibilite}
                     {demande.genre_recherche}
                 </div>
                 <div class="info-item">
+                    <div class="info-label">🎭 Spécialités</div>
+                    {demande.specialites_recherchees.replace(',', ', ') if demande.specialites_recherchees else 'Non précisées'}
+                </div>
+                <div class="info-item">
                     <div class="info-label">👥 Jauge</div>
                     {demande.jauge}
                 </div>
@@ -4770,6 +4786,9 @@ Accessibilité: {accessibilite}
             <strong>Téléphone :</strong> {demande.telephone}</p>
             <p style="text-align: center;">
                 <a href="mailto:{demande.contact_email}" class="btn">✉️ Contacter le demandeur</a>
+            </p>
+            <p style="text-align: center; margin-top: 8px;">
+                <a href="https://www.spectacleanimation.fr/demandes-animation" style="display:inline-block;padding:10px 24px;background:#1b5e20;color:white;text-decoration:none;border-radius:5px;font-weight:bold;">👁️ Voir l'appel d'offre</a>
             </p>
         </div>
         
@@ -4900,6 +4919,10 @@ Accessibilité: {accessibilite}
                 <div class="info-item">
                     <div class="info-label">Type recherché</div>
                     {demande.genre_recherche}
+                </div>
+                <div class="info-item">
+                    <div class="info-label">🎭 Spécialités</div>
+                    {demande.specialites_recherchees.replace(',', ', ') if demande.specialites_recherchees else 'Non précisées'}
                 </div>
                 <div class="info-item">
                     <div class="info-label">👥 Jauge</div>
