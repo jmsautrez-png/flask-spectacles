@@ -119,7 +119,7 @@
         ⚠️ Veuillez cocher au moins un type de spectacle recherché.
       </div>
 
-      {{ accordion_checkboxes("evenements_contexte", evenements_data, request.form.getlist("evenements_contexte") or ((d.evenements_contexte or '').split(',') if d else []), "", "Contexte de votre événement", "#e65100", "Quel type d'événement organisez-vous ?", "#fff") }}
+      {{ accordion_checkboxes("evenements_contexte", evenements_data, request.form.getlist("evenements_contexte") or ((d.evenements_contexte or '').split(',') if d else []), "", "Contexte de votre événement", "#e65100", "Quel type d'événement organisez-vous ?", "#fff", 5) }}
 
       {{ accordion_checkboxes("lieux_souhaites", lieux_data, request.form.getlist("lieux_souhaites") or ((d.lieux_souhaites or '').split(',') if d else []), "🏛️", "Type d'espace mis à disposition", "#2e7d32", "Sélectionnez le ou les types d'espaces disponibles.", "#fff") }}
 
