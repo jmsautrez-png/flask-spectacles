@@ -114,7 +114,7 @@
     <fieldset class="demande-section" style="background: linear-gradient(135deg, rgba(76,175,80,0.1) 0%, rgba(67,160,71,0.1) 100%); border: 2px solid #4caf50;">
       <legend style="color: #4caf50;">Détails de votre recherche</legend>
 
-      {{ accordion_checkboxes("specialites_recherchees", specialites_data, request.form.getlist("specialites_recherchees") or ((d.specialites_recherchees or '').split(',') if d else []), "", "Type de spectacle recherché", "#6a1b9a", "Cochez le ou les types de spectacle que vous recherchez.", "#fff", 3) }}
+      {{ accordion_checkboxes("specialites_recherchees", specialites_data, request.form.getlist("specialites_recherchees") or ((d.specialites_recherchees or '').split(',') if d else []), "", "Type de spectacle recherché", "#6a1b9a", "Cochez le ou les types de spectacle que vous recherchez.", "#fff", 5) }}
       <div id="specialites-error" style="display:none; color:#ff5252; background:rgba(255,82,82,0.1); border:1px solid #ff5252; border-radius:8px; padding:10px 16px; margin-top:8px; font-weight:500;">
         ⚠️ Veuillez cocher au moins un type de spectacle recherché.
       </div>
