@@ -27,6 +27,11 @@ import logging
 from logging.handlers import RotatingFileHandler
 import unicodedata
 import re
+import socket
+
+# Timeout global pour les connexions réseau (SMTP, etc.)
+# Évite les crashs worker gunicorn quand le serveur mail ne répond pas
+socket.setdefaulttimeout(15)
 
 print("✓ Imports standards OK")
 
