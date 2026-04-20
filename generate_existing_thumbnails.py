@@ -15,15 +15,19 @@ except ImportError:
     print("Installez boto3 et Pillow : pip install boto3 Pillow")
     sys.exit(1)
 
-# --- Configuration S3 (depuis les variables d'environnement) ---
-S3_BUCKET = os.environ.get("S3_BUCKET")
+# --- Configuration S3 (env vars ou saisie interactive) ---
+S3_BUCKET = os.environ.get("S3_BUCKET") or "spectacle-ment-votre"
+S3_REGION = os.environ.get("S3_REGION") or "eu-west-1"
 S3_KEY = os.environ.get("S3_KEY") or os.environ.get("AWS_ACCESS_KEY_ID")
 S3_SECRET = os.environ.get("S3_SECRET") or os.environ.get("AWS_SECRET_ACCESS_KEY")
-S3_REGION = os.environ.get("S3_REGION", "eu-west-3")
+
+if not S3_KEY:
+    S3_KEY = input("Colle ta S3_KEY ici : ").strip()
+if not S3_SECRET:
+    S3_SECRET = input("Colle ta S3_SECRET ici : ").strip()
 
 if not all([S3_BUCKET, S3_KEY, S3_SECRET]):
-    print("Variables d'environnement requises : S3_BUCKET, S3_KEY, S3_SECRET")
-    print("Exemple : S3_BUCKET=monbucket S3_KEY=xxx S3_SECRET=yyy python generate_existing_thumbnails.py")
+    print("Erreur : clés S3 manquantes.")
     sys.exit(1)
 
 THUMB_SIZE = (400, 300)
