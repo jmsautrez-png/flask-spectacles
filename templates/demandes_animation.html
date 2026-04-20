@@ -187,13 +187,21 @@
           {% for s in demande.specialites_recherchees.split(',') %}<span style="display:inline-block;background:#6a1b9a22;color:#6a1b9a;border-radius:10px;padding:1px 8px;font-size:0.8em;margin:1px 2px;">{{ s }}</span>{% endfor %}
         </p>{% endif %}
         {% if demande.evenements_contexte %}
-        <p style="margin:0.2rem 0;"><strong>📋 Événements :</strong>
-          {% for e in demande.evenements_contexte.split(',') %}<span style="display:inline-block;background:#e6510022;color:#e65100;border-radius:10px;padding:1px 8px;font-size:0.8em;margin:1px 2px;">{{ e }}</span>{% endfor %}
-        </p>{% endif %}
+        <details style="margin:0.2rem 0;">
+          <summary style="cursor:pointer;font-weight:700;font-size:0.95em;">📋 Événements ({{ demande.evenements_contexte.split(',')|length }})</summary>
+          <div style="margin-top:4px;">
+            {% for e in demande.evenements_contexte.split(',') %}<span style="display:inline-block;background:#e6510022;color:#e65100;border-radius:10px;padding:1px 8px;font-size:0.8em;margin:1px 2px;">{{ e }}</span>{% endfor %}
+          </div>
+        </details>
+        {% endif %}
         {% if demande.lieux_souhaites %}
-        <p style="margin:0.2rem 0;"><strong>🏛️ Lieux :</strong>
-          {% for l in demande.lieux_souhaites.split(',') %}<span style="display:inline-block;background:#2e7d3222;color:#2e7d32;border-radius:10px;padding:1px 8px;font-size:0.8em;margin:1px 2px;">{{ l }}</span>{% endfor %}
-        </p>{% endif %}
+        <details style="margin:0.2rem 0;">
+          <summary style="cursor:pointer;font-weight:700;font-size:0.95em;">🏛️ Lieux ({{ demande.lieux_souhaites.split(',')|length }})</summary>
+          <div style="margin-top:4px;">
+            {% for l in demande.lieux_souhaites.split(',') %}<span style="display:inline-block;background:#2e7d3222;color:#2e7d32;border-radius:10px;padding:1px 8px;font-size:0.8em;margin:1px 2px;">{{ l }}</span>{% endfor %}
+          </div>
+        </details>
+        {% endif %}
         {% if demande.contraintes %}<p style="margin:0.2rem 0;"><strong>⚠️ Contraintes :</strong> {{ demande.contraintes }}</p>{% endif %}
         {% if demande.accessibilite %}<p style="margin:0.2rem 0;"><strong>♿ Accessibilité :</strong> {{ demande.accessibilite }}</p>{% endif %}
 
