@@ -16,6 +16,7 @@ SPECIALITES = {
         "Humoriste et Imitateur",
         "Sosie",
         "Ventriloque",
+        "Mascotte",
         # Jeunesse / Famille
         "Spectacle Enfants",
         "Père Noël",
@@ -63,6 +64,7 @@ SPECIALITES = {
         "Revue Cabaret et Danse",
         "Danse contemporaine",
         "Danse classique",
+        "Danse K-pop (coréen)",
         # Danse traditionnelle
         "Flamenco",
         "Tango",

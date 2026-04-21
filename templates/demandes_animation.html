@@ -93,7 +93,11 @@
         {% endif %}
       </div>
       <h3 style="color:#1976d2; margin:0 0 0.2rem 0; font-size:1rem; line-height:1.2;">{{ demande.structure }}</h3>
-      <p style="margin:0 0 0.2rem 0;"><strong>🎭</strong> <span style="color:#1976d2; font-weight:600;">{{ demande.genre_recherche }}</span></p>
+      {% if demande.specialites_recherchees %}
+      <p style="margin:0 0 0.2rem 0; line-height:1.5;">{% for s in demande.specialites_recherchees.split(',') %}{% if s.strip() %}<span style="display:inline-block;background:#6a1b9a22;color:#6a1b9a;border-radius:10px;padding:2px 10px;font-size:0.8em;margin:2px 3px 2px 0;font-weight:600;">{{ s.strip() }}</span>{% endif %}{% endfor %}</p>
+      {% else %}
+      <p style="margin:0 0 0.2rem 0;"><span style="color:#1976d2; font-weight:600;">{{ demande.genre_recherche }}</span></p>
+      {% endif %}
       <p style="margin:0 0 0.2rem 0;"><strong>📍</strong> {{ demande.lieu_ville }}{% if demande.region %} · {{ demande.region }}{% endif %}</p>
       <p style="margin:0 0 0.4rem 0;"><strong>💶</strong> <span style="color:#28a745; font-weight:700;">{{ demande.budget }}</span> · <strong>👥</strong> {{ demande.jauge }} pers.</p>
 
