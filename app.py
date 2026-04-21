@@ -1127,6 +1127,18 @@ def register_routes(app: Flask) -> None:
             <a href="https://www.spectacleanimation.fr/login" class="btn">Se connecter</a>
         </p>
         <p><strong>Nom d'utilisateur :</strong> {username}</p>
+        <div style="background:#e8f5e9; border-left:4px solid #2e7d32; padding:18px 20px; border-radius:6px; margin:20px 0;">
+            <h3 style="margin:0 0 10px 0; color:#2e7d32; font-size:1.05em;">💚 Pourquoi c'est gratuit ?</h3>
+            <p style="margin:0 0 10px 0; font-size:14px; color:#333; line-height:1.6;">
+                Plus il y a de spectacles publiés sur Spectacle'ment VØtre, plus les <strong>mairies, écoles, CSE et organisateurs</strong> viennent chercher leurs animations sur notre site.
+            </p>
+            <p style="margin:0 0 10px 0; font-size:14px; color:#333; line-height:1.6;">
+                Votre visibilité fait grandir l'audience, et l'audience attire les <strong>appels d'offres</strong> : c'est ce cercle vertueux qui nous permet de maintenir la plateforme <strong>100 % gratuite</strong> pour les compagnies.
+            </p>
+            <p style="margin:0; font-size:13px; color:#555; line-height:1.6; font-style:italic;">
+                C'est en accompagnant les compagnies qui le souhaitent sur le volet administratif (URSSAF, DSN, contrats de cession…) que nous pérennisons ce modèle.
+            </p>
+        </div>
         <div class="highlight">
             <h3>💼 BESOIN D'AIDE POUR VOTRE ADMINISTRATION ?</h3>
             <p>Spectacle'ment VØtre ne se limite pas à la visibilité ! Depuis plus de 30 ans, nous accompagnons les compagnies de spectacle vivant dans la gestion complexe de leur administration artistique et sociale :</p>
