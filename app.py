@@ -1132,10 +1132,16 @@ def register_routes(app: Flask) -> None:
         <div style="background:#e8f5e9; border-left:4px solid #2e7d32; padding:18px 20px; border-radius:6px; margin:20px 0;">
             <h3 style="margin:0 0 10px 0; color:#2e7d32; font-size:1.05em;">💚 Pourquoi c'est gratuit ?</h3>
             <p style="margin:0 0 10px 0; font-size:14px; color:#333; line-height:1.6;">
-                Plus il y a de spectacles publiés sur Spectacle'ment VØtre, plus les <strong>mairies, écoles, CSE et organisateurs</strong> viennent chercher leurs animations sur notre site.
+                Spectacle'ment VØtre fonctionne comme un <strong>annuaire national de référence</strong> : plus il y a de spectacles publiés, plus les <strong>mairies, écoles, CSE, agences et organisateurs</strong> prennent l'habitude d'y chercher leurs animations &mdash; et d'y déposer leurs <strong>appels d'offres</strong>.
             </p>
             <p style="margin:0 0 10px 0; font-size:14px; color:#333; line-height:1.6;">
-                Votre visibilité fait grandir l'audience, et l'audience attire les <strong>appels d'offres</strong> : c'est ce cercle vertueux qui nous permet de maintenir la plateforme <strong>100 % gratuite</strong> pour les compagnies.
+                📍 <strong>Au niveau local</strong>, votre département gagne en visibilité à mesure que des compagnies de la région s'y inscrivent : les acteurs culturels de chez vous tombent alors sur <strong>votre profil en priorité</strong>.
+            </p>
+            <p style="margin:0 0 10px 0; font-size:14px; color:#333; line-height:1.6;">
+                🇫🇷 <strong>Au niveau national</strong>, vous recevrez aussi <strong>gratuitement</strong> des appels d'offres venant de <strong>toute la France</strong> &mdash; un complément précieux à votre démarche commerciale régionale, qui vous ouvre des dates et des territoires que vous n'auriez pas prospectés seul.
+            </p>
+            <p style="margin:0 0 10px 0; font-size:14px; color:#333; line-height:1.6;">
+                C'est cette dynamique collective qui nous permet de maintenir la plateforme <strong>100 % gratuite</strong> pour les compagnies.
             </p>
             <p style="margin:0; font-size:13px; color:#555; line-height:1.6; font-style:italic;">
                 C'est en accompagnant les compagnies qui le souhaitent sur le volet administratif (URSSAF, DSN, contrats de cession…) que nous pérennisons ce modèle.
@@ -5346,8 +5352,10 @@ def admin_delete_user(user_id):
       </div>
       <div style="background:#f3e5f5;border-left:4px solid #6a1b9a;padding:16px 18px;border-radius:6px;margin:20px 0;">
         <p style="margin:0 0 8px 0;"><strong>💚 Pourquoi c'est gratuit ?</strong></p>
-        <p style="margin:0 0 8px 0;font-size:14px;line-height:1.6;">Plus il y a de spectacles publiés sur Spectacle'ment VØtre, plus les <strong>mairies, écoles, CSE et organisateurs</strong> viennent chercher leurs animations sur notre site.</p>
-        <p style="margin:0 0 8px 0;font-size:14px;line-height:1.6;">Votre visibilité fait grandir l'audience, et l'audience attire les <strong>appels d'offres</strong> : c'est ce cercle vertueux qui nous permet de maintenir la plateforme <strong>100 % gratuite</strong> pour les compagnies.</p>
+        <p style="margin:0 0 8px 0;font-size:14px;line-height:1.6;">Spectacle'ment VØtre fonctionne comme un <strong>annuaire national de référence</strong> : plus il y a de spectacles publiés, plus les <strong>mairies, écoles, CSE, agences et organisateurs</strong> prennent l'habitude d'y chercher leurs animations &mdash; et d'y déposer leurs <strong>appels d'offres</strong>.</p>
+        <p style="margin:0 0 8px 0;font-size:14px;line-height:1.6;">📍 <strong>Au niveau local</strong>, votre département gagne en visibilité à mesure que des compagnies de la région s'y inscrivent : les acteurs culturels de chez vous tombent alors sur <strong>votre profil en priorité</strong>.</p>
+        <p style="margin:0 0 8px 0;font-size:14px;line-height:1.6;">🇫🇷 <strong>Au niveau national</strong>, vous recevrez aussi <strong>gratuitement</strong> des appels d'offres venant de <strong>toute la France</strong> &mdash; un complément précieux à votre démarche commerciale régionale, qui vous ouvre des dates et des territoires que vous n'auriez pas prospectés seul.</p>
+        <p style="margin:0 0 8px 0;font-size:14px;line-height:1.6;">C'est cette dynamique collective qui nous permet de maintenir la plateforme <strong>100 % gratuite</strong> pour les compagnies.</p>
         <p style="margin:0;font-size:13px;color:#555;font-style:italic;line-height:1.6;">C'est en accompagnant les compagnies qui le souhaitent sur le volet administratif (URSSAF, DSN, contrats de cession…) que nous pérennisons ce modèle.</p>
       </div>
       <p style="font-size:0.9em;color:#666;">Si vous publiez un spectacle avant cette date, votre compte sera conservé automatiquement.</p>
