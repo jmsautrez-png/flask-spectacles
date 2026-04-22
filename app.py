@@ -5344,6 +5344,12 @@ def admin_delete_user(user_id):
           <a href="https://www.spectacleanimation.fr/login" style="display:inline-block;padding:12px 26px;background:#1b5e20;color:#fff;text-decoration:none;border-radius:6px;font-weight:700;">👉 Me connecter et publier</a>
         </p>
       </div>
+      <div style="background:#f3e5f5;border-left:4px solid #6a1b9a;padding:16px 18px;border-radius:6px;margin:20px 0;">
+        <p style="margin:0 0 8px 0;"><strong>💚 Pourquoi c'est gratuit ?</strong></p>
+        <p style="margin:0 0 8px 0;font-size:14px;line-height:1.6;">Plus il y a de spectacles publiés sur Spectacle'ment VØtre, plus les <strong>mairies, écoles, CSE et organisateurs</strong> viennent chercher leurs animations sur notre site.</p>
+        <p style="margin:0 0 8px 0;font-size:14px;line-height:1.6;">Votre visibilité fait grandir l'audience, et l'audience attire les <strong>appels d'offres</strong> : c'est ce cercle vertueux qui nous permet de maintenir la plateforme <strong>100 % gratuite</strong> pour les compagnies.</p>
+        <p style="margin:0;font-size:13px;color:#555;font-style:italic;line-height:1.6;">C'est en accompagnant les compagnies qui le souhaitent sur le volet administratif (URSSAF, DSN, contrats de cession…) que nous pérennisons ce modèle.</p>
+      </div>
       <p style="font-size:0.9em;color:#666;">Si vous publiez un spectacle avant cette date, votre compte sera conservé automatiquement.</p>
       <p style="margin-top:24px;">Cordialement,<br><strong>L'équipe Spectacle'ment VØtre</strong><br>contact@spectacleanimation.fr</p>
     </div>
