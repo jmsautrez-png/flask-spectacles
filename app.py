@@ -91,6 +91,7 @@ from utils.security import (
     generate_password as _generate_password,
     is_suspicious_request as _is_suspicious_request,
     is_bot_visitor as _is_bot_visitor_standalone,
+    fix_mojibake,
 )
 from utils.search import normalize_search_text, generate_search_patterns
 from utils.seo import SEO_CATEGORIES, optimize_title_seo
@@ -1038,7 +1039,7 @@ def register_routes(app: Flask) -> None:
             email = request.form.get("email", "").strip()
             telephone = request.form.get("telephone", "").strip()
             raison_sociale = request.form.get("raison_sociale", "").strip()
-            region = request.form.get("region", "").strip()
+            region = fix_mojibake(request.form.get("region", "").strip())
             site_internet = request.form.get("site_internet", "").strip()
 
             if not username or not password or not email:
@@ -1795,7 +1796,7 @@ def register_routes(app: Flask) -> None:
                 raison_sociale = u.raison_sociale if u.raison_sociale else u.username
             title = request.form.get("title", "").strip()
             description = request.form.get("description", "").strip()
-            region = request.form.get("region", "").strip()
+            region = fix_mojibake(request.form.get("region", "").strip())
             location = request.form.get("location", "").strip()
             date_str = request.form.get("date", "").strip()
             age_range = request.form.get("age_range", "").strip()
@@ -2250,7 +2251,7 @@ def register_routes(app: Flask) -> None:
             s.raison_sociale = request.form.get("raison_sociale","").strip() or None
             s.title = request.form.get("title","").strip()
             s.description = request.form.get("description","").strip()
-            s.region = request.form.get("region","").strip() or None
+            s.region = fix_mojibake(request.form.get("region","").strip()) or None
             s.location = request.form.get("location","").strip()
             s.age_range = (request.form.get("age_range","") or None)
             s.site_internet = request.form.get("site_internet","").strip() or None
@@ -2905,7 +2906,7 @@ def register_routes(app: Flask) -> None:
             show.raison_sociale = request.form.get("raison_sociale", "").strip() or None
             show.title = request.form.get("title", "").strip()
             show.description = request.form.get("description", "").strip()
-            show.region = request.form.get("region", "").strip() or None
+            show.region = fix_mojibake(request.form.get("region", "").strip()) or None
             show.location = request.form.get("location", "").strip()
             show.category = request.form.get("category", "").strip()  # admin peut forcer la catégorie
             show.age_range = request.form.get("age_range", "").strip() or None
@@ -3400,18 +3401,17 @@ def register_routes(app: Flask) -> None:
     def demande_animation():
         if request.method == "POST":
             # Récupérer la date et l'heure d'envoi automatique
-            auto_datetime = request.form.get("auto_datetime", "")
-            # Récupération des données du formulaire
             structure = request.form.get("structure", "").strip()
             telephone = request.form.get("telephone", "").strip()
             lieu_ville = request.form.get("lieu_ville", "").strip()
             code_postal = request.form.get("code_postal", "").strip()
-            region = request.form.get("region", "").strip()
+            region = fix_mojibake(request.form.get("region", "").strip())
             nom = request.form.get("nom", "").strip()
             dates_horaires = request.form.get("dates_horaires", "").strip()
             type_espace = request.form.get("type_espace", "").strip()
             type_evenement = request.form.get("type_evenement", "").strip()
             autre_evenement = request.form.get("autre_evenement", "").strip()
+            auto_datetime = request.form.get("auto_datetime", "")
             
             # Si "Autre" est sélectionné pour le type d'événement et qu'un type personnalisé est renseigné
             if type_evenement == "Autre" and autre_evenement:
@@ -4151,7 +4151,7 @@ Accessibilité: {accessibilite}
             telephone = request.form.get("telephone", "").strip()
             lieu_ville = request.form.get("lieu_ville", "").strip()
             code_postal = request.form.get("code_postal", "").strip()
-            region = request.form.get("region", "").strip()
+            region = fix_mojibake(request.form.get("region", "").strip())
             nom = request.form.get("nom", "").strip()
             dates_horaires = request.form.get("dates_horaires", "").strip()
             type_espace = request.form.get("type_espace", "").strip()
@@ -5582,7 +5582,7 @@ def demande_ecole():
         adresse = request.form.get("adresse", "").strip()
         code_postal = request.form.get("code_postal", "").strip()
         ville = request.form.get("ville", "").strip()
-        region = request.form.get("region", "").strip()
+        region = fix_mojibake(request.form.get("region", "").strip())
         
         # Contact
         nom_contact = request.form.get("nom_contact", "").strip()

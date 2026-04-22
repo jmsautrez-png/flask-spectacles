@@ -41,6 +41,24 @@ def generate_password(n: int = 10) -> str:
     return "".join(secrets.choice(alphabet) for _ in range(n))
 
 
+def fix_mojibake(s):
+    """Corrige les chaines mal encodees du type 'ÃŽle-de-France' -> 'Île-de-France'.
+
+    Detecte les patterns Latin-1-vu-comme-UTF-8 et tente la conversion inverse.
+    Si la chaine est propre ou si la conversion echoue, renvoie la valeur d'origine
+    (idempotent et non destructif).
+    """
+    if not s or not isinstance(s, str):
+        return s
+    # Heuristique : un mojibake UTF-8/Latin-1 contient toujours un Ã ou un Â
+    if "Ã" not in s and "Â" not in s:
+        return s
+    try:
+        return s.encode("latin-1", errors="strict").decode("utf-8", errors="strict")
+    except (UnicodeEncodeError, UnicodeDecodeError):
+        return s
+
+
 def is_suspicious_request() -> bool:
     user_agent = request.headers.get('User-Agent', '').lower()
     suspicious_agents = [
