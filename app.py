@@ -5294,8 +5294,12 @@ def admin_delete_user(user_id):
         return redirect(url_for("admin_users"))
     
     username = user.username
+    user_email = user.email
     nb_shows = len(user.shows) if hasattr(user, 'shows') else 0
-    
+    nb_approved = sum(1 for s in user.shows if getattr(s, 'approved', False)) if hasattr(user, 'shows') else 0
+    # Email envoyé uniquement si AUCUN spectacle publié (compte inactif)
+    send_inactivity_email = (nb_approved == 0) and bool(user_email)
+
     try:
         # Supprimer les enregistrements liés à chaque spectacle
         from models.models import ShowView, Review, Conversation, Message, Notification
@@ -5320,6 +5324,40 @@ def admin_delete_user(user_id):
         
         flash(f"✅ L'utilisateur « {username} » et ses {nb_shows} spectacle(s) ont été supprimés.", "success")
         current_app.logger.info(f"[ADMIN] Utilisateur {username} (ID: {user_id}) supprimé par {current_user().username}")
+
+        # ── Email d'information de suppression pour inactivité (aucun spectacle publié) ──
+        if send_inactivity_email:
+            try:
+                if getattr(current_app, "mail", None) and current_app.config.get("MAIL_USERNAME") and current_app.config.get("MAIL_PASSWORD"):
+                    body_html = f"""<!DOCTYPE html>
+<html><head><meta charset="utf-8"></head>
+<body style="font-family:Arial,sans-serif;background:#f4f6fa;margin:0;padding:20px;">
+  <div style="max-width:600px;margin:0 auto;background:#fff;border-radius:10px;overflow:hidden;box-shadow:0 2px 12px rgba(0,0,0,0.08);">
+    <div style="background:linear-gradient(135deg,#7c4dff,#536dfe);color:#fff;padding:24px;text-align:center;">
+      <h2 style="margin:0;">Spectacle'ment VØtre</h2>
+    </div>
+    <div style="padding:28px;color:#333;line-height:1.6;">
+      <p>Bonjour <strong>{username}</strong>,</p>
+      <p>Nous vous informons que votre compte sur <strong>Spectacle'ment VØtre</strong> a été <strong>supprimé pour inactivité</strong>.</p>
+      <p>Aucun spectacle n'avait été publié sur votre compte. Pour conserver une plateforme à jour pour les organisateurs (mairies, écoles, CSE…), nous faisons régulièrement le ménage des comptes restés sans spectacle approuvé.</p>
+      <div style="background:#e8f5e9;border-left:4px solid #2e7d32;padding:16px 18px;border-radius:6px;margin:20px 0;">
+        <p style="margin:0;"><strong>💡 Vous souhaitez revenir ?</strong></p>
+        <p style="margin:8px 0 0 0;">L'inscription est toujours <strong>100 % gratuite</strong>. Vous pouvez recréer un compte et publier votre premier spectacle en quelques minutes :</p>
+        <p style="text-align:center;margin:16px 0 0 0;">
+          <a href="https://www.spectacleanimation.fr/register" style="display:inline-block;padding:12px 26px;background:#1b5e20;color:#fff;text-decoration:none;border-radius:6px;font-weight:700;">👉 Créer un nouveau compte</a>
+        </p>
+      </div>
+      <p>Merci de l'intérêt que vous avez porté à notre plateforme.</p>
+      <p style="margin-top:24px;">À très bientôt peut-être,<br><strong>L'équipe Spectacle'ment VØtre</strong><br>contact@spectacleanimation.fr</p>
+    </div>
+  </div>
+</body></html>"""
+                    msg = MailMessage(subject="Suppression de votre compte Spectacle'ment VØtre (inactivité)", recipients=[user_email])  # type: ignore[arg-type]
+                    msg.html = body_html  # type: ignore[assignment]
+                    current_app.mail.send(msg)  # type: ignore[attr-defined]
+                    current_app.logger.info(f"[MAIL] ✓ Email suppression inactivité envoyé à {user_email}")
+            except Exception as e:
+                current_app.logger.error(f"[MAIL] ✗ Envoi email suppression inactivité impossible: {e}")
     except Exception as e:
         db.session.rollback()
         flash(f"❌ Erreur lors de la suppression : {str(e)}", "danger")
