@@ -848,6 +848,23 @@ def register_error_handlers(app: Flask) -> None:
         except Exception:
             pass
         return render_template("500.html", user=current_user()), 500
+
+    @app.errorhandler(413)
+    def request_entity_too_large(e):
+        max_mb = (app.config.get("MAX_CONTENT_LENGTH") or 0) // (1024 * 1024)
+        flash(
+            f"📦 Fichier(s) trop volumineux : la taille totale de votre envoi dépasse {max_mb} Mo. "
+            f"Compressez vos photos (par ex. via https://squoosh.app) puis réessayez.",
+            "danger",
+        )
+        # Tenter de revenir à la page précédente, sinon dashboard
+        try:
+            ref = request.referrer
+            if ref:
+                return redirect(ref)
+        except Exception:
+            pass
+        return redirect(url_for("home"))
     
     # Gestionnaire d'erreur CSRF
     try:

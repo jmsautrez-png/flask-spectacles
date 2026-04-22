@@ -49,9 +49,13 @@ class Config:
     # Affichage de l'adresse email utilisée pour l'envoi des mails
     print(f"[CONFIG] MAIL_DEFAULT_SENDER utilisé : {MAIL_DEFAULT_SENDER}")
 
-    # Limite de taille des fichiers (500 KB par photo pour plus de stabilité)
-    MAX_CONTENT_LENGTH = 500 * 1024  # 500 KB en bytes
-    MAX_FILE_SIZE = 500 * 1024  # 500 KB en bytes
+    # Limite de taille des fichiers
+    # MAX_CONTENT_LENGTH = taille TOTALE de la requête (formulaire + tous les fichiers)
+    # MAX_FILE_SIZE = taille de CHAQUE fichier individuel (vérifié côté applicatif)
+    # NB : les images sont recompressées en miniature WebP côté serveur,
+    #      donc la limite ici sert uniquement à éviter d'engorger le serveur.
+    MAX_CONTENT_LENGTH = 15 * 1024 * 1024  # 15 Mo total par requête (plusieurs photos)
+    MAX_FILE_SIZE = 3 * 1024 * 1024  # 3 Mo par photo (couvre la majorité des smartphones)
     
     # Sécurité sessions
     PERMANENT_SESSION_LIFETIME = 3600  # 1 heure
