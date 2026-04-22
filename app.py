@@ -776,6 +776,8 @@ def _run_critical_migrations(app: Flask) -> None:
         ("demande_animation", "specialites_recherchees", "TEXT", "TEXT", None),
         ("demande_animation", "evenements_contexte", "TEXT", "TEXT", None),
         ("demande_animation", "lieux_souhaites", "TEXT", "TEXT", None),
+        # ── users ──
+        ("users", "pending_deletion_at", "TIMESTAMP", "DATETIME", None),
     ]
 
     is_pg = 'postgresql' in str(db.engine.url)
@@ -3048,6 +3050,15 @@ def register_routes(app: Flask) -> None:
             return redirect(url_for("admin_dashboard"))
         
         show.approved = True
+        # Annule automatiquement un éventuel préavis de suppression sur le compte propriétaire
+        try:
+            if show.user_id:
+                owner = User.query.get(show.user_id)
+                if owner and getattr(owner, 'pending_deletion_at', None):
+                    owner.pending_deletion_at = None
+                    current_app.logger.info(f"[ADMIN] Préavis suppression annulé auto pour {owner.username} (spectacle approuvé)")
+        except Exception as e:
+            current_app.logger.warning(f"[ADMIN] Annulation préavis impossible: {e}")
         db.session.commit()
         
         # Envoi automatique d'un email avec le lien du spectacle à la compagnie après validation
@@ -5280,24 +5291,80 @@ def admin_users():
 @login_required
 @admin_required
 def admin_delete_user(user_id):
-    """Supprime un utilisateur et tous ses spectacles associés."""
+    """Suppression d'utilisateur avec préavis 7j si inactif.
+
+    Comportement :
+    - Compte avec au moins 1 spectacle approuvé → suppression immédiate (sans email).
+    - Compte sans spectacle approuvé, jamais prévenu → mail de préavis + date enregistrée (J+7).
+    - Compte sans spectacle approuvé, déjà en préavis (date dépassée OU forcer=1) → suppression définitive + mail final.
+    """
+    from datetime import timedelta
     user = User.query.get_or_404(user_id)
-    
+
     # Empêcher la suppression d'un admin
     if user.is_admin:
         flash("Impossible de supprimer un compte administrateur.", "danger")
         return redirect(url_for("admin_users"))
-    
+
     # Empêcher l'auto-suppression
     if user.id == current_user().id:
         flash("Vous ne pouvez pas supprimer votre propre compte.", "danger")
         return redirect(url_for("admin_users"))
-    
+
     username = user.username
     user_email = user.email
     nb_shows = len(user.shows) if hasattr(user, 'shows') else 0
     nb_approved = sum(1 for s in user.shows if getattr(s, 'approved', False)) if hasattr(user, 'shows') else 0
-    # Email envoyé uniquement si AUCUN spectacle publié (compte inactif)
+    forcer = request.form.get("forcer") == "1"
+    pending = getattr(user, 'pending_deletion_at', None)
+
+    # ─── CAS 1 : compte inactif jamais prévenu → enregistrer préavis + mail ───
+    if nb_approved == 0 and not pending and not forcer:
+        try:
+            user.pending_deletion_at = datetime.utcnow() + timedelta(days=7)
+            db.session.commit()
+            current_app.logger.info(f"[ADMIN] Préavis 7j posé sur {username} (ID: {user_id}) par {current_user().username}")
+            if user_email and getattr(current_app, "mail", None) and current_app.config.get("MAIL_USERNAME") and current_app.config.get("MAIL_PASSWORD"):
+                deadline_str = user.pending_deletion_at.strftime('%d/%m/%Y')
+                body_html = f"""<!DOCTYPE html>
+<html><head><meta charset="utf-8"></head>
+<body style="font-family:Arial,sans-serif;background:#f4f6fa;margin:0;padding:20px;">
+  <div style="max-width:600px;margin:0 auto;background:#fff;border-radius:10px;overflow:hidden;box-shadow:0 2px 12px rgba(0,0,0,0.08);">
+    <div style="background:linear-gradient(135deg,#ff9800,#f57c00);color:#fff;padding:24px;text-align:center;">
+      <h2 style="margin:0;">⏳ Préavis de suppression</h2>
+    </div>
+    <div style="padding:28px;color:#333;line-height:1.6;">
+      <p>Bonjour <strong>{username}</strong>,</p>
+      <p>Nous avons remarqué qu'<strong>aucun spectacle n'a encore été publié</strong> sur votre compte Spectacle'ment VØtre.</p>
+      <p>Sans publication de votre part, votre compte sera <strong>automatiquement supprimé le {deadline_str}</strong> (dans 7 jours).</p>
+      <div style="background:#e8f5e9;border-left:4px solid #2e7d32;padding:16px 18px;border-radius:6px;margin:20px 0;">
+        <p style="margin:0;"><strong>✅ Comment conserver votre compte ?</strong></p>
+        <p style="margin:8px 0 0 0;">Connectez-vous et publiez votre premier spectacle. C'est <strong>gratuit</strong> et cela prend quelques minutes.</p>
+        <p style="text-align:center;margin:16px 0 0 0;">
+          <a href="https://www.spectacleanimation.fr/login" style="display:inline-block;padding:12px 26px;background:#1b5e20;color:#fff;text-decoration:none;border-radius:6px;font-weight:700;">👉 Me connecter et publier</a>
+        </p>
+      </div>
+      <p style="font-size:0.9em;color:#666;">Si vous publiez un spectacle avant cette date, votre compte sera conservé automatiquement.</p>
+      <p style="margin-top:24px;">Cordialement,<br><strong>L'équipe Spectacle'ment VØtre</strong><br>contact@spectacleanimation.fr</p>
+    </div>
+  </div>
+</body></html>"""
+                try:
+                    msg = MailMessage(subject="⏳ Votre compte Spectacle'ment VØtre sera supprimé dans 7 jours", recipients=[user_email])  # type: ignore[arg-type]
+                    msg.html = body_html  # type: ignore[assignment]
+                    current_app.mail.send(msg)  # type: ignore[attr-defined]
+                    current_app.logger.info(f"[MAIL] ✓ Préavis 7j envoyé à {user_email}")
+                except Exception as e:
+                    current_app.logger.error(f"[MAIL] ✗ Préavis 7j non envoyé: {e}")
+            flash(f"⏳ Préavis de 7 jours posé sur « {username} ». Suppression automatique le {user.pending_deletion_at.strftime('%d/%m/%Y')} si aucun spectacle n'est publié.", "warning")
+        except Exception as e:
+            db.session.rollback()
+            flash(f"❌ Erreur préavis : {str(e)}", "danger")
+            current_app.logger.error(f"[ADMIN] Erreur préavis user {user_id}: {e}")
+        return redirect(url_for("admin_users"))
+
+    # ─── CAS 2 : compte avec spectacles publiés OU déjà en préavis OU forcer ───
+    # → suppression immédiate
     send_inactivity_email = (nb_approved == 0) and bool(user_email)
 
     try:
@@ -5317,15 +5384,15 @@ def admin_delete_user(user_id):
             db.session.delete(conv)
         Notification.query.filter_by(user_id=user.id).delete()
         Review.query.filter_by(user_id=user.id).delete()
-        
+
         # Supprimer l'utilisateur
         db.session.delete(user)
         db.session.commit()
-        
+
         flash(f"✅ L'utilisateur « {username} » et ses {nb_shows} spectacle(s) ont été supprimés.", "success")
         current_app.logger.info(f"[ADMIN] Utilisateur {username} (ID: {user_id}) supprimé par {current_user().username}")
 
-        # ── Email d'information de suppression pour inactivité (aucun spectacle publié) ──
+        # ── Email final de suppression pour inactivité ──
         if send_inactivity_email:
             try:
                 if getattr(current_app, "mail", None) and current_app.config.get("MAIL_USERNAME") and current_app.config.get("MAIL_PASSWORD"):
@@ -5362,7 +5429,21 @@ def admin_delete_user(user_id):
         db.session.rollback()
         flash(f"❌ Erreur lors de la suppression : {str(e)}", "danger")
         current_app.logger.error(f"[ADMIN] Erreur suppression utilisateur {user_id}: {e}")
-    
+
+    return redirect(url_for("admin_users"))
+
+
+@app.route("/admin/cancel-deletion/<int:user_id>", methods=["POST"])
+@login_required
+@admin_required
+def admin_cancel_deletion(user_id):
+    """Annule manuellement le préavis de suppression d'un utilisateur."""
+    user = User.query.get_or_404(user_id)
+    if getattr(user, 'pending_deletion_at', None):
+        user.pending_deletion_at = None
+        db.session.commit()
+        flash(f"✅ Préavis de suppression annulé pour « {user.username} ».", "success")
+        current_app.logger.info(f"[ADMIN] Préavis annulé pour {user.username} par {current_user().username}")
     return redirect(url_for("admin_users"))
 
 # === SUPPRESSION DE PHOTO INDIVIDUELLE ===

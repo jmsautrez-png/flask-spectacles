@@ -51,6 +51,7 @@ class User(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow)  # Date de création
     region = db.Column(db.String(200), nullable=True)  # Région de l'utilisateur
     site_internet = db.Column(db.String(255), nullable=True)  # Site web de l'utilisateur
+    pending_deletion_at = db.Column(db.DateTime, nullable=True, index=True)  # Date prévue de suppression (préavis 7j inactivité)
 
     def set_password(self, password: str):
         self.password_hash = generate_password_hash(password)
