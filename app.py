@@ -903,14 +903,14 @@ def _build_appel_offre_email(demande, show):
 body {{ font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; }}
 .content {{ padding: 20px; background-color: #f9f9f9; border-radius: 8px; }}
 h2 {{ color: #1b2a4e; margin-top: 0; }}
-.opportunity-box {{ background: linear-gradient(135deg, #6a1b9a 0%, #8e44ad 100%); color: white; padding: 20px; border-radius: 8px; margin: 20px 0; }}
-.opportunity-box h3 {{ margin-top: 0; color: white; }}
+.opportunity-box {{ background: #e8f5e9; border: 1px solid #a5d6a7; color: #1b5e20; padding: 20px; border-radius: 8px; margin: 20px 0; }}
+.opportunity-box h3 {{ margin-top: 0; color: #1b5e20; }}
 .info-grid {{ display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 15px 0; }}
-.info-item {{ background-color: rgba(255,255,255,0.1); padding: 10px; border-radius: 5px; }}
+.info-item {{ background-color: rgba(255,255,255,0.6); padding: 10px; border-radius: 5px; }}
 .info-label {{ font-weight: bold; font-size: 0.9em; }}
-.contact-box {{ background-color: #fff; padding: 15px; border-left: 4px solid #6a1b9a; margin: 15px 0; }}
+.contact-box {{ background-color: #fff; padding: 15px; border-left: 4px solid #2e7d32; margin: 15px 0; }}
 .footer {{ text-align: center; margin-top: 20px; color: #666; font-size: 0.9em; }}
-.btn {{ display: inline-block; padding: 12px 24px; background-color: #6a1b9a; color: white; text-decoration: none; border-radius: 5px; margin: 10px 0; }}
+.btn {{ display: inline-block; padding: 12px 24px; background-color: #1b5e20; color: white; text-decoration: none; border-radius: 5px; margin: 10px 0; }}
 </style>
 </head>
 <body>
@@ -940,7 +940,7 @@ h2 {{ color: #1b2a4e; margin-top: 0; }}
         <h3>📞 Coordonnées du demandeur</h3>
         <p><strong>Structure :</strong> {demande.structure}<br>
         <strong>Contact :</strong> {demande.nom}<br>
-        <strong>Email :</strong> <a href="mailto:{demande.contact_email}" style="color:#6a1b9a;">{demande.contact_email}</a><br>
+        <strong>Email :</strong> <a href="mailto:{demande.contact_email}" style="color:#1b5e20;">{demande.contact_email}</a><br>
         <strong>Téléphone :</strong> {demande.telephone}</p>
         <p style="text-align:center;"><a href="mailto:{demande.contact_email}" class="btn">✉️ Contacter le demandeur</a></p>
         <p style="text-align:center;margin-top:8px;"><a href="https://www.spectacleanimation.fr/demandes-animation" style="display:inline-block;padding:10px 24px;background:#1b5e20;color:white;text-decoration:none;border-radius:5px;font-weight:bold;">👁️ Voir l'appel d'offre</a></p>
@@ -950,7 +950,7 @@ h2 {{ color: #1b2a4e; margin-top: 0; }}
     </div>
     <div style="background-color:#e3f2fd;padding:15px;border-radius:8px;margin:15px 0;text-align:center;">
         <p><strong>Publiez vos spectacles GRATUITEMENT toute l'année !</strong><br>
-        <a href="https://www.spectacleanimation.fr/submit" style="color:#6a1b9a;font-weight:bold;">👉 Publier un spectacle</a></p>
+        <a href="https://www.spectacleanimation.fr/submit" style="color:#1b5e20;font-weight:bold;">👉 Publier un spectacle</a></p>
     </div>
     <div style="background:linear-gradient(135deg,#d32f2f 0%,#c62828 100%);color:white;padding:20px;border-radius:8px;margin:15px 0;">
         <p style="margin:0 0 10px 0;font-size:1.1em;"><strong>💼 SPECTACLE'MENT VÔTRE VOUS ACCOMPAGNE</strong></p>
@@ -1055,6 +1055,7 @@ def _send_recap_to_organisateur(demande, shows_contactes):
 </body>
 </html>"""
 
+        admin_email = current_app.config.get("MAIL_USERNAME", "contact@spectacleanimation.fr")
         msg = MailMessage(
             subject=f"✅ Votre demande a été transmise à {nb} artiste{'s' if nb > 1 else ''}",
             recipients=[demande.contact_email],
@@ -1062,6 +1063,18 @@ def _send_recap_to_organisateur(demande, shows_contactes):
         msg.html = body_html
         current_app.mail.send(msg)
         print(f"[RECAP] ✅ Récap envoyé à organisateur {demande.contact_email} ({nb} fiches)")
+        # Copie admin (mail séparé si adresse différente)
+        if admin_email and admin_email != demande.contact_email:
+            try:
+                admin_copy = MailMessage(
+                    subject=f"[COPIE ADMIN] Récap transmis à {demande.contact_email} — {nb} fiche(s)",
+                    recipients=[admin_email],
+                )
+                admin_copy.html = body_html
+                current_app.mail.send(admin_copy)
+                print(f"[RECAP] ✅ Copie admin envoyée à {admin_email}")
+            except Exception as ae:
+                print(f"[RECAP] ⚠️ Copie admin échouée (non bloquant): {ae}")
         return True
     except Exception as e:
         print(f"[RECAP] ⚠️ Erreur envoi récap organisateur: {e}")
@@ -4452,6 +4465,30 @@ Accessibilité: {accessibilite}
             action = request.form.get("action", "preview")
             print(f"[DEBUG] Action: {action}")
             
+            # === ACTION send_matched_recap_only : envoie UNIQUEMENT le récap à l'organisateur ===
+            # Réutilise les compagnies cochées dans la liste auto-matching, sans envoyer aux artistes
+            if action == "send_matched_recap_only":
+                matched_ids = request.form.getlist("matched_show_ids")
+                print(f"[DEBUG] send_matched_recap_only : {len(matched_ids)} shows cochés")
+                if not matched_ids:
+                    flash("Veuillez cocher au moins une compagnie pour le récap.", "warning")
+                    return redirect(request.url)
+                try:
+                    show_ids = [int(sid) for sid in matched_ids]
+                except ValueError:
+                    flash("IDs invalides.", "danger")
+                    return redirect(request.url)
+                shows_recap = Show.query.filter(Show.id.in_(show_ids), Show.approved.is_(True)).all()
+                if not shows_recap:
+                    flash("Aucune fiche valide trouvée.", "warning")
+                    return redirect(url_for("admin_demandes_animation"))
+                ok = _send_recap_to_organisateur(demande, shows_recap)
+                if ok:
+                    flash(f"📧 Récap envoyé à l'organisateur ({demande.contact_email}) avec {len(shows_recap)} fiche(s). Aucun mail aux artistes.", "success")
+                else:
+                    flash("⚠️ Le récap n'a pas pu être envoyé à l'organisateur (voir les logs).", "warning")
+                return redirect(url_for("admin_demandes_animation"))
+            
             # === ACTION send_matched : envoi direct aux shows sélectionnés par auto-matching ===
             if action == "send_matched":
                 matched_ids = request.form.getlist("matched_show_ids")
@@ -4568,7 +4605,9 @@ Accessibilité: {accessibilite}
                 # === RÉCAP ORGANISATEUR ===
                 # Envoi auto d'un récap court à l'organisateur avec les liens des fiches contactées
                 if success_count > 0:
-                    _send_recap_to_organisateur(demande, shows)
+                    recap_ok = _send_recap_to_organisateur(demande, shows)
+                    if not recap_ok:
+                        flash(f"⚠️ Le récap à l'organisateur ({demande.contact_email}) n'a pas pu être envoyé (SMTP). Les artistes ont bien été contactés.", "warning")
 
                 if success_count > 0:
                     flash(f"✅ Appel d'offre envoyé à {success_count} compagnie(s) !", "success")
@@ -4578,7 +4617,39 @@ Accessibilité: {accessibilite}
                     flash("⚠️ Aucun email à envoyer.", "warning")
                 
                 return redirect(url_for("admin_demandes_animation"))
-            
+
+            # === ACTION send_recap_only : envoi UNIQUEMENT du récap à l'organisateur ===
+            # (rien n'est envoyé aux artistes — utile pour renvoyer la sélection après-coup)
+            if action == "send_recap_only":
+                selected_emails = request.form.getlist("emails[]")
+                print(f"[DEBUG] send_recap_only : {len(selected_emails)} email(s) coché(s)")
+                if not selected_emails:
+                    flash("❌ Cochez au moins une fiche à inclure dans le récap.", "warning")
+                    return redirect(request.url)
+                # Récupérer les shows correspondant aux emails cochés
+                # On accepte aussi bien show.contact_email que show.user.email
+                from sqlalchemy import or_ as _or
+                shows_recap = (
+                    Show.query
+                    .outerjoin(Show.user)
+                    .filter(Show.approved.is_(True))
+                    .filter(_or(
+                        Show.contact_email.in_(selected_emails),
+                        User.email.in_(selected_emails),
+                    ))
+                    .all()
+                )
+                print(f"[DEBUG] {len(shows_recap)} show(s) résolus pour le récap")
+                if not shows_recap:
+                    flash("⚠️ Aucune fiche valide trouvée pour les emails cochés.", "warning")
+                    return redirect(url_for("admin_demandes_animation"))
+                ok = _send_recap_to_organisateur(demande, shows_recap)
+                if ok:
+                    flash(f"📧 Récap envoyé à l'organisateur ({demande.contact_email}) avec {len(shows_recap)} fiche(s). Aucun mail aux artistes.", "success")
+                else:
+                    flash("⚠️ Le récap n'a pas pu être envoyé à l'organisateur (voir les logs).", "warning")
+                return redirect(url_for("admin_demandes_animation"))
+
             # === ACTIONS preview / send : recherche manuelle par catégories ===
             categories = (request.form.getlist("cat_specialites")
                           + request.form.getlist("cat_evenements")
@@ -4757,15 +4828,15 @@ Accessibilité: {accessibilite}
         .logo img {{ max-width: 200px; height: auto; }}
         .content {{ padding: 20px; background-color: #f9f9f9; border-radius: 8px; }}
         h2 {{ color: #1b2a4e; margin-top: 0; }}
-        .opportunity-box {{ background: linear-gradient(135deg, #6a1b9a 0%, #8e44ad 100%); color: white; padding: 20px; border-radius: 8px; margin: 20px 0; }}
-        .opportunity-box h3 {{ margin-top: 0; color: white; }}
+        .opportunity-box {{ background: #e8f5e9; border: 1px solid #a5d6a7; color: #1b5e20; padding: 20px; border-radius: 8px; margin: 20px 0; }}
+        .opportunity-box h3 {{ margin-top: 0; color: #1b5e20; }}
         .info-grid {{ display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 15px 0; }}
-        .info-item {{ background-color: rgba(255,255,255,0.1); padding: 10px; border-radius: 5px; }}
+        .info-item {{ background-color: rgba(255,255,255,0.6); padding: 10px; border-radius: 5px; }}
         .info-label {{ font-weight: bold; font-size: 0.9em; }}
-        .contact-box {{ background-color: #fff; padding: 15px; border-left: 4px solid #6a1b9a; margin: 15px 0; }}
+        .contact-box {{ background-color: #fff; padding: 15px; border-left: 4px solid #2e7d32; margin: 15px 0; }}
         .show-info {{ background-color: #e8eaf6; padding: 15px; border-radius: 8px; margin: 15px 0; }}
         .footer {{ text-align: center; margin-top: 20px; color: #666; font-size: 0.9em; }}
-        .btn {{ display: inline-block; padding: 12px 24px; background-color: #6a1b9a; color: white; text-decoration: none; border-radius: 5px; margin: 10px 0; }}
+        .btn {{ display: inline-block; padding: 12px 24px; background-color: #1b5e20; color: white; text-decoration: none; border-radius: 5px; margin: 10px 0; }}
     </style>
 </head>
 <body>
@@ -4818,7 +4889,7 @@ Accessibilité: {accessibilite}
             <h3>📞 Coordonnées du demandeur</h3>
             <p><strong>Structure :</strong> {demande.structure}<br>
             <strong>Contact :</strong> {demande.nom}<br>
-            <strong>Email :</strong> <a href="mailto:{demande.contact_email}" style="color: #6a1b9a;">{demande.contact_email}</a><br>
+            <strong>Email :</strong> <a href="mailto:{demande.contact_email}" style="color: #1b5e20;">{demande.contact_email}</a><br>
             <strong>Téléphone :</strong> {demande.telephone}</p>
             <p style="text-align: center;">
                 <a href="mailto:{demande.contact_email}" class="btn">✉️ Contacter le demandeur</a>
@@ -4836,7 +4907,7 @@ Accessibilité: {accessibilite}
         <div style="background-color: #e3f2fd; padding: 15px; border-radius: 8px; margin: 15px 0; text-align: center;">
             <p><strong>Vous aussi, annoncez vos événements GRATUITEMENT !</strong><br>
             Publiez vos spectacles toute l'année sans limite de temps.<br>
-            <a href="https://www.spectacleanimation.fr/submit" style="color: #6a1b9a; font-weight: bold;">👉 Publier un spectacle</a></p>
+            <a href="https://www.spectacleanimation.fr/submit" style="color: #1b5e20; font-weight: bold;">👉 Publier un spectacle</a></p>
         </div>
         
         <div style="background: linear-gradient(135deg, #d32f2f 0%, #c62828 100%); color: white; padding: 20px; border-radius: 8px; margin: 15px 0; box-shadow: 0 4px 12px rgba(211,47,47,0.3);">
@@ -5044,7 +5115,7 @@ Accessibilité: {accessibilite}
         .content {{ padding: 20px; background-color: #f9f9f9; border-radius: 8px; }}
         h2 {{ color: #1b2a4e; margin-top: 0; }}
         .admin-notice {{ background: linear-gradient(135deg, #1b2a4e 0%, #355c7d 100%); color: white; padding: 15px; border-radius: 8px; margin: 20px 0; text-align: center; font-weight: bold; }}
-        .opportunity-box {{ background: linear-gradient(135deg, #6a1b9a 0%, #8e44ad 100%); color: white; padding: 20px; border-radius: 8px; margin: 20px 0; }}
+        .opportunity-box {{ background: #e8f5e9; border: 1px solid #a5d6a7; color: #1b5e20; padding: 20px; border-radius: 8px; margin: 20px 0; }}
         .opportunity-box h3 {{ margin-top: 0; color: white; }}
         .info-grid {{ display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 15px 0; }}
         .info-item {{ background-color: rgba(255,255,255,0.1); padding: 10px; border-radius: 5px; }}

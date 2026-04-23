@@ -88,9 +88,12 @@
                         </div>
                     </div>
 
-                    <div class="d-flex justify-content-end mb-4">
-                        <button type="submit" name="action" value="send_matched" class="btn btn-success btn-lg">
-                            📧 Envoyer aux compagnies cochées (<span id="matched-count">{{ matched_shows|length }}</span>)
+                    <div class="d-flex flex-wrap gap-2 justify-content-center mb-4" style="background:#fff8e1;border:1px solid #ffd54f;border-radius:8px;padding:14px;">
+                        <button type="submit" name="action" value="send_matched_recap_only" class="btn btn-outline-primary btn-lg" id="btn-recap-only" style="font-weight:600;">
+                            📧 Envoyer le récap à l'organisateur uniquement
+                        </button>
+                        <button type="submit" name="action" value="send_matched" class="btn btn-success btn-lg" style="font-weight:700;font-size:1.05rem;padding:12px 28px;box-shadow:0 2px 8px rgba(40,167,69,0.3);">
+                            🚀 Envoyer aux compagnies cochées (<span id="matched-count">{{ matched_shows|length }}</span>)
                         </button>
                     </div>
 
@@ -163,6 +166,18 @@
             // Vérifier le type d'action
             const clickedBtn = e.submitter;
             const action = clickedBtn ? clickedBtn.value : '';
+            
+            if (action === 'send_matched_recap_only') {
+                const matchedChecked = document.querySelectorAll('.matched-cb:checked');
+                if (matchedChecked.length === 0) {
+                    e.preventDefault();
+                    alert('⚠️ Cochez au moins une compagnie à inclure dans le récap');
+                    return false;
+                }
+                const ok = confirm(`Envoyer UNIQUEMENT le récap à l'organisateur avec ${matchedChecked.length} fiche(s) ?\n\n⚠️ Aucun mail ne sera envoyé aux artistes.`);
+                if (!ok) { e.preventDefault(); return false; }
+                return true;
+            }
             
             if (action === 'send_matched') {
                 // Envoi auto-matching : vérifier qu'au moins une compagnie est cochée

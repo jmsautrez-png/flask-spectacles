@@ -64,7 +64,7 @@
                     <!-- Formulaire d'envoi -->
                     <form method="post" id="form-envoi">
                         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-                        <input type="hidden" name="action" value="send"/>
+                        <input type="hidden" name="action" id="action-field" value="send"/>
                         <input type="hidden" name="demande_id" value="{{ demande.id }}"/>
                         
                         <!-- Conserver les catégories et régions sélectionnées -->
@@ -145,13 +145,18 @@
                             <strong>⚠️ Attention :</strong> L'envoi est définitif. Les emails seront envoyés aux <strong><span id="final-count">{{ destinataires|length }}</span> compagnies cochées</strong>.
                         </div>
 
-                        <div class="d-flex justify-content-between mt-4">
+                        <div class="d-flex justify-content-between align-items-center mt-4 flex-wrap" style="gap:10px;">
                             <a href="{{ url_for('envoyer_demande_animation', demande_id=demande.id) }}" class="btn btn-secondary btn-lg">
                                 ← Modifier les critères
                             </a>
-                            <button type="submit" class="btn btn-success btn-lg" id="btn-send" onclick="return confirmSend()">
-                                📧 Envoyer définitivement (<span id="button-count">{{ destinataires|length }}</span> emails)
-                            </button>
+                            <div class="d-flex flex-wrap" style="gap:10px;">
+                                <button type="button" class="btn btn-outline-primary btn-lg" id="btn-recap-only" onclick="return sendRecapOnly()" title="N'envoie RIEN aux artistes — uniquement un mail récap à l'organisateur avec les fiches cochées">
+                                    📧 Envoyer le récap à l'organisateur uniquement
+                                </button>
+                                <button type="submit" class="btn btn-success btn-lg" id="btn-send" onclick="return confirmSend()">
+                                    🚀 Envoyer aux artistes (<span id="button-count">{{ destinataires|length }}</span>)
+                                </button>
+                            </div>
                         </div>
                         {% else %}
                         <div class="d-flex justify-content-center mt-4">
@@ -279,6 +284,25 @@ function confirmSend() {
                 `Continuer ?`;
     
     return confirm(msg);
+}
+
+// Envoi du récap UNIQUEMENT à l'organisateur (zéro mail aux artistes)
+function sendRecapOnly() {
+    const selected = document.querySelectorAll('.company-checkbox:checked').length;
+    if (selected === 0) {
+        alert("❌ Cochez au moins une fiche à inclure dans le récap.");
+        return false;
+    }
+    const msg = `📧 ENVOI DU RÉCAP À L'ORGANISATEUR\n\n` +
+                `Vous allez envoyer un mail récapitulatif à l'organisateur\n` +
+                `de la demande, avec les liens vers les ${selected} fiche(s) cochée(s).\n\n` +
+                `⚠️ AUCUN mail ne sera envoyé aux artistes.\n\n` +
+                `Continuer ?`;
+    if (!confirm(msg)) return false;
+    // Bascule l'action puis soumet le formulaire
+    document.getElementById('action-field').value = 'send_recap_only';
+    document.getElementById('form-envoi').submit();
+    return true;
 }
 
 // Initialisation
