@@ -51,8 +51,7 @@ SPECIALITES = {
         "Théâtre de comédie",
         "Théâtre de boulevard",
         "One-man-show",
-        # Jeune public / Amateur
-        "Théâtre jeune public",
+        # Amateur
         "Théâtre amateur",
         "Théâtre d'improvisation",
         # Musical
@@ -61,6 +60,7 @@ SPECIALITES = {
     "Danse": [
         # Danse de scène
         "Spectacle de danse",
+        "Spectacle de danse pour enfant",
         "Revue Cabaret et Danse",
         "Danse contemporaine",
         "Danse classique",
