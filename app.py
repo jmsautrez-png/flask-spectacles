@@ -3521,7 +3521,7 @@ def register_routes(app: Flask) -> None:
             # Récupérer la date et l'heure d'envoi automatique
             structure = request.form.get("structure", "").strip()
             telephone = request.form.get("telephone", "").strip()
-            lieu_ville = request.form.get("lieu_ville", "").strip()
+            lieu_ville = fix_mojibake(request.form.get("lieu_ville", "").strip()).split("·")[0].strip()
             code_postal = request.form.get("code_postal", "").strip()
             region = fix_mojibake(request.form.get("region", "").strip())
             nom = request.form.get("nom", "").strip()
@@ -4267,7 +4267,7 @@ Accessibilité: {accessibilite}
         if request.method == "POST":
             structure = request.form.get("structure", "").strip()
             telephone = request.form.get("telephone", "").strip()
-            lieu_ville = request.form.get("lieu_ville", "").strip()
+            lieu_ville = fix_mojibake(request.form.get("lieu_ville", "").strip()).split("·")[0].strip()
             code_postal = request.form.get("code_postal", "").strip()
             region = fix_mojibake(request.form.get("region", "").strip())
             nom = request.form.get("nom", "").strip()
@@ -6201,6 +6201,38 @@ def messages_new(recipient_id):
 
 
 # ── 5.3  Analytics avancé ───────────────────────────────────────────
+
+@app.route("/admin/fix-encoding")
+@login_required
+@admin_required
+def admin_fix_encoding():
+    """Corrige le mojibake (Île-de-France etc.) dans la base de données."""
+    from models.models import DemandeAnimation
+    fixed = 0
+    for d in DemandeAnimation.query.all():
+        for field in ['lieu_ville', 'region']:
+            val = getattr(d, field, None)
+            if not val:
+                continue
+            new_val = val
+            # Cas: premier caractère est chr(0xce) = 'Î' stocké sans le 'I' (latin-1 tronqué)
+            if new_val and ord(new_val[0]) == 0xce and not new_val.startswith('I'):
+                new_val = 'Î' + new_val[1:]
+            # Cas: mojibake classique (UTF-8 lu comme Latin-1)
+            if new_val and ('Ã' in new_val or 'Â' in new_val):
+                try:
+                    new_val = new_val.encode('latin-1').decode('utf-8')
+                except Exception:
+                    pass
+            # Cas: lieu_ville contient "Ville · Région" (autocomplete navigateur)
+            if field == 'lieu_ville' and new_val and '·' in new_val:
+                new_val = new_val.split('·')[0].strip()
+            if new_val != val:
+                setattr(d, field, new_val)
+                fixed += 1
+    db.session.commit()
+    flash(f"✅ {fixed} champ(s) corrigé(s) dans la base.", "success")
+    return redirect(url_for("admin_demandes_animation"))
 
 @app.route("/admin/analytics")
 @login_required
