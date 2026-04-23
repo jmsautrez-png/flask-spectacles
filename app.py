@@ -963,6 +963,111 @@ h2 {{ color: #1b2a4e; margin-top: 0; }}
 </html>"""
 
 
+def _send_recap_to_organisateur(demande, shows_contactes):
+    """Envoie un email récap court à l'organisateur de la demande, avec les liens
+    des fiches des artistes/spectacles qui ont été contactés.
+
+    - shows_contactes : liste d'objets Show réellement ciblés par l'envoi
+    - Silencieux en cas d'erreur (ne doit jamais bloquer l'envoi principal).
+    """
+    try:
+        if not demande or not getattr(demande, "contact_email", None):
+            print("[RECAP] Pas d'email organisateur, recap ignoré")
+            return False
+        if not getattr(current_app, "mail", None):
+            print("[RECAP] Mail non configuré, recap ignoré")
+            return False
+        # Dédoublonnage par show.id
+        unique_shows = []
+        seen_ids = set()
+        for s in (shows_contactes or []):
+            if s and s.id not in seen_ids:
+                seen_ids.add(s.id)
+                unique_shows.append(s)
+        if not unique_shows:
+            print("[RECAP] Aucun show à lister, recap ignoré")
+            return False
+
+        # Construire les lignes de fiches
+        rows_html = ""
+        for s in unique_shows:
+            try:
+                show_url = url_for("show_detail", show_id=s.id, _external=True)
+            except Exception:
+                show_url = f"https://www.spectacleanimation.fr/show/{s.id}"
+            cie_name = ""
+            if getattr(s, "user", None):
+                cie_name = (s.user.company_name or s.user.email or "") if hasattr(s.user, "company_name") else ""
+            cie_html = f' <span style="color:#777;font-size:0.9em;">— {cie_name}</span>' if cie_name else ""
+            rows_html += (
+                f'<li style="margin:8px 0;">'
+                f'<a href="{show_url}" style="color:#8b1e1e;font-weight:700;text-decoration:none;">'
+                f'🎭 {s.title}</a>{cie_html}<br>'
+                f'<a href="{show_url}" style="color:#888;font-size:0.85em;text-decoration:none;">{show_url}</a>'
+                f'</li>'
+            )
+
+        nb = len(unique_shows)
+        intitule = (demande.intitule or demande.genre_recherche or "Votre demande d'animation")
+        lieu = demande.lieu_ville or ""
+        dates = demande.dates_horaires or ""
+
+        body_html = f"""<!DOCTYPE html>
+<html>
+<head><meta charset="UTF-8"></head>
+<body style="font-family:Arial,sans-serif;max-width:620px;margin:0 auto;color:#333;background:#fafafa;">
+  <div style="text-align:center;margin:18px 0;">
+    <img src="https://www.spectacleanimation.fr/static/img/logo_spectaclement_votre.png" alt="Spectacle'ment Vôtre" style="max-width:180px;">
+  </div>
+  <div style="background:linear-gradient(135deg,#1a0a0a 0%,#3d1a1a 50%,#1a0a0a 100%);color:#ffc107;padding:18px 22px;border-radius:10px 10px 0 0;text-align:center;">
+    <h2 style="margin:0;font-size:1.25em;">✅ Votre demande a été transmise</h2>
+  </div>
+  <div style="background:#fff;padding:22px;border-radius:0 0 10px 10px;border:1px solid #eee;border-top:none;">
+    <p>Bonjour {demande.nom or ''},</p>
+    <p>Bonne nouvelle&nbsp;! Votre appel d'offre a été <strong>transmis à {nb} artiste{'s' if nb > 1 else ''}</strong> correspondant à vos critères.</p>
+
+    <div style="background:#fdf6e3;border-left:4px solid #ffc107;padding:12px 14px;border-radius:6px;margin:16px 0;font-size:0.92em;">
+      <strong>📋 Récap de votre demande :</strong><br>
+      🎯 {intitule}<br>
+      📍 {lieu}{(' — ' + dates) if dates else ''}
+    </div>
+
+    <h3 style="color:#8b1e1e;margin:18px 0 8px 0;font-size:1.05em;">🎭 Artistes contactés ({nb})</h3>
+    <p style="font-size:0.9em;color:#555;margin:0 0 8px 0;">
+      Vous pouvez consulter leurs fiches dès maintenant. Les artistes intéressés vous recontacteront directement
+      par email ou via la messagerie de la plateforme.
+    </p>
+    <ul style="list-style:none;padding-left:0;margin:10px 0;">
+      {rows_html}
+    </ul>
+
+    <div style="background:#f5f5f5;padding:12px 14px;border-radius:6px;margin-top:18px;font-size:0.88em;color:#555;">
+      💡 <strong>Astuce :</strong> n'hésitez pas à contacter directement les artistes qui vous intéressent
+      pour échanger sur les détails (devis, disponibilités, options).
+    </div>
+
+    <p style="text-align:center;margin-top:22px;color:#888;font-size:0.85em;">
+      Spectacle'ment Vôtre<br>
+      <a href="https://www.spectacleanimation.fr" style="color:#8b1e1e;text-decoration:none;">spectacleanimation.fr</a>
+      &nbsp;·&nbsp;<a href="mailto:contact@spectacleanimation.fr" style="color:#8b1e1e;text-decoration:none;">contact@spectacleanimation.fr</a>
+    </p>
+  </div>
+</body>
+</html>"""
+
+        msg = MailMessage(
+            subject=f"✅ Votre demande a été transmise à {nb} artiste{'s' if nb > 1 else ''}",
+            recipients=[demande.contact_email],
+        )
+        msg.html = body_html
+        current_app.mail.send(msg)
+        print(f"[RECAP] ✅ Récap envoyé à organisateur {demande.contact_email} ({nb} fiches)")
+        return True
+    except Exception as e:
+        print(f"[RECAP] ⚠️ Erreur envoi récap organisateur: {e}")
+        return False
+
+
 # -----------------------------------------------------
 # Routes
 # -----------------------------------------------------
@@ -4459,7 +4564,12 @@ Accessibilité: {accessibilite}
                             current_app.mail.send(artist_copy)
                     except Exception as e:
                         print(f"[MAIL] ⚠️ Erreur copie admin: {e}")
-                
+
+                # === RÉCAP ORGANISATEUR ===
+                # Envoi auto d'un récap court à l'organisateur avec les liens des fiches contactées
+                if success_count > 0:
+                    _send_recap_to_organisateur(demande, shows)
+
                 if success_count > 0:
                     flash(f"✅ Appel d'offre envoyé à {success_count} compagnie(s) !", "success")
                 if error_count > 0:
@@ -4750,7 +4860,8 @@ Accessibilité: {accessibilite}
                         'email': email,
                         'body_html': body_html,
                         'show_title': f"{show.title} - {show.category}",
-                        'type': 'spectacle'
+                        'type': 'spectacle',
+                        'show': show
                     })
             
             # Collecter aussi les utilisateurs additionnels par région
@@ -5011,7 +5122,13 @@ Accessibilité: {accessibilite}
                     print(f"[MAIL] ⚠️ Erreur envoi copie admin à {admin_email}: {e}")
             else:
                 print(f"[WARNING] Aucun email admin configuré - pas de copie envoyée")
-            
+
+            # === RÉCAP ORGANISATEUR ===
+            # Envoi auto d'un récap court à l'organisateur avec les liens des fiches contactées
+            if success_count > 0:
+                shows_recap = [e['show'] for e in emails_to_send if e.get('type') == 'spectacle' and e.get('show')]
+                _send_recap_to_organisateur(demande, shows_recap)
+
             print(f"[DEBUG] Envoi terminé - Succès: {success_count}, Erreurs: {error_count}")
             if success_count > 0:
                 copie_msg = f" + copie admin envoyée à {admin_email}" if admin_email else ""
