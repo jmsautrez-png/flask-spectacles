@@ -1143,15 +1143,12 @@ def register_routes(app: Flask) -> None:
             return redirect(url_for("home"))
             
         if request.method == "POST":
-            # Rate limiting manuel (max 5 tentatives d'inscription par heure depuis la même IP)
-            if hasattr(app, 'limiter') and app.limiter:
-                try:
-                    # Vérifier le rate limit
-                    pass  # Géré automatiquement par le décorateur global
-                except Exception:
-                    flash("Trop de tentatives. Réessayez plus tard.", "warning")
-                    return redirect(url_for("register"))
-            
+            # Honeypot anti-bot : si le champ "website" est rempli, c'est un bot
+            if request.form.get("website", ""):
+                # Simuler un succès pour ne pas alerter le bot
+                flash("Votre compte a été créé avec succès.", "success")
+                return redirect(url_for("login"))
+
             username = request.form.get("username", "").strip()
             password = request.form.get("password", "").strip()
             email = request.form.get("email", "").strip()

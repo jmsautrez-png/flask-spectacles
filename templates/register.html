@@ -136,6 +136,10 @@
         Déjà un compte ? <a href="{{ url_for('login') }}" style="color:var(--primary); text-decoration:underline;">Se connecter</a>
       </p>
     </div>
+    {# Honeypot anti-bot : invisible pour les humains, rempli automatiquement par les bots #}
+    <div style="display:none;" aria-hidden="true">
+      <input type="text" name="website" tabindex="-1" autocomplete="off" value="">
+    </div>
   </form>
 </div>
 
