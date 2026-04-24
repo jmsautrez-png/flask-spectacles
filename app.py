@@ -5487,6 +5487,25 @@ def export_shows_xlsx():
     return send_file(file_path, as_attachment=True, download_name="spectacles_export.xlsx")
 
 # === GESTION DES UTILISATEURS ===
+@app.route("/admin/delete-bots", methods=["POST"])
+@login_required
+@admin_required
+def admin_delete_bots():
+    """Supprime en masse les faux comptes bots (téléphone +1-, 0 spectacle, non admin)."""
+    bots = User.query.filter(
+        User.is_admin == False,
+        User.telephone.like("+1-%")
+    ).all()
+    count = 0
+    for user in bots:
+        nb_shows = len(user.shows) if hasattr(user, 'shows') else 0
+        if nb_shows == 0:
+            db.session.delete(user)
+            count += 1
+    db.session.commit()
+    flash(f"✅ {count} faux compte(s) supprimé(s).", "success")
+    return redirect(url_for("admin_users"))
+
 @app.route("/admin/users")
 @login_required
 @admin_required
