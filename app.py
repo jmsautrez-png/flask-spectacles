@@ -4599,13 +4599,6 @@ Accessibilité: {accessibilite}
                     except Exception as e:
                         print(f"[MAIL] ⚠️ Erreur copie admin: {e}")
 
-                # === RÉCAP ORGANISATEUR ===
-                # Envoi auto d'un récap court à l'organisateur avec les liens des fiches contactées
-                if success_count > 0:
-                    recap_ok = _send_recap_to_organisateur(demande, shows)
-                    if not recap_ok:
-                        flash(f"⚠️ Le récap à l'organisateur ({demande.contact_email}) n'a pas pu être envoyé (SMTP). Les artistes ont bien été contactés.", "warning")
-
                 if success_count > 0:
                     flash(f"✅ Appel d'offre envoyé à {success_count} compagnie(s) !", "success")
                 if error_count > 0:
