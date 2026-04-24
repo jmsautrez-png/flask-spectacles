@@ -777,6 +777,8 @@ def _run_critical_migrations(app: Flask) -> None:
         ("demande_animation", "specialites_recherchees", "TEXT", "TEXT", None),
         ("demande_animation", "evenements_contexte", "TEXT", "TEXT", None),
         ("demande_animation", "lieux_souhaites", "TEXT", "TEXT", None),
+        ("demande_animation", "date_debut", "VARCHAR(20)", "VARCHAR(20)", None),
+        ("demande_animation", "date_fin", "VARCHAR(20)", "VARCHAR(20)", None),
         # ── users ──
         ("users", "pending_deletion_at", "TIMESTAMP", "DATETIME", None),
     ]
@@ -3522,7 +3524,21 @@ def register_routes(app: Flask) -> None:
             code_postal = request.form.get("code_postal", "").strip()
             region = fix_mojibake(request.form.get("region", "").strip())
             nom = request.form.get("nom", "").strip()
+            date_debut = request.form.get("date_debut", "").strip()
+            date_fin = request.form.get("date_fin", "").strip()
             dates_horaires = request.form.get("dates_horaires", "").strip()
+            # Auto-construire dates_horaires à partir des sélecteurs de date si remplis
+            if date_debut:
+                from datetime import datetime as _dt
+                try:
+                    d1 = _dt.strptime(date_debut, "%Y-%m-%d").strftime("%d/%m/%Y")
+                    if date_fin and date_fin != date_debut:
+                        d2 = _dt.strptime(date_fin, "%Y-%m-%d").strftime("%d/%m/%Y")
+                        dates_horaires = f"Du {d1} au {d2}"
+                    else:
+                        dates_horaires = d1
+                except ValueError:
+                    pass
             type_espace = request.form.get("type_espace", "").strip()
             type_evenement = request.form.get("type_evenement", "").strip()
             autre_evenement = request.form.get("autre_evenement", "").strip()
@@ -3626,6 +3642,8 @@ Accessibilité: {accessibilite}
                 region=region,
                 nom=nom,
                 dates_horaires=dates_horaires,
+                date_debut=date_debut or None,
+                date_fin=date_fin or None,
                 type_espace=type_espace,
                 type_evenement=type_evenement,
                 genre_recherche=genre_recherche,
@@ -4079,7 +4097,24 @@ Accessibilité: {accessibilite}
             demande.telephone = request.form.get("telephone", demande.telephone)
             demande.lieu_ville = request.form.get("lieu_ville", demande.lieu_ville)
             demande.nom = request.form.get("nom", demande.nom)
-            demande.dates_horaires = request.form.get("dates_horaires", demande.dates_horaires)
+            demande.date_debut = request.form.get("date_debut", demande.date_debut) or None
+            demande.date_fin = request.form.get("date_fin", demande.date_fin) or None
+            # Auto-reconstruire dates_horaires si les dates sont renseignées
+            _new_debut = request.form.get("date_debut", "").strip()
+            _new_fin = request.form.get("date_fin", "").strip()
+            if _new_debut:
+                from datetime import datetime as _dt3
+                try:
+                    d1 = _dt3.strptime(_new_debut, "%Y-%m-%d").strftime("%d/%m/%Y")
+                    if _new_fin and _new_fin != _new_debut:
+                        d2 = _dt3.strptime(_new_fin, "%Y-%m-%d").strftime("%d/%m/%Y")
+                        demande.dates_horaires = f"Du {d1} au {d2}"
+                    else:
+                        demande.dates_horaires = d1
+                except ValueError:
+                    demande.dates_horaires = request.form.get("dates_horaires", demande.dates_horaires)
+            else:
+                demande.dates_horaires = request.form.get("dates_horaires", demande.dates_horaires)
             demande.type_espace = request.form.get("type_espace", demande.type_espace)
             demande.type_evenement = request.form.get("type_evenement", demande.type_evenement)
             demande.genre_recherche = request.form.get("genre_recherche", demande.genre_recherche)
@@ -4268,7 +4303,21 @@ Accessibilité: {accessibilite}
             code_postal = request.form.get("code_postal", "").strip()
             region = fix_mojibake(request.form.get("region", "").strip())
             nom = request.form.get("nom", "").strip()
+            date_debut = request.form.get("date_debut", "").strip()
+            date_fin = request.form.get("date_fin", "").strip()
             dates_horaires = request.form.get("dates_horaires", "").strip()
+            # Auto-construire dates_horaires à partir des sélecteurs de date si remplis
+            if date_debut:
+                from datetime import datetime as _dt2
+                try:
+                    d1 = _dt2.strptime(date_debut, "%Y-%m-%d").strftime("%d/%m/%Y")
+                    if date_fin and date_fin != date_debut:
+                        d2 = _dt2.strptime(date_fin, "%Y-%m-%d").strftime("%d/%m/%Y")
+                        dates_horaires = f"Du {d1} au {d2}"
+                    else:
+                        dates_horaires = d1
+                except ValueError:
+                    pass
             type_espace = request.form.get("type_espace", "").strip()
             type_evenement = request.form.get("type_evenement", "").strip()
             autre_evenement = request.form.get("autre_evenement", "").strip()
@@ -4314,6 +4363,8 @@ Accessibilité: {accessibilite}
                 region=region,
                 nom=nom,
                 dates_horaires=dates_horaires,
+                date_debut=date_debut or None,
+                date_fin=date_fin or None,
                 type_espace=type_espace,
                 type_evenement=type_evenement,
                 genre_recherche=genre_recherche,

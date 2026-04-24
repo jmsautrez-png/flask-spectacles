@@ -183,11 +183,21 @@
         </label>
 
         <label>
-          <span class="label-text">Date(s) et horaires <span class="req">*</span></span>
-          <input type="text" id="dates_horaires" name="dates_horaires" required
-                 placeholder="Ex : 15/12 (14h-16h), 18/12 (10h-12h)"
-                 value="{{ request.form.get('dates_horaires','') or (d.dates_horaires if d else '') }}">
+          <span class="label-text">Date de début <span class="req">*</span></span>
+          <input type="date" id="date_debut" name="date_debut" required
+                 value="{{ request.form.get('date_debut','') or (d.date_debut if d else '') }}"
+                 oninput="buildDatesHoraires()">
         </label>
+
+        <label>
+          <span class="label-text">Date de fin <small style="font-weight:400;">(facultatif — pour festival / événement multi-jours)</small></span>
+          <input type="date" id="date_fin" name="date_fin"
+                 value="{{ request.form.get('date_fin','') or (d.date_fin if d else '') }}"
+                 oninput="buildDatesHoraires()">
+        </label>
+        <!-- Champ caché dates_horaires auto-construit -->
+        <input type="hidden" id="dates_horaires" name="dates_horaires"
+               value="{{ request.form.get('dates_horaires','') or (d.dates_horaires if d else '') }}">
       </div>
 
       <div class="grid-2">
@@ -315,6 +325,23 @@
     };
     
     return regions[dept] || '';
+  }
+
+  // Construit le champ caché dates_horaires à partir des sélecteurs de dates
+  function buildDatesHoraires() {
+    var debut = document.getElementById('date_debut').value;
+    var fin = document.getElementById('date_fin').value;
+    var hidden = document.getElementById('dates_horaires');
+    if (!hidden) return;
+    if (!debut) { hidden.value = ''; return; }
+    var fmt = function(s) {
+      var p = s.split('-'); return p[2]+'/'+p[1]+'/'+p[0];
+    };
+    if (fin && fin !== debut) {
+      hidden.value = 'Du ' + fmt(debut) + ' au ' + fmt(fin);
+    } else {
+      hidden.value = fmt(debut);
+    }
   }
 
   // Remplit le champ caché auto_datetime avec la date et l'heure locale au chargement du formulaire
@@ -449,6 +476,8 @@
 
     // Validation avant soumission
     form.addEventListener('submit', function(e) {
+      // S'assurer que dates_horaires est bien rempli depuis les date pickers
+      buildDatesHoraires();
       var hasError = false;
       form.querySelectorAll('[required]').forEach(function(f) {
         validateField(f);

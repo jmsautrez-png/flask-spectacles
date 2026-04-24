@@ -14,6 +14,8 @@ class DemandeAnimation(db.Model):
     lieu_ville = db.Column(db.String(200), nullable=False)
     nom = db.Column(db.String(150), nullable=False)
     dates_horaires = db.Column(db.String(200), nullable=False)
+    date_debut = db.Column(db.String(20), nullable=True)   # Date de début (YYYY-MM-DD)
+    date_fin = db.Column(db.String(20), nullable=True)     # Date de fin (YYYY-MM-DD, pour événements multi-jours)
     type_espace = db.Column(db.String(100), nullable=False)
     type_evenement = db.Column(db.String(200), nullable=True)  # Type d'événement (Festival, Arbre de Noël, etc.)
     genre_recherche = db.Column(db.String(100), nullable=False)

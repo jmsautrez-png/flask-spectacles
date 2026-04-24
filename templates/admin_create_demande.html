@@ -195,8 +195,15 @@
                             </div>
                             <div class="col-md-6">
                                 <div class="modern-input-group">
-                                    <label class="modern-label">🗓️ Date(s) et horaires *</label>
-                                    <input type="text" class="modern-input" id="dates_horaires" name="dates_horaires" required>
+                                    <label class="modern-label">🗓️ Date de début *</label>
+                                    <input type="date" class="modern-input" id="date_debut" name="date_debut" required oninput="buildDatesHorairesAdmin()">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="modern-input-group">
+                                    <label class="modern-label">🗓️ Date de fin <small style="font-weight:400;">(facultatif — festival / multi-jours)</small></label>
+                                    <input type="date" class="modern-input" id="date_fin" name="date_fin" oninput="buildDatesHorairesAdmin()">
+                                    <input type="hidden" id="dates_horaires" name="dates_horaires">
                                 </div>
                             </div>
                             <div class="col-md-6">
@@ -589,6 +596,29 @@
 </style>
 
 <script>
+    // Construit le champ caché dates_horaires à partir des date pickers
+    function buildDatesHorairesAdmin() {
+        var debut = document.getElementById('date_debut').value;
+        var fin = document.getElementById('date_fin').value;
+        var hidden = document.getElementById('dates_horaires');
+        if (!hidden) return;
+        if (!debut) { hidden.value = ''; return; }
+        var fmt = function(s) { var p = s.split('-'); return p[2]+'/'+p[1]+'/'+p[0]; };
+        if (fin && fin !== debut) {
+            hidden.value = 'Du ' + fmt(debut) + ' au ' + fmt(fin);
+        } else {
+            hidden.value = fmt(debut);
+        }
+    }
+
+    // S'assurer que dates_horaires est rempli avant soumission
+    document.addEventListener('DOMContentLoaded', function() {
+        var form = document.querySelector('form');
+        if (form) {
+            form.addEventListener('submit', function() { buildDatesHorairesAdmin(); });
+        }
+    });
+
     // Fonction pour afficher/masquer le tableau d'aide
     function toggleHelpTable() {
         const helpTable = document.getElementById('helpTable');
