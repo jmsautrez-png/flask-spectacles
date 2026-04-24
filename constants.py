@@ -18,7 +18,6 @@ SPECIALITES = {
         "Ventriloque",
         "Mascotte",
         # Jeunesse / Famille
-        "Spectacle Enfants",
         "Père Noël",
         "Conte",
         "Marionnettes",
@@ -56,6 +55,8 @@ SPECIALITES = {
         "Théâtre d'improvisation",
         # Musical
         "Comédie musicale",
+        # Jeunesse
+        "Théâtre pour enfant",
     ],
     "Danse": [
         # Danse de scène
@@ -104,6 +105,7 @@ SPECIALITES = {
         "Concert",
         "Concert pour enfants",
         "Spectacle Musical",
+        "Spectacle Musical pour enfant",
         "Animation Musicale",
         "Tribute",
     ],
@@ -229,6 +231,7 @@ LIEUX = {
         "Café / Bar",
         "Domaine / Château / Lieu de réception",
         "Château ext/int",
+        "Écurie / Château / Maison de maître",
         "Chapiteau / Tente événementielle",
     ],
     "Espaces extérieurs": [
