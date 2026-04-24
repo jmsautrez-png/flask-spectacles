@@ -231,6 +231,17 @@
       box-shadow: 0 4px 15px rgba(0, 172, 193, 0.5);
     }
     
+    .hamburger-menu a.menu-evenements {
+      background: linear-gradient(135deg, #e65100, #bf360c);
+      border: 2px solid rgba(255, 255, 255, 0.3);
+    }
+    
+    .hamburger-menu a.menu-evenements:hover {
+      background: linear-gradient(135deg, #ff6d00, #d84315);
+      transform: scale(1.03);
+      box-shadow: 0 4px 15px rgba(230, 81, 0, 0.5);
+    }
+    
     .hamburger-menu a.menu-dashboard {
       background: linear-gradient(135deg, #ff9800, #ff5722);
       border: 2px solid rgba(255, 255, 255, 0.3);
@@ -1057,6 +1068,7 @@
     {% endif %}
     {% endif %}
     <a href="{{ url_for('catalogue') }}" class="menu-catalogue">Catalogue</a>
+    <a href="{{ url_for('evenements') }}" class="menu-evenements">🎪 Événements</a>
     <a href="{{ url_for('demandes_animation') }}" class="menu-appels">Appels d'offres</a>
     <a href="{{ url_for('contact') }}" class="menu-contact">Contact</a>
     <a href="{{ url_for('about') }}" class="menu-about">Qui sommes-nous</a>
