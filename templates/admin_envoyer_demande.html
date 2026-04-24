@@ -174,22 +174,14 @@
                     alert('⚠️ Cochez au moins une compagnie à inclure dans le récap');
                     return false;
                 }
-                const ok = confirm(`Envoyer UNIQUEMENT le récap à l'organisateur avec ${matchedChecked.length} fiche(s) ?\n\n⚠️ Aucun mail ne sera envoyé aux artistes.`);
-                if (!ok) { e.preventDefault(); return false; }
                 return true;
             }
             
             if (action === 'send_matched') {
-                // Envoi auto-matching : vérifier qu'au moins une compagnie est cochée
                 const matchedChecked = document.querySelectorAll('.matched-cb:checked');
                 if (matchedChecked.length === 0) {
                     e.preventDefault();
                     alert('⚠️ Veuillez sélectionner au moins une compagnie');
-                    return false;
-                }
-                const confirmed = confirm(`Envoyer l'appel d'offre à ${matchedChecked.length} compagnie(s) ?\n\n✉️ Les emails seront envoyés aux adresses réelles des artistes.`);
-                if (!confirmed) {
-                    e.preventDefault();
                     return false;
                 }
                 return true;
