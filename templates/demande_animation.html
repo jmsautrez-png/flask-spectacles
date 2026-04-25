@@ -18,10 +18,13 @@
     <p style="margin:0; font-size:0.95rem; color:#388e3c;">Vous ne cherchez plus, ce sont les artistes qui viennent à vous !</p>
   </div>
   {% endif %}
-  <p class="text-muted" style="margin:0 0 24px 0; text-align:center;">
-    Remplissez les informations essentielles. Les champs marqués <span style="color:var(--primary); font-weight:700;">*</span> sont obligatoires.<br>
-    <span style="display:block; margin-top:10px; font-size:0.95em; color:hsl(210, 12%, 97%);">Votre demande sera envoyée à tout nos abonnés</span>
+  <p class="text-muted" style="margin:0 0 16px 0; text-align:center;">
+    Remplissez les informations essentielles. Les champs marqués <span style="color:var(--primary); font-weight:700;">*</span> sont obligatoires.
   </p>
+  <div style="background:linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); border-left:4px solid #6d1313; border-radius:10px; padding:14px 18px; margin:0 0 24px 0; color:#fff; font-size:0.92rem; line-height:1.6; box-shadow:0 4px 12px rgba(109,19,19,0.3);">
+    Votre demande sera publiée en appel d'offres auprès de nos artistes abonnés.<br>
+    ✨ <strong>"Spectacle'ment Vôtre"</strong> effectuera aussi une recherche poussée en fonction de la spécificité de votre demande et vous enverra une liste d'artistes non abonnés suivant vos critères demandés.
+  </div>
 
   <form action="{{ url_for('edit_demande_animation', demande_id=d.id) if d else url_for('demande_animation') }}" method="POST" class="form demande-form" novalidate>
       <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
