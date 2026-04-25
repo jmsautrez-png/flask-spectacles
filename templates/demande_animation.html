@@ -20,7 +20,9 @@
   {% endif %}
   <p class="text-muted" style="margin:0 0 24px 0; text-align:center;">
     Remplissez les informations essentielles. Les champs marqués <span style="color:var(--primary); font-weight:700;">*</span> sont obligatoires.<br>
-    <span style="display:block; margin-top:10px; font-size:0.95em; color:hsl(210, 12%, 97%);">Votre demande sera envoyée à tout nos abonnés</span>
+    <span style="display:block; margin-top:10px; font-size:0.97em; color:#fff; background:rgba(255,193,7,0.15); border-left:4px solid #ffc107; border-radius:6px; padding:10px 14px;">
+      🔍 Une recherche sera effectuée pour vous par <strong>Spectacle'ment Vôtre</strong> — votre demande sera transmise à nos artistes abonnés correspondant à votre recherche.
+    </span>
   </p>
 
   <form action="{{ url_for('edit_demande_animation', demande_id=d.id) if d else url_for('demande_animation') }}" method="POST" class="form demande-form" novalidate>
