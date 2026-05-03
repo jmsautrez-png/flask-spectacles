@@ -5,22 +5,28 @@
      {{ accordion_checkboxes("specialites", specialites_data, current_values, "🎭", "Spécialités artistiques") }}
    ═══════════════════════════════════════════════════════════════════ #}
 
-{% macro accordion_checkboxes(field_name, categories_dict, current_values, icon, title, color="#6a1b9a", description="", text_color="#000", max_checked=0) %}
+{% macro accordion_checkboxes(field_name, categories_dict, current_values, icon, title, color="#6a1b9a", description="", text_color="#000", max_checked=0, show_counter=True, show_tip=True, show_toggle_buttons=True) %}
 <div class="matching-accordion-section" style="margin:18px 0;" data-field="{{ field_name }}" {% if max_checked > 0 %}data-max="{{ max_checked }}"{% endif %}>
   <h3 style="color:{{ color }}; margin:0 0 6px 0; font-size:1.05rem; display:flex; align-items:center; gap:8px;">
-    {{ icon }} {{ title }}
+    {% if icon %}{{ icon }} {% endif %}{{ title }}
+    {% if show_counter %}
     <span class="matching-count" id="count-{{ field_name }}" style="background:{{ color }}; color:#fff; border-radius:12px; padding:2px 10px; font-size:0.8rem; font-weight:600;">0</span>
+    {% else %}
+    <span class="matching-count" id="count-{{ field_name }}" style="display:none;">0</span>
+    {% endif %}
     {% if max_checked > 0 %}<span style="font-size:0.8rem; color:{{ text_color }}; opacity:0.6;">({{ max_checked }} max)</span>{% endif %}
   </h3>
   {% if description %}
   <p style="color:{{ text_color }}; opacity:0.7; margin:0 0 10px 0; font-size:0.88rem;">{{ description }}</p>
   {% endif %}
 
-  {% if max_checked <= 0 %}
+  {% if max_checked <= 0 and show_toggle_buttons %}
   <div style="display:flex; gap:8px; margin-bottom:8px; align-items:center; flex-wrap:wrap;">
     <button type="button" onclick="toggleAllMatching('{{ field_name }}', true); updateMatchingCounts('{{ field_name }}', {{ categories_dict | length }})" style="font-size:0.8rem; padding:4px 12px; border:none; background:{{ color }}; color:#fff; border-radius:6px; cursor:pointer; font-weight:600; box-shadow:0 2px 6px rgba(0,0,0,0.15);">✓ Tout cocher</button>
     <button type="button" onclick="toggleAllMatching('{{ field_name }}', false); updateMatchingCounts('{{ field_name }}', {{ categories_dict | length }})" style="font-size:0.8rem; padding:3px 10px; border:1px solid #999; background:transparent; color:#999; border-radius:5px; cursor:pointer;">✗ Tout décocher</button>
+    {% if show_tip %}
     <span style="font-size:0.8rem; color:{{ text_color }}; opacity:0.6; font-style:italic;">💡 Cochez au moins 1 choix, ou tout d'un coup si vous êtes polyvalent !</span>
+    {% endif %}
   </div>
   {% endif %}
   <div id="limit-{{ field_name }}" style="display:none; color:#ff1744; font-weight:600; margin:0 0 8px 8px; font-size:0.9em;"></div>

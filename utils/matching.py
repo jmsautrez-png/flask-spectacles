@@ -11,6 +11,56 @@ _TOTAL_REGIONS = len(REGIONS_FRANCE)
 # Lookup case-insensitive pour REGIONS_VOISINES
 _REGIONS_VOISINES_LOWER = {k.lower(): [r.lower() for r in v] for k, v in REGIONS_VOISINES.items()}
 
+# --- Compatibilité tranche d'âge ---
+# Groupes incompatibles : adulte vs enfant*  →  exclusion totale
+_GROUPE_ADULTE = {"adulte"}
+_GROUPE_ENFANT = {"enfant", "enfant_2_6", "enfant_5_10", "enfants_2_10"}
+# Valeurs neutres : acceptées avec tout le monde
+_GROUPE_NEUTRE = {"familial", "tout public"}
+
+# Tranches proches (chevauchement partiel)  →  boost doux
+_AGE_PROCHES = {
+    "enfant_2_6":   {"enfant_5_10", "enfants_2_10", "enfant"},
+    "enfant_5_10":  {"enfant_2_6",  "enfants_2_10", "enfant"},
+    "enfants_2_10": {"enfant_2_6",  "enfant_5_10",  "enfant"},
+    "enfant":       {"enfant_2_6",  "enfant_5_10",  "enfants_2_10"},
+}
+
+
+def _age_score(show_age_raw, dem_age_raw):
+    """Retourne (compatible: bool, bonus: float 0-10).
+
+    compatible=False  →  le spectacle doit être exclu.
+    bonus             →  points ajoutés au total (max 10).
+    """
+    show_age = (show_age_raw or "").strip().lower()
+    dem_age  = (dem_age_raw  or "").strip().lower()
+
+    # Si l'un des deux n'est pas renseigné → pas d'exclusion, pas de bonus
+    if not show_age or not dem_age:
+        return True, 0.0
+
+    # Valeurs neutres → toujours compatible, bonus neutre
+    if dem_age in _GROUPE_NEUTRE or show_age in _GROUPE_NEUTRE:
+        return True, 5.0
+
+    # Incompatibilité adulte ↔ enfant
+    if dem_age in _GROUPE_ADULTE and show_age in _GROUPE_ENFANT:
+        return False, 0.0
+    if dem_age in _GROUPE_ENFANT and show_age in _GROUPE_ADULTE:
+        return False, 0.0
+
+    # Correspondance exacte
+    if show_age == dem_age:
+        return True, 10.0
+
+    # Tranches proches
+    if show_age in _AGE_PROCHES.get(dem_age, set()):
+        return True, 5.0
+
+    # Même groupe mais pas de correspondance précise → neutre
+    return True, 0.0
+
 
 def _csv_to_set(value):
     """Convert a CSV string (or None) to a set of stripped, lower-cased, non-empty values."""
@@ -38,11 +88,13 @@ def compute_score(show, demande):
       - evenements   (weight 25)
       - lieux        (weight 20)
       - region       (weight 15)
+      + age_range    bonus +0/+5/+10 (hors pondération principale)
 
     Each axis yields a ratio [0..1] = (|intersection| / |demande tags|) × specificity.
     The specificity penalty penalises companies that check too many boxes:
       specificity = 1 - 0.5 × (n_checked / total_options)
     Region matching: exact region = 1.0, neighbour region = 0.5, else 0.
+    Age range: incompatible → excluded (returns compatible=False); exact → +10; proche → +5.
     """
     show_specs = _csv_to_set(show.specialites)
     show_events = _csv_to_set(show.evenements)
@@ -53,6 +105,12 @@ def compute_score(show, demande):
     dem_events = _csv_to_set(demande.evenements_contexte)
     dem_lieux = _csv_to_set(demande.lieux_souhaites)
     dem_region = (demande.region or "").strip().lower()
+
+    # -- Tranche d'âge (filtre dur + bonus hors pondération) --
+    age_compatible, age_bonus = _age_score(
+        getattr(show, "age_range", None),
+        getattr(demande, "age_range", None),
+    )
 
     # -- Spécialités (40%) --
     if dem_specs:
@@ -93,6 +151,8 @@ def compute_score(show, demande):
         region_ratio = 0.0
 
     total = (spec_ratio * 40 + event_ratio * 25 + lieu_ratio * 20 + region_ratio * 15)
+    # Bonus tranche d'âge (hors pondération principale, max +10)
+    total = min(100.0, total + age_bonus)
 
     return {
         "total": round(total, 1),
@@ -100,6 +160,8 @@ def compute_score(show, demande):
         "evenements": round(event_ratio * 100, 1),
         "lieux": round(lieu_ratio * 100, 1),
         "region": round(region_ratio * 100, 1),
+        "age_compatible": age_compatible,
+        "age_bonus": age_bonus,
         "matching_specs": show_specs & dem_specs,
         "matching_events": show_events & dem_events,
         "matching_lieux": show_lieux & dem_lieux,
@@ -117,6 +179,9 @@ def find_matching_shows(demande, all_shows, min_score=1):
     results = []
     for show in all_shows:
         score = compute_score(show, demande)
+        # Exclure les shows incompatibles avec la tranche d'âge
+        if not score["age_compatible"]:
+            continue
         if score["total"] >= min_score:
             # Exclure les shows sans aucun match sur les spécialités
             # quand la demande en spécifie (critère principal à 40%)

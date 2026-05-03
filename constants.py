@@ -20,7 +20,7 @@ SPECIALITES = {
         # Jeunesse / Famille
         "Père Noël",
         "Conte",
-        "Marionnettes",
+        "Spectacle de Marionnettes",
         # Types de spectacle
         "Spectacle de Rue",
         "Spectacle Médiéval",

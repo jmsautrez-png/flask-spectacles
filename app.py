@@ -1501,176 +1501,131 @@ def register_routes(app: Flask) -> None:
 
     @app.route("/catalogue", endpoint="catalogue")
     def catalogue():
-        """Page catalogue avec les cartes des spectacles"""
-        q = request.args.get("q", "", type=str).strip()
-        category = request.args.get("category", "", type=str).strip()
-        location = request.args.get("location", "", type=str).strip()
-        type_filter = request.args.get("type", "all", type=str)
-        sort = request.args.get("sort", "asc", type=str)
-        date_from = request.args.get("date_from", "", type=str)
-        date_to = request.args.get("date_to", "", type=str)
-        page = request.args.get("page", 1, type=int)
+        """Page catalogue avec filtres structurés (spécialité, région, âge) + recherche par nom."""
+        # -- Paramètres --
+        q                   = request.args.get("q", "", type=str).strip()
+        specialites         = [s.strip() for s in request.args.getlist("specialite") if s.strip()]
+        specialite          = specialites[0] if specialites else ""  # pour le formulaire du haut
+        evenements_selected = [e.strip() for e in request.args.getlist("evenement") if e.strip()]
+        region              = request.args.get("region", "", type=str).strip()
+        age                 = request.args.get("age", "", type=str).strip()
+        page                = request.args.get("page", 1, type=int)
+
+        # Résolution ville → région (ex: "Toulouse" → "Occitanie")
+        region_resolved = region
+        if region:
+            city_match = next(
+                (c for c in FRENCH_CITIES if c["name"].lower() == region.lower() or c["slug"] == region.lower()),
+                None
+            )
+            if city_match:
+                region_resolved = city_match["region"]
 
         shows = Show.query
 
-        # Visibilité publique : non-admin -> seulement approuvés
+        # Visibilité publique
         u = current_user()
         if not u or not u.is_admin:
             shows = shows.filter(Show.approved.is_(True))
 
-        # Note: Le filtre is_event a été temporairement désactivé
-        # Les événements apparaîtront aussi sur la page d'accueil
-
-        # Recherche texte + âges (6, 6 ans, 6-10, 6/10, 6 à 10, etc.)
+        # -- Filtre texte : nom de compagnie ou titre seulement --
         if q:
-            # Générer des patterns de recherche avec tolérance aux fautes
-            search_patterns = generate_search_patterns(q)
-            
-            conditions = []
-            
-            # Pour chaque pattern, chercher dans les champs pertinents
-            for pattern in search_patterns:
-                like_pattern = f"%{pattern}%"
-                conditions.extend([
-                    Show.title.ilike(like_pattern),
-                    Show.description.ilike(like_pattern),
-                    Show.location.ilike(like_pattern),
-                    Show.category.ilike(like_pattern),
-                ])
-            
-            # Recherche spécifique pour les âges si la requête contient des chiffres
-            if any(c.isdigit() for c in q):
-                cleaned = q.lower().replace("ans", "").strip()
-                seps = [" - ", "-", "—", "–", "à", "a", "/", " "]
-                norm = cleaned
-                for sep in seps:
-                    norm = norm.replace(sep, "/")
+            like = f"%{q}%"
+            shows = shows.filter(or_(
+                Show.title.ilike(like),
+                Show.raison_sociale.ilike(like),
+            ))
 
-                age_variants = {
-                    cleaned,
-                    cleaned.replace(" ", ""),
-                    cleaned.replace("-", "/"),
-                    cleaned.replace("/", "-"),
-                    cleaned.replace(" ", "-"),
-                    cleaned.replace(" ", "/"),
-                    norm,
-                    norm.replace("/", "-"),
-                    norm.replace("/", ""),
-                }
-                
-                for v in {v for v in age_variants if v}:
-                    v_like = f"%{v}%"
-                    try:
-                        conditions.append(Show.age_range.ilike(v_like))
-                    except Exception:
-                        pass
+        # -- Filtre spécialité : champ structuré specialites + fallback category --
+        if specialites:
+            conds = []
+            for s in specialites:
+                like = f"%{s}%"
+                conds.append(Show.specialites.ilike(like))
+                conds.append(Show.category.ilike(like))
+            shows = shows.filter(or_(*conds))
 
-            # Facultatif si le champ contact_email existe
-            try:
-                Show.contact_email  # type: ignore[attr-defined]
-                for pattern in search_patterns[:5]:  # Limiter pour l'email
-                    conditions.append(Show.contact_email.ilike(f"%{pattern}%"))  # type: ignore[attr-defined]
-            except Exception:
-                pass
+        # -- Filtre événement --
+        if evenements_selected:
+            conds = [Show.evenements.ilike(f"%{e}%") for e in evenements_selected]
+            shows = shows.filter(or_(*conds))
 
-            shows = shows.filter(or_(*conditions))
+        # -- Filtre région : champ structuré regions_intervention + fallback region/location --
+        if region_resolved:
+            like = f"%{region_resolved}%"
+            shows = shows.filter(or_(
+                Show.regions_intervention.ilike(like),
+                Show.region.ilike(like),
+                Show.location.ilike(like),
+            ))
 
-        # Filtres simples
-        if category:
-            from sqlalchemy import func
-            shows = shows.filter(func.lower(Show.category).like(f"%{category.lower()}%"))
-        if location:
-            like = f"%{location}%"
-            shows = shows.filter(or_(Show.location.ilike(like), Show.region.ilike(like)))
+        # -- Filtre tranche d'âge --
+        if age:
+            from utils.matching import _GROUPE_NEUTRE, _GROUPE_ENFANT, _GROUPE_ADULTE, _AGE_PROCHES
+            age_lower = age.lower()
+            # Valeurs compatibles : exact + proches + neutres
+            compatibles = {age_lower} | _AGE_PROCHES.get(age_lower, set()) | _GROUPE_NEUTRE
+            # Exclure l'incompatible
+            if age_lower in _GROUPE_ADULTE:
+                shows = shows.filter(~Show.age_range.in_(list(_GROUPE_ENFANT)))
+            elif age_lower in _GROUPE_ENFANT:
+                shows = shows.filter(~Show.age_range.in_(list(_GROUPE_ADULTE)))
+            shows = shows.filter(or_(
+                Show.age_range.in_(list(compatibles)),
+                Show.age_range.is_(None),
+                Show.age_range == "",
+            ))
 
-        # Type de fichier
-        if type_filter == "image":
-            shows = shows.filter(Show.file_mimetype.ilike("image/%"))
-        elif type_filter == "pdf":
-            shows = shows.filter(Show.file_mimetype.ilike("application/pdf"))
-
-        # Filtres de dates
-        def parse_date(s: str):
-            try:
-                return datetime.strptime(s, "%Y-%m-%d").date()
-            except Exception:
-                return None
-
-        if date_from:
-            d1 = parse_date(date_from)
-            if d1:
-                shows = shows.filter(Show.date >= d1)
-        if date_to:
-            d2 = parse_date(date_to)
-            if d2:
-                shows = shows.filter(Show.date <= d2)
-
-        # Tri : par display_order d'abord (plus petit = plus haut), puis par date de création
+        # -- Tri avant pagination (corrigé) --
         shows = shows.order_by(Show.display_order.asc(), Show.created_at.desc())
 
-        # Pagination : 16 résultats par page
+        # -- Pagination --
         try:
             pagination = shows.paginate(page=page, per_page=16, error_out=False)
             shows_list = pagination.items
         except Exception as e:
             db.session.rollback()
-            current_app.logger.exception("Erreur lors de la requête /home: %s", e)
+            current_app.logger.exception("Erreur catalogue: %s", e)
             flash("Une erreur est survenue lors de la recherche.", "danger")
             pagination = None
             shows_list = []
 
-        try:
-            # Utiliser le cache pour les catégories/locations (évite 2 requêtes DISTINCT par page)
-            import time as _time
-            now = _time.time()
-            if (_catalogue_cache['categories'] is None or 
-                (now - _catalogue_cache['timestamp']) > _CATALOGUE_CACHE_TTL):
-                _catalogue_cache['categories'] = sorted([c[0] for c in db.session.query(Show.category).distinct().all() if c[0]])
-                _catalogue_cache['locations'] = sorted([l[0] for l in db.session.query(Show.location).distinct().all() if l[0]])
-                _catalogue_cache['timestamp'] = now
-            categories = _catalogue_cache['categories']
-            locations = _catalogue_cache['locations']
-        except Exception:
-            db.session.rollback()
-            categories = []
-            locations = []
+        # -- Liste de toutes les spécialités pour les tags (avec comptage) --
+        all_specialites = [s for group in SPECIALITES.values() for s in group]
 
-        # Générer un H1 SEO dynamique selon les filtres
+        # -- H1 SEO dynamique --
         h1_title = "Spectacles et animations pour mairies, écoles et CSE partout en France"
-        if category and location:
-            h1_title = f"Spectacles {category} à {location} - Artistes professionnels"
-        elif category:
-            h1_title = f"Spectacles {category} pour enfants, mairies et entreprises en France"
-        elif location:
-            h1_title = f"Spectacles et animations à {location} - Artistes professionnels"
-
-        # Tri personnalisé : Spectacle enfant d'abord, Atelier en dernier, autres entre les deux
-
-        def genre_order(show):
-            cat = (show.category or '').strip().lower()
-            if 'à la une' in cat or 'a la une' in cat or 'une' in cat:
-                return 0
-            elif 'enfant' in cat:
-                return 1
-            elif 'atelier' in cat:
-                return 3
-            else:
-                return 2
-        shows_list_sorted = sorted(shows_list, key=genre_order)
+        if specialite and region:
+            h1_title = f"{specialite} à {region} - Artistes professionnels"
+        elif specialite:
+            h1_title = f"{specialite} - Artistes professionnels en France"
+        elif region:
+            h1_title = f"Spectacles et animations à {region} - Artistes professionnels"
 
         return render_template(
             "catalogue.html",
-            shows=shows_list_sorted,
+            shows=shows_list,
             pagination=pagination,
             q=q,
-            category=category,
-            location=location,
-            categories=sorted(categories),
-            locations=sorted(locations),
-            type_filter=type_filter,
-            sort=sort,
-            date_from=date_from,
-            date_to=date_to,
+            specialite=specialite,
+            specialites=specialites,
+            evenements_selected=evenements_selected,
+            specialites_data=SPECIALITES,
+            evenements_data=EVENEMENTS,
+            region=region,
+            age=age,
+            all_specialites=all_specialites,
+            all_regions=REGIONS_FRANCE,
+            age_options=[
+                ("", "Tous les publics"),
+                ("tout public", "Tout public"),
+                ("familial", "Familial"),
+                ("enfant", "Enfant"),
+                ("enfant_2_6", "Enfant (2/6 ans)"),
+                ("enfant_5_10", "Enfant (5/10 ans)"),
+                ("enfants_2_10", "Enfants (2/10 ans)"),
+                ("adulte", "Adulte"),
+            ],
             h1_title=h1_title,
             user=current_user(),
         )
@@ -3766,12 +3721,14 @@ Accessibilité: {accessibilite}
         shows = Show.query.filter(
             Show.approved.is_(True),
             or_(
+                # Champs structurés (matching)
+                Show.age_range.in_(['enfant', 'enfant_2_6', 'enfant_5_10', 'enfants_2_10', 'familial', 'tout public']),
+                # Fallback texte libre
                 Show.category.ilike('%enfant%'),
                 Show.category.ilike('%jeune public%'),
                 Show.category.ilike('%famille%'),
-                Show.age_range.ilike('%ans%')
             )
-        ).all()
+        ).order_by(Show.display_order.asc(), Show.created_at.desc()).all()
         return render_template("spectacles_enfants.html", shows=shows, user=current_user())
 
     @app.route("/animations-enfants")
@@ -3779,12 +3736,19 @@ Accessibilité: {accessibilite}
         shows = Show.query.filter(
             Show.approved.is_(True),
             or_(
+                # Champs structurés (matching)
+                Show.specialites.ilike('%Atelier%'),
+                Show.specialites.ilike('%Conte%'),
+                Show.specialites.ilike('%Marionnettes%'),
+                Show.specialites.ilike('%Clown%'),
+                Show.age_range.in_(['enfant', 'enfant_2_6', 'enfant_5_10', 'enfants_2_10', 'familial']),
+                # Fallback texte libre
                 Show.category.ilike('%animation%'),
                 Show.category.ilike('%atelier%'),
                 Show.category.ilike('%jeu%'),
                 Show.title.ilike('%animation%')
             )
-        ).all()
+        ).order_by(Show.display_order.asc(), Show.created_at.desc()).all()
         return render_template("animations_enfants.html", shows=shows, user=current_user())
 
     @app.route("/spectacles-noel")
@@ -3792,6 +3756,11 @@ Accessibilité: {accessibilite}
         shows = Show.query.filter(
             Show.approved.is_(True),
             or_(
+                # Champs structurés (matching)
+                Show.evenements.ilike('%Arbre de Noël%'),
+                Show.evenements.ilike('%Marché de Noël%'),
+                Show.specialites.ilike('%Père Noël%'),
+                # Fallback texte libre
                 Show.title.ilike('%noël%'),
                 Show.title.ilike('%noel%'),
                 Show.description.ilike('%noël%'),
@@ -3799,7 +3768,7 @@ Accessibilité: {accessibilite}
                 Show.category.ilike('%noël%'),
                 Show.category.ilike('%noel%')
             )
-        ).all()
+        ).order_by(Show.display_order.asc(), Show.created_at.desc()).all()
         return render_template("spectacles_noel.html", shows=shows, user=current_user())
 
     @app.route("/animations-entreprises")
@@ -3807,13 +3776,20 @@ Accessibilité: {accessibilite}
         shows = Show.query.filter(
             Show.approved.is_(True),
             or_(
+                # Champs structurés (matching)
+                Show.evenements.ilike('%Comité d\'entreprise%'),
+                Show.evenements.ilike('%CSE%'),
+                Show.evenements.ilike('%Séminaire%'),
+                Show.evenements.ilike('%Animation commerciale%'),
+                Show.evenements.ilike('%Inauguration%'),
+                Show.evenements.ilike('%Journée portes ouvertes%'),
+                # Fallback texte libre
                 Show.category.ilike('%entreprise%'),
                 Show.category.ilike('%corporate%'),
                 Show.category.ilike('%CSE%'),
                 Show.description.ilike('%entreprise%'),
-                Show.description.ilike('%corporate%')
             )
-        ).all()
+        ).order_by(Show.display_order.asc(), Show.created_at.desc()).all()
         return render_template("animations_entreprises.html", shows=shows, user=current_user())
 
     @app.route("/marionnettes")
@@ -3821,11 +3797,14 @@ Accessibilité: {accessibilite}
         shows = Show.query.filter(
             Show.approved.is_(True),
             or_(
+                # Champ structuré (matching)
+                Show.specialites.ilike('%Marionnettes%'),
+                # Fallback texte libre
                 Show.category.ilike('%marionnette%'),
                 Show.title.ilike('%marionnette%'),
                 Show.description.ilike('%marionnette%')
             )
-        ).all()
+        ).order_by(Show.display_order.asc(), Show.created_at.desc()).all()
         return render_template("marionnettes.html", shows=shows, user=current_user())
 
     @app.route("/booker-artiste")
@@ -3839,12 +3818,17 @@ Accessibilité: {accessibilite}
         shows = Show.query.filter(
             Show.approved.is_(True),
             or_(
+                # Champs structurés (matching)
+                Show.specialites.ilike('%Magie et Magicien%'),
+                Show.specialites.ilike('%Prestidigitateur%'),
+                Show.specialites.ilike('%Mentaliste%'),
+                # Fallback texte libre
                 Show.category.ilike('%magie%'),
                 Show.category.ilike('%magicien%'),
                 Show.title.ilike('%magie%'),
                 Show.title.ilike('%magicien%')
             )
-        ).all()
+        ).order_by(Show.display_order.asc(), Show.created_at.desc()).all()
         return render_template("magiciens.html", shows=shows, user=current_user())
 
     @app.route("/clowns")
@@ -3852,11 +3836,14 @@ Accessibilité: {accessibilite}
         shows = Show.query.filter(
             Show.approved.is_(True),
             or_(
+                # Champ structuré (matching)
+                Show.specialites.ilike('%Clown%'),
+                # Fallback texte libre
                 Show.category.ilike('%clown%'),
                 Show.title.ilike('%clown%'),
                 Show.description.ilike('%clown%')
             )
-        ).all()
+        ).order_by(Show.display_order.asc(), Show.created_at.desc()).all()
         return render_template("clowns.html", shows=shows, user=current_user())
 
     @app.route("/animations-anniversaire")
@@ -3864,13 +3851,16 @@ Accessibilité: {accessibilite}
         shows = Show.query.filter(
             Show.approved.is_(True),
             or_(
+                # Champ structuré (matching)
+                Show.evenements.ilike('%Anniversaire enfant%'),
+                Show.evenements.ilike('%Boum pour enfant%'),
+                Show.evenements.ilike('%Kermesse%'),
+                # Fallback texte libre
                 Show.category.ilike('%anniversaire%'),
                 Show.title.ilike('%anniversaire%'),
                 Show.description.ilike('%anniversaire%'),
-                Show.category.ilike('%enfant%'),
-                Show.category.ilike('%animation%')
             )
-        ).all()
+        ).order_by(Show.display_order.asc(), Show.created_at.desc()).all()
         return render_template("animations_anniversaire.html", shows=shows, user=current_user())
 
     # ---------------------------
