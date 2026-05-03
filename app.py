@@ -1581,7 +1581,7 @@ def register_routes(app: Flask) -> None:
 
         # -- Pagination --
         try:
-            pagination = shows.paginate(page=page, per_page=16, error_out=False)
+            pagination = shows.paginate(page=page, per_page=12, error_out=False)
             shows_list = pagination.items
         except Exception as e:
             db.session.rollback()
