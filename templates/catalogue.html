@@ -294,6 +294,18 @@
   opacity: 1;
 }
 </style>
+<script>
+  window.imgLoaded = function(img) {
+    img.classList.add('loaded');
+    var sk = img.closest('.img-skeleton');
+    if (sk) sk.classList.remove('img-skeleton');
+  };
+  document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('img.card-img-fade').forEach(function(img) {
+      if (img.complete && img.naturalWidth > 0) window.imgLoaded(img);
+    });
+  });
+</script>
 
 {% if specialites or evenements_selected or region or age or q %}
 <div style="display:flex; align-items:center; gap:12px; margin-bottom:16px; flex-wrap:wrap;">
@@ -331,7 +343,7 @@
                 <div class="carousel-slides">
                   {% for img in images %}
                   <div class="carousel-slide">
-                    <img src="{{ thumbnail_url(img) }}" alt="{{ show.title }}{% if loop.index > 1 %} - Photo {{ loop.index }}{% endif %}" loading="lazy" decoding="async" class="card-img-fade" onload="this.classList.add('loaded');this.closest('.img-skeleton').classList.remove('img-skeleton')">
+                    <img src="{{ thumbnail_url(img) }}" alt="{{ show.title }}{% if loop.index > 1 %} - Photo {{ loop.index }}{% endif %}" loading="lazy" decoding="async" class="card-img-fade" onload="window.imgLoaded&&window.imgLoaded(this)" onerror="window.imgLoaded&&window.imgLoaded(this)">
                   </div>
                   {% endfor %}
                 </div>
@@ -344,7 +356,7 @@
                 <button class="carousel-nav carousel-next" aria-label="Photo suivante">›</button>
               </div>
             {% elif show.has_image() %}
-              <img src="{{ thumbnail_url(show.file_name) }}" alt="{{ show.title }}" loading="lazy" decoding="async" class="card-img-fade" onload="this.classList.add('loaded');this.closest('.img-skeleton').classList.remove('img-skeleton')">
+              <img src="{{ thumbnail_url(show.file_name) }}" alt="{{ show.title }}" loading="lazy" decoding="async" class="card-img-fade" onload="window.imgLoaded&&window.imgLoaded(this)" onerror="window.imgLoaded&&window.imgLoaded(this)">
             {% elif show.is_pdf() %}
               <div class="pdf-thumb">
                 <a href="{{ url_for('uploaded_file', filename=show.file_name) }}" target="_blank" rel="noopener">PDF</a>
