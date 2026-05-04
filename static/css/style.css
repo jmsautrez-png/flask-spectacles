@@ -1019,6 +1019,11 @@ a[href*="edit"]:hover {
     display: none;
   }
   
+  /* Masquer les indicateurs du carousel détail spectacle sur mobile */
+  .detail-carousel .carousel-indicators {
+    display: none !important;
+  }
+  
   /* Espacement réduit */
   main.container {
     padding-top: 12px;
