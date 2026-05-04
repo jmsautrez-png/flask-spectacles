@@ -344,7 +344,7 @@
             {% set images = show.get_all_images() %}
             {% if images|length > 1 %}
               <!-- Diaporama avec plusieurs photos -->
-              <div class="card-carousel" data-carousel>
+              <div class="card-carousel card-carousel--catalogue" data-carousel>
                 <div class="carousel-slides">
                   {% for img in images %}
                   <div class="carousel-slide">

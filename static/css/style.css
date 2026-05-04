@@ -387,6 +387,17 @@ main.container {
   display: none;
 }
 
+/* Réafficher les indicateurs sur les cartes du catalogue */
+.card-carousel--catalogue .carousel-indicators {
+  display: flex;
+  position: absolute;
+  bottom: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  gap: 6px;
+  z-index: 5;
+}
+
 .card-carousel .carousel-indicator {
   width: 8px;
   height: 8px;
@@ -1014,9 +1025,15 @@ a[href*="edit"]:hover {
     font-size: 12px;
   }
   
-  /* Masquer les indicateurs sur mobile */
-  .card-carousel .carousel-indicators {
+  /* Masquer les indicateurs sur mobile (sauf catalogue) */
+  .card-carousel:not(.card-carousel--catalogue) .carousel-indicators {
     display: none;
+  }
+  
+  /* Indicateurs catalogue mobile : visibles et taille raisonnable */
+  .card-carousel--catalogue .carousel-indicator {
+    width: 7px;
+    height: 7px;
   }
   
   /* Masquer les indicateurs du carousel détail spectacle sur mobile */
