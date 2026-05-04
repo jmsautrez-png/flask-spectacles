@@ -141,7 +141,12 @@
       
       <!-- Badges -->
       <div style="display:flex; gap:10px; flex-wrap:wrap; margin-bottom:32px;">
-        {% if show.category %}
+        {% if show.specialites %}
+          {% for spec in show.specialites.split(',') %}
+            {% set s = spec.strip() %}
+            {% if s %}<span class="badge badge-category">{{ s|title }}</span>{% endif %}
+          {% endfor %}
+        {% elif show.category %}
           <span class="badge badge-category">{{ show.category|title }}</span>
         {% endif %}
         {% if show.age_range %}
