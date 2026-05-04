@@ -382,9 +382,15 @@ main.container {
   display: block;
 }
 
-/* Indicateurs (points) du carousel */
+/* Indicateurs (points) du carousel - visibles par défaut sur desktop */
 .card-carousel .carousel-indicators {
-  display: none;
+  position: absolute;
+  bottom: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 6px;
+  z-index: 5;
 }
 
 /* Réafficher les indicateurs sur les cartes du catalogue */
