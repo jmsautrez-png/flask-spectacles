@@ -259,7 +259,8 @@
         <!-- Formulaire d'avis -->
         <details style="margin-top:20px;">
           <summary style="cursor:pointer; color:var(--primary); font-weight:600; padding:12px 0;">✍️ Laisser un avis</summary>
-          <form method="post" action="{{ url_for('submit_review', show_id=show.id) }}" style="margin-top:12px; padding:20px; background:var(--panel); border:1px solid var(--border); border-radius:10px;">
+          <form method="post" action="{{ url_for('submit_review', show_id=show.id) }}" onsubmit="if(!this.querySelector('input[name=rating]:checked')){alert('Merci de sélectionner une note (1 à 5 étoiles).');return false;}" style="margin-top:12px; padding:20px; background:var(--panel); border:1px solid var(--border); border-radius:10px;">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
             <div style="margin-bottom:14px;">
               <label style="display:block; margin-bottom:4px; color:var(--text); font-weight:500;">Votre nom *</label>
               <input type="text" name="author_name" required minlength="2" maxlength="100" placeholder="Votre nom ou organisation" style="width:100%; padding:10px 14px; border:1px solid var(--border); border-radius:8px; background:var(--bg); color:var(--text); font-size:1rem; box-sizing:border-box;" {% if user %}value="{{ user.raison_sociale or user.username }}"{% endif %}>
@@ -268,8 +269,8 @@
               <label style="display:block; margin-bottom:8px; color:var(--text); font-weight:500;">Note *</label>
               <div class="star-rating" style="display:flex; gap:4px; flex-direction:row-reverse; justify-content:flex-end;">
                 {% for i in range(5, 0, -1) %}
-                <input type="radio" name="rating" value="{{ i }}" id="star{{ i }}" style="display:none;" {% if i == 5 %}required{% endif %}>
-                <label for="star{{ i }}" style="font-size:2rem; cursor:pointer; color:#555; transition:color 0.15s;" onmouseover="this.style.color='#ffc107';let p=this.previousElementSibling;while(p){if(p.tagName==='LABEL')p.style.color='#ffc107';p=p.previousElementSibling}" onmouseout="document.querySelectorAll('.star-rating label').forEach(l=>l.style.color=l.previousElementSibling&&l.previousElementSibling.checked?'#ffc107':'#555')">★</label>
+                <input type="radio" name="rating" value="{{ i }}" id="star{{ i }}" style="position:absolute; opacity:0; pointer-events:none;">
+                <label for="star{{ i }}" style="font-size:2rem; cursor:pointer; color:#555; transition:color 0.15s;" onmouseover="this.style.color='#ffc107';let p=this.previousElementSibling;while(p){if(p.tagName==='LABEL')p.style.color='#ffc107';p=p.previousElementSibling}" onmouseout="document.querySelectorAll('.star-rating label').forEach(l=>l.style.color=l.previousElementSibling&&l.previousElementSibling.checked?'#ffc107':'#555')" onclick="setTimeout(()=>document.querySelectorAll('.star-rating label').forEach(l=>l.style.color=l.previousElementSibling&&l.previousElementSibling.checked?'#ffc107':'#555'),0)">★</label>
                 {% endfor %}
               </div>
             </div>
