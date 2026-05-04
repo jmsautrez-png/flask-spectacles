@@ -56,7 +56,7 @@ def optimize_image_to_webp(file, quality=85, max_width=1920):
         if file.content_type == 'application/pdf':
             return None
         file.seek(0)
-        Image.MAX_IMAGE_PIXELS = 10_000_000
+        Image.MAX_IMAGE_PIXELS = 50_000_000
         img = Image.open(file)
         if img.mode in ('RGBA', 'LA', 'P'):
             background = Image.new('RGB', img.size, (255, 255, 255))
@@ -191,7 +191,7 @@ def _generate_thumbnail_from_data(image_data, thumb_name, thumb_size=(400, 300),
     from io import BytesIO
     try:
         from PIL import Image
-        Image.MAX_IMAGE_PIXELS = 10_000_000
+        Image.MAX_IMAGE_PIXELS = 50_000_000
         image_data.seek(0)
         img = Image.open(image_data)
         img = img.convert("RGB")
@@ -262,7 +262,7 @@ def generate_thumbnail(filename, thumb_size=(400, 300), quality=80):
 
     try:
         from PIL import Image
-        Image.MAX_IMAGE_PIXELS = 10_000_000
+        Image.MAX_IMAGE_PIXELS = 50_000_000
         img = Image.open(local_path)
         img_rgb = img.convert("RGB")
         img_rgb.thumbnail(thumb_size, Image.Resampling.LANCZOS)

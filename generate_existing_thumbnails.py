@@ -34,7 +34,7 @@ THUMB_SIZE = (400, 300)
 QUALITY = 80
 IMAGE_EXTS = (".png", ".jpg", ".jpeg", ".gif", ".webp")
 
-Image.MAX_IMAGE_PIXELS = 10_000_000
+Image.MAX_IMAGE_PIXELS = 50_000_000
 
 s3 = boto3.client(
     "s3",
