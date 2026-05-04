@@ -254,12 +254,12 @@
 
     <div style="flex:2; min-width:180px;">
       <div style="color:#ffc107; font-size:0.8rem; font-weight:600; margin-bottom:4px;">NOM DE COMPAGNIE / TITRE</div>
-      <div style="display:flex; gap:6px;">
+      <div class="q-row" style="display:flex; gap:6px;">
         <input name="q" value="{{ q or '' }}"
                placeholder="Rechercher une compagnie..."
-               style="flex:1; background:rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.2); color:#fff; padding:8px 12px; border-radius:8px; font-size:0.9rem; outline:none;">
+               style="flex:1; min-width:0; background:rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.2); color:#fff; padding:8px 12px; border-radius:8px; font-size:0.9rem; outline:none;">
         <button type="submit"
-                style="background:linear-gradient(135deg,#6d1313,#8b1e1e); color:#fff; border:none; padding:8px 16px; border-radius:8px; font-weight:700; cursor:pointer;">🔍</button>
+                style="background:linear-gradient(135deg,#6d1313,#8b1e1e); color:#fff; border:none; padding:8px 16px; border-radius:8px; font-weight:700; cursor:pointer; flex-shrink:0;">🔍</button>
       </div>
     </div>
 
@@ -270,9 +270,14 @@
 <style>
 .mobile-search-block input::placeholder { color:#aaa; opacity:1; }
 .mobile-search-block select option { background:#1a1a2e; color:#fff; }
-@media (max-width:600px) {
-  .mobile-search-block > div:first-child { flex-direction:column; }
-  .mobile-search-block > div:first-child > div { min-width:100%; }
+@media (max-width:768px) {
+  .mobile-search-block { padding:12px !important; }
+  .mobile-search-block > div:first-child { flex-direction:column; gap:8px !important; }
+  .mobile-search-block > div:first-child > div { min-width:100% !important; flex:1 1 100% !important; }
+  /* Bloc nom + bouton recherche : empile verticalement */
+  .mobile-search-block .q-row { flex-direction:column !important; gap:8px !important; }
+  .mobile-search-block .q-row input { width:100% !important; box-sizing:border-box; }
+  .mobile-search-block .q-row button { width:100%; padding:10px !important; font-size:1rem !important; }
 }
 
 /* Skeleton photo cartes */
@@ -308,17 +313,17 @@
 </script>
 
 {% if specialites or evenements_selected or region or age or q %}
-<div style="display:flex; align-items:center; gap:12px; margin-bottom:16px; flex-wrap:wrap;">
+<div style="display:flex; align-items:center; gap:8px; margin-bottom:16px; flex-wrap:wrap;">
   <a href="{{ url_for('catalogue') }}"
-     style="display:inline-flex; align-items:center; gap:6px; padding:8px 18px; background:linear-gradient(135deg,#e74c3c,#c0392b); color:#fff; text-decoration:none; border-radius:20px; font-weight:600; font-size:0.9rem; box-shadow:0 2px 8px rgba(231,76,60,0.4);">
+     style="display:inline-flex; align-items:center; gap:6px; padding:8px 14px; background:linear-gradient(135deg,#e74c3c,#c0392b); color:#fff; text-decoration:none; border-radius:20px; font-weight:600; font-size:0.85rem; box-shadow:0 2px 8px rgba(231,76,60,0.4); white-space:nowrap;">
     ✖ Effacer les filtres
   </a>
-  <span style="color:rgba(255,255,255,0.7); font-size:0.9rem;">
-    {% for s in specialites %}<strong style="color:#ffc107;">{{ s }}</strong> {% endfor %}
-    {% for e in evenements_selected %}<strong style="color:#ffaa44;">{{ e }}</strong> {% endfor %}
-    {% if region %}📍 {{ region }} {% endif %}
-    {% if age %}👥 {{ age }} {% endif %}
-    {% if q %}🔤 "{{ q }}" {% endif %}
+  <span style="color:rgba(255,255,255,0.7); font-size:0.85rem; display:flex; flex-wrap:wrap; gap:6px;">
+    {% for s in specialites %}<strong style="color:#ffc107;">{{ s }}</strong>{% endfor %}
+    {% for e in evenements_selected %}<strong style="color:#ffaa44;">{{ e }}</strong>{% endfor %}
+    {% if region %}<span>📍 {{ region }}</span>{% endif %}
+    {% if age %}<span>👥 {{ age }}</span>{% endif %}
+    {% if q %}<span>🔤 "{{ q }}"</span>{% endif %}
   </span>
 </div>
 {% endif %}
