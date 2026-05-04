@@ -3313,7 +3313,7 @@ def register_routes(app: Flask) -> None:
                 </tr>
                 <tr>
                     <td style="padding:30px 40px; text-align:center;">
-                        <a href="{show_url}" style="display:inline-block; background:linear-gradient(135deg,#667eea 0%,#764ba2 100%); color:#fff; text-decoration:none; padding:16px 44px; border-radius:8px; font-weight:700; font-size:16px; letter-spacing:0.5px; box-shadow:0 4px 16px rgba(102,126,234,0.35);">Voir mon annonce</a>
+                        <a href="{show_url}" style="display:inline-block; background-color:#667eea; background:linear-gradient(135deg,#667eea 0%,#764ba2 100%); color:#ffffff !important; text-decoration:none; padding:16px 44px; border-radius:8px; font-weight:700; font-size:16px; letter-spacing:0.5px;">Voir mon annonce</a>
                     </td>
                 </tr>
                 <tr><td style="padding:30px 40px 0;"><hr style="border:none; border-top:1px solid #e0e0e0; margin:0;"></td></tr>
