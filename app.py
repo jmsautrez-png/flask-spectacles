@@ -5351,7 +5351,7 @@ Accessibilité: {accessibilite}
     def seo_category(category_slug):
         if category_slug not in SEO_CATEGORIES:
             abort(404)
-        return redirect(url_for("catalogue", category=SEO_CATEGORIES[category_slug]), code=301)
+        return redirect(url_for("catalogue", specialite=SEO_CATEGORIES[category_slug]), code=301)
 
     # Catégories SEO avec labels lisibles pour les pages ville×catégorie
     SEO_CATEGORY_LABELS = {
