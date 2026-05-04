@@ -384,13 +384,7 @@ main.container {
 
 /* Indicateurs (points) du carousel */
 .card-carousel .carousel-indicators {
-  position: absolute;
-  bottom: 10px;
-  left: 50%;
-  transform: translateX(-50%);
-  display: flex;
-  gap: 6px;
-  z-index: 5;
+  display: none;
 }
 
 .card-carousel .carousel-indicator {
@@ -401,8 +395,6 @@ main.container {
   border: 1px solid rgba(255, 255, 255, 0.8);
   cursor: pointer;
   transition: all 0.3s ease;
-  padding: 4px;
-  box-sizing: content-box;
 }
 
 .card-carousel .carousel-indicator.active {
