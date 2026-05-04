@@ -1022,17 +1022,9 @@ a[href*="edit"]:hover {
     font-size: 12px;
   }
   
-  /* Indicateurs plus grands sur mobile pour meilleure visibilité et touch */
+  /* Masquer les indicateurs sur mobile */
   .card-carousel .carousel-indicators {
-    gap: 10px;
-    bottom: 8px;
-    padding: 4px 8px;
-  }
-  .card-carousel .carousel-indicator {
-    width: 10px;
-    height: 10px;
-    padding: 6px;
-    box-sizing: content-box;
+    display: none;
   }
   
   /* Espacement réduit */
