@@ -401,6 +401,8 @@ main.container {
   border: 1px solid rgba(255, 255, 255, 0.8);
   cursor: pointer;
   transition: all 0.3s ease;
+  padding: 4px;
+  box-sizing: content-box;
 }
 
 .card-carousel .carousel-indicator.active {
@@ -1020,10 +1022,17 @@ a[href*="edit"]:hover {
     font-size: 12px;
   }
   
-  /* Indicateurs plus petits */
+  /* Indicateurs plus grands sur mobile pour meilleure visibilité et touch */
+  .card-carousel .carousel-indicators {
+    gap: 10px;
+    bottom: 8px;
+    padding: 4px 8px;
+  }
   .card-carousel .carousel-indicator {
-    width: 6px;
-    height: 6px;
+    width: 10px;
+    height: 10px;
+    padding: 6px;
+    box-sizing: content-box;
   }
   
   /* Espacement réduit */
