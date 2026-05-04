@@ -95,7 +95,7 @@ from utils.security import (
 )
 from utils.search import normalize_search_text, generate_search_patterns
 from utils.seo import SEO_CATEGORIES, optimize_title_seo
-from constants import SPECIALITES, EVENEMENTS, LIEUX, REGIONS_FRANCE, REGIONS_VOISINES
+from constants import SPECIALITES, EVENEMENTS, LIEUX, REGIONS_FRANCE, REGIONS_VOISINES, PUBLICS
 
 print("✓ Config, models et utils importés")
 
@@ -1559,22 +1559,26 @@ def register_routes(app: Flask) -> None:
                 Show.location.ilike(like),
             ))
 
-        # -- Filtre tranche d'âge --
+        # -- Filtre tranche d'âge / public (STRICT pour nouvelles valeurs, tolérant pour anciennes) --
         if age:
             from utils.matching import _GROUPE_NEUTRE, _GROUPE_ENFANT, _GROUPE_ADULTE, _AGE_PROCHES
             age_lower = age.lower()
-            # Valeurs compatibles : exact + proches + neutres
-            compatibles = {age_lower} | _AGE_PROCHES.get(age_lower, set()) | _GROUPE_NEUTRE
-            # Exclure l'incompatible
-            if age_lower in _GROUPE_ADULTE:
-                shows = shows.filter(~Show.age_range.in_(list(_GROUPE_ENFANT)))
-            elif age_lower in _GROUPE_ENFANT:
-                shows = shows.filter(~Show.age_range.in_(list(_GROUPE_ADULTE)))
-            shows = shows.filter(or_(
-                Show.age_range.in_(list(compatibles)),
-                Show.age_range.is_(None),
-                Show.age_range == "",
-            ))
+            new_codes = {p[0] for p in PUBLICS}
+            if age_lower in new_codes:
+                # Filtre STRICT pour les nouvelles valeurs : correspondance exacte uniquement
+                shows = shows.filter(Show.age_range == age_lower)
+            else:
+                # Filtre TOLÉRANT pour anciennes valeurs (compat) : exact + proches + neutres
+                compatibles = {age_lower} | _AGE_PROCHES.get(age_lower, set()) | _GROUPE_NEUTRE
+                if age_lower in _GROUPE_ADULTE:
+                    shows = shows.filter(~Show.age_range.in_(list(_GROUPE_ENFANT)))
+                elif age_lower in _GROUPE_ENFANT:
+                    shows = shows.filter(~Show.age_range.in_(list(_GROUPE_ADULTE)))
+                shows = shows.filter(or_(
+                    Show.age_range.in_(list(compatibles)),
+                    Show.age_range.is_(None),
+                    Show.age_range == "",
+                ))
 
         # -- Tri avant pagination (corrigé) --
         shows = shows.order_by(Show.display_order.asc(), Show.created_at.desc())
@@ -1616,16 +1620,7 @@ def register_routes(app: Flask) -> None:
             age=age,
             all_specialites=all_specialites,
             all_regions=REGIONS_FRANCE,
-            age_options=[
-                ("", "Tous les publics"),
-                ("tout public", "Tout public"),
-                ("familial", "Familial"),
-                ("enfant", "Enfant"),
-                ("enfant_2_6", "Enfant (2/6 ans)"),
-                ("enfant_5_10", "Enfant (5/10 ans)"),
-                ("enfants_2_10", "Enfants (2/10 ans)"),
-                ("adulte", "Adulte"),
-            ],
+            age_options=[("", "Tous les publics")] + PUBLICS,
             h1_title=h1_title,
             user=current_user(),
         )

@@ -296,3 +296,29 @@ REGIONS_VOISINES = {
     "Pays de la Loire": ["Bretagne", "Normandie", "Centre-Val de Loire", "Nouvelle-Aquitaine"],
     "Provence-Alpes-Côte d'Azur": ["Auvergne-Rhône-Alpes", "Occitanie", "Corse"],
 }
+
+# ═══════════════════════════════════════════════════════════════════
+# AXE 4 — PUBLIC CIBLE (1 case obligatoire à cocher)
+# Utilisé sur : carte spectacle + demande d'animation + filtre catalogue
+# ═══════════════════════════════════════════════════════════════════
+PUBLICS = [
+    ("jp_0_3",  "Jeune public ou familial 0/3 ans"),
+    ("jp_4_8",  "Jeune public ou familial 4/8 ans"),
+    ("jp_8_11", "Jeune public ou familial 5/11 ans"),
+    ("fam_2",   "Toute la famille à partir de 2 ans"),
+    ("ad_12",   "Adulte à partir de 12 ans"),
+    ("ad_16",   "Adulte à partir de 16 ans"),
+]
+
+# Mapping pour rétrocompatibilité (anciennes valeurs → libellé d'affichage)
+PUBLICS_LEGACY_LABELS = {
+    "enfant":       "Enfant (ancien format)",
+    "enfant_2_6":   "Enfant 2/6 ans (ancien format)",
+    "enfant_5_10":  "Enfant 5/10 ans (ancien format)",
+    "enfants_2_10": "Enfants 2/10 ans (ancien format)",
+    "familial":     "Familial (ancien format)",
+    "tout public":  "Tout public (ancien format)",
+    "adulte":       "Adulte (ancien format)",
+    "fam_3":        "Familial à partir de 3 ans (ancien format)",
+    "fam_8":        "Familial à partir de 8 ans (ancien format)",
+}

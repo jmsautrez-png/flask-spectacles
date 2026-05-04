@@ -13,17 +13,32 @@ _REGIONS_VOISINES_LOWER = {k.lower(): [r.lower() for r in v] for k, v in REGIONS
 
 # --- Compatibilité tranche d'âge ---
 # Groupes incompatibles : adulte vs enfant*  →  exclusion totale
-_GROUPE_ADULTE = {"adulte"}
-_GROUPE_ENFANT = {"enfant", "enfant_2_6", "enfant_5_10", "enfants_2_10"}
+_GROUPE_ADULTE = {"adulte", "ad_12", "ad_16"}
+_GROUPE_ENFANT = {"enfant", "enfant_2_6", "enfant_5_10", "enfants_2_10",
+                  "jp_0_3", "jp_4_8", "jp_8_11"}
 # Valeurs neutres : acceptées avec tout le monde
-_GROUPE_NEUTRE = {"familial", "tout public"}
+_GROUPE_NEUTRE = {"familial", "tout public", "fam_2", "fam_3", "fam_8"}
 
 # Tranches proches (chevauchement partiel)  →  boost doux
 _AGE_PROCHES = {
-    "enfant_2_6":   {"enfant_5_10", "enfants_2_10", "enfant"},
-    "enfant_5_10":  {"enfant_2_6",  "enfants_2_10", "enfant"},
-    "enfants_2_10": {"enfant_2_6",  "enfant_5_10",  "enfant"},
-    "enfant":       {"enfant_2_6",  "enfant_5_10",  "enfants_2_10"},
+    # Ancien format
+    "enfant_2_6":   {"enfant_5_10", "enfants_2_10", "enfant", "jp_0_3", "jp_4_8", "fam_2"},
+    "enfant_5_10":  {"enfant_2_6",  "enfants_2_10", "enfant", "jp_4_8", "jp_8_11", "fam_2"},
+    "enfants_2_10": {"enfant_2_6",  "enfant_5_10",  "enfant", "jp_4_8", "jp_8_11", "fam_2"},
+    "enfant":       {"enfant_2_6",  "enfant_5_10",  "enfants_2_10", "jp_4_8", "fam_2"},
+    # Nouveau format (jeune public ou familial)
+    "jp_0_3":       {"jp_4_8", "enfant_2_6", "fam_2"},
+    "jp_4_8":       {"jp_0_3", "jp_8_11", "enfant", "enfant_2_6", "enfant_5_10", "enfants_2_10", "fam_2"},
+    "jp_8_11":      {"jp_4_8", "enfant_5_10", "enfants_2_10", "fam_2"},
+    # Nouveau format (toute la famille)
+    "fam_2":        {"jp_0_3", "jp_4_8", "jp_8_11", "enfant", "enfant_2_6", "enfant_5_10", "enfants_2_10", "familial"},
+    # Ancien format (familial à partir de X)
+    "fam_3":        {"fam_8", "fam_2"},
+    "fam_8":        {"fam_3", "fam_2"},
+    # Nouveau format (adulte)
+    "ad_12":        {"ad_16", "adulte"},
+    "ad_16":        {"ad_12", "adulte"},
+    "adulte":       {"ad_12", "ad_16"},
 }
 
 
