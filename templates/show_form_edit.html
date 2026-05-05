@@ -24,7 +24,7 @@
         <input type="text" name="location" id="location-input" value="{{ show.location or '' }}">
         <span style="font-size:0.9rem;color:#fff;display:block;margin-top:2px;margin-bottom:4px;">Sélectionnez les villes dans lesquelles (et autour desquelles) vous acceptez de vous déplacer pour jouer ce spectacle. Vous pouvez en ajouter jusqu'à 10.</span>
 
-        {% if current_user.is_authenticated and current_user.is_admin %}
+        {% if user and user.is_admin %}
         <!-- Bloc admin : recherche par code postal (geo.api.gouv.fr) -->
         <div style="background:#162447; border:1px solid #1976d2; border-radius:8px; padding:10px 12px; margin:8px 0; display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
           <span style="color:#90caf9; font-size:0.9em; font-weight:600;">🔧 Admin · Ajouter via CP :</span>
