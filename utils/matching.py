@@ -158,7 +158,22 @@ def compute_score(show, demande):
         lieu_ratio = 0.0
 
     # -- Région (15%) --
-    if dem_region and show_regions:
+    show_location = (getattr(show, "location", None) or "").strip().lower()
+    show_couvre_france = "toute la france" in show_location or "france entiere" in show_location or "france entière" in show_location
+
+    # Filtre dur si l'organisateur veut UNIQUEMENT du régional :
+    # on exclut les spectacles dont la région ne matche pas (sauf "Toute la France" explicite,
+    # car l'artiste a déclaré accepter de se déplacer partout).
+    portee_nationale = getattr(demande, "portee_nationale", True)
+    region_compatible = True
+    if portee_nationale is False and dem_region and not show_couvre_france:
+        if not show_regions or (dem_region not in show_regions):
+            region_compatible = False
+
+    if show_couvre_france:
+        # Le spectacle se déplace partout : score régional max, sans pénalité de spécificité
+        region_ratio = 1.0
+    elif dem_region and show_regions:
         if dem_region in show_regions:
             region_ratio = 1.0
         else:
@@ -186,6 +201,7 @@ def compute_score(show, demande):
         "region": round(region_ratio * 100, 1),
         "age_compatible": age_compatible,
         "age_bonus": age_bonus,
+        "region_compatible": region_compatible,
         "matching_specs": show_specs & dem_specs,
         "matching_events": show_events & dem_events,
         "matching_lieux": show_lieux & dem_lieux,
@@ -205,6 +221,9 @@ def find_matching_shows(demande, all_shows, min_score=1):
         score = compute_score(show, demande)
         # Exclure les shows incompatibles avec la tranche d'âge
         if not score["age_compatible"]:
+            continue
+        # Exclure les shows hors région si l'organisateur veut du régional uniquement
+        if not score.get("region_compatible", True):
             continue
         if score["total"] >= min_score:
             # Exclure les shows sans aucun match sur les spécialités

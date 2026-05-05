@@ -774,6 +774,9 @@ def _run_critical_migrations(app: Flask) -> None:
     REQUIRED_COLUMNS = [
         # ── users ──
         ("users", "site_internet", "VARCHAR(255)", "VARCHAR(255)", None),
+        ("users", "code_postal", "VARCHAR(10)", "VARCHAR(10)", None),
+        ("users", "ville", "VARCHAR(150)", "VARCHAR(150)", None),
+        ("users", "departement", "VARCHAR(100)", "VARCHAR(100)", None),
         # ── shows ──
         ("shows", "file_name2", "VARCHAR(255)", "VARCHAR(255)", None),
         ("shows", "file_mimetype2", "VARCHAR(120)", "VARCHAR(120)", None),
@@ -1174,6 +1177,9 @@ def register_routes(app: Flask) -> None:
             telephone = request.form.get("telephone", "").strip()
             raison_sociale = request.form.get("raison_sociale", "").strip()
             region = fix_mojibake(request.form.get("region", "").strip())
+            code_postal = request.form.get("code_postal", "").strip()
+            ville = fix_mojibake(request.form.get("ville", "").strip())
+            departement = fix_mojibake(request.form.get("departement", "").strip())
             site_internet = request.form.get("site_internet", "").strip()
 
             if not username or not password or not email:
@@ -1212,6 +1218,9 @@ def register_routes(app: Flask) -> None:
                     email=email or None,
                     raison_sociale=raison_sociale or None,
                     region=region or None,
+                    code_postal=code_postal or None,
+                    ville=ville or None,
+                    departement=departement or None,
                     telephone=telephone or None,
                     site_internet=site_internet or None,
                 )

@@ -78,39 +78,35 @@
 
       
 
+        <!-- BLOC localisation : CP + Ville auto-remplit Région via geo.api.gouv.fr -->
+        <div style="background:#0d2540; border:1px solid #1976d2; border-radius:8px; padding:12px; margin-bottom:12px;">
+          <div style="color:#90caf9; font-size:0.9em; margin-bottom:8px;">📍 Localisation (le code postal remplit automatiquement la ville et la région)</div>
+          <div style="display:flex; gap:10px; flex-wrap:wrap;">
+            <label style="flex:0 0 130px;">
+              <span class="label-text">Code postal <span class="req">*</span></span>
+              <input type="text" name="code_postal" id="cp-input" required maxlength="5" pattern="[0-9]{5}"
+                     placeholder="75001" autocomplete="postal-code"
+                     value="{{ request.form.get('code_postal','') }}">
+            </label>
+            <label style="flex:1; min-width:200px;">
+              <span class="label-text">Ville <span class="req">*</span></span>
+              <input type="text" name="ville" id="ville-input" required
+                     placeholder="(rempli auto. après saisie du CP)" autocomplete="address-level2"
+                     value="{{ request.form.get('ville','') }}" list="ville-list">
+              <datalist id="ville-list"></datalist>
+            </label>
+          </div>
+          <input type="hidden" name="departement" id="departement-input" value="{{ request.form.get('departement','') }}">
+          <div id="cp-status" style="font-size:0.85em; color:#90caf9; margin-top:6px; min-height:18px;"></div>
+        </div>
+
         <label>
           <span class="label-text">Région <span class="req">*</span></span>
-          <input type="text" name="region" id="region-input" required placeholder="Cliquez sur une région ci-dessous"
+          <input type="text" name="region" id="region-input" required readonly
+                 placeholder="Remplie automatiquement à partir du code postal"
+                 style="background:#1a1f2e; color:#90caf9; cursor:not-allowed;"
                  value="{{ request.form.get('region','') }}">
         </label>
-
-        <div style="background:#e3f2fd; color:#1565c0; border:1px solid #90caf9; border-radius:7px; padding:7px 12px; margin:10px 0 8px 0; font-size:0.97em; font-weight:500;">
-          Cliquez sur une région pour remplir automatiquement le champ ci-dessus&nbsp;:
-        </div>
-        <!-- Bandeau supprimé -->
-        <div class="region-buttons" style="display:flex; flex-wrap:wrap; gap:6px; margin-bottom:14px; position:relative; border-radius:8px; border:1px solid #1976d2; background:linear-gradient(135deg,#162447 0%,#283e5e 100%); padding:12px 0 6px 0;">
-          <div id="region-hover-banner" style="display:none; position:absolute; left:0; right:0; top:-38px; background:#fffde7; color:#795548; border:1px solid #ffe082; border-radius:7px; padding:7px 12px; font-size:0.97em; font-weight:500; z-index:10; text-align:center; pointer-events:none; transition:opacity 0.2s; opacity:0;">
-            Cliquez pour sélectionner cette région
-          </div>
-          {% set regions = [
-            'Auvergne-Rhône-Alpes', 'Bourgogne-Franche-Comté', 'Bretagne', 'Centre-Val de Loire',
-            'Corse', 'Grand Est', 'Hauts-de-France', 'Île-de-France', 'Normandie',
-            'Nouvelle-Aquitaine', 'Occitanie', 'Pays de la Loire', 'Provence-Alpes-Côte d\'Azur',
-            'Guadeloupe', 'Martinique', 'Guyane', 'La Réunion', 'Mayotte'
-          ] %}
-          {% set region_colors = [
-            '#e67e22', '#8e44ad', '#e74c3c', '#2980b9', '#16a085', '#f1c40f', '#2ecc71', '#e84393',
-            '#34495e', '#00b894', '#fdcb6e', '#00bfff', '#636e72', '#ff7675', '#00cec9', '#e17055', '#0984e3', '#b2bec3'
-          ] %}
-          {% for reg in regions %}
-            {% set color = region_colors[loop.index0 % region_colors|length] %}
-            <button type="button" class="btn-region" style="padding:4px 10px; border-radius:5px; border:1px solid {{ color }}; background:linear-gradient(135deg,{{ color }} 0%,#fff 100%); color:#222; font-size:0.95em; cursor:pointer; font-weight:600; box-shadow:0 2px 8px {{ color }}44; transition:all 0.2s;"
-              onmouseover="document.getElementById('region-hover-banner').style.display='block'; document.getElementById('region-hover-banner').style.opacity='1';"
-              onmouseout="document.getElementById('region-hover-banner').style.opacity='0'; setTimeout(function(){document.getElementById('region-hover-banner').style.display='none';},200);"
-              onclick="document.getElementById('region-input').value='{{ reg }}'"
-            >{{ reg }}</button>
-          {% endfor %}
-        </div>
 
         <label>
           <span class="label-text">Site internet</span>
@@ -416,5 +412,74 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 });
+
+// === Auto-complétion via API officielle geo.api.gouv.fr ===
+(function() {
+    const cpInput = document.getElementById('cp-input');
+    const villeInput = document.getElementById('ville-input');
+    const villeList = document.getElementById('ville-list');
+    const regionInput = document.getElementById('region-input');
+    const deptInput = document.getElementById('departement-input');
+    const status = document.getElementById('cp-status');
+    if (!cpInput) return;
+
+    let lastCP = '';
+    let communes = [];
+
+    function lookupCP() {
+        const cp = (cpInput.value || '').trim();
+        if (cp.length !== 5 || !/^\d{5}$/.test(cp)) {
+            status.textContent = '';
+            return;
+        }
+        if (cp === lastCP) return;
+        lastCP = cp;
+        status.textContent = '🔎 Recherche…';
+        status.style.color = '#90caf9';
+        fetch('https://geo.api.gouv.fr/communes?codePostal=' + cp + '&fields=nom,codeDepartement,codeRegion,departement,region&format=json')
+          .then(r => r.json())
+          .then(data => {
+            if (!data || !data.length) {
+                status.textContent = '⚠ Code postal introuvable';
+                status.style.color = '#ff9800';
+                return;
+            }
+            communes = data;
+            // Datalist des villes
+            villeList.innerHTML = '';
+            data.forEach(c => {
+                const opt = document.createElement('option');
+                opt.value = c.nom;
+                villeList.appendChild(opt);
+            });
+            // 1ère commune par défaut (souvent unique)
+            const first = data[0];
+            if (!villeInput.value || data.length === 1) villeInput.value = first.nom;
+            if (first.region && first.region.nom) regionInput.value = first.region.nom;
+            if (first.departement && first.departement.nom) deptInput.value = first.departement.nom;
+            status.textContent = '✓ ' + first.region.nom + ' (' + first.departement.nom + ')'
+                                + (data.length > 1 ? ' — ' + data.length + ' communes possibles' : '');
+            status.style.color = '#81c784';
+          })
+          .catch(err => {
+            status.textContent = '⚠ Service indisponible — saisissez manuellement';
+            status.style.color = '#ff9800';
+          });
+    }
+
+    cpInput.addEventListener('blur', lookupCP);
+    cpInput.addEventListener('input', function() {
+        if (this.value.length === 5) lookupCP();
+    });
+
+    // Si l'utilisateur change la ville (CP avec plusieurs communes), on ajuste région/dept
+    villeInput.addEventListener('change', function() {
+        const c = communes.find(x => x.nom === this.value);
+        if (c) {
+            if (c.region && c.region.nom) regionInput.value = c.region.nom;
+            if (c.departement && c.departement.nom) deptInput.value = c.departement.nom;
+        }
+    });
+})();
 </script>
 {% endblock %}

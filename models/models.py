@@ -52,6 +52,9 @@ class User(db.Model):
     telephone = db.Column(db.String(50), nullable=True)  # Téléphone de l'utilisateur
     created_at = db.Column(db.DateTime, default=datetime.utcnow)  # Date de création
     region = db.Column(db.String(200), nullable=True)  # Région de l'utilisateur
+    code_postal = db.Column(db.String(10), nullable=True)   # Code postal (ex: 75001)
+    ville = db.Column(db.String(150), nullable=True)        # Ville (ex: Paris)
+    departement = db.Column(db.String(100), nullable=True)  # Département (ex: Paris, Rhône)
     site_internet = db.Column(db.String(255), nullable=True)  # Site web de l'utilisateur
     pending_deletion_at = db.Column(db.DateTime, nullable=True, index=True)  # Date prévue de suppression (préavis 7j inactivité)
 

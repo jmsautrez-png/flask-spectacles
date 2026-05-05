@@ -21,9 +21,10 @@
   
 
       <label>Ville
-        <input type="text" name="location" id="location-input" value="{{ show.location }}">
-        <span style="font-size:0.9rem;color:#fff;display:block;margin-top:2px;margin-bottom:4px;">Cliquez sur un bouton pour ajouter une ville rapidement (vous pouvez ajouter jusqu'à 10 villes).</span>
+        <input type="text" name="location" id="location-input" value="{{ show.location or '' }}">
+        <span style="font-size:0.9rem;color:#fff;display:block;margin-top:2px;margin-bottom:4px;">Sélectionnez les villes dans lesquelles (et autour desquelles) vous acceptez de vous déplacer pour jouer ce spectacle. Vous pouvez en ajouter jusqu'à 10.</span>
         <div style="display:flex; flex-wrap:wrap; gap:8px; margin-bottom:16px; margin-top:6px;">
+          <button type="button" style="min-width:160px;flex:1 1 160px;padding:10px 8px;border-radius:6px;background:linear-gradient(135deg,#0055A4 0%,#fff 50%,#EF4135 100%);color:#222;font-weight:700;border:2px solid #0055A4;box-shadow:0 2px 8px #0055A444;transition:all 0.2s;" onclick="setAllFrance()">🇫🇷 Toute la France</button>
           <button type="button" style="min-width:120px;flex:1 1 120px;padding:8px 6px;border-radius:6px;background:linear-gradient(135deg,#e67e22 0%,#f6e58d 100%);color:#222;font-weight:600;border:none;box-shadow:0 2px 8px #e67e2244;transition:all 0.2s;" onclick="addLocation('Paris')">75 - Paris</button>
           <button type="button" style="min-width:120px;flex:1 1 120px;padding:8px 6px;border-radius:6px;background:linear-gradient(135deg,#8e44ad 0%,#6c3483 100%);color:#fff;font-weight:600;border:none;box-shadow:0 2px 8px #8e44ad44;transition:all 0.2s;" onclick="addLocation('Marseille')">13 - Marseille</button>
           <button type="button" style="min-width:120px;flex:1 1 120px;padding:8px 6px;border-radius:6px;background:linear-gradient(135deg,#e74c3c 0%,#c0392b 100%);color:#fff;font-weight:600;border:none;box-shadow:0 2px 8px #e74c3c44;transition:all 0.2s;" onclick="addLocation('Lyon')">69 - Lyon</button>
@@ -47,8 +48,14 @@
         </div>
       </label>
       <script>
+        function setAllFrance() {
+          document.getElementById('location-input').value = 'Toute la France';
+        }
         function addLocation(city) {
           var input = document.getElementById('location-input');
+          if (input.value.trim().toLowerCase() === 'toute la france') {
+            input.value = '';
+          }
           var current = input.value.split('|').map(function(s){return s.trim();}).filter(Boolean);
           if (current.length >= 10) {
             alert('?? Vous ne pouvez pas ajouter plus de 10 villes (limite technique de 500 caractères).');
