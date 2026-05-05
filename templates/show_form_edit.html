@@ -24,19 +24,6 @@
         <input type="text" name="location" id="location-input" value="{{ show.location or '' }}">
         <span style="font-size:0.9rem;color:#fff;display:block;margin-top:2px;margin-bottom:4px;">Sélectionnez les villes dans lesquelles (et autour desquelles) vous acceptez de vous déplacer pour jouer ce spectacle. Vous pouvez en ajouter jusqu'à 10.</span>
 
-        {% if user and user.is_admin %}
-        <!-- Bloc admin : recherche par code postal (geo.api.gouv.fr) -->
-        <div style="background:#162447; border:1px solid #1976d2; border-radius:8px; padding:10px 12px; margin:8px 0; display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
-          <span style="color:#90caf9; font-size:0.9em; font-weight:600;">🔧 Admin · Ajouter via CP :</span>
-          <input type="text" id="admin-cp-input" maxlength="5" pattern="[0-9]{5}" placeholder="75001" style="width:90px; padding:6px 8px; border-radius:6px; border:1px solid #1976d2; background:#1a1f2e; color:#fff;">
-          <select id="admin-ville-select" style="flex:1; min-width:160px; padding:6px 8px; border-radius:6px; border:1px solid #1976d2; background:#1a1f2e; color:#fff;" disabled>
-            <option value="">(saisir un code postal)</option>
-          </select>
-          <button type="button" id="admin-add-cp-btn" style="padding:6px 12px; border-radius:6px; border:none; background:#1976d2; color:#fff; font-weight:600; cursor:pointer;" disabled>Ajouter</button>
-          <span id="admin-cp-status" style="width:100%; font-size:0.85em; color:#90caf9; min-height:16px;"></span>
-        </div>
-        {% endif %}
-
         <div style="display:flex; flex-wrap:wrap; gap:8px; margin-bottom:16px; margin-top:6px;">
           <button type="button" style="min-width:160px;flex:1 1 160px;padding:10px 8px;border-radius:6px;background:linear-gradient(135deg,#0055A4 0%,#fff 50%,#EF4135 100%);color:#222;font-weight:700;border:2px solid #0055A4;box-shadow:0 2px 8px #0055A444;transition:all 0.2s;" onclick="setAllFrance()">🇫🇷 Toute la France</button>
           <button type="button" style="min-width:120px;flex:1 1 120px;padding:8px 6px;border-radius:6px;background:linear-gradient(135deg,#e67e22 0%,#f6e58d 100%);color:#222;font-weight:600;border:none;box-shadow:0 2px 8px #e67e2244;transition:all 0.2s;" onclick="addLocation('Paris')">75 - Paris</button>
@@ -81,59 +68,6 @@
           }
         }
       </script>
-
-      {% if current_user.is_authenticated and current_user.is_admin %}
-      <script>
-      (function(){
-        var cpInput = document.getElementById('admin-cp-input');
-        var villeSelect = document.getElementById('admin-ville-select');
-        var addBtn = document.getElementById('admin-add-cp-btn');
-        var status = document.getElementById('admin-cp-status');
-        if (!cpInput || !villeSelect || !addBtn) return;
-
-        function reset(msg) {
-          villeSelect.innerHTML = '<option value="">(saisir un code postal)</option>';
-          villeSelect.disabled = true;
-          addBtn.disabled = true;
-          status.textContent = msg || '';
-        }
-
-        cpInput.addEventListener('input', function(){
-          var cp = cpInput.value.replace(/\D/g, '').slice(0,5);
-          cpInput.value = cp;
-          if (cp.length !== 5) { reset(''); return; }
-          status.textContent = 'Recherche en cours…';
-          fetch('https://geo.api.gouv.fr/communes?codePostal=' + cp + '&fields=nom,codeDepartement,departement,region&format=json')
-            .then(function(r){ return r.json(); })
-            .then(function(data){
-              if (!data || !data.length) { reset('Aucune commune trouvée pour ce code postal.'); return; }
-              villeSelect.innerHTML = '';
-              data.forEach(function(c){
-                var opt = document.createElement('option');
-                opt.value = c.nom;
-                opt.dataset.dept = c.codeDepartement || '';
-                opt.dataset.region = (c.region && c.region.nom) || '';
-                opt.textContent = c.nom + (c.codeDepartement ? ' (' + c.codeDepartement + ')' : '');
-                villeSelect.appendChild(opt);
-              });
-              villeSelect.disabled = false;
-              addBtn.disabled = false;
-              status.textContent = data.length + ' commune(s) trouvée(s) — sélectionnez puis cliquez Ajouter.';
-            })
-            .catch(function(){ reset('Erreur réseau. Réessayez.'); });
-        });
-
-        addBtn.addEventListener('click', function(){
-          var ville = villeSelect.value;
-          if (!ville) return;
-          if (typeof addLocation === 'function') {
-            addLocation(ville);
-            status.textContent = '✓ ' + ville + ' ajoutée à la liste.';
-          }
-        });
-      })();
-      </script>
-      {% endif %}
 
       <label>Public ciblé *
     {% set current_age = (request.form.get('age_range') if request.method=='POST' else (show.age_range if show else '')) %}
