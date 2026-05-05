@@ -1,0 +1,98 @@
+{% extends "base.html" %}
+{% block title %}Ma localisation - Spectacle'ment VØtre{% endblock %}
+{% block content %}
+<div class="container" style="max-width:640px; margin:24px auto;">
+  <h1>📍 Ma localisation</h1>
+  <p style="color:#90caf9;">Renseignez votre code postal : la ville, le département et la région se rempliront automatiquement.</p>
+
+  <form method="POST" style="background:#162447; border:1px solid #1976d2; border-radius:10px; padding:18px; margin-top:14px;">
+    {{ csrf_token() if csrf_token else '' }}
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() if csrf_token else '' }}">
+
+    <label style="display:block; margin-bottom:14px;">
+      <span class="label-text">Code postal <span class="req">*</span></span>
+      <input type="text" name="code_postal" id="cp-input" maxlength="5" pattern="[0-9]{5}" required
+             value="{{ user.code_postal or '' }}"
+             placeholder="Ex : 75001"
+             style="width:140px;">
+    </label>
+
+    <label style="display:block; margin-bottom:14px;">
+      <span class="label-text">Ville <span class="req">*</span></span>
+      <input type="text" name="ville" id="ville-input" required list="ville-list"
+             value="{{ user.ville or '' }}" placeholder="Ville">
+      <datalist id="ville-list"></datalist>
+    </label>
+
+    <label style="display:block; margin-bottom:14px;">
+      <span class="label-text">Région <span class="req">*</span></span>
+      <input type="text" name="region" id="region-input" required readonly
+             value="{{ user.region or '' }}"
+             style="background:#1a1f2e; color:#90caf9; cursor:not-allowed;">
+    </label>
+
+    <input type="hidden" name="departement" id="departement-input" value="{{ user.departement or '' }}">
+    <div id="cp-status" style="font-size:0.85em; color:#90caf9; min-height:18px; margin-bottom:10px;"></div>
+
+    <div style="display:flex; gap:10px; margin-top:18px;">
+      <button type="submit" class="publish-btn" style="flex:1; padding:12px;">Enregistrer</button>
+      <a href="{{ url_for('company_dashboard') }}" class="btn-secondary"
+         style="flex:1; padding:12px; border-radius:8px; background:#23232a; color:var(--text); text-decoration:none; text-align:center; border:1px solid var(--border);">Annuler</a>
+    </div>
+  </form>
+</div>
+
+<script>
+(function(){
+  var cpInput = document.getElementById('cp-input');
+  var villeInput = document.getElementById('ville-input');
+  var villeList = document.getElementById('ville-list');
+  var regionInput = document.getElementById('region-input');
+  var deptInput = document.getElementById('departement-input');
+  var status = document.getElementById('cp-status');
+  var lastCommunes = [];
+
+  function applyCommune(c) {
+    villeInput.value = c.nom;
+    if (c.region && c.region.nom) regionInput.value = c.region.nom;
+    if (c.departement && c.departement.nom) deptInput.value = c.departement.nom;
+  }
+
+  function fetchCp() {
+    var cp = cpInput.value.replace(/\D/g, '').slice(0,5);
+    cpInput.value = cp;
+    if (cp.length !== 5) { status.textContent = ''; return; }
+    status.textContent = 'Recherche…';
+    fetch('https://geo.api.gouv.fr/communes?codePostal=' + cp + '&fields=nom,codeDepartement,departement,region&format=json')
+      .then(function(r){ return r.json(); })
+      .then(function(data){
+        if (!data || !data.length) { status.textContent = '❌ Code postal inconnu.'; return; }
+        lastCommunes = data;
+        villeList.innerHTML = '';
+        data.forEach(function(c){
+          var opt = document.createElement('option');
+          opt.value = c.nom;
+          villeList.appendChild(opt);
+        });
+        if (data.length === 1) {
+          applyCommune(data[0]);
+          status.textContent = '✓ ' + data[0].nom + ' — ' + (data[0].region && data[0].region.nom);
+        } else {
+          status.textContent = data.length + ' communes pour ce CP. Choisissez la vôtre.';
+          applyCommune(data[0]);
+        }
+      })
+      .catch(function(){ status.textContent = 'Erreur réseau.'; });
+  }
+
+  cpInput.addEventListener('blur', fetchCp);
+  cpInput.addEventListener('change', fetchCp);
+
+  villeInput.addEventListener('change', function(){
+    var v = villeInput.value.trim().toLowerCase();
+    var match = lastCommunes.find(function(c){ return c.nom.toLowerCase() === v; });
+    if (match) applyCommune(match);
+  });
+})();
+</script>
+{% endblock %}
