@@ -2331,6 +2331,26 @@ def register_routes(app: Flask) -> None:
         my_shows = Show.query.filter_by(user_id=u.id).order_by(Show.created_at.desc()).all() if u else []
         return render_template("company_dashboard.html", user=u, shows=my_shows)
 
+    @app.route("/profil/localisation", methods=["GET", "POST"], endpoint="profil_localisation")
+    @login_required
+    def profil_localisation():
+        u = current_user()
+        if not u:
+            return redirect(url_for("login"))
+        if request.method == "POST":
+            cp = (request.form.get("code_postal") or "").strip()
+            ville = fix_mojibake((request.form.get("ville") or "").strip())
+            region = fix_mojibake((request.form.get("region") or "").strip())
+            departement = fix_mojibake((request.form.get("departement") or "").strip())
+            u.code_postal = cp or None
+            u.ville = ville or None
+            u.region = region or None
+            u.departement = departement or None
+            db.session.commit()
+            flash("Localisation enregistrée. Merci !", "success")
+            return redirect(url_for("company_dashboard"))
+        return render_template("profil_localisation.html", user=u)
+
     @app.route("/my/shows/<int:show_id>/edit", methods=["GET","POST"], endpoint="show_edit_self")
     @login_required
     def show_edit_self(show_id: int):

@@ -89,6 +89,7 @@ SPECIALITES = {
         "Musique actuelle",
         "Musique Classique",
         "Musique électronique",
+        "Musique / chant traditionnel",
         # Artistes solo
         "Musicien solo",
         "Accordéoniste",
