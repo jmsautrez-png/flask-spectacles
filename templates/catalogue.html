@@ -243,13 +243,19 @@
 
     <div style="flex:1; min-width:160px;">
       <div style="color:#ffc107; font-size:0.8rem; font-weight:600; margin-bottom:4px;">PUBLIC</div>
+      <div style="display:flex;gap:6px;align-items:center;">
       <select name="age"
-              style="width:100%; background:rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.2); color:#fff; padding:8px 10px; border-radius:8px; font-size:0.9rem;"
-              onchange="this.form.submit()">
+              style="flex:1; background:rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.2); color:#fff; padding:8px 10px; border-radius:8px; font-size:0.9rem;"
+              onchange="this.form.submit();">
         {% for val, label in age_options %}
         <option value="{{ val }}" {% if age == val %}selected{% endif %} style="background:#1a1a2e;">{{ label }}</option>
         {% endfor %}
       </select>
+      <span class="info-tip-wrap">
+        <button type="button" class="info-tip" tabindex="-1" aria-label="Aide Animations diverses">?</button>
+        <span class="info-tip-bubble"><strong>Animations diverses</strong> inclut :<br>• Parade de rue<br>• Apéro concert<br>• Bal<br>• Concert<br>• Atelier<br>• etc.</span>
+      </span>
+      </div>
     </div>
 
     <div style="flex:2; min-width:180px;">

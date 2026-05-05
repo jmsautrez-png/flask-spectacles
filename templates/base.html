@@ -85,7 +85,49 @@
   <meta name="theme-color" content="#6a11cb">
   
   <!-- Anti-flash blanc -->
-  <style>body{background:#0f0f12;color:#f5f6f8;}</style>
+  <style>body{background:#0f0f12;color:#f5f6f8;}
+
+  /* Badge "?" d'aide avec info-bulle au clic (toggle via :focus / .open) */
+  .info-tip-wrap { position: relative; display: inline-flex; align-items: center; flex: 0 0 auto; }
+  .info-tip { display: inline-flex; align-items: center; justify-content: center;
+    width: 28px; height: 28px; border-radius: 50%; border: 2px solid #ffb300; background: #fff3cd;
+    color: #b26a00; font-weight: 700; font-size: 14px; line-height: 1; cursor: pointer; user-select: none;
+    padding: 0; }
+  .info-tip:hover { background: #ffe082; }
+  .info-tip-bubble { display: none; position: absolute; bottom: calc(100% + 8px); left: 50%;
+    transform: translateX(-50%); width: 260px; background: #1a1a2e; color: #fff;
+    border: 1px solid #ffb300; border-radius: 8px; padding: 10px 14px; font-size: 13px;
+    font-weight: 400; line-height: 1.5; text-align: left; box-shadow: 0 6px 20px rgba(0,0,0,0.5);
+    z-index: 9999; }
+  .info-tip-bubble::after { content: ''; position: absolute; top: 100%; left: 50%;
+    transform: translateX(-50%); border: 7px solid transparent; border-top-color: #ffb300; }
+  .info-tip-wrap.open .info-tip-bubble { display: block; }
+  </style>
+  <script>
+    document.addEventListener('click', function(e) {
+      var btn = e.target.closest('.info-tip');
+      if (btn) {
+        e.preventDefault();
+        var wrap = btn.closest('.info-tip-wrap');
+        // Fermer les autres
+        document.querySelectorAll('.info-tip-wrap.open').forEach(function(w){ if (w !== wrap) w.classList.remove('open'); });
+        wrap.classList.toggle('open');
+      } else if (!e.target.closest('.info-tip-bubble')) {
+        // Clic ailleurs = ferme tout
+        document.querySelectorAll('.info-tip-wrap.open').forEach(function(w){ w.classList.remove('open'); });
+      }
+    });
+    // Auto-ouverture des info-bulles au chargement (10s) puis fermeture
+    // Désactivé sur le catalogue (visiteurs) — uniquement sur les formulaires
+    document.addEventListener('DOMContentLoaded', function() {
+      if (location.pathname.indexOf('/catalogue') !== -1) return;
+      var wraps = document.querySelectorAll('.info-tip-wrap');
+      wraps.forEach(function(w) { w.classList.add('open'); });
+      setTimeout(function() {
+        wraps.forEach(function(w) { w.classList.remove('open'); });
+      }, 10000);
+    });
+  </script>
   <!-- Stylesheet -->
   <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
   

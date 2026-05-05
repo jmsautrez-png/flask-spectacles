@@ -302,13 +302,19 @@ REGIONS_VOISINES = {
 # Utilisé sur : carte spectacle + demande d'animation + filtre catalogue
 # ═══════════════════════════════════════════════════════════════════
 PUBLICS = [
-    ("jp_0_3",  "Jeune public ou familial 0/3 ans"),
-    ("jp_4_8",  "Jeune public ou familial 4/8 ans"),
-    ("jp_8_11", "Jeune public ou familial 5/11 ans"),
-    ("fam_2",   "Toute la famille à partir de 2 ans"),
-    ("ad_12",   "Adulte à partir de 12 ans"),
-    ("ad_16",   "Adulte à partir de 16 ans"),
+    ("jp_0_3",   "Jeune public ou familial 0/3 ans"),
+    ("jp_4_8",   "Jeune public ou familial 4/8 ans"),
+    ("jp_7_11",  "Jeune public ou familial 7/11 ans"),
+    ("jp_des_3", "Jeune public ou familial dès 3 ans"),
+    ("anim_div", "Animations diverses"),
+    ("ad_12",    "Spectacle adulte à partir de 12 ans"),
+    ("ad_16",    "Spectacle adulte à partir de 16 ans"),
 ]
+
+# Détail / exemples affichés en tooltip pour certaines catégories
+PUBLICS_TOOLTIPS = {
+    "anim_div": "Inclut : parade de rue, apéro concert, bal, concert, atelier",
+}
 
 # Mapping pour rétrocompatibilité (anciennes valeurs → libellé d'affichage)
 PUBLICS_LEGACY_LABELS = {
@@ -319,6 +325,8 @@ PUBLICS_LEGACY_LABELS = {
     "familial":     "Familial (ancien format)",
     "tout public":  "Tout public (ancien format)",
     "adulte":       "Adulte (ancien format)",
+    "fam_2":        "Toute la famille à partir de 2 ans (ancien format)",
     "fam_3":        "Familial à partir de 3 ans (ancien format)",
     "fam_8":        "Familial à partir de 8 ans (ancien format)",
+    "jp_8_11":      "Jeune public 5/11 ans (ancien format)",
 }

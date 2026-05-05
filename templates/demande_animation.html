@@ -96,20 +96,27 @@
       <div class="grid-2">
         <label>
           {% set v_age = request.form.get('age_range','') or (d.age_range if d else '') %}
-          {% set new_codes = ['fam_2','jp_0_3','jp_4_8','jp_8_11','ad_12','ad_16'] %}
+          {% set new_codes = ['jp_0_3','jp_4_8','jp_7_11','jp_des_3','anim_div','ad_12','ad_16'] %}
           <span class="label-text">Public ciblé <span class="req">*</span></span>
-          <select id="age_range" name="age_range" required>
+          <div style="display:flex;gap:8px;align-items:center;">
+          <select id="age_range" name="age_range" required style="flex:1;">
             <option value="">-- Choisir un public --</option>
-            <option value="jp_0_3"  {% if v_age == 'jp_0_3'  %}selected{% endif %}>Jeune public ou familial 0/3 ans</option>
-            <option value="jp_4_8"  {% if v_age == 'jp_4_8'  %}selected{% endif %}>Jeune public ou familial 4/8 ans</option>
-            <option value="jp_8_11" {% if v_age == 'jp_8_11' %}selected{% endif %}>Jeune public ou familial 5/11 ans</option>
-            <option value="fam_2"   {% if v_age == 'fam_2'   %}selected{% endif %}>Toute la famille à partir de 2 ans</option>
-            <option value="ad_12"   {% if v_age == 'ad_12'   %}selected{% endif %}>Adulte à partir de 12 ans</option>
-            <option value="ad_16"   {% if v_age == 'ad_16'   %}selected{% endif %}>Adulte à partir de 16 ans</option>
+            <option value="jp_0_3"   {% if v_age == 'jp_0_3'   %}selected{% endif %}>Jeune public ou familial 0/3 ans</option>
+            <option value="jp_4_8"   {% if v_age == 'jp_4_8'   %}selected{% endif %}>Jeune public ou familial 4/8 ans</option>
+            <option value="jp_7_11"  {% if v_age == 'jp_7_11'  %}selected{% endif %}>Jeune public ou familial 7/11 ans</option>
+            <option value="jp_des_3" {% if v_age == 'jp_des_3' %}selected{% endif %}>Jeune public ou familial dès 3 ans</option>
+              <option value="anim_div" {% if v_age == 'anim_div' %}selected{% endif %}>Animations diverses *</option>
+            <option value="ad_12"    {% if v_age == 'ad_12'    %}selected{% endif %}>Spectacle adulte à partir de 12 ans</option>
+            <option value="ad_16"    {% if v_age == 'ad_16'    %}selected{% endif %}>Spectacle adulte à partir de 16 ans</option>
             {% if v_age and v_age not in new_codes %}
               <option value="{{ v_age }}" selected>⚠ Ancien format : {{ v_age }}</option>
             {% endif %}
           </select>
+          <span class="info-tip-wrap">
+            <button type="button" class="info-tip" tabindex="-1" aria-label="Aide Animations diverses">?</button>
+            <span class="info-tip-bubble"><strong>Animations diverses</strong> inclut :<br>• Parade de rue<br>• Apéro concert<br>• Bal<br>• Concert<br>• Atelier<br>• etc.</span>
+          </span>
+          </div>
           <small class="hint">Aide au choix de l'artiste / spectacle.</small>
         </label>
       </div>

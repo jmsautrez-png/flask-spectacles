@@ -15,25 +15,28 @@ _REGIONS_VOISINES_LOWER = {k.lower(): [r.lower() for r in v] for k, v in REGIONS
 # Groupes incompatibles : adulte vs enfant*  →  exclusion totale
 _GROUPE_ADULTE = {"adulte", "ad_12", "ad_16"}
 _GROUPE_ENFANT = {"enfant", "enfant_2_6", "enfant_5_10", "enfants_2_10",
-                  "jp_0_3", "jp_4_8", "jp_8_11"}
+                  "jp_0_3", "jp_4_8", "jp_7_11", "jp_8_11", "jp_des_3"}
 # Valeurs neutres : acceptées avec tout le monde
 _GROUPE_NEUTRE = {"familial", "tout public", "fam_2", "fam_3", "fam_8"}
+# Groupe "animations diverses" : strict, ne matche qu'avec lui-même
+_GROUPE_ANIM_DIV = {"anim_div"}
 
 # Tranches proches (chevauchement partiel)  →  boost doux
 _AGE_PROCHES = {
     # Ancien format
-    "enfant_2_6":   {"enfant_5_10", "enfants_2_10", "enfant", "jp_0_3", "jp_4_8", "fam_2"},
-    "enfant_5_10":  {"enfant_2_6",  "enfants_2_10", "enfant", "jp_4_8", "jp_8_11", "fam_2"},
-    "enfants_2_10": {"enfant_2_6",  "enfant_5_10",  "enfant", "jp_4_8", "jp_8_11", "fam_2"},
-    "enfant":       {"enfant_2_6",  "enfant_5_10",  "enfants_2_10", "jp_4_8", "fam_2"},
+    "enfant_2_6":   {"enfant_5_10", "enfants_2_10", "enfant", "jp_0_3", "jp_4_8", "jp_des_3"},
+    "enfant_5_10":  {"enfant_2_6",  "enfants_2_10", "enfant", "jp_4_8", "jp_7_11", "jp_8_11", "jp_des_3"},
+    "enfants_2_10": {"enfant_2_6",  "enfant_5_10",  "enfant", "jp_4_8", "jp_7_11", "jp_8_11", "jp_des_3"},
+    "enfant":       {"enfant_2_6",  "enfant_5_10",  "enfants_2_10", "jp_4_8", "jp_des_3"},
     # Nouveau format (jeune public ou familial)
-    "jp_0_3":       {"jp_4_8", "enfant_2_6", "fam_2"},
-    "jp_4_8":       {"jp_0_3", "jp_8_11", "enfant", "enfant_2_6", "enfant_5_10", "enfants_2_10", "fam_2"},
-    "jp_8_11":      {"jp_4_8", "enfant_5_10", "enfants_2_10", "fam_2"},
-    # Nouveau format (toute la famille)
-    "fam_2":        {"jp_0_3", "jp_4_8", "jp_8_11", "enfant", "enfant_2_6", "enfant_5_10", "enfants_2_10", "familial"},
-    # Ancien format (familial à partir de X)
-    "fam_3":        {"fam_8", "fam_2"},
+    "jp_0_3":       {"jp_4_8", "enfant_2_6"},
+    "jp_4_8":       {"jp_0_3", "jp_7_11", "jp_8_11", "jp_des_3", "enfant", "enfant_2_6", "enfant_5_10", "enfants_2_10"},
+    "jp_7_11":      {"jp_4_8", "jp_8_11", "jp_des_3", "enfant_5_10", "enfants_2_10"},
+    "jp_8_11":      {"jp_4_8", "jp_7_11", "jp_des_3", "enfant_5_10", "enfants_2_10"},
+    "jp_des_3":     {"jp_4_8", "jp_7_11", "jp_8_11", "enfant", "enfant_2_6", "enfant_5_10", "enfants_2_10"},
+    # Ancien format (familial à partir de X / toute la famille)
+    "fam_2":        {"jp_0_3", "jp_4_8", "jp_7_11", "jp_8_11", "jp_des_3", "enfant", "familial"},
+    "fam_3":        {"fam_8", "fam_2", "jp_des_3"},
     "fam_8":        {"fam_3", "fam_2"},
     # Nouveau format (adulte)
     "ad_12":        {"ad_16", "adulte"},
@@ -54,6 +57,12 @@ def _age_score(show_age_raw, dem_age_raw):
     # Si l'un des deux n'est pas renseigné → pas d'exclusion, pas de bonus
     if not show_age or not dem_age:
         return True, 0.0
+
+    # Animations diverses : strict, doit matcher exactement
+    if dem_age in _GROUPE_ANIM_DIV or show_age in _GROUPE_ANIM_DIV:
+        if show_age == dem_age:
+            return True, 10.0
+        return False, 0.0
 
     # Valeurs neutres → toujours compatible, bonus neutre
     if dem_age in _GROUPE_NEUTRE or show_age in _GROUPE_NEUTRE:

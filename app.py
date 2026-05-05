@@ -622,20 +622,37 @@ def create_app() -> Flask:
     # Filtre Jinja2 pour formater les âges
     @app.template_filter('format_age')
     def format_age(value):
-        """Formate les valeurs d'âge : enfant_2_10 → enfant 2/10ans"""
+        """Affiche un libellé court et lisible pour la valeur age_range.
+
+        Utilise d'abord PUBLICS (nouveaux codes) puis PUBLICS_LEGACY_LABELS,
+        sinon fallback sur l'ancien comportement (regex)."""
         if not value:
             return value
+        v = str(value).strip().lower()
+        # Libellés courts pour l'affichage compact des cartes
+        short_labels = {
+            "jp_0_3":   "Jeune public 0/3 ans",
+            "jp_4_8":   "Jeune public 4/8 ans",
+            "jp_7_11":  "Jeune public 7/11 ans",
+            "jp_8_11":  "Jeune public 5/11 ans",
+            "jp_des_3": "Jeune public dès 3 ans",
+            "anim_div": "Animations diverses",
+            "ad_12":    "Adulte 12 ans+",
+            "ad_16":    "Adulte 16 ans+",
+            "fam_2":    "Famille dès 2 ans",
+            "fam_3":    "Familial dès 3 ans",
+            "fam_8":    "Familial dès 8 ans",
+        }
+        if v in short_labels:
+            return short_labels[v]
+        # Fallback ancien (enfant_2_10 → enfant 2/10ans)
         import re
-        # Remplacer enfant_X_Y(ans optionnel) par enfant X/Y
-        value = re.sub(r'_(\d+)_(\d+)(ans)?', r' \1/\2', value)
-        # Remplacer enfants_X_Y(ans optionnel) par enfants X/Y  
-        value = re.sub(r's_(\d+)_(\d+)(ans)?', r's \1/\2', value)
-        # Supprimer les underscores restants
-        value = value.replace('_', ' ')
-        # Ajouter "ans" à la fin si la valeur contient des chiffres et ne se termine pas déjà par "ans"
-        if re.search(r'\d', value) and not value.endswith('ans'):
-            value += 'ans'
-        return value
+        out = re.sub(r'_(\d+)_(\d+)(ans)?', r' \1/\2', value)
+        out = re.sub(r's_(\d+)_(\d+)(ans)?', r's \1/\2', out)
+        out = out.replace('_', ' ')
+        if re.search(r'\d', out) and not out.endswith('ans'):
+            out += 'ans'
+        return out
 
     # Context processor pour les spectacles à la une (diaporama header)
     @app.context_processor
