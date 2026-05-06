@@ -701,13 +701,14 @@ def create_app() -> Flask:
     def inject_featured_shows():
         """Injecte les spectacles à la une avec images pour le diaporama header"""
         try:
-            # Uniquement les spectacles de la catégorie "à la une"
+            # Uniquement les spectacles de la catégorie "à la une" OU avec is_featured=True
             featured = Show.query.filter(
                 Show.approved.is_(True),
                 Show.file_mimetype.ilike("image/%"),
                 or_(
                     Show.category.ilike('%à la une%'),
-                    Show.category.ilike('%a la une%')
+                    Show.category.ilike('%a la une%'),
+                    Show.is_featured.is_(True)
                 )
             ).order_by(Show.created_at.desc()).all()
             
@@ -1630,6 +1631,11 @@ def register_routes(app: Flask) -> None:
                     conds.append(Show.specialites.ilike("%a la une%"))
                     conds.append(Show.category.ilike("%à la une%"))
                     conds.append(Show.category.ilike("%a la une%"))
+                    # + flag boolean is_featured (case cochée par admin/cie)
+                    try:
+                        conds.append(Show.is_featured.is_(True))
+                    except Exception:
+                        pass
                 else:
                     like = f"%{s}%"
                     conds.append(Show.specialites.ilike(like))
