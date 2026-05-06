@@ -257,7 +257,18 @@
         var reqEl = section.querySelector('.pc-sub-cb[value="'+requiresSub+'"]');
         requiresMet = !!(reqEl && reqEl.checked);
       }
-      if (locked && !isExclusive && !isCompat && !cb.checked){
+      // Ne pas verrouiller une catégorie qui contient au moins une sous-option compat avec l'exclusive cochée
+      var isCatWithCompat = false;
+      if (cb.classList.contains('pc-cat-cb')){
+        var catEl = section.querySelector('.pc-cat[data-code="'+cb.value+'"]');
+        if (catEl){
+          var subs = catEl.querySelectorAll('.pc-sub-cb');
+          for (var i=0;i<subs.length;i++){
+            if (compat.indexOf(subs[i].value) !== -1){ isCatWithCompat = true; break; }
+          }
+        }
+      }
+      if (locked && !isExclusive && !isCompat && !isCatWithCompat && !cb.checked){
         cb.disabled = true;
         if (cb.parentElement) cb.parentElement.style.opacity = '0.4';
       } else if (requiresSub && !requiresMet){
@@ -353,6 +364,8 @@
           applyExclusiveLock();
         }
       }
+      // Rafraîchir l'état des locks (ex: fam_pe coché doit débloquer la cat famille)
+      applyExclusiveLock();
       updateCount();
     });
   });

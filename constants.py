@@ -386,6 +386,8 @@ PUBLIC_CIBLE_ORGANISATEUR = [
         "label": "Événement scolaire / pour enfants (public d'enfants seuls)",
         "icon": "",
         "hint": "Spectacle, animation, atelier",
+        "exclusive_subs": ["creche"],
+        "exclusive_compat": {"creche": ["mat", "fam_pe"]},
         "sous_options": [
             ("creche", "Crèche / Halte-garderie"),
             ("mat",  "Maternelle"),
@@ -398,6 +400,8 @@ PUBLIC_CIBLE_ORGANISATEUR = [
         "label": "Événement public / familial (enfants et adultes ensemble)",
         "icon": "",
         "hint": "Kermesse, fête de quartier, fête de Noël, marché, spectacle / théâtre…",
+        "single_select": True,
+        "sub_requires": {"fam_pe": "creche"},
         "sous_options": [
             ("fam_pe", "Petite enfance (0-3 ans accompagnés)"),
             ("fam_3", "Dès 3 ans (tout-petits accompagnés)"),
