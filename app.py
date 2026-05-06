@@ -662,10 +662,17 @@ def create_app() -> Flask:
         for _code, _label in _cat["sous_options"]:
             _PC_SUB_LABELS[_code] = _label
 
+    # Libellés courts par code de catégorie (pour affichage compact sur les cartes)
+    _PC_SHORT = {
+        "enfants": "Enfants",
+        "famille": "Famille",
+        "adultes": "Adultes",
+    }
+
     @app.template_filter('format_public_cible')
     def format_public_cible(show):
         """Retourne un libellé compact du public ciblé, ex.:
-        'Famille (dès 3 ans)' ou 'Enfants (Maternelle, Élémentaire), Famille (dès 3 ans)'.
+        'Famille (dès 3 ans)' ou 'Enfants (Maternelle, Élémentaire) · Famille (dès 3 ans)'.
         Si aucune donnée v2, retourne le format_age sur show.age_range.
         """
         cats_csv = getattr(show, 'public_categories', None)
@@ -676,18 +683,18 @@ def create_app() -> Flask:
         subs = set(s.strip() for s in (subs_csv or '').split(',') if s.strip())
         parts = []
         for cat_code in cats:
-            cat_label = _PC_CAT_LABELS.get(cat_code, cat_code)
-            # courts labels (sans le préfixe "Spectacle pour ")
-            short = cat_label.replace("Spectacle pour les ", "").replace("Spectacle pour ", "").capitalize()
+            short = _PC_SHORT.get(cat_code, cat_code.capitalize())
             cat_subs = []
             for sub_code, sub_label in [(s, _PC_SUB_LABELS.get(s)) for s in subs]:
                 if sub_label and sub_code in [c[0] for c in next((cat["sous_options"] for cat in PUBLIC_CIBLE_CATEGORIES if cat["code"] == cat_code), [])]:
-                    cat_subs.append(sub_label)
+                    # Sous-libellé court : enlever préfixes "Dès X ans" reste, mais "Spectacle adulte à partir de" → "Dès X ans"
+                    short_sub = sub_label.replace("Spectacle adulte à partir de ", "Dès ").replace("Toute la famille à partir de ", "Famille dès ")
+                    cat_subs.append(short_sub)
             if cat_subs:
                 parts.append(f"{short} ({', '.join(cat_subs)})")
             else:
                 parts.append(short)
-        return ", ".join(parts)
+        return " · ".join(parts)
 
     # Context processor pour les spectacles à la une (diaporama header)
     @app.context_processor

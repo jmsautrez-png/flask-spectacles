@@ -204,7 +204,7 @@
         // Si au moins une cat de bypass est cochée → autorisé (le warning orange permanent est géré par refreshAllPublicWarning)
         var bypassed = bypass.some(function(b){ return cats.indexOf(b) !== -1; });
         if (bypassed){ continue; }
-        showErr("Catégories incompatibles : « " + pair[0] + " » et « " + pair[1] + " » ne peuvent pas être cochées ensemble (cochez aussi « famille » pour autoriser un spectacle tous publics).");
+        showErr("Catégories incompatibles : « " + pair[0] + " » et « " + pair[1] + " » ne peuvent pas être cochées ensemble. Pour un spectacle mixte enfants+adultes, utilisez « famille » seul.");
         return false;
       }
     }

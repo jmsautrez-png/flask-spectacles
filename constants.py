@@ -343,7 +343,7 @@ PUBLICS_LEGACY_LABELS = {
 PUBLIC_CIBLE_CATEGORIES = [
     {
         "code": "enfants",
-        "label": "Spectacle pour enfants",
+        "label": "Spectacle pour enfants (public d'enfants seuls)",
         "icon": "",
         "requires": ["famille"],  # cocher enfants impose de cocher aussi une option famille
         "exclusive_subs": ["creche"],  # cocher crèche : aucune autre case (cat ou sous-option) ne peut être cochée
@@ -357,7 +357,7 @@ PUBLIC_CIBLE_CATEGORIES = [
     },
     {
         "code": "famille",
-        "label": "Spectacle pour la famille",
+        "label": "Spectacle pour la famille (tous spectacles comprenant un public familial : enfants et adultes)",
         "icon": "",
         "single_select": True,  # une seule sous-option (Dès 3 ans OU Dès 6 ans)
         "sous_options": [
@@ -367,7 +367,7 @@ PUBLIC_CIBLE_CATEGORIES = [
     },
     {
         "code": "adultes",
-        "label": "Spectacle pour les adultes",
+        "label": "Spectacle pour les adultes (public adultes seuls)",
         "icon": "",
         "sous_options": [
             ("ad_12", "Dès 12 ans"),
@@ -381,9 +381,9 @@ PUBLIC_CIBLE_CATEGORIES = [
 PUBLIC_CIBLE_ORGANISATEUR = [
     {
         "code": "enfants",  # même code que côté artiste pour matching direct
-        "label": "Événement scolaire / pour enfants",
+        "label": "Événement scolaire / pour enfants (public d'enfants seuls)",
         "icon": "",
-        "hint": "École, centre de loisirs, crèche…",
+        "hint": "Spectacle, animation, atelier",
         "sous_options": [
             ("creche", "Crèche / Halte-garderie"),
             ("mat",  "Maternelle"),
@@ -393,9 +393,9 @@ PUBLIC_CIBLE_ORGANISATEUR = [
     },
     {
         "code": "famille",
-        "label": "Événement public / familial",
+        "label": "Événement public / familial (enfants et adultes ensemble)",
         "icon": "",
-        "hint": "Kermesse, fête de quartier, fête de Noël, marché…",
+        "hint": "Kermesse, fête de quartier, fête de Noël, marché, spectacle / théâtre…",
         "sous_options": [
             ("fam_3", "Dès 3 ans (tout-petits accompagnés)"),
             ("fam_6", "Dès 6 ans (familles avec enfants scolarisés)"),
@@ -403,9 +403,9 @@ PUBLIC_CIBLE_ORGANISATEUR = [
     },
     {
         "code": "adultes",
-        "label": "Événement adulte",
+        "label": "Événement adulte (public adultes seuls)",
         "icon": "",
-        "hint": "Bal, concert, soirée CSE, mariage, soirée d'entreprise…",
+        "hint": "Bal, concert, spectacle / théâtre, soirée CSE, mariage, soirée d'entreprise…",
         "sous_options": [
             ("ad_12", "Dès 12 ans"),
             ("ad_16", "Dès 16 ans (contenu adulte)"),
@@ -420,7 +420,10 @@ PUBLIC_CIBLE_CODES_VALIDES = {
 }
 
 # Catégories incompatibles entre elles
-# Format : (cat_a, cat_b, [bypass_cats])
-#   - Si cat_a et cat_b sont cochées ensemble → conflit
-#   - Sauf si une cat de bypass_cats est aussi cochée (ex: famille fait le pont) → simple avertissement non-bloquant
-PUBLIC_CIBLE_INCOMPATIBLES = [("enfants", "adultes", ["famille"])]
+# Format : (cat_a, cat_b, [bypass_cats])  (bypass = [] : strict, aucune exception)
+#   - famille ↔ adultes : bloqué (famille couvre déjà le public adulte mixte)
+#   - enfants ↔ adultes : bloqué (deux publics purs séparés = incohérent, utiliser « famille »)
+PUBLIC_CIBLE_INCOMPATIBLES = [
+    ("enfants", "adultes", []),
+    ("famille", "adultes", []),
+]
