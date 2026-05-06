@@ -3364,8 +3364,8 @@ def register_routes(app: Flask) -> None:
                             
                             <!-- View Button -->
                             <div style="text-align: center; margin: 30px 0;">
-                                <a href="{show_url}" style="display: inline-block; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; text-decoration: none; padding: 14px 40px; border-radius: 30px; font-weight: bold; font-size: 16px; box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);">
-                                    👁️ Voir mon annonce
+                                <a href="{show_url}" style="display: inline-block; background-color: #667eea; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: #ffffff !important; text-decoration: none; padding: 14px 40px; border-radius: 30px; font-weight: bold; font-size: 16px; box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);">
+                                    <span style="color:#ffffff;">👁️ Voir mon annonce</span>
                                 </a>
                             </div>
                             
