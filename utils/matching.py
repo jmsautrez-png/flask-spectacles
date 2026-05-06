@@ -1,6 +1,9 @@
 """Matching engine: score spectacle companies against calls for tender."""
 
-from constants import SPECIALITES, EVENEMENTS, LIEUX, REGIONS_FRANCE, REGIONS_VOISINES
+from constants import (
+    SPECIALITES, EVENEMENTS, LIEUX, REGIONS_FRANCE, REGIONS_VOISINES,
+    PUBLIC_CIBLE_CODES_VALIDES,
+)
 
 # Nombre total d'options par axe (calculé une seule fois au chargement)
 _TOTAL_SPECS = sum(len(v) for v in SPECIALITES.values())
@@ -93,6 +96,47 @@ def _csv_to_set(value):
     return {v.strip().lower() for v in value.split(",") if v.strip()}
 
 
+def _public_cible_compatible(show, demande):
+    """Matching strict Public Cible v2.
+
+    Retourne (compatible: bool, has_data: bool).
+    - has_data=False  → la demande n'utilise pas le nouveau format ; l'appelant
+                        retombera sur l'ancien filtre age_range.
+    - compatible=True → au moins 1 catégorie commune ET au moins 1 sous-option
+                        commune (parmi les sous-options des catégories communes).
+    """
+    dem_cats = _csv_to_set(getattr(demande, "public_categories", None))
+    if not dem_cats:
+        return True, False  # ancien format, pas de filtre v2
+    show_cats = _csv_to_set(getattr(show, "public_categories", None))
+    if not show_cats:
+        return False, True  # demande v2 mais show pas migré → exclu
+    common_cats = dem_cats & show_cats
+    if not common_cats:
+        return False, True
+
+    dem_subs = _csv_to_set(getattr(demande, "public_sous_options", None))
+    show_subs = _csv_to_set(getattr(show, "public_sous_options", None))
+
+    # Restreindre les sous-options aux catégories communes
+    allowed_subs = set()
+    for cat_code in common_cats:
+        for sub in PUBLIC_CIBLE_CODES_VALIDES.get(cat_code, []):
+            allowed_subs.add(sub.lower())
+
+    dem_subs_in_common = dem_subs & allowed_subs
+    show_subs_in_common = show_subs & allowed_subs
+
+    # Si la demande n'a pas précisé de sous-options pour les catégories communes,
+    # la catégorie commune suffit
+    if not dem_subs_in_common:
+        return True, True
+    # Sinon il faut au moins 1 sous-option commune
+    if dem_subs_in_common & show_subs_in_common:
+        return True, True
+    return False, True
+
+
 def _specificity(n_checked, n_total):
     """Pénalité de spécificité : plus on coche, plus le score est dilué.
 
@@ -135,6 +179,16 @@ def compute_score(show, demande):
         getattr(show, "age_range", None),
         getattr(demande, "age_range", None),
     )
+
+    # -- Public Cible v2 (matching strict catégories + sous-options) --
+    public_compatible, public_v2_used = _public_cible_compatible(show, demande)
+    if public_v2_used:
+        # Le format v2 est utilisé sur la demande : il prend le pas sur age_range
+        age_compatible = public_compatible
+        if public_compatible:
+            age_bonus = 10.0
+        else:
+            age_bonus = 0.0
 
     # -- Spécialités (40%) --
     if dem_specs:

@@ -1,5 +1,5 @@
 ﻿{% extends "base.html" %}
-{% from "_accordion_checkboxes.html" import accordion_checkboxes, regions_checkboxes, accordion_checkboxes_js %}
+{% from "_accordion_checkboxes.html" import accordion_checkboxes, regions_checkboxes, accordion_checkboxes_js, accordion_public_cible, public_cible_js %}
 {% block title %}Compléter le spectacle - Spectacle'ment VØtre{% endblock %}
 {% block content %}
 <h2>Compléter le spectacle</h2>
@@ -70,27 +70,11 @@
       </script>
 
       <label>Public ciblé *
-    {% set current_age = (request.form.get('age_range') if request.method=='POST' else (show.age_range if show else '')) %}
-    {% set new_codes = ['jp_0_3','jp_4_8','jp_7_11','jp_des_3','anim_div','ad_12','ad_16'] %}
-    <div style="display:flex;gap:8px;align-items:center;">
-      <select name="age_range" required style="flex:1;">
-        <option value="">-- Choisir un public --</option>
-        <option value="jp_0_3"   {% if current_age == 'jp_0_3'   %}selected{% endif %}>Jeune public ou familial 0/3 ans</option>
-        <option value="jp_4_8"   {% if current_age == 'jp_4_8'   %}selected{% endif %}>Jeune public ou familial 4/8 ans</option>
-        <option value="jp_7_11"  {% if current_age == 'jp_7_11'  %}selected{% endif %}>Jeune public ou familial 7/11 ans</option>
-        <option value="jp_des_3" {% if current_age == 'jp_des_3' %}selected{% endif %}>Jeune public ou familial dès 3 ans</option>
-        <option value="anim_div" {% if current_age == 'anim_div' %}selected{% endif %}>Animations diverses *</option>
-        <option value="ad_12"    {% if current_age == 'ad_12'    %}selected{% endif %}>Spectacle adulte à partir de 12 ans</option>
-        <option value="ad_16"    {% if current_age == 'ad_16'    %}selected{% endif %}>Spectacle adulte à partir de 16 ans</option>
-        {% if current_age and current_age not in new_codes %}
-          <option value="{{ current_age }}" selected>⚠ Ancien format : {{ current_age }} (à mettre à jour)</option>
-        {% endif %}
-      </select>
-      <span class="info-tip-wrap">
-        <button type="button" class="info-tip" tabindex="-1" aria-label="Aide Animations diverses">?</button>
-        <span class="info-tip-bubble"><strong>Animations diverses</strong> inclut :<br>• Parade de rue<br>• Apéro concert<br>• Bal<br>• Concert<br>• Atelier<br>• etc.</span>
-      </span>
-    </div>
+    {# Public Cible v2 : catégories + sous-options en CSV (accordéon réutilisable) #}
+    {% set saved_cats = (show.public_categories.split(',') if show and show.public_categories else []) %}
+    {% set saved_subs = (show.public_sous_options.split(',') if show and show.public_sous_options else []) %}
+    {{ accordion_public_cible(PUBLIC_CIBLE_CATEGORIES, saved_cats, saved_subs, PUBLIC_CIBLE_INCOMPATIBLES, "#4caf50", "#fff", "Public ciblé", "Cochez la ou les catégories de public, puis précisez les tranches d'âge.") }}
+    <input type="hidden" name="age_range" value="{{ show.age_range if show and show.age_range else '' }}">
   </label>
 
   <label>Site internet
@@ -486,6 +470,7 @@ document.addEventListener('DOMContentLoaded', function() {
 // Désactivé : pas de checkboxes event_tags dans le formulaire d'édition
 </script>
 {{ accordion_checkboxes_js() }}
+{{ public_cible_js() }}
 {% endblock %}
 
   <label>Email de contact <span style="font-size:0.85rem;font-weight:normal;color:var(--muted);">(Modifiable uniquement par l'admin)</span>

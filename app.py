@@ -95,7 +95,7 @@ from utils.security import (
 )
 from utils.search import normalize_search_text, generate_search_patterns
 from utils.seo import SEO_CATEGORIES, optimize_title_seo
-from constants import SPECIALITES, EVENEMENTS, LIEUX, REGIONS_FRANCE, REGIONS_VOISINES, PUBLICS
+from constants import SPECIALITES, EVENEMENTS, LIEUX, REGIONS_FRANCE, REGIONS_VOISINES, PUBLICS, PUBLIC_CIBLE_CATEGORIES, PUBLIC_CIBLE_ORGANISATEUR, PUBLIC_CIBLE_INCOMPATIBLES, PUBLIC_CIBLE_CODES_VALIDES
 
 print("✓ Config, models et utils importés")
 
@@ -654,6 +654,41 @@ def create_app() -> Flask:
             out += 'ans'
         return out
 
+    # Filtre Public Cible v2 : produit un texte court à partir des CSV
+    # public_categories + public_sous_options. Fallback sur format_age si vide.
+    _PC_CAT_LABELS = {cat["code"]: cat["label"] for cat in PUBLIC_CIBLE_CATEGORIES}
+    _PC_SUB_LABELS = {}
+    for _cat in PUBLIC_CIBLE_CATEGORIES:
+        for _code, _label in _cat["sous_options"]:
+            _PC_SUB_LABELS[_code] = _label
+
+    @app.template_filter('format_public_cible')
+    def format_public_cible(show):
+        """Retourne un libellé compact du public ciblé, ex.:
+        'Famille (dès 3 ans)' ou 'Enfants (Maternelle, Élémentaire), Famille (dès 3 ans)'.
+        Si aucune donnée v2, retourne le format_age sur show.age_range.
+        """
+        cats_csv = getattr(show, 'public_categories', None)
+        subs_csv = getattr(show, 'public_sous_options', None)
+        if not cats_csv:
+            return format_age(getattr(show, 'age_range', None))
+        cats = [c.strip() for c in cats_csv.split(',') if c.strip()]
+        subs = set(s.strip() for s in (subs_csv or '').split(',') if s.strip())
+        parts = []
+        for cat_code in cats:
+            cat_label = _PC_CAT_LABELS.get(cat_code, cat_code)
+            # courts labels (sans le préfixe "Spectacle pour ")
+            short = cat_label.replace("Spectacle pour les ", "").replace("Spectacle pour ", "").capitalize()
+            cat_subs = []
+            for sub_code, sub_label in [(s, _PC_SUB_LABELS.get(s)) for s in subs]:
+                if sub_label and sub_code in [c[0] for c in next((cat["sous_options"] for cat in PUBLIC_CIBLE_CATEGORIES if cat["code"] == cat_code), [])]:
+                    cat_subs.append(sub_label)
+            if cat_subs:
+                parts.append(f"{short} ({', '.join(cat_subs)})")
+            else:
+                parts.append(short)
+        return ", ".join(parts)
+
     # Context processor pour les spectacles à la une (diaporama header)
     @app.context_processor
     def inject_featured_shows():
@@ -751,6 +786,14 @@ def create_app() -> Flask:
         ).count() > 0
         return {'user_has_show': has}
 
+    @app.context_processor
+    def inject_public_cible():
+        return {
+            'PUBLIC_CIBLE_CATEGORIES': PUBLIC_CIBLE_CATEGORIES,
+            'PUBLIC_CIBLE_ORGANISATEUR': PUBLIC_CIBLE_ORGANISATEUR,
+            'PUBLIC_CIBLE_INCOMPATIBLES': PUBLIC_CIBLE_INCOMPATIBLES,
+        }
+
     register_routes(app)
     register_error_handlers(app)
     return app
@@ -790,6 +833,8 @@ def _run_critical_migrations(app: Flask) -> None:
         ("shows", "evenements", "TEXT", "TEXT", None),
         ("shows", "lieux_intervention", "TEXT", "TEXT", None),
         ("shows", "regions_intervention", "TEXT", "TEXT", None),
+        ("shows", "public_categories", "TEXT", "TEXT", None),
+        ("shows", "public_sous_options", "TEXT", "TEXT", None),
         # ── demande_animation ──
         ("demande_animation", "is_private", "BOOLEAN DEFAULT FALSE", "BOOLEAN DEFAULT 0", "FALSE"),
         ("demande_animation", "approved", "BOOLEAN DEFAULT FALSE", "BOOLEAN DEFAULT 0", "FALSE"),
@@ -799,6 +844,8 @@ def _run_critical_migrations(app: Flask) -> None:
         ("demande_animation", "lieux_souhaites", "TEXT", "TEXT", None),
         ("demande_animation", "date_debut", "VARCHAR(20)", "VARCHAR(20)", None),
         ("demande_animation", "date_fin", "VARCHAR(20)", "VARCHAR(20)", None),
+        ("demande_animation", "public_categories", "TEXT", "TEXT", None),
+        ("demande_animation", "public_sous_options", "TEXT", "TEXT", None),
         # ── users ──
         ("users", "pending_deletion_at", "TIMESTAMP", "DATETIME", None),
     ]
@@ -1535,6 +1582,9 @@ def register_routes(app: Flask) -> None:
         evenements_selected = [e.strip() for e in request.args.getlist("evenement") if e.strip()]
         region              = request.args.get("region", "", type=str).strip()
         age                 = request.args.get("age", "", type=str).strip()
+        # Public ciblé v2 (filtre indépendant du matching)
+        public_cats_selected = [c.strip() for c in request.args.getlist("public_categories") if c.strip()]
+        public_subs_selected = [s.strip() for s in request.args.getlist("public_sous_options") if s.strip()]
         page                = request.args.get("page", 1, type=int)
 
         # Résolution ville → région (ex: "Toulouse" → "Occitanie")
@@ -1592,6 +1642,29 @@ def register_routes(app: Flask) -> None:
                 Show.region.ilike(like),
                 Show.location.ilike(like),
             ))
+
+        # -- Filtre Public ciblé v2 (catégories + sous-options) --
+        # Logique : si au moins une catégorie cochée, on garde les shows dont
+        # public_categories contient au moins une cat commune. Si en plus des
+        # sous-options sont cochées, on exige aussi au moins une sous-option commune.
+        # Un show sans public_categories est exclu dès qu'un filtre est actif.
+        # Matching CSV strict via délimiteurs (évite les faux positifs).
+        def _csv_match_conds(col, codes):
+            conds = []
+            for c in codes:
+                conds.append(col == c)
+                conds.append(col.ilike(f"{c},%"))
+                conds.append(col.ilike(f"%,{c}"))
+                conds.append(col.ilike(f"%,{c},%"))
+            return conds
+
+        if public_cats_selected:
+            shows = shows.filter(Show.public_categories.isnot(None))
+            shows = shows.filter(Show.public_categories != "")
+            shows = shows.filter(or_(*_csv_match_conds(Show.public_categories, public_cats_selected)))
+            if public_subs_selected:
+                shows = shows.filter(Show.public_sous_options.isnot(None))
+                shows = shows.filter(or_(*_csv_match_conds(Show.public_sous_options, public_subs_selected)))
 
         # -- Filtre tranche d'âge / public (STRICT pour nouvelles valeurs, tolérant pour anciennes) --
         if age:
@@ -1652,6 +1725,8 @@ def register_routes(app: Flask) -> None:
             evenements_data=EVENEMENTS,
             region=region,
             age=age,
+            public_cats_selected=public_cats_selected,
+            public_subs_selected=public_subs_selected,
             all_specialites=all_specialites,
             all_regions=REGIONS_FRANCE,
             age_options=[("", "Tous les publics")] + PUBLICS,
@@ -1911,6 +1986,8 @@ def register_routes(app: Flask) -> None:
             evenements_list = request.form.getlist("evenements")
             lieux_list = request.form.getlist("lieux_intervention")
             regions_list = request.form.getlist("regions_intervention")
+            public_categories_list = request.form.getlist("public_categories")
+            public_sous_options_list = request.form.getlist("public_sous_options")
 
             # Catégorie auto-dérivée de la 1ère spécialité
             category = specialites_list[0] if specialites_list else ""
@@ -2027,6 +2104,8 @@ def register_routes(app: Flask) -> None:
                 evenements=",".join(evenements_list) if evenements_list else None,
                 lieux_intervention=",".join(lieux_list) if lieux_list else None,
                 regions_intervention=",".join(regions_list) if regions_list else None,
+                public_categories=",".join(public_categories_list) if public_categories_list else None,
+                public_sous_options=",".join(public_sous_options_list) if public_sous_options_list else None,
             )
             db.session.add(show)
             db.session.commit()
@@ -3118,6 +3197,33 @@ def register_routes(app: Flask) -> None:
             show.evenements = ",".join(request.form.getlist("evenements"))
             show.lieux_intervention = ",".join(request.form.getlist("lieux_intervention"))
             show.regions_intervention = ",".join(request.form.getlist("regions_intervention"))
+            _pc_cats = request.form.getlist("public_categories")
+            _pc_subs = request.form.getlist("public_sous_options")
+            # Appliquer single_select : pour chaque catégorie marquée single_select,
+            # ne garder qu'une seule sous-option (la première reçue)
+            for _cat_def in PUBLIC_CIBLE_CATEGORIES:
+                if _cat_def.get("single_select"):
+                    _allowed = [c[0] for c in _cat_def["sous_options"]]
+                    _kept = [s for s in _pc_subs if s in _allowed]
+                    if len(_kept) > 1:
+                        _pc_subs = [s for s in _pc_subs if s not in _allowed] + [_kept[0]]
+            # Vérifier les dépendances 'requires' (ex: enfants impose famille)
+            _missing_req = []
+            for _cat_def in PUBLIC_CIBLE_CATEGORIES:
+                if _cat_def["code"] in _pc_cats:
+                    for _req in _cat_def.get("requires", []) or []:
+                        if _req not in _pc_cats:
+                            _missing_req.append((_cat_def["code"], _req))
+                            continue
+                        _req_subs = [c[0] for c in next((c["sous_options"] for c in PUBLIC_CIBLE_CATEGORIES if c["code"] == _req), [])]
+                        if not any(s in _req_subs for s in _pc_subs):
+                            _missing_req.append((_cat_def["code"], _req))
+            if _missing_req:
+                msg = " ; ".join(f"« {a} » requiert une option dans « {b} »" for a, b in _missing_req)
+                flash(f"Public ciblé incomplet : {msg}", "danger")
+                return redirect(request.url)
+            show.public_categories = ",".join(_pc_cats) or None
+            show.public_sous_options = ",".join(_pc_subs) or None
 
             db.session.commit()
             flash("Annonce mise à jour.", "success")
@@ -3547,6 +3653,10 @@ def register_routes(app: Flask) -> None:
             evenements_contexte = ",".join(request.form.getlist("evenements_contexte"))
             lieux_souhaites = ",".join(request.form.getlist("lieux_souhaites"))
 
+            # Public Cible v2 (matching strict)
+            public_categories = ",".join(request.form.getlist("public_categories"))
+            public_sous_options = ",".join(request.form.getlist("public_sous_options"))
+
             # Portée géographique
             portee_nationale = request.form.get("portee_nationale", "1") == "1"
 
@@ -3641,6 +3751,8 @@ Accessibilité: {accessibilite}
                 specialites_recherchees=specialites_recherchees,
                 evenements_contexte=evenements_contexte,
                 lieux_souhaites=lieux_souhaites,
+                public_categories=public_categories or None,
+                public_sous_options=public_sous_options or None,
                 portee_nationale=portee_nationale,
                 is_private=False,  # Publique par défaut
                 approved=False  # En attente de validation par l'admin
@@ -4149,6 +4261,10 @@ Accessibilité: {accessibilite}
             demande.specialites_recherchees = ",".join(request.form.getlist("specialites_recherchees")[:4]) or demande.specialites_recherchees
             demande.evenements_contexte = ",".join(request.form.getlist("evenements_contexte")) or demande.evenements_contexte
             demande.lieux_souhaites = ",".join(request.form.getlist("lieux_souhaites")) or demande.lieux_souhaites
+            _new_pc = ",".join(request.form.getlist("public_categories"))
+            _new_pso = ",".join(request.form.getlist("public_sous_options"))
+            demande.public_categories = _new_pc if _new_pc else demande.public_categories
+            demande.public_sous_options = _new_pso if _new_pso else demande.public_sous_options
             demande.portee_nationale = request.form.get("portee_nationale", "1") == "1"
             demande.is_private = request.form.get("is_private") == "on"
             db.session.commit()
@@ -4362,6 +4478,10 @@ Accessibilité: {accessibilite}
             evenements_contexte = ",".join(request.form.getlist("evenements_contexte"))
             lieux_souhaites = ",".join(request.form.getlist("lieux_souhaites"))
 
+            # Public Cible v2
+            public_categories = ",".join(request.form.getlist("public_categories"))
+            public_sous_options = ",".join(request.form.getlist("public_sous_options"))
+
             # Portée géographique
             portee_nationale = request.form.get("portee_nationale", "1") == "1"
 
@@ -4397,6 +4517,8 @@ Accessibilité: {accessibilite}
                 specialites_recherchees=specialites_recherchees,
                 evenements_contexte=evenements_contexte,
                 lieux_souhaites=lieux_souhaites,
+                public_categories=public_categories or None,
+                public_sous_options=public_sous_options or None,
                 portee_nationale=portee_nationale,
                 is_private=is_private,
                 approved=publish_immediately  # Approuvé seulement si demandé

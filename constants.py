@@ -331,3 +331,89 @@ PUBLICS_LEGACY_LABELS = {
     "fam_8":        "Familial à partir de 8 ans (ancien format)",
     "jp_8_11":      "Jeune public 5/11 ans (ancien format)",
 }
+
+
+# ═══════════════════════════════════════════════════════════════════
+# AXE 4-bis — PUBLIC CIBLE v2 (catégories + sous-options) — pour matching
+# Côté ARTISTE : 1 ou plusieurs catégories, avec règle d'incompatibilité
+#   - "enfants" et "adultes" sont mutuellement exclusifs
+#   - "famille" peut se cumuler avec "enfants" OU "adultes"
+# Sous-options : multi-sélection à l'intérieur d'une catégorie
+# ═══════════════════════════════════════════════════════════════════
+PUBLIC_CIBLE_CATEGORIES = [
+    {
+        "code": "enfants",
+        "label": "Spectacle pour enfants",
+        "icon": "",
+        "requires": ["famille"],  # cocher enfants impose de cocher aussi une option famille
+        "sous_options": [
+            ("mat",  "Maternelle"),
+            ("elem", "Élémentaire"),
+            ("ado",  "Ado (collège / lycée)"),
+        ],
+    },
+    {
+        "code": "famille",
+        "label": "Spectacle pour la famille",
+        "icon": "",
+        "single_select": True,  # une seule sous-option (Dès 3 ans OU Dès 6 ans)
+        "sous_options": [
+            ("fam_3", "Dès 3 ans"),
+            ("fam_6", "Dès 6 ans"),
+        ],
+    },
+    {
+        "code": "adultes",
+        "label": "Spectacle pour les adultes",
+        "icon": "",
+        "sous_options": [
+            ("ad_12", "Dès 12 ans"),
+            ("ad_16", "Dès 16 ans"),
+        ],
+    },
+]
+
+# Côté MAIRIE / ORGANISATEUR : vocabulaire « événement »
+# Mapping : catégorie organisateur → catégorie artiste correspondante
+PUBLIC_CIBLE_ORGANISATEUR = [
+    {
+        "code": "enfants",  # même code que côté artiste pour matching direct
+        "label": "Événement scolaire / pour enfants",
+        "icon": "",
+        "hint": "École, centre de loisirs, crèche…",
+        "sous_options": [
+            ("mat",  "Maternelle"),
+            ("elem", "Élémentaire"),
+            ("ado",  "Collège / Lycée"),
+        ],
+    },
+    {
+        "code": "famille",
+        "label": "Événement public / familial",
+        "icon": "",
+        "hint": "Kermesse, fête de quartier, fête de Noël, marché…",
+        "sous_options": [
+            ("fam_3", "Dès 3 ans (tout-petits accompagnés)"),
+            ("fam_6", "Dès 6 ans (familles avec enfants scolarisés)"),
+        ],
+    },
+    {
+        "code": "adultes",
+        "label": "Événement adulte",
+        "icon": "",
+        "hint": "Bal, concert, soirée CSE, mariage, soirée d'entreprise…",
+        "sous_options": [
+            ("ad_12", "Dès 12 ans"),
+            ("ad_16", "Dès 16 ans (contenu adulte)"),
+        ],
+    },
+]
+
+# Codes valides (pour validation backend)
+PUBLIC_CIBLE_CODES_VALIDES = {
+    cat["code"]: [opt[0] for opt in cat["sous_options"]]
+    for cat in PUBLIC_CIBLE_CATEGORIES
+}
+
+# Catégories incompatibles entre elles
+PUBLIC_CIBLE_INCOMPATIBLES = [("enfants", "adultes")]

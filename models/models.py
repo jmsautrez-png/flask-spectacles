@@ -38,6 +38,10 @@ class DemandeAnimation(db.Model):
     evenements_contexte = db.Column(db.Text, nullable=True)       # "Fête de village / Fête locale"
     lieux_souhaites = db.Column(db.Text, nullable=True)           # "Salle des fêtes,Parc / Jardin public"
 
+    # ── Public Cible v2 (matching strict) ──
+    public_categories = db.Column(db.Text, nullable=True)    # "enfants,famille" (codes catalog)
+    public_sous_options = db.Column(db.Text, nullable=True)  # "mat,elem,fam_3"
+
 
 class User(db.Model):
     __tablename__ = "users"
@@ -77,6 +81,9 @@ class Show(db.Model):
     category = db.Column(db.String(500), nullable=True, index=True)  # Augmenté à 500 pour plusieurs catégories
     date = db.Column(db.Date, nullable=True)
     age_range = db.Column(db.String(50), nullable=True)
+    # ── Public Cible v2 (matching strict) ──
+    public_categories = db.Column(db.Text, nullable=True)    # "enfants,famille"
+    public_sous_options = db.Column(db.Text, nullable=True)  # "mat,elem,fam_3"
     file_name = db.Column(db.String(255), nullable=True)
     file_mimetype = db.Column(db.String(120), nullable=True)
     # Photos supplémentaires pour le diaporama (jusqu'à 3 photos)

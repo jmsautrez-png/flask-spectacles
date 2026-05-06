@@ -53,7 +53,7 @@
             <div class="content">
                 <h3>{{ show.title }}</h3>
                 <p class="meta">{{ show.category }} • {{ show.location }}</p>
-                {% if show.age_range %}<p class="meta">{{ show.age_range|format_age }}</p>{% endif %}
+                {% if show.public_categories or show.age_range %}<p class="meta">{{ show|format_public_cible }}</p>{% endif %}
                 
                 <div style="background:#1a1a1e;padding:8px;border-radius:6px;margin:8px 0;font-size:0.8rem;">
                     <div>👤 <strong>Compagnie:</strong> {{ show.raison_sociale or 'Non renseignée' }}</div>

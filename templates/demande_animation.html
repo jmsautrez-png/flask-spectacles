@@ -1,6 +1,6 @@
 ﻿<!-- UPDATED: 2026-04-15 -->
 {% extends "base.html" %}
-{% from "_accordion_checkboxes.html" import accordion_checkboxes, accordion_checkboxes_js %}
+{% from "_accordion_checkboxes.html" import accordion_checkboxes, accordion_checkboxes_js, accordion_public_cible, public_cible_js %}
 {% set d = demande if demande is defined and demande else none %}
 {% block title %}{% if d %}Modifier l'appel d'offre{% else %}Demander une animation pour anniversaire, entreprise, école{% endif %} - Spectacle'ment Vôtre{% endblock %}
 
@@ -95,29 +95,13 @@
 
       <div class="grid-2">
         <label>
-          {% set v_age = request.form.get('age_range','') or (d.age_range if d else '') %}
-          {% set new_codes = ['jp_0_3','jp_4_8','jp_7_11','jp_des_3','anim_div','ad_12','ad_16'] %}
-          <span class="label-text">Public ciblé <span class="req">*</span></span>
-          <div style="display:flex;gap:8px;align-items:center;">
-          <select id="age_range" name="age_range" required style="flex:1;">
-            <option value="">-- Choisir un public --</option>
-            <option value="jp_0_3"   {% if v_age == 'jp_0_3'   %}selected{% endif %}>Jeune public ou familial 0/3 ans</option>
-            <option value="jp_4_8"   {% if v_age == 'jp_4_8'   %}selected{% endif %}>Jeune public ou familial 4/8 ans</option>
-            <option value="jp_7_11"  {% if v_age == 'jp_7_11'  %}selected{% endif %}>Jeune public ou familial 7/11 ans</option>
-            <option value="jp_des_3" {% if v_age == 'jp_des_3' %}selected{% endif %}>Jeune public ou familial dès 3 ans</option>
-              <option value="anim_div" {% if v_age == 'anim_div' %}selected{% endif %}>Animations diverses *</option>
-            <option value="ad_12"    {% if v_age == 'ad_12'    %}selected{% endif %}>Spectacle adulte à partir de 12 ans</option>
-            <option value="ad_16"    {% if v_age == 'ad_16'    %}selected{% endif %}>Spectacle adulte à partir de 16 ans</option>
-            {% if v_age and v_age not in new_codes %}
-              <option value="{{ v_age }}" selected>⚠ Ancien format : {{ v_age }}</option>
-            {% endif %}
-          </select>
-          <span class="info-tip-wrap">
-            <button type="button" class="info-tip" tabindex="-1" aria-label="Aide Animations diverses">?</button>
-            <span class="info-tip-bubble"><strong>Animations diverses</strong> inclut :<br>• Parade de rue<br>• Apéro concert<br>• Bal<br>• Concert<br>• Atelier<br>• etc.</span>
-          </span>
-          </div>
-          <small class="hint">Aide au choix de l'artiste / spectacle.</small>
+          {# Public Cible v2 (vocabulaire mairie) — accordéon réutilisable #}
+          {% set saved_cats = (d.public_categories.split(',') if d and d.public_categories else []) %}
+          {% set saved_subs = (d.public_sous_options.split(',') if d and d.public_sous_options else []) %}
+          {{ accordion_public_cible(PUBLIC_CIBLE_ORGANISATEUR, saved_cats, saved_subs, PUBLIC_CIBLE_INCOMPATIBLES, "#4caf50", "#fff", "Public concerné par votre événement", "Choisissez le ou les types d'événement, puis précisez la tranche d'âge concernée.") }}
+          {# age_range conservé en hidden pour compat avec validation existante #}
+          <input type="hidden" id="age_range" name="age_range" value="{{ d.age_range if d and d.age_range else 'jp_des_3' }}">
+          <small class="hint">Cette information aide à proposer les spectacles adaptés à votre public.</small>
         </label>
       </div>
 
@@ -626,9 +610,9 @@
               <i class="fa fa-map-marker-alt" style="color:var(--primary);"></i> {{ spectacle.region }}
             </span>
           {% endif %}
-          {% if spectacle.age_range %}
+          {% if spectacle.public_categories or spectacle.age_range %}
             <span style="color:var(--muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
-              <i class="fa fa-child" style="color:var(--primary);"></i> {{ spectacle.age_range|format_age }}
+              <i class="fa fa-child" style="color:var(--primary);"></i> {{ spectacle|format_public_cible }}
             </span>
           {% endif %}
         </div>
@@ -644,5 +628,6 @@
 </div>
 {% endif %}
 {{ accordion_checkboxes_js() }}
+{{ public_cible_js() }}
 {% endblock %}
 

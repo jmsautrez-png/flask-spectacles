@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% from "_accordion_checkboxes.html" import accordion_checkboxes, accordion_checkboxes_js %}
+{% from "_accordion_checkboxes.html" import accordion_checkboxes, accordion_checkboxes_js, accordion_public_cible, public_cible_js %}
 {# Bloc robots : noindex uniquement si recherche textuelle (pas pour pagination ou filtres) #}
 {% block robots %}
   {% if q %}
@@ -243,19 +243,11 @@
 
     <div style="flex:1; min-width:160px;">
       <div style="color:#ffc107; font-size:0.8rem; font-weight:600; margin-bottom:4px;">PUBLIC</div>
-      <div style="display:flex;gap:6px;align-items:center;">
-      <select name="age"
-              style="flex:1; background:rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.2); color:#fff; padding:8px 10px; border-radius:8px; font-size:0.9rem;"
-              onchange="this.form.submit();">
-        {% for val, label in age_options %}
-        <option value="{{ val }}" {% if age == val %}selected{% endif %} style="background:#1a1a2e;">{{ label }}</option>
-        {% endfor %}
-      </select>
-      <span class="info-tip-wrap">
-        <button type="button" class="info-tip" tabindex="-1" aria-label="Aide Animations diverses">?</button>
-        <span class="info-tip-bubble"><strong>Animations diverses</strong> inclut :<br>• Parade de rue<br>• Apéro concert<br>• Bal<br>• Concert<br>• Atelier<br>• etc.</span>
-      </span>
-      </div>
+      <button type="button" id="btn-toggle-public-cible"
+              style="width:100%; background:rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.2); color:#fff; padding:8px 10px; border-radius:8px; font-size:0.9rem; cursor:pointer; text-align:left; display:flex; justify-content:space-between; align-items:center;">
+        <span>{% if public_cats_selected %}{{ public_cats_selected|length }} catégorie(s){% else %}Tous les publics{% endif %}</span>
+        <span style="font-size:0.7rem;">▾</span>
+      </button>
     </div>
 
     <div style="flex:2; min-width:180px;">
@@ -271,7 +263,25 @@
 
   </div>
 
+  {# Panneau déroulant Public ciblé #}
+  <div id="panel-public-cible" style="display:{% if public_cats_selected %}block{% else %}none{% endif %}; background:rgba(255,255,255,0.05); border:1px solid rgba(25,118,210,0.4); border-radius:10px; padding:12px 16px; margin-top:4px;">
+    {{ accordion_public_cible(PUBLIC_CIBLE_ORGANISATEUR, public_cats_selected, public_subs_selected, [], "#1976d2", "#fff", "Public ciblé", "Sélectionnez le public et les tranches d'âge.", validate=False) }}
+    <button type="submit" style="width:100%; margin-top:8px; background:linear-gradient(135deg,#6d1313,#8b1e1e); color:#fff; border:none; padding:8px 14px; border-radius:8px; font-weight:700; font-size:0.9rem; cursor:pointer;">Appliquer</button>
+  </div>
+
 </form>
+
+<script>
+(function(){
+  var btn = document.getElementById('btn-toggle-public-cible');
+  var panel = document.getElementById('panel-public-cible');
+  if (btn && panel){
+    btn.addEventListener('click', function(){
+      panel.style.display = (panel.style.display === 'none' || !panel.style.display) ? 'block' : 'none';
+    });
+  }
+})();
+</script>
 
 <style>
 .mobile-search-block input::placeholder { color:#aaa; opacity:1; }
@@ -401,10 +411,10 @@
               </div>
               {% endif %}
 
-              {% if show.age_range %}
+              {% if show.public_categories or show.age_range %}
               <div style="display:flex; align-items:center; gap:6px;">
                 <span style="opacity:0.7; min-width:20px;">👥</span>
-                <span style="color:rgba(255,255,255,0.9);">{{ show.age_range|format_age }}</span>
+                <span style="color:rgba(255,255,255,0.9);">{{ show|format_public_cible }}</span>
               </div>
               {% endif %}
 
@@ -444,7 +454,7 @@
     <nav class="pagination" style="margin: 30px 0; text-align: center;">
       <div style="display: inline-flex; gap: 8px; align-items: center; flex-wrap: wrap; justify-content: center;">
         {% if pagination.has_prev %}
-           <a href="{{ url_for('catalogue', page=pagination.prev_num, q=q, specialite=specialites, evenement=evenements_selected, region=region, age=age) }}"
+           <a href="{{ url_for('catalogue', page=pagination.prev_num, q=q, specialite=specialites, evenement=evenements_selected, region=region, age=age, public_categories=public_cats_selected, public_sous_options=public_subs_selected) }}"
              style="padding: 8px 12px; background: var(--primary); color: white; text-decoration: none; border-radius: 4px; font-weight: 600;">
             ← Précédent
           </a>
@@ -461,7 +471,7 @@
                 {{ p }}
               </span>
             {% else %}
-                <a href="{{ url_for('catalogue', page=p, q=q, specialite=specialites, evenement=evenements_selected, region=region, age=age) }}"
+                <a href="{{ url_for('catalogue', page=p, q=q, specialite=specialites, evenement=evenements_selected, region=region, age=age, public_categories=public_cats_selected, public_sous_options=public_subs_selected) }}"
                   style="padding: 8px 12px; background: #f2f3f7; color: var(--text); text-decoration: none; border-radius: 4px; font-weight: 600;"{% if p == 1 %} rel="first"{% endif %}>
                 {{ p }}
               </a>
@@ -472,7 +482,7 @@
         {% endfor %}
 
         {% if pagination.has_next %}
-           <a href="{{ url_for('catalogue', page=pagination.next_num, q=q, specialite=specialites, evenement=evenements_selected, region=region, age=age) }}"
+           <a href="{{ url_for('catalogue', page=pagination.next_num, q=q, specialite=specialites, evenement=evenements_selected, region=region, age=age, public_categories=public_cats_selected, public_sous_options=public_subs_selected) }}"
              rel="next"
              style="padding: 8px 12px; background: var(--primary); color: white; text-decoration: none; border-radius: 4px; font-weight: 600;">
             Suivant →
@@ -717,5 +727,6 @@ if (urlParams.get('auto_carousel') === '1') {
 </script>
 
 {{ accordion_checkboxes_js() }}
+{{ public_cible_js() }}
 
 {% endblock %}
