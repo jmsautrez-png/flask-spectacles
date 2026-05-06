@@ -28,6 +28,7 @@
     <table style="width: 100%; border-collapse: collapse; background: rgba(255,255,255,0.03); border-radius: 12px; overflow: hidden;">
       <thead>
         <tr style="background: rgba(255,255,255,0.1);">
+          <th style="padding: 16px; text-align: left; color: #fff; font-weight: 600; border-bottom: 2px solid rgba(255,255,255,0.1);"></th>
           <th style="padding: 16px; text-align: left; color: #fff; font-weight: 600; border-bottom: 2px solid rgba(255,255,255,0.1);">ID</th>
           <th style="padding: 16px; text-align: left; color: #fff; font-weight: 600; border-bottom: 2px solid rgba(255,255,255,0.1);">Nom d'utilisateur</th>
           <th style="padding: 16px; text-align: left; color: #fff; font-weight: 600; border-bottom: 2px solid rgba(255,255,255,0.1);">Email</th>
@@ -43,6 +44,11 @@
       <tbody>
         {% for user in users %}
         <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);" {% if user.is_admin %}class="admin-row"{% endif %}>
+          <td style="padding: 12px; text-align:center;">
+            <button type="button" class="btn-toggle-details" data-target="details-{{ user.id }}"
+                    style="background:rgba(255,255,255,0.1); color:#fff; border:1px solid rgba(255,255,255,0.2); width:28px; height:28px; border-radius:50%; cursor:pointer; font-weight:700; padding:0;"
+                    aria-label="Voir les détails">+</button>
+          </td>
           <td style="padding: 12px; color: #aaa;">{{ user.id }}</td>
           <td style="padding: 12px; color: #fff; font-weight: 500;">{{ user.username }}</td>
           <td style="padding: 12px; color: #fff;">{{ user.email or '-' }}</td>
@@ -99,6 +105,20 @@
             {% endif %}
           </td>
         </tr>
+        <tr id="details-{{ user.id }}" class="details-row" style="display:none; background:rgba(255,255,255,0.02);">
+          <td colspan="11" style="padding: 14px 24px; color:#ddd; font-size:0.9em;">
+            <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap:14px;">
+              <div><strong style="color:#ffc107;">Code postal :</strong> {{ user.code_postal or '-' }}</div>
+              <div><strong style="color:#ffc107;">Ville :</strong> {{ user.ville or '-' }}</div>
+              <div><strong style="color:#ffc107;">Département :</strong> {{ user.departement or '-' }}</div>
+              <div><strong style="color:#ffc107;">Site internet :</strong>
+                {% if user.site_internet %}
+                  <a href="{{ user.site_internet }}" target="_blank" rel="noopener" style="color:#4caf50;">{{ user.site_internet }}</a>
+                {% else %}-{% endif %}
+              </div>
+            </div>
+          </td>
+        </tr>
         {% endfor %}
       </tbody>
     </table>
@@ -117,6 +137,23 @@
   .admin-row {
     background: rgba(255,193,7,0.1);
   }
+  .details-row:hover {
+    background: rgba(255,255,255,0.04) !important;
+  }
 </style>
+
+<script>
+(function(){
+  document.querySelectorAll('.btn-toggle-details').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      var row = document.getElementById(btn.getAttribute('data-target'));
+      if (!row) return;
+      var open = row.style.display !== 'none';
+      row.style.display = open ? 'none' : 'table-row';
+      btn.textContent = open ? '+' : '−';
+    });
+  });
+})();
+</script>
 
 {% endblock %}

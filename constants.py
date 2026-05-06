@@ -346,7 +346,10 @@ PUBLIC_CIBLE_CATEGORIES = [
         "label": "Spectacle pour enfants",
         "icon": "",
         "requires": ["famille"],  # cocher enfants impose de cocher aussi une option famille
+        "exclusive_subs": ["creche"],  # cocher crèche : aucune autre case (cat ou sous-option) ne peut être cochée
+        "exclusive_compat": {"creche": ["mat"]},  # crèche peut se cumuler avec maternelle (et dispense aussi de la dépendance famille)
         "sous_options": [
+            ("creche", "Crèche / Halte-garderie"),
             ("mat",  "Maternelle"),
             ("elem", "Élémentaire"),
             ("ado",  "Ado (collège / lycée)"),
@@ -382,6 +385,7 @@ PUBLIC_CIBLE_ORGANISATEUR = [
         "icon": "",
         "hint": "École, centre de loisirs, crèche…",
         "sous_options": [
+            ("creche", "Crèche / Halte-garderie"),
             ("mat",  "Maternelle"),
             ("elem", "Élémentaire"),
             ("ado",  "Collège / Lycée"),
@@ -416,4 +420,7 @@ PUBLIC_CIBLE_CODES_VALIDES = {
 }
 
 # Catégories incompatibles entre elles
-PUBLIC_CIBLE_INCOMPATIBLES = [("enfants", "adultes")]
+# Format : (cat_a, cat_b, [bypass_cats])
+#   - Si cat_a et cat_b sont cochées ensemble → conflit
+#   - Sauf si une cat de bypass_cats est aussi cochée (ex: famille fait le pont) → simple avertissement non-bloquant
+PUBLIC_CIBLE_INCOMPATIBLES = [("enfants", "adultes", ["famille"])]

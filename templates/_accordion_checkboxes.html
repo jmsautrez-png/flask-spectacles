@@ -98,7 +98,7 @@
 
   {% for cat in categories_list %}
   {% set cat_checked = cat.code in saved_cats %}
-  <details class="matching-accordion pc-cat" data-code="{{ cat.code }}" {% if cat.single_select %}data-single-select="1"{% endif %} {% if cat.requires %}data-requires="{{ cat.requires|join(',') }}"{% endif %} {% if cat_checked %}open{% endif %}
+  <details class="matching-accordion pc-cat" data-code="{{ cat.code }}" {% if cat.single_select %}data-single-select="1"{% endif %} {% if cat.requires %}data-requires="{{ cat.requires|join(',') }}"{% endif %} {% if cat.exclusive_subs %}data-exclusive-subs="{{ cat.exclusive_subs|join(',') }}"{% endif %} {% if cat.exclusive_compat %}data-exclusive-compat='{{ cat.exclusive_compat|tojson }}'{% endif %} {% if cat_checked %}open{% endif %}
     style="margin-bottom:6px; border:2px solid {{ color }}40; border-radius:8px; overflow:hidden;">
     <summary style="cursor:pointer; padding:10px 14px; font-weight:600; font-size:0.95rem; background:{{ color }}18; display:flex; align-items:center; justify-content:space-between; user-select:none; color:{{ text_color }}; border-left:4px solid {{ color }};">
       <label style="display:flex; align-items:center; gap:10px; cursor:pointer; margin:0; flex:1;" onclick="event.stopPropagation();">
@@ -146,7 +146,39 @@
   function getCheckedCats(){
     return Array.from(section.querySelectorAll('.pc-cat-cb:checked')).map(function(c){return c.value;});
   }
-  function showErr(msg){ if(errEl){ errEl.textContent=msg; errEl.style.display='block'; setTimeout(function(){errEl.style.display='none';}, 4000); } }
+  function showErr(msg){ if(errEl){ errEl.style.color='#ff5252'; errEl.textContent=msg; errEl.style.display='block'; setTimeout(function(){ if(errEl.dataset.persistent !== '1'){ errEl.style.display='none'; } }, 4000); } }
+  function showWarnPersistent(msg){
+    if(!errEl) return;
+    errEl.dataset.persistent = '1';
+    errEl.style.color = '#ff9800';
+    errEl.textContent = msg;
+    errEl.style.display = 'block';
+  }
+  function clearPersistent(){
+    if(!errEl) return;
+    if (errEl.dataset.persistent === '1'){
+      errEl.dataset.persistent = '0';
+      errEl.style.display = 'none';
+      errEl.style.color = '#ff5252';
+      errEl.textContent = '';
+    }
+  }
+  // Recalcule l'état "tous publics" à chaque changement et affiche/masque le message orange
+  function refreshAllPublicWarning(){
+    var cats = getCheckedCats();
+    for (var i=0;i<INC.length;i++){
+      var pair = INC[i];
+      var bypass = pair[2] || [];
+      if (cats.indexOf(pair[0])!==-1 && cats.indexOf(pair[1])!==-1){
+        var bypassed = bypass.some(function(b){ return cats.indexOf(b) !== -1; });
+        if (bypassed){
+          showWarnPersistent("⚠️ Spectacle adulte également destiné aux enfants : « " + pair[0] + " » + « " + pair[1] + " » autorisé grâce à « " + bypass.join(', ') + " ». Vérifiez la cohérence des âges (ex. dès 6 ans en famille).");
+          return;
+        }
+      }
+    }
+    clearPersistent();
+  }
   function updateCount(){
     var n = section.querySelectorAll('.pc-cat-cb:checked').length;
     var el = document.getElementById('count-public_categories');
@@ -161,17 +193,70 @@
         g.style.color = c > 0 ? '#fff' : 'inherit';
       }
     });
+    refreshAllPublicWarning();
   }
   function checkIncompat(newCode){
     var cats = getCheckedCats();
     for (var i=0;i<INC.length;i++){
       var pair = INC[i];
+      var bypass = pair[2] || [];
       if (cats.indexOf(pair[0])!==-1 && cats.indexOf(pair[1])!==-1){
-        showErr("Catégories incompatibles : « " + pair[0] + " » et « " + pair[1] + " » ne peuvent pas être cochées ensemble.");
+        // Si au moins une cat de bypass est cochée → autorisé (le warning orange permanent est géré par refreshAllPublicWarning)
+        var bypassed = bypass.some(function(b){ return cats.indexOf(b) !== -1; });
+        if (bypassed){ continue; }
+        showErr("Catégories incompatibles : « " + pair[0] + " » et « " + pair[1] + " » ne peuvent pas être cochées ensemble (cochez aussi « famille » pour autoriser un spectacle tous publics).");
         return false;
       }
     }
     return true;
+  }
+
+  // Construire la liste globale des sous-options exclusives à partir des données des catégories
+  var EXCLUSIVE_SUBS = [];
+  // Map { exclusiveSubCode: [compatibleSubCodes...] } : sous-options autorisées à cohabiter avec une exclusive
+  var EXCLUSIVE_COMPAT = {};
+  section.querySelectorAll('.pc-cat').forEach(function(catEl){
+    var ex = catEl.getAttribute('data-exclusive-subs');
+    if (ex) ex.split(',').forEach(function(s){ s = s.trim(); if (s) EXCLUSIVE_SUBS.push(s); });
+    var cmp = catEl.getAttribute('data-exclusive-compat');
+    if (cmp){
+      try {
+        var parsed = JSON.parse(cmp);
+        for (var k in parsed){ EXCLUSIVE_COMPAT[k] = parsed[k] || []; }
+      } catch(_){}
+    }
+  });
+  // Liste à plat de tous les codes compatibles (toutes exclusives confondues)
+  function compatSubsForCheckedExclusives(){
+    var out = [];
+    EXCLUSIVE_SUBS.forEach(function(code){
+      var el = section.querySelector('.pc-sub-cb[value="'+code+'"]');
+      if (el && el.checked && EXCLUSIVE_COMPAT[code]){
+        EXCLUSIVE_COMPAT[code].forEach(function(c){ if (out.indexOf(c) === -1) out.push(c); });
+      }
+    });
+    return out;
+  }
+  function isAnyExclusiveChecked(){
+    return EXCLUSIVE_SUBS.some(function(code){
+      var el = section.querySelector('.pc-sub-cb[value="'+code+'"]');
+      return el && el.checked;
+    });
+  }
+  function applyExclusiveLock(){
+    var locked = isAnyExclusiveChecked();
+    var compat = compatSubsForCheckedExclusives();
+    section.querySelectorAll('.pc-cat-cb, .pc-sub-cb').forEach(function(cb){
+      var isExclusive = cb.classList.contains('pc-sub-cb') && EXCLUSIVE_SUBS.indexOf(cb.value) !== -1;
+      var isCompat = cb.classList.contains('pc-sub-cb') && compat.indexOf(cb.value) !== -1;
+      if (locked && !isExclusive && !isCompat && !cb.checked){
+        cb.disabled = true;
+        if (cb.parentElement) cb.parentElement.style.opacity = '0.4';
+      } else {
+        cb.disabled = false;
+        if (cb.parentElement) cb.parentElement.style.opacity = '';
+      }
+    });
   }
 
   // Catégorie cochée/décochée
@@ -186,6 +271,7 @@
       if (!cb.checked){
         var catEl = cb.closest('.pc-cat');
         if (catEl) catEl.querySelectorAll('.pc-sub-cb').forEach(function(s){s.checked=false;});
+        applyExclusiveLock();
       } else {
         // ouvrir le details
         var catEl = cb.closest('.pc-cat');
@@ -211,6 +297,27 @@
   section.querySelectorAll('.pc-sub-cb').forEach(function(sub){
     sub.addEventListener('change', function(){
       if (sub.checked){
+        var isExclusive = EXCLUSIVE_SUBS.indexOf(sub.value) !== -1;
+        if (isExclusive){
+          var compatList = EXCLUSIVE_COMPAT[sub.value] || [];
+          // Décocher TOUT le reste (cats + autres subs partout) SAUF les compatibles
+          section.querySelectorAll('.pc-cat-cb').forEach(function(c){ c.checked = false; });
+          section.querySelectorAll('.pc-sub-cb').forEach(function(s){
+            if (s !== sub && compatList.indexOf(s.value) === -1) s.checked = false;
+          });
+          // Recocher uniquement la cat parente (et celles des compat cochées)
+          var parentCode = sub.getAttribute('data-parent');
+          var parentCb = section.querySelector('.pc-cat-cb[value="'+parentCode+'"]');
+          if (parentCb) parentCb.checked = true;
+          section.querySelectorAll('.pc-sub-cb:checked').forEach(function(s){
+            var pc = s.getAttribute('data-parent');
+            var pcb = section.querySelector('.pc-cat-cb[value="'+pc+'"]');
+            if (pcb) pcb.checked = true;
+          });
+          applyExclusiveLock();
+          updateCount();
+          return;
+        }
         // Single-select : décocher les autres sous-options de la même catégorie
         var catEl = sub.closest('.pc-cat');
         if (catEl && catEl.getAttribute('data-single-select') === '1'){
@@ -226,6 +333,11 @@
             parentCb.checked = false;
             sub.checked = false;
           }
+        }
+      } else {
+        // décoche d'une exclusive : relibérer
+        if (EXCLUSIVE_SUBS.indexOf(sub.value) !== -1){
+          applyExclusiveLock();
         }
       }
       updateCount();
@@ -243,7 +355,12 @@
         section.scrollIntoView({behavior:'smooth', block:'center'});
         return;
       }
-      // Vérifier les dépendances 'requires'
+      // Vérifier les dépendances 'requires' (skip si une sous-option exclusive est cochée)
+      if (isAnyExclusiveChecked()){
+        applyExclusiveLock();
+        updateCount();
+        return; // exclusive = pas de vérif requires
+      }
       var cats = getCheckedCats();
       var missing = [];
       section.querySelectorAll('.pc-cat').forEach(function(catEl){
@@ -280,6 +397,7 @@
       }
     });
   }
+  applyExclusiveLock();
   updateCount();
 })();
 </script>

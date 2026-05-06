@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% from "_accordion_checkboxes.html" import accordion_checkboxes, accordion_checkboxes_js %}
+{% from "_accordion_checkboxes.html" import accordion_checkboxes, accordion_checkboxes_js, accordion_public_cible, public_cible_js %}
 
 {% block title %}Créer une demande d'animation - Admin{% endblock %}
 
@@ -212,19 +212,11 @@
                                     <input type="hidden" id="genre_recherche" name="genre_recherche" value="">
                                 </div>
                             </div>
-                            <div class="col-md-6">
+                            <div class="col-md-12">
                                 <div class="modern-input-group">
-                                    <label class="modern-label">👶 Public ciblé *</label>
-                                    <select class="modern-input modern-select" id="age_range" name="age_range" required>
-                                        <option value="">-- Choisir un public --</option>
-                                        <option value="jp_0_3">Jeune public ou familial 0/3 ans</option>
-                                        <option value="jp_4_8">Jeune public ou familial 4/8 ans</option>
-                                        <option value="jp_7_11">Jeune public ou familial 7/11 ans</option>
-                                        <option value="jp_des_3">Jeune public ou familial dès 3 ans</option>
-                                        <option value="anim_div">Animations diverses *</option>
-                                        <option value="ad_12">Spectacle adulte à partir de 12 ans</option>
-                                        <option value="ad_16">Spectacle adulte à partir de 16 ans</option>
-                                    </select>
+                                    {# Public Cible v2 (organisateur/mairie : permissif, pas d'exclusivité, pas de single_select) #}
+                                    {{ accordion_public_cible(PUBLIC_CIBLE_ORGANISATEUR, [], [], [], "#1976d2", "#fff", "👶 Public ciblé *", "Cochez la ou les catégories de public, puis précisez les tranches d'âge.") }}
+                                    <input type="hidden" id="age_range" name="age_range" value="">
                                 </div>
                             </div>
                         </div>
@@ -738,5 +730,6 @@
 </script>
 
 {{ accordion_checkboxes_js() }}
+{{ public_cible_js() }}
 
 {% endblock %}

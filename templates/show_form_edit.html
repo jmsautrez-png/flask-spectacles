@@ -3,10 +3,64 @@
 {% block title %}Compléter le spectacle - Spectacle'ment VØtre{% endblock %}
 {% block content %}
 <h2>Compléter le spectacle</h2>
+
+{% if user and user.is_admin %}
+{% if show and show.user %}
+<div style="background:rgba(76,175,80,0.12); border-left:4px solid #4caf50; border-radius:8px; padding:10px 14px; margin:0 0 12px 0; color:#fff; font-size:0.95rem;">
+  👤 Spectacle publié sous le compte : <strong style="color:#a5d6a7;">{{ show.user.username }}</strong>
+  {% if show.user.email %} &nbsp;·&nbsp; <span style="color:#cfd8dc;">{{ show.user.email }}</span>{% endif %}
+  {% if show.user.raison_sociale %} &nbsp;·&nbsp; <span style="color:#cfd8dc;">{{ show.user.raison_sociale }}</span>{% endif %}
+</div>
+{% else %}
+<div style="background:rgba(255,152,0,0.15); border-left:4px solid #ff9800; border-radius:8px; padding:10px 14px; margin:0 0 12px 0; color:#fff; font-size:0.95rem;">
+  ⚠️ Ce spectacle n'est rattaché à <strong>aucun compte utilisateur</strong> (user_id = NULL).
+</div>
+{% endif %}
+<div style="background:rgba(25,118,210,0.12); border:1px solid rgba(25,118,210,0.4); border-radius:10px; padding:14px 18px; margin:0 0 18px 0;">
+  <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px;">
+    <strong style="color:#64b5f6; font-size:1.0rem;">👤 Infos compte propriétaire</strong>
+    <button type="button" id="btn-toggle-owner-info" style="background:rgba(255,255,255,0.1); color:#fff; border:1px solid rgba(255,255,255,0.2); padding:4px 12px; border-radius:6px; cursor:pointer; font-size:0.85rem;">Afficher / masquer</button>
+  </div>
+  {% if show.user %}
+  <div id="owner-info-block" class="owner-grid" style="display:none; margin-top:12px; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap:10px; font-size:0.9rem; color:#ddd;">
+    <div><strong style="color:#ffc107;">Pseudo :</strong> {{ show.user.username }}</div>
+    <div><strong style="color:#ffc107;">Email :</strong> {{ show.user.email or '-' }}</div>
+    <div><strong style="color:#ffc107;">Téléphone :</strong> {{ show.user.telephone or '-' }}</div>
+    <div><strong style="color:#ffc107;">Raison sociale :</strong> {{ show.user.raison_sociale or '-' }}</div>
+    <div><strong style="color:#ffc107;">Code postal :</strong> {{ show.user.code_postal or '-' }}</div>
+    <div><strong style="color:#ffc107;">Ville :</strong> {{ show.user.ville or '-' }}</div>
+    <div><strong style="color:#ffc107;">Département :</strong> {{ show.user.departement or '-' }}</div>
+    <div><strong style="color:#ffc107;">Région :</strong> {{ show.user.region or '-' }}</div>
+    <div style="grid-column: 1 / -1;"><strong style="color:#ffc107;">Site internet :</strong>
+      {% if show.user.site_internet %}
+        <a href="{{ show.user.site_internet }}" target="_blank" rel="noopener" style="color:#4caf50;">{{ show.user.site_internet }}</a>
+      {% else %}-{% endif %}
+    </div>
+  </div>
+  {% else %}
+  <div id="owner-info-block" style="display:none; margin-top:12px; color:#ffb74d; font-size:0.9rem;">
+    ⚠️ Ce spectacle n'est rattaché à aucun compte utilisateur (user_id = NULL).
+  </div>
+  {% endif %}
+</div>
+<script>
+(function(){
+  var btn = document.getElementById('btn-toggle-owner-info');
+  var box = document.getElementById('owner-info-block');
+  if (btn && box){
+    var defaultDisplay = box.classList.contains('owner-grid') ? 'grid' : 'block';
+    btn.addEventListener('click', function(){
+      box.style.display = (box.style.display === 'none' || !box.style.display) ? defaultDisplay : 'none';
+    });
+  }
+})();
+</script>
+{% endif %}
+
 <form method="post" enctype="multipart/form-data" class="form">
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
   <label>Raison sociale
-    <input type="text" name="raison_sociale" value="{{ show.raison_sociale or '' }}">
+    <input type="text" name="raison_sociale" value="{{ show.raison_sociale or (show.user.raison_sociale if show and show.user and show.user.raison_sociale else '') }}">
   </label>
 
   <label>Titre
@@ -78,15 +132,15 @@
   </label>
 
   <label>Site internet
-    <input type="url" name="site_internet" placeholder="https://www.monsite.fr" value="{{ show.site_internet if show and show.site_internet else '' }}">
+    <input type="url" name="site_internet" placeholder="https://www.monsite.fr" value="{{ show.site_internet if show and show.site_internet else (show.user.site_internet if show and show.user and show.user.site_internet else '') }}">
   </label>
 
   <label>Email de contact
-    <input type="email" name="contact_email" placeholder="votre@email.fr" value="{{ show.contact_email if show and show.contact_email else '' }}" required>
+    <input type="email" name="contact_email" placeholder="votre@email.fr" value="{{ show.contact_email if show and show.contact_email else (show.user.email if show and show.user and show.user.email else '') }}" required>
   </label>
 
   <label>Téléphone de contact
-    <input type="tel" name="contact_phone" value="{{ show.contact_phone if show and show.contact_phone else '' }}" placeholder="06 12 34 56 78">
+    <input type="tel" name="contact_phone" value="{{ show.contact_phone if show and show.contact_phone else (show.user.telephone if show and show.user and show.user.telephone else '') }}" placeholder="06 12 34 56 78">
   </label>
 
   {% if user and user.is_admin %}

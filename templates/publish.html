@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% from "_accordion_checkboxes.html" import accordion_public_cible, public_cible_js %}
 {% block title %}Publier vØtre spectacle ou animation - Spectacle'ment VØtre{% endblock %}
 
 {% block content %}
@@ -56,18 +57,12 @@
             <input type="text" name="category" placeholder="Ex: Magie, Théâtre, Clown">
           </label>
         </div>
+      </div>
 
-        <div>
-          <label>
-            <span class="label-text">Tranche d'âge <span class="req">*</span></span>
-            <select name="age_range" required>
-              <option value="">-- Choisir --</option>
-              <option value="enfant">Enfant</option>
-              <option value="adulte">Adulte</option>
-              <option value="tout public">Tout public</option>
-            </select>
-          </label>
-        </div>
+      <div>
+        {# Public Cible v2 : catégories + sous-options (artiste strict) #}
+        {{ accordion_public_cible(PUBLIC_CIBLE_CATEGORIES, [], [], PUBLIC_CIBLE_INCOMPATIBLES, "#4caf50", "#fff", "Public ciblé *", "Cochez la ou les catégories de public, puis précisez les tranches d'âge.") }}
+        <input type="hidden" name="age_range" value="">
       </div>
 
       <div class="grid-2">
@@ -109,6 +104,7 @@
 
   </form>
 </div>
+{{ public_cible_js() }}
 {% endblock %}
 
 

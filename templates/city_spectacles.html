@@ -396,16 +396,16 @@
     <option value="danse" {% if category == 'danse' %}selected{% endif %}>💃 Danse</option>
   </select>
   
-  <select name="age" id="age">
-    <option value="">Tous les âges</option>
-    <option value="enfant" {% if age_range == 'enfant' %}selected{% endif %}>👶 Enfants</option>
-    <option value="tout public" {% if age_range == 'tout public' %}selected{% endif %}>👨‍👩‍👧‍👦 Tout public</option>
-    <option value="adulte" {% if age_range == 'adulte' %}selected{% endif %}>🧑 Adultes</option>
+  <select name="public_categorie" id="public_categorie">
+    <option value="">Tous les publics</option>
+    {% for cat in PUBLIC_CIBLE_CATEGORIES %}
+      <option value="{{ cat.code }}" {% if public_categorie == cat.code %}selected{% endif %}>{{ cat.label }}</option>
+    {% endfor %}
   </select>
   
   <button type="submit">🔍 Filtrer</button>
   
-  {% if category or age_range %}
+  {% if category or public_categorie %}
   <a href="{{ url_for('city_spectacles', city_slug=city['slug']) }}" 
      style="padding:10px 20px; background:#e74c3c; color:#fff; border-radius:8px; text-decoration:none; font-weight:600;">
     ✖ Réinitialiser
@@ -443,7 +443,7 @@
         {% endif %}
         
         {% if show.age_range %}
-        <span>👥 {{ show.age_range|format_age }}</span>
+        <span>👥 {{ show|format_public_cible }}</span>
         {% endif %}
         
         {% if show.location %}

@@ -3208,16 +3208,26 @@ def register_routes(app: Flask) -> None:
                     if len(_kept) > 1:
                         _pc_subs = [s for s in _pc_subs if s not in _allowed] + [_kept[0]]
             # Vérifier les dépendances 'requires' (ex: enfants impose famille)
-            _missing_req = []
+            # Sauf si une sous-option exclusive (ex: creche) est cochée → dispense
+            _exclusive_checked = False
             for _cat_def in PUBLIC_CIBLE_CATEGORIES:
-                if _cat_def["code"] in _pc_cats:
-                    for _req in _cat_def.get("requires", []) or []:
-                        if _req not in _pc_cats:
-                            _missing_req.append((_cat_def["code"], _req))
-                            continue
-                        _req_subs = [c[0] for c in next((c["sous_options"] for c in PUBLIC_CIBLE_CATEGORIES if c["code"] == _req), [])]
-                        if not any(s in _req_subs for s in _pc_subs):
-                            _missing_req.append((_cat_def["code"], _req))
+                for _ex in _cat_def.get("exclusive_subs", []) or []:
+                    if _ex in _pc_subs:
+                        _exclusive_checked = True
+                        break
+                if _exclusive_checked:
+                    break
+            _missing_req = []
+            if not _exclusive_checked:
+                for _cat_def in PUBLIC_CIBLE_CATEGORIES:
+                    if _cat_def["code"] in _pc_cats:
+                        for _req in _cat_def.get("requires", []) or []:
+                            if _req not in _pc_cats:
+                                _missing_req.append((_cat_def["code"], _req))
+                                continue
+                            _req_subs = [c[0] for c in next((c["sous_options"] for c in PUBLIC_CIBLE_CATEGORIES if c["code"] == _req), [])]
+                            if not any(s in _req_subs for s in _pc_subs):
+                                _missing_req.append((_cat_def["code"], _req))
             if _missing_req:
                 msg = " ; ".join(f"« {a} » requiert une option dans « {b} »" for a, b in _missing_req)
                 flash(f"Public ciblé incomplet : {msg}", "danger")
@@ -4485,9 +4495,9 @@ Accessibilité: {accessibilite}
             # Portée géographique
             portee_nationale = request.form.get("portee_nationale", "1") == "1"
 
-            # Validation basique - TELEPHONE est optionnel !
+            # Validation basique - TELEPHONE est optionnel ! age_range remplacé par public_categories (Public Cible v2)
             if not all([structure, lieu_ville, nom, dates_horaires, 
-                       genre_recherche, age_range, jauge, budget, contact_email]):
+                       genre_recherche, jauge, budget, contact_email]):
                 flash("Veuillez remplir tous les champs obligatoires.", "danger")
                 return render_template("admin_create_demande.html", user=current_user(),
                                        specialites_data=SPECIALITES, evenements_data=EVENEMENTS, lieux_data=LIEUX), 400
@@ -5440,7 +5450,7 @@ Accessibilité: {accessibilite}
             
             # Récupérer les filtres optionnels
             category = request.args.get("category", "", type=str).strip()
-            age_range = request.args.get("age", "", type=str).strip()
+            public_categorie = request.args.get("public_categorie", "", type=str).strip()
             page = request.args.get("page", 1, type=int)
             
             # Construire la requête de base (spectacles approuvés uniquement)
@@ -5460,9 +5470,19 @@ Accessibilité: {accessibilite}
             if category:
                 shows = shows.filter(Show.category.ilike(f"%{category}%"))
             
-            # Filtrer par âge si spécifié
-            if age_range:
-                shows = shows.filter(Show.age_range.ilike(f"%{age_range}%"))
+            # Filtrer par catégorie de Public Cible v2 (CSV stricte)
+            if public_categorie:
+                c = public_categorie
+                shows = shows.filter(
+                    Show.public_categories.isnot(None),
+                    Show.public_categories != "",
+                    or_(
+                        Show.public_categories == c,
+                        Show.public_categories.ilike(f"{c},%"),
+                        Show.public_categories.ilike(f"%,{c}"),
+                        Show.public_categories.ilike(f"%,{c},%"),
+                    )
+                )
             
             # Trier par ordre d'affichage puis date
             shows = shows.order_by(Show.display_order.asc(), Show.created_at.desc())
@@ -5489,7 +5509,7 @@ Accessibilité: {accessibilite}
                 pagination=shows_paginated,
                 total_shows=total_shows,
                 category=category,
-                age_range=age_range,
+                public_categorie=public_categorie,
                 meta_title=meta_title,
                 meta_description=meta_description,
                 meta_keywords=meta_keywords

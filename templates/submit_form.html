@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% from "_accordion_checkboxes.html" import accordion_checkboxes, regions_checkboxes, accordion_checkboxes_js %}
+{% from "_accordion_checkboxes.html" import accordion_checkboxes, regions_checkboxes, accordion_checkboxes_js, accordion_public_cible, public_cible_js %}
 {% block title %}VØtre spectacle - Spectacle'ment VØtre{% endblock %}
 {% block content %}
 
@@ -57,7 +57,23 @@
     <!-- SECTION: Informations de la compagnie -->
     <fieldset class="demande-section">
       <legend>Informations de la compagnie</legend>
-      
+
+      {% if user %}
+      <div style="background:rgba(76,175,80,0.12); border-left:4px solid #4caf50; border-radius:8px; padding:10px 14px; margin-bottom:14px; color:#fff; font-size:0.95rem;">
+        👤 Vous publiez sous le compte : <strong style="color:#a5d6a7;">{{ user.username }}</strong>
+        {% if user.email %} &nbsp;·&nbsp; <span style="color:#cfd8dc;">{{ user.email }}</span>{% endif %}
+      </div>
+      <input type="hidden" name="pseudo" value="{{ user.username }}">
+      {% endif %}
+
+      <div>
+        <label>
+          <span class="label-text">Pseudo (compte)</span>
+          <input type="text" value="{{ user.username if user else '' }}" readonly style="background:rgba(255,255,255,0.05); cursor:not-allowed; color:#b0bec5;">
+          <span class="hint">Identifiant de votre compte (non modifiable ici)</span>
+        </label>
+      </div>
+
       <div>
         <label>
           <span class="label-text">Raison sociale <span class="req">*</span></span>
@@ -70,7 +86,7 @@
         <div>
           <label>
             <span class="label-text">Votre e-mail <span class="req">*</span></span>
-            <input type="email" name="contact_email" placeholder="votre@email.fr" value="{{ request.form.get('contact_email', '') }}" required>
+            <input type="email" name="contact_email" placeholder="votre@email.fr" value="{{ request.form.get('contact_email', user.email if user and user.email else '') }}" required>
             <span class="hint">Votre adresse e-mail de contact pour les organisateurs d'événements</span>
           </label>
         </div>
@@ -78,7 +94,7 @@
         <div>
           <label>
             <span class="label-text">Votre téléphone <span class="req">*</span></span>
-            <input type="tel" name="contact_phone" placeholder="06 12 34 56 78" required>
+            <input type="tel" name="contact_phone" placeholder="06 12 34 56 78" value="{{ request.form.get('contact_phone', user.telephone if user and user.telephone else '') }}" required>
           </label>
         </div>
       </div>
@@ -103,23 +119,36 @@
           </div>
         </label>
       </div>
-      <div class="grid-2">
-        <div>
-          <label>
-            <span class="label-text">Code postal <span class="req">*</span></span>
-            <input type="text" name="code_postal" id="code_postal" required autocomplete="postal-code"
-                   inputmode="numeric" pattern="[0-9]{5}" maxlength="5"
-                   placeholder="Ex : 75001"
-                   value="{{ request.form.get('code_postal','') }}">
-            <span class="hint">Entrez le code postal.</span>
-          </label>
+      <div style="background:#0d2540; border:1px solid #1976d2; border-radius:8px; padding:12px; margin-bottom:12px;">
+        <div style="color:#90caf9; font-size:0.9em; margin-bottom:8px;">📍 Localisation (pré-remplie depuis votre compte — modifiable si le spectacle a lieu ailleurs)</div>
+        <div class="grid-2">
+          <div>
+            <label>
+              <span class="label-text">Code postal <span class="req">*</span></span>
+              <input type="text" name="code_postal" id="code_postal" required autocomplete="postal-code"
+                     inputmode="numeric" pattern="[0-9]{5}" maxlength="5"
+                     placeholder="Ex : 75001"
+                     value="{{ request.form.get('code_postal', user.code_postal if user and user.code_postal else '') }}">
+              <span class="hint">Code postal du lieu du spectacle.</span>
+            </label>
+          </div>
+          <div>
+            <label>
+              <span class="label-text">Région</span>
+              <input type="text" name="region" id="region-input" readonly
+                     placeholder="Région"
+                     style="background:#1a1f2e; color:#90caf9; cursor:not-allowed;"
+                     value="{{ request.form.get('region', user.region if user and user.region else '') }}">
+            </label>
+            <input type="hidden" name="departement" value="{{ user.departement if user and user.departement else '' }}">
+          </div>
         </div>
       </div>
       <div class="grid-2">
         <div>
           <label>
             <span class="label-text">Lieu</span>
-            <input type="text" name="location" id="ville-input" placeholder="Ville">
+            <input type="text" name="location" id="ville-input" placeholder="Ville" value="{{ user.ville if user and user.ville else '' }}">
           </label>
           <div style="background:#e3f2fd; color:#1565c0; border:1px solid #90caf9; border-radius:7px; padding:7px 12px; margin:10px 0 8px 0; font-size:0.97em; font-weight:500;">
             Cliquez sur une ville pour remplir automatiquement le champ ci-dessus, ou inscrivez votre ville&nbsp;:
@@ -183,29 +212,9 @@
             </script>
         </div>
       </div>
-      <div class="grid-2">
-        <div>
-          <label>
-            <span class="label-text">Public ciblé *</span>
-            <div style="display:flex;gap:8px;align-items:center;">
-              <select name="age_range" required style="flex:1;">
-                <option value="">-- Choisir un public --</option>
-                <option value="jp_0_3">Jeune public ou familial 0/3 ans</option>
-                <option value="jp_4_8">Jeune public ou familial 4/8 ans</option>
-                <option value="jp_7_11">Jeune public ou familial 7/11 ans</option>
-                <option value="jp_des_3">Jeune public ou familial dès 3 ans</option>
-                <option value="anim_div">Animations diverses *</option>
-                <option value="ad_12">Spectacle adulte à partir de 12 ans</option>
-                <option value="ad_16">Spectacle adulte à partir de 16 ans</option>
-              </select>
-              <span class="info-tip-wrap">
-                <button type="button" class="info-tip" tabindex="-1" aria-label="Aide Animations diverses">?</button>
-                <span class="info-tip-bubble"><strong>Animations diverses</strong> inclut :<br>• Parade de rue<br>• Apéro concert<br>• Bal<br>• Concert<br>• Atelier<br>• etc.</span>
-              </span>
-            </div>
-          </label>
-        </div>
-      </div>
+      {# Public Cible v2 : catégories + sous-options (artiste strict, exclusivités appliquées) #}
+      {{ accordion_public_cible(PUBLIC_CIBLE_CATEGORIES, [], [], PUBLIC_CIBLE_INCOMPATIBLES, "#4caf50", "#fff", "Public ciblé *", "Cochez la ou les catégories de public, puis précisez les tranches d'âge.") }}
+      <input type="hidden" name="age_range" value="">
     </fieldset>
 
     <!-- SECTION: Photos -->
@@ -534,4 +543,5 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 </script>
 {{ accordion_checkboxes_js() }}
+{{ public_cible_js() }}
 {% endblock %}
