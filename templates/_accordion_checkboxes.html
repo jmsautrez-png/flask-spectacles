@@ -119,6 +119,7 @@
         <label style="display:flex; align-items:center; padding:5px 8px; border-radius:5px; cursor:pointer; transition:background 0.15s;" class="matching-cb-label" onmouseover="this.style.background='rgba(128,128,128,0.1)'" onmouseout="this.style.background='transparent'">
           <input type="checkbox" name="public_sous_options" value="{{ sub_code }}"
             class="pc-sub-cb" data-parent="{{ cat.code }}"
+            {% if cat.sub_requires and sub_code in cat.sub_requires %}data-requires-sub="{{ cat.sub_requires[sub_code] }}"{% endif %}
             {% if sub_code in saved_subs %}checked{% endif %}
             style="margin-right:8px; width:16px; height:16px; cursor:pointer; accent-color:{{ color }};">
           <span style="font-size:0.9rem; color:{{ text_color }};">{{ sub_label }}</span>
@@ -249,7 +250,19 @@
     section.querySelectorAll('.pc-cat-cb, .pc-sub-cb').forEach(function(cb){
       var isExclusive = cb.classList.contains('pc-sub-cb') && EXCLUSIVE_SUBS.indexOf(cb.value) !== -1;
       var isCompat = cb.classList.contains('pc-sub-cb') && compat.indexOf(cb.value) !== -1;
+      // Sous-option conditionnée par une autre sous-option (ex: fam_pe nécessite creche)
+      var requiresSub = cb.classList.contains('pc-sub-cb') ? cb.getAttribute('data-requires-sub') : null;
+      var requiresMet = true;
+      if (requiresSub){
+        var reqEl = section.querySelector('.pc-sub-cb[value="'+requiresSub+'"]');
+        requiresMet = !!(reqEl && reqEl.checked);
+      }
       if (locked && !isExclusive && !isCompat && !cb.checked){
+        cb.disabled = true;
+        if (cb.parentElement) cb.parentElement.style.opacity = '0.4';
+      } else if (requiresSub && !requiresMet){
+        // Si la sous-option requise n'est pas cochée → griser et décocher
+        if (cb.checked) cb.checked = false;
         cb.disabled = true;
         if (cb.parentElement) cb.parentElement.style.opacity = '0.4';
       } else {

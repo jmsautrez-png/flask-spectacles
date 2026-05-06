@@ -347,7 +347,7 @@ PUBLIC_CIBLE_CATEGORIES = [
         "icon": "",
         "requires": ["famille"],  # cocher enfants impose de cocher aussi une option famille
         "exclusive_subs": ["creche"],  # cocher crèche : aucune autre case (cat ou sous-option) ne peut être cochée
-        "exclusive_compat": {"creche": ["mat"]},  # crèche peut se cumuler avec maternelle (et dispense aussi de la dépendance famille)
+        "exclusive_compat": {"creche": ["mat", "fam_pe"]},  # crèche peut se cumuler avec maternelle ET avec famille petite enfance (et dispense de la dépendance famille)
         "sous_options": [
             ("creche", "Crèche / Halte-garderie"),
             ("mat",  "Maternelle"),
@@ -359,8 +359,10 @@ PUBLIC_CIBLE_CATEGORIES = [
         "code": "famille",
         "label": "Spectacle pour la famille (tous spectacles comprenant un public familial : enfants et adultes)",
         "icon": "",
-        "single_select": True,  # une seule sous-option (Dès 3 ans OU Dès 6 ans)
+        "single_select": True,  # une seule sous-option (Petite enfance OU Dès 3 ans OU Dès 6 ans)
+        "sub_requires": {"fam_pe": "creche"},  # « petite enfance » n'est cochable que si la sous-option « crèche » est aussi cochée
         "sous_options": [
+            ("fam_pe", "Petite enfance (0-3 ans accompagnés)"),
             ("fam_3", "Dès 3 ans"),
             ("fam_6", "Dès 6 ans"),
         ],
@@ -397,6 +399,7 @@ PUBLIC_CIBLE_ORGANISATEUR = [
         "icon": "",
         "hint": "Kermesse, fête de quartier, fête de Noël, marché, spectacle / théâtre…",
         "sous_options": [
+            ("fam_pe", "Petite enfance (0-3 ans accompagnés)"),
             ("fam_3", "Dès 3 ans (tout-petits accompagnés)"),
             ("fam_6", "Dès 6 ans (familles avec enfants scolarisés)"),
         ],
