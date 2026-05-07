@@ -434,3 +434,12 @@ PUBLIC_CIBLE_INCOMPATIBLES = [
     ("enfants", "adultes", []),
     ("famille", "adultes", []),
 ]
+
+# Version PERMISSIVE pour l'admin : aucune contrainte (single_select, exclusive_subs,
+# exclusive_compat, sub_requires, requires) — l'admin peut tout cocher librement.
+PUBLIC_CIBLE_ADMIN = [
+    {k: v for k, v in cat.items()
+     if k not in ("single_select", "exclusive_subs", "exclusive_compat",
+                  "sub_requires", "requires")}
+    for cat in PUBLIC_CIBLE_ORGANISATEUR
+]

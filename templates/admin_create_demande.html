@@ -215,7 +215,7 @@
                             <div class="col-md-12">
                                 <div class="modern-input-group">
                                     {# Public Cible v2 (organisateur/mairie : permissif, pas d'exclusivité, pas de single_select) #}
-                                    {{ accordion_public_cible(PUBLIC_CIBLE_ORGANISATEUR, [], [], [], "#1976d2", "#1f2937", "👶 Public ciblé *", "Cochez la ou les catégories de public, puis précisez les tranches d'âge.") }}
+                                    {{ accordion_public_cible(PUBLIC_CIBLE_ADMIN, [], [], [], "#1976d2", "#1f2937", "👶 Public ciblé (admin — sans restriction)", "Mode admin : vous pouvez cocher librement n'importe quelle catégorie et tranche d'âge.", validate=False) }}
                                     <input type="hidden" id="age_range" name="age_range" value="">
                                 </div>
                             </div>
