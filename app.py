@@ -77,7 +77,7 @@ print("✓ Flask importé")
 from config import Config
 from models import db
 from models.models import User, Show, PageVisit, VisitorLog, Review, Conversation, Message, ShowView, Notification
-from seo_cities import FRENCH_CITIES, get_city_by_slug, get_all_city_slugs
+from seo_cities import FRENCH_CITIES, get_city_by_slug, get_all_city_slugs, get_neighbor_cities, get_city_seo_data
 
 # Imports refactorisés — utils/
 from utils.files import (
@@ -5525,7 +5525,9 @@ Accessibilité: {accessibilite}
                 public_categorie=public_categorie,
                 meta_title=meta_title,
                 meta_description=meta_description,
-                meta_keywords=meta_keywords
+                meta_keywords=meta_keywords,
+                neighbor_cities=get_neighbor_cities(city),
+                city_seo=get_city_seo_data(city),
             )
 
     # ----------------------------
@@ -5621,6 +5623,8 @@ Accessibilité: {accessibilite}
             meta_keywords=meta_keywords,
             seo_top_categories=SEO_TOP_CATEGORIES,
             seo_category_labels=SEO_CATEGORY_LABELS,
+            neighbor_cities=get_neighbor_cities(city),
+            city_seo=get_city_seo_data(city),
         )
 
 

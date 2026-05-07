@@ -6,7 +6,11 @@
 
 {% block head_extra %}
 <meta name="keywords" content="{{ meta_keywords }}">
+{% if total_shows == 0 %}
+<meta name="robots" content="noindex,follow">
+{% else %}
 <meta name="robots" content="index,follow">
+{% endif %}
 <link rel="canonical" href="{{ url_for('city_spectacles', city_slug=city['slug'], _external=True) }}">
 
 {# Open Graph pour les réseaux sociaux #}
@@ -364,24 +368,44 @@
   </div>
 </div>
 
-{# Contenu SEO descriptif #}
+{# Contenu SEO descriptif - enrichi avec données spécifiques à la ville #}
 <div class="seo-content">
   <h2>Trouvez votre spectacle à {{ city['name'] }} ({{ city['department'] }})</h2>
   <p>
-    Vous recherchez un <strong>spectacle à {{ city['name'] }}</strong> ? Découvrez notre sélection de {{ total_shows }} 
-    artistes et compagnies professionnelles disponibles pour vos événements dans la région {{ city['region'] }}.
+    Vous recherchez un <strong>spectacle à {{ city['name'] }}</strong>, {{ city_seo.tagline }} ?
+    Spectacle'ment VØtre référence {{ total_shows }} artiste{{ 's' if total_shows > 1 else '' }} et compagnie{{ 's' if total_shows > 1 else '' }}
+    professionnel{{ 'le' if total_shows > 1 else 'le' }}{{ 's' if total_shows > 1 else '' }} disponibles dans le département {{ city['department'] }}
+    et plus largement en {{ city['region'] }}.
   </p>
   <p>
-    Que ce soit pour une <strong>animation d'anniversaire à {{ city['name'] }}</strong>, un <strong>spectacle scolaire</strong>, 
-    un <strong>événement d'entreprise</strong>, une <strong>fête de village</strong> ou un <strong>arbre de Noël</strong>, 
-    notre plateforme vous met en relation directe avec des artistes locaux : magiciens, clowns, théâtre, cirque, 
-    marionnettes, concerts et bien plus encore.
+    Que vous soyez une <strong>école</strong>, une <strong>mairie</strong>, un <strong>CSE</strong>, une <strong>association</strong>
+    ou un particulier, vous trouverez ici l'animation idéale pour vos événements :
+    <strong>anniversaire d'enfant à {{ city['name'] }}</strong>, <strong>spectacle de Noël</strong>, <strong>kermesse</strong>,
+    <strong>arbre de Noël d'entreprise</strong>, <strong>séminaire</strong> ou fête de quartier.
+    Nos artistes interviennent régulièrement dans les {{ city_seo.venues }}.
   </p>
   <p>
-    Tous les spectacles sont disponibles en <strong>{{ city['region'] }}</strong> et peuvent intervenir à {{ city['name'] }} 
-    et ses environs. Contactez directement les artistes pour obtenir un devis personnalisé.
+    {{ city['name'] }} accueille chaque année de nombreux événements culturels ({{ city_seo.events }}),
+    où nos magiciens, clowns, comédiens, marionnettistes, conteurs, musiciens et artistes de cirque sont régulièrement sollicités.
+    Contactez directement les artistes via la plateforme pour obtenir un <strong>devis gratuit personnalisé</strong>
+    et organiser votre prochain événement à {{ city['name'] }} ou dans toute la région {{ city['region'] }}.
   </p>
 </div>
+
+{# Villes voisines (maillage interne SEO) #}
+{% if neighbor_cities %}
+<div style="margin-bottom:30px; padding:20px; background:rgba(255,255,255,0.04); border-radius:12px; border:1px solid rgba(255,255,255,0.1);">
+  <h3 style="color:#ffc107; font-size:1.15em; margin:0 0 12px 0;">🗺️ Spectacles dans les villes voisines de {{ city['region'] }}</h3>
+  <div style="display:flex; flex-wrap:wrap; gap:8px;">
+    {% for nc in neighbor_cities %}
+      <a href="{{ url_for('city_spectacles', city_slug=nc['slug']) }}"
+         style="padding:8px 14px; border-radius:20px; background:rgba(102,126,234,0.18); color:#a5b4fc; font-size:0.9em; text-decoration:none; border:1px solid rgba(102,126,234,0.35); transition:all .2s;">
+        Spectacles à {{ nc['name'] }} ({{ nc['department'] }})
+      </a>
+    {% endfor %}
+  </div>
+</div>
+{% endif %}
 
 {# Barre de filtres #}
 <form method="get" action="{{ url_for('city_spectacles', city_slug=city['slug']) }}" class="filters-bar">

@@ -6,7 +6,11 @@
 
 {% block extra_head %}
 <meta name="keywords" content="{{ meta_keywords }}">
+{% if total_shows == 0 %}
+<meta name="robots" content="noindex,follow">
+{% else %}
 <meta name="robots" content="index,follow">
+{% endif %}
 <link rel="canonical" href="{{ url_for('seo_category_city', category_slug=category_slug, city_slug=city['slug'], _external=True) }}">
 
 {# Open Graph #}
@@ -94,6 +98,48 @@
   ]
 }
 </script>
+
+{# Schema.org FAQPage - longue traîne + résultats enrichis Google #}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "Comment trouver un spectacle de {{ category_label|lower }} à {{ city['name'] }} ?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Sur Spectacle'ment VØtre, parcourez les {{ total_shows }} artiste{{ 's' if total_shows > 1 else '' }} de {{ category_label|lower }} disponibles à {{ city['name'] }} et en {{ city['region'] }}. Filtrez par public cible (enfants, familles, entreprises) puis contactez directement l'artiste pour un devis gratuit."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Combien coûte un spectacle de {{ category_label|lower }} à {{ city['name'] }} ?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Le tarif dépend de la durée, du nombre d'artistes, du déplacement jusqu'à {{ city['name'] }} et du type d'événement. Comptez en moyenne entre 250 et 1500 € pour une prestation. Demandez un devis gratuit directement auprès de l'artiste."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Pour quels types d'événements à {{ city['name'] }} ?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Anniversaires d'enfants, arbres de Noël d'entreprise, kermesses scolaires, mariages, séminaires, animations municipales, fêtes de quartier, EHPAD, centres de loisirs : nos artistes de {{ category_label|lower }} interviennent partout à {{ city['name'] }} ({{ city['department'] }}) et en {{ city['region'] }}."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Combien de temps à l'avance réserver un artiste à {{ city['name'] }} ?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Pour garantir la disponibilité de l'artiste de votre choix, nous recommandons de réserver au moins 4 à 8 semaines à l'avance, et 3 mois pour les périodes chargées (Noël, fin d'année scolaire). Certains artistes peuvent toutefois répondre à des demandes urgentes."
+      }
+    }
+  ]
+}
+</script>
 {% endblock %}
 
 {% block content %}
@@ -117,15 +163,40 @@
     {{ total_shows }} spectacle{{ 's' if total_shows != 1 else '' }} disponible{{ 's' if total_shows != 1 else '' }} en {{ city['region'] }}
   </p>
 
-  {# Contenu SEO unique pour la longue traîne #}
-  <div style="max-width:800px; margin-bottom:32px; line-height:1.7; font-size:16px;">
+  {# Contenu SEO unique pour la longue traîne - enrichi par ville #}
+  <div style="max-width:900px; margin-bottom:32px; line-height:1.7; font-size:16px;">
     <p>
-      Vous cherchez un spectacle de <strong>{{ category_label.lower() }}</strong> à <strong>{{ city['name'] }}</strong> ?
-      Spectacle'ment VØtre met en relation les artistes professionnels et les organisateurs d'événements
-      en <strong>{{ city['region'] }}</strong>. Écoles, mairies, CSE, associations et particuliers trouvent
-      ici l'animation idéale pour leurs événements.
+      Vous cherchez un spectacle de <strong>{{ category_label.lower() }}</strong> à <strong>{{ city['name'] }}</strong>,
+      {{ city_seo.tagline }} ? Spectacle'ment VØtre référence {{ total_shows }} artiste{{ 's' if total_shows > 1 else '' }}
+      spécialisé{{ 's' if total_shows > 1 else '' }} en {{ category_label.lower() }}, disponible{{ 's' if total_shows > 1 else '' }}
+      en <strong>{{ city['region'] }}</strong> (département {{ city['department'] }}).
+    </p>
+    <p>
+      Que ce soit pour un <strong>anniversaire</strong>, un <strong>arbre de Noël</strong>, une
+      <strong>animation scolaire</strong>, un <strong>événement de CSE</strong>, un <strong>mariage</strong>
+      ou une <strong>fête communale</strong>, nos artistes de {{ category_label.lower() }} interviennent régulièrement
+      dans les {{ city_seo.venues }}.
+    </p>
+    <p>
+      {{ city['name'] }} est une ville culturellement active ({{ city_seo.events }}), où le {{ category_label.lower() }} a toute sa place.
+      Contactez directement l'artiste de votre choix pour obtenir un <strong>devis gratuit sous 3h</strong> et réserver votre prestation.
     </p>
   </div>
+
+  {# Villes voisines (maillage interne) #}
+  {% if neighbor_cities %}
+  <div style="margin-bottom:28px;">
+    <h2 style="font-size:18px; color:#a78bfa; margin:0 0 10px 0;">{{ category_label }} dans les autres villes de {{ city['region'] }}</h2>
+    <div style="display:flex; flex-wrap:wrap; gap:8px;">
+      {% for nc in neighbor_cities %}
+        <a href="{{ url_for('seo_category_city', category_slug=category_slug, city_slug=nc['slug']) }}"
+           style="padding:6px 14px; border-radius:20px; background:rgba(167,139,250,0.10); color:#a78bfa; font-size:13px; text-decoration:none; border:1px solid rgba(167,139,250,0.25);">
+          {{ category_label }} à {{ nc['name'] }}
+        </a>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
 
   {# Liens internes vers les autres catégories de cette ville #}
   <div style="margin-bottom:32px; display:flex; flex-wrap:wrap; gap:8px;">
@@ -206,6 +277,44 @@
       {% endfor %}
     </div>
   </div>
+
+  {# FAQ visible (complète le schema FAQPage) #}
+  <section style="margin-top:48px; padding:24px; background:rgba(255,255,255,0.03); border-radius:12px; border:1px solid rgba(255,255,255,0.08);">
+    <h2 style="font-size:22px; color:#ffc107; margin:0 0 18px 0;">❓ Questions fréquentes : {{ category_label }} à {{ city['name'] }}</h2>
+
+    <details style="margin-bottom:10px; padding:12px 16px; background:rgba(0,0,0,0.2); border-radius:8px; cursor:pointer;">
+      <summary style="font-weight:600; color:#fff;">Comment trouver un spectacle de {{ category_label|lower }} à {{ city['name'] }} ?</summary>
+      <p style="margin:10px 0 0 0; color:#ddd; line-height:1.6;">
+        Parcourez les {{ total_shows }} artiste{{ 's' if total_shows > 1 else '' }} de {{ category_label|lower }} disponibles à {{ city['name'] }} et en {{ city['region'] }}.
+        Filtrez par public cible (enfants, familles, entreprises) puis contactez directement l'artiste pour obtenir un devis gratuit.
+      </p>
+    </details>
+
+    <details style="margin-bottom:10px; padding:12px 16px; background:rgba(0,0,0,0.2); border-radius:8px; cursor:pointer;">
+      <summary style="font-weight:600; color:#fff;">Combien coûte un spectacle de {{ category_label|lower }} à {{ city['name'] }} ?</summary>
+      <p style="margin:10px 0 0 0; color:#ddd; line-height:1.6;">
+        Le tarif dépend de la durée, du nombre d'artistes, du déplacement jusqu'à {{ city['name'] }} et du type d'événement.
+        Comptez en moyenne entre 250 € et 1 500 €. Demandez un devis gratuit personnalisé directement auprès de l'artiste.
+      </p>
+    </details>
+
+    <details style="margin-bottom:10px; padding:12px 16px; background:rgba(0,0,0,0.2); border-radius:8px; cursor:pointer;">
+      <summary style="font-weight:600; color:#fff;">Pour quels types d'événements à {{ city['name'] }} ?</summary>
+      <p style="margin:10px 0 0 0; color:#ddd; line-height:1.6;">
+        Anniversaires d'enfants, arbres de Noël d'entreprise, kermesses scolaires, mariages, séminaires, animations municipales,
+        fêtes de quartier, EHPAD, centres de loisirs : nos artistes interviennent partout à {{ city['name'] }} ({{ city['department'] }})
+        et en {{ city['region'] }}.
+      </p>
+    </details>
+
+    <details style="padding:12px 16px; background:rgba(0,0,0,0.2); border-radius:8px; cursor:pointer;">
+      <summary style="font-weight:600; color:#fff;">Combien de temps à l'avance réserver un artiste à {{ city['name'] }} ?</summary>
+      <p style="margin:10px 0 0 0; color:#ddd; line-height:1.6;">
+        Nous recommandons 4 à 8 semaines à l'avance, et jusqu'à 3 mois pour les périodes chargées (Noël, fin d'année scolaire).
+        Certains artistes peuvent toutefois répondre à des demandes urgentes.
+      </p>
+    </details>
+  </section>
 
 </div>
 {% endblock %}
