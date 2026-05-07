@@ -407,6 +407,24 @@
 </div>
 {% endif %}
 
+{# Tous les thèmes de spectacles pour cette ville (maillage interne longue traîne) #}
+{% if seo_top_categories and seo_category_labels %}
+<div style="margin-bottom:30px; padding:20px; background:rgba(102,126,234,0.05); border-radius:12px; border:1px solid rgba(102,126,234,0.2);">
+  <h3 style="color:#a5b4fc; font-size:1.15em; margin:0 0 12px 0;">🎭 Tous les types de spectacles à {{ city['name'] }}</h3>
+  <p style="color:#bbb; font-size:0.9em; margin:0 0 14px 0;">
+    Trouvez l'animation parfaite pour votre événement à {{ city['name'] }} :
+  </p>
+  <div style="display:flex; flex-wrap:wrap; gap:8px;">
+    {% for cat_slug in seo_top_categories %}
+      <a href="{{ url_for('seo_category_city', category_slug=cat_slug, city_slug=city['slug']) }}"
+         style="padding:7px 14px; border-radius:18px; background:rgba(255,193,7,0.10); color:#ffd54f; font-size:0.88em; text-decoration:none; border:1px solid rgba(255,193,7,0.30);">
+        {{ seo_category_labels.get(cat_slug, cat_slug) }} à {{ city['name'] }}
+      </a>
+    {% endfor %}
+  </div>
+</div>
+{% endif %}
+
 {# Barre de filtres #}
 <form method="get" action="{{ url_for('city_spectacles', city_slug=city['slug']) }}" class="filters-bar">
   <select name="category" id="category">

@@ -77,7 +77,7 @@ print("✓ Flask importé")
 from config import Config
 from models import db
 from models.models import User, Show, PageVisit, VisitorLog, Review, Conversation, Message, ShowView, Notification
-from seo_cities import FRENCH_CITIES, get_city_by_slug, get_all_city_slugs, get_neighbor_cities, get_city_seo_data
+from seo_cities import FRENCH_CITIES, get_city_by_slug, get_all_city_slugs, get_neighbor_cities, get_city_seo_data, get_category_seo_data
 
 # Imports refactorisés — utils/
 from utils.files import (
@@ -5528,6 +5528,8 @@ Accessibilité: {accessibilite}
                 meta_keywords=meta_keywords,
                 neighbor_cities=get_neighbor_cities(city),
                 city_seo=get_city_seo_data(city),
+                seo_top_categories=SEO_TOP_CATEGORIES,
+                seo_category_labels=SEO_CATEGORY_LABELS,
             )
 
     # ----------------------------
@@ -5555,12 +5557,39 @@ Accessibilité: {accessibilite}
         "orchestre": "Orchestre",
         "arbre-de-noel": "Arbres de Noël",
         "animation-ecole": "Animations École",
+        # Nouveaux thèmes longue traîne
+        "conte": "Contes",
+        "conteur": "Conteurs",
+        "mentaliste": "Mentalistes",
+        "humoriste": "Humoristes",
+        "ventriloque": "Ventriloques",
+        "mascotte": "Mascottes",
+        "pere-noel": "Pères Noël",
+        "echassier": "Échassiers",
+        "sculpteur-ballons": "Sculpteurs sur Ballons",
+        "caricaturiste": "Caricaturistes",
+        "maquillage": "Maquillage Enfant",
+        "one-man-show": "One-Man-Shows",
+        "comedie-musicale": "Comédies Musicales",
+        "chorale-gospel": "Chorales & Gospel",
+        "fanfare": "Fanfares & Batucadas",
+        "dj-orchestre": "DJ & Orchestres",
+        "jazz": "Jazz",
+        "musique-classique": "Musique Classique",
+        "chanson-francaise": "Chanson Française",
+        "spectacle-medieval": "Spectacles Médiévaux",
+        "spectacle-animalier": "Spectacles Animaliers",
+        "cabaret": "Cabaret",
+        "fete-de-village": "Fêtes de Village",
     }
 
     # Top catégories pour les pages ville×catégorie (les plus recherchées)
     SEO_TOP_CATEGORIES = [
         "magie", "marionnette", "clown", "theatre", "cirque",
-        "spectacle-enfant", "arbre-de-noel", "animation-ecole"
+        "spectacle-enfant", "arbre-de-noel", "animation-ecole",
+        "conte", "mentaliste", "humoriste", "mascotte",
+        "pere-noel", "sculpteur-ballons", "maquillage",
+        "dj-orchestre", "chorale-gospel", "jazz",
     ]
 
     @app.get("/<category_slug>/<city_slug>/")
@@ -5625,6 +5654,7 @@ Accessibilité: {accessibilite}
             seo_category_labels=SEO_CATEGORY_LABELS,
             neighbor_cities=get_neighbor_cities(city),
             city_seo=get_city_seo_data(city),
+            category_seo=get_category_seo_data(category_slug),
         )
 
 

@@ -163,19 +163,18 @@
     {{ total_shows }} spectacle{{ 's' if total_shows != 1 else '' }} disponible{{ 's' if total_shows != 1 else '' }} en {{ city['region'] }}
   </p>
 
-  {# Contenu SEO unique pour la longue traîne - enrichi par ville #}
+  {# Contenu SEO unique pour la longue traîne - enrichi par ville ET par thème #}
   <div style="max-width:900px; margin-bottom:32px; line-height:1.7; font-size:16px;">
     <p>
-      Vous cherchez un spectacle de <strong>{{ category_label.lower() }}</strong> à <strong>{{ city['name'] }}</strong>,
+      Vous cherchez un <strong>{{ category_seo.intro }}</strong> à <strong>{{ city['name'] }}</strong>,
       {{ city_seo.tagline }} ? Spectacle'ment VØtre référence {{ total_shows }} artiste{{ 's' if total_shows > 1 else '' }}
       spécialisé{{ 's' if total_shows > 1 else '' }} en {{ category_label.lower() }}, disponible{{ 's' if total_shows > 1 else '' }}
       en <strong>{{ city['region'] }}</strong> (département {{ city['department'] }}).
     </p>
     <p>
-      Que ce soit pour un <strong>anniversaire</strong>, un <strong>arbre de Noël</strong>, une
-      <strong>animation scolaire</strong>, un <strong>événement de CSE</strong>, un <strong>mariage</strong>
-      ou une <strong>fête communale</strong>, nos artistes de {{ category_label.lower() }} interviennent régulièrement
-      dans les {{ city_seo.venues }}.
+      Format idéal pour : <strong>{{ category_seo.occasions }}</strong>. Nos artistes interviennent régulièrement
+      dans les {{ city_seo.venues }}. Public concerné : {{ category_seo.audience }}.
+      Durée moyenne d'une prestation : {{ category_seo.duration }}.
     </p>
     <p>
       {{ city['name'] }} est une ville culturellement active ({{ city_seo.events }}), où le {{ category_label.lower() }} a toute sa place.
