@@ -443,3 +443,11 @@ PUBLIC_CIBLE_ADMIN = [
                   "sub_requires", "requires")}
     for cat in PUBLIC_CIBLE_ORGANISATEUR
 ]
+
+# Structures spécialisées (exemple)
+STRUCTURES_SPECIALISEES = [
+    ("ehpad", "EHPAD / Résidence senior"),
+    ("ime", "IME / Institut médico-éducatif"),
+    ("foyer", "Foyer de vie / MAS"),
+    ("hopital", "Hôpital spécialisé"),
+]
