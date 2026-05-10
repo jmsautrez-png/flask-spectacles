@@ -84,8 +84,16 @@
       </ul>
     </div>
     <textarea id="description" name="description" rows="6" required
+      data-cie-site="{{ (show.user.site_internet if show and show.user and show.user.site_internet else '')|e }}"
+      data-cie-nom="{{ (show.user.raison_sociale if show and show.user and show.user.raison_sociale else '')|e }}"
       placeholder="Exemple : « Crack Up est un spectacle de magie comique de 50 minutes, idéal pour familles, anniversaires d'enfants et arbres de Noël en entreprise. Sur scène, un magicien égocentrique et son assistante maladroite enchaînent plus de 100 gags visuels et numéros de magie spectaculaires. Disponible partout en France, particulièrement à Lyon et dans la région Auvergne-Rhône-Alpes. Dès 5 ans. »">{{ show.description or "" }}</textarea>
-    <div id="desc-counter" style="font-size:.9rem;opacity:.8;margin-top:4px;">0/300 mots</div>
+    <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap; margin-top:6px;">
+      <div id="desc-counter" style="font-size:.9rem;opacity:.8;">0/300 mots</div>
+      <button type="button" id="btn-prefill-desc"
+        style="background:linear-gradient(135deg,#1976d2,#42a5f5); color:#fff; border:none; padding:6px 14px; border-radius:6px; cursor:pointer; font-size:0.85rem; font-weight:600;">
+        ✨ Pré-remplir avec le titre + site de la compagnie
+      </button>
+    </div>
     <div id="seo-analyzer" style="margin-top:8px; background:rgba(0,0,0,0.25); border:1px solid rgba(255,255,255,0.12); border-radius:8px; padding:10px 12px; font-size:0.85rem; color:#ddd;">
       <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-bottom:6px;">
         <strong style="color:#fff;">🎯 Score SEO :</strong>
@@ -435,6 +443,46 @@
   if (btnTips && blockTips) {
     btnTips.addEventListener('click', function(){
       blockTips.style.display = (blockTips.style.display === 'none' || !blockTips.style.display) ? 'block' : 'none';
+    });
+  }
+
+  // Bouton « Pré-remplir avec le titre + site de la compagnie »
+  var btnPrefill = document.getElementById('btn-prefill-desc');
+  if (btnPrefill) {
+    btnPrefill.addEventListener('click', function(){
+      var titleEl = document.querySelector('input[name="title"]');
+      var title = titleEl ? titleEl.value.trim() : '';
+      if (!title) {
+        alert("Renseignez d'abord le titre du spectacle.");
+        if (titleEl) titleEl.focus();
+        return;
+      }
+      var site = (ta.getAttribute('data-cie-site') || '').trim();
+      var cie  = (ta.getAttribute('data-cie-nom')  || '').trim();
+      var cityEl = document.getElementById('location-input');
+      var city = cityEl ? (cityEl.value.split('|')[0] || '').trim() : '';
+
+      var lignes = [];
+      lignes.push('« ' + title + ' » est un spectacle proposé' + (cie ? ' par la compagnie ' + cie : '') + ', idéal pour les familles, écoles et événements (anniversaires, fêtes de Noël, kermesses, séminaires d\'entreprise).');
+      lignes.push('Conçu pour petits et grands, ce spectacle conjugue ambiance chaleureuse, interactivité et émerveillement, pour un moment convivial et fédérateur.');
+      lignes.push('Durée : environ 45 minutes — dès 4 ans. Adaptable en intérieur comme en extérieur.');
+      if (city) {
+        lignes.push('Disponible à ' + city + ' et dans toute la région, ainsi que partout en France sur demande.');
+      } else {
+        lignes.push('Disponible partout en France sur simple demande.');
+      }
+      lignes.push('Découvrez « ' + title + ' » et réservez votre date dès maintenant pour offrir à votre public un spectacle inoubliable.');
+      if (site) {
+        lignes.push('Plus d\'informations sur le site de la compagnie : ' + site);
+      }
+
+      var modele = lignes.join(' ');
+      if (ta.value.trim() && !confirm("Une description existe déjà. La remplacer par le modèle pré-rempli ?")) {
+        return;
+      }
+      ta.value = modele;
+      ta.dispatchEvent(new Event('input', {bubbles:true}));
+      ta.focus();
     });
   }
 
