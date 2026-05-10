@@ -1,0 +1,111 @@
+{% extends "base.html" %}
+{% block title %}Spectacle de Noël entreprise & arbre de Noël CSE | Spectacle'ment VØtre{% endblock %}
+{% block description %}Spectacle de Noël pour entreprise et arbre de Noël CSE : magie, contes, Père Noël, distribution de cadeaux, animation goûter. Devis rapide partout en France et en Occitanie.{% endblock %}
+{% block extra_head %}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Service",
+  "name": "Spectacle de Noël pour entreprise / arbre de Noël CSE",
+  "serviceType": "Animation événementielle d'entreprise",
+  "areaServed": "France",
+  "url": "{{ url_for('spectacles_noel_entreprise', _external=True) }}"
+}
+</script>
+{% endblock %}
+{% block content %}
+
+<h1>Spectacle de Noël entreprise & arbre de Noël CSE</h1>
+
+<div style="max-width:900px; margin:0 auto 40px; padding:0 20px;">
+  <p style="margin-bottom:16px; font-size:17px; line-height:1.7;">
+    Vous organisez l'<strong>arbre de Noël de votre CSE</strong> ou un événement de fin d'année
+    pour les enfants des collaborateurs ? Notre plateforme regroupe des compagnies professionnelles
+    spécialisées dans les <strong>spectacles de Noël en entreprise</strong> : grand spectacle de magie,
+    contes féeriques, marionnettes géantes, fanfares lumineuses, déambulation Père Noël,
+    distribution de cadeaux personnalisée. Du <strong>petit cocktail (50 personnes)</strong> au
+    <strong>grand arbre de Noël (500+ personnes)</strong>, trouvez la formule qui correspond à votre
+    budget et à votre site (salle des fêtes, théâtre, hôtel, siège social).
+  </p>
+
+  <h2 style="font-size:20px; margin:24px 0 12px; color:var(--primary); font-weight:600;">
+    Formules les plus demandées par les CSE
+  </h2>
+  <ul style="line-height:1.9; margin-bottom:24px; padding-left:0; list-style:none;">
+    <li style="padding-left:24px; position:relative; margin-bottom:8px;"><span style="position:absolute; left:0; color:#c0392b; font-weight:bold;">🎩</span> <strong>Grand spectacle de magie</strong> (45-60 min) : magie de scène, illusions, participation des enfants.</li>
+    <li style="padding-left:24px; position:relative; margin-bottom:8px;"><span style="position:absolute; left:0; color:#c0392b; font-weight:bold;">🎅</span> <strong>Visite du Père Noël</strong> avec distribution nominative des cadeaux et photos souvenirs.</li>
+    <li style="padding-left:24px; position:relative; margin-bottom:8px;"><span style="position:absolute; left:0; color:#c0392b; font-weight:bold;">🎈</span> <strong>Animations goûter</strong> : sculpteur de ballons, maquillage, atelier créatif, mascotte.</li>
+    <li style="padding-left:24px; position:relative; margin-bottom:8px;"><span style="position:absolute; left:0; color:#c0392b; font-weight:bold;">🎭</span> <strong>Spectacle musical / conté</strong> : féerie de Noël, comédie musicale tout public.</li>
+    <li style="padding-left:24px; position:relative; margin-bottom:8px;"><span style="position:absolute; left:0; color:#c0392b; font-weight:bold;">🎺</span> <strong>Déambulation extérieure</strong> : fanfare lumineuse, échassiers de Noël, parade féerique.</li>
+  </ul>
+
+  <h2 style="font-size:20px; margin:24px 0 12px; color:var(--primary); font-weight:600;">
+    Budget arbre de Noël CSE : à quoi s'attendre ?
+  </h2>
+  <p style="font-size:15px; color:#666; margin-bottom:14px; line-height:1.7;">
+    Pour un <strong>spectacle d'arbre de Noël</strong>, comptez en moyenne :
+    <strong>800 à 1 500 €</strong> pour un spectacle de magie d'une heure (jusqu'à 150 enfants),
+    <strong>200 à 400 €</strong> pour la visite du Père Noël (1-2 h),
+    <strong>250 à 600 €</strong> pour une animation goûter (sculpteur de ballons, maquillage).
+    Un budget global d'arbre de Noël se situe généralement entre <strong>1 500 € et 4 000 €</strong>
+    hors lieu et restauration.
+  </p>
+  <p style="font-size:15px; color:#666; margin-bottom:20px; line-height:1.7;">
+    <strong>Conseil important</strong> : réservez vos artistes <strong>dès septembre</strong> ! Les
+    samedis de décembre (notamment les 7, 14 et 21) sont saturés. Les compagnies professionnelles
+    refusent souvent des dates dès la mi-octobre.
+  </p>
+
+  <h2 style="font-size:20px; margin:24px 0 12px; color:var(--primary); font-weight:600;">
+    Pourquoi passer par notre plateforme ?
+  </h2>
+  <ul style="line-height:1.9; margin-bottom:24px; padding-left:0; list-style:none;">
+    <li style="padding-left:24px; position:relative; margin-bottom:6px;"><span style="position:absolute; left:0; color:var(--primary); font-weight:bold;">✓</span> <strong>Devis gratuits et sans engagement</strong> auprès de plusieurs artistes.</li>
+    <li style="padding-left:24px; position:relative; margin-bottom:6px;"><span style="position:absolute; left:0; color:var(--primary); font-weight:bold;">✓</span> <strong>Contact direct</strong> avec les compagnies, sans intermédiaire ni commission.</li>
+    <li style="padding-left:24px; position:relative; margin-bottom:6px;"><span style="position:absolute; left:0; color:var(--primary); font-weight:bold;">✓</span> <strong>Couverture nationale</strong> : Toulouse, Montpellier, Paris, Lyon, Bordeaux, Nantes, Marseille, Lille…</li>
+    <li style="padding-left:24px; position:relative; margin-bottom:6px;"><span style="position:absolute; left:0; color:var(--primary); font-weight:bold;">✓</span> <strong>Artistes professionnels</strong> avec licence d'entrepreneur du spectacle, assurance et matériel pro.</li>
+  </ul>
+</div>
+
+{% if shows %}
+<h2 style="text-align:center; margin:30px 0 20px;">Spectacles disponibles pour votre arbre de Noël</h2>
+<div class="cards">
+  {% for show in shows %}
+  <article class="card">
+    <a href="{{ url_for('demande_animation') }}" class="media-link">
+      <div class="media">
+        {% if show.has_image() %}
+          <img src="{{ thumbnail_url(show.file_name) }}" alt="{{ show.title }}" loading="lazy">
+        {% elif show.is_pdf() %}
+          <a class="pdf-thumb" href="{{ url_for('uploaded_file', filename=show.file_name) }}" target="_blank">PDF</a>
+        {% else %}
+          <div class="placeholder">Aucun fichier</div>
+        {% endif %}
+      </div>
+    </a>
+    <a href="{{ url_for('show_detail', show_id=show.id) }}" class="content-link">
+      <div class="content">
+        {% if show.raison_sociale %}<p class="meta" style="font-weight:600; margin-bottom:8px; color:var(--primary);">{{ show.raison_sociale|title }}</p>{% endif %}
+        <h3>{{ show.title }}</h3>
+        <p class="meta">
+          {% if show.category %}{{ show.category|title }}{% endif %}
+          {% if show.location %} • {{ show.location }}{% endif %}
+        </p>
+        {% if show.description %}<p class="desc">{{ show.description }}</p>{% endif %}
+      </div>
+    </a>
+  </article>
+  {% endfor %}
+</div>
+{% else %}
+<div style="padding:24px; background:#f8f9fa; border-radius:8px; text-align:center; max-width:700px; margin:0 auto;">
+  <p style="margin:0; font-size:16px;">Aucun spectacle d'entreprise de Noël n'est listé pour le moment.</p>
+  <p style="margin:12px 0 0 0;"><a href="{{ url_for('demande_animation') }}" style="color:var(--primary); font-weight:600;">Postez une demande gratuite</a> pour votre CSE et recevez plusieurs propositions sous 24-48 h.</p>
+</div>
+{% endif %}
+
+<div style="text-align:center; margin:40px auto; max-width:700px;">
+  <a href="{{ url_for('demande_animation') }}" style="display:inline-block; padding:14px 28px; background:linear-gradient(135deg,#1976d2,#42a5f5); color:#fff; text-decoration:none; border-radius:8px; font-weight:600; font-size:16px;">🎄 Demander un devis arbre de Noël CSE</a>
+</div>
+
+{% endblock %}

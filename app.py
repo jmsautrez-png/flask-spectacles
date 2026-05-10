@@ -1793,6 +1793,10 @@ def register_routes(app: Flask) -> None:
             ('animations_anniversaire', '0.85'),
             ('booker_artiste', '0.8'),
             ('demandes_animation', '0.8'),
+            # 🎄 Pages thématiques longue traîne Noël
+            ('pere_noel_a_domicile', '0.85'),
+            ('spectacles_noel_ecole', '0.85'),
+            ('spectacles_noel_entreprise', '0.85'),
         ]
         
         for endpoint, priority in seo_pages:
@@ -1827,7 +1831,8 @@ def register_routes(app: Flask) -> None:
         try:
             seo_top_cats = [
                 "magie", "marionnette", "clown", "theatre", "cirque",
-                "spectacle-enfant", "arbre-de-noel", "animation-ecole"
+                "spectacle-enfant", "arbre-de-noel", "animation-ecole",
+                "pere-noel"
             ]
             for city_slug in get_all_city_slugs():
                 for cat_slug in seo_top_cats:
@@ -3935,6 +3940,48 @@ Accessibilité: {accessibilite}
             )
         ).order_by(Show.display_order.asc(), Show.created_at.desc()).all()
         return render_template("spectacles_noel.html", shows=shows, user=current_user())
+
+    # ─── 🎄 Pages thématiques longue traîne Noël ───
+    @app.route("/pere-noel-a-domicile")
+    def pere_noel_a_domicile():
+        shows = Show.query.filter(
+            Show.approved.is_(True),
+            or_(
+                Show.specialites.ilike('%Père Noël%'),
+                Show.title.ilike('%père noël%'),
+                Show.title.ilike('%pere noel%'),
+                Show.description.ilike('%père noël%'),
+            )
+        ).order_by(Show.display_order.asc(), Show.created_at.desc()).limit(24).all()
+        return render_template("pere_noel_a_domicile.html", shows=shows, user=current_user())
+
+    @app.route("/spectacles-noel-ecole")
+    def spectacles_noel_ecole():
+        shows = Show.query.filter(
+            Show.approved.is_(True),
+            or_(
+                Show.title.ilike('%noël%'),
+                Show.title.ilike('%noel%'),
+                Show.description.ilike('%noël%'),
+                Show.description.ilike('%noel%'),
+                Show.evenements.ilike('%Arbre de Noël%'),
+            )
+        ).order_by(Show.display_order.asc(), Show.created_at.desc()).limit(24).all()
+        return render_template("spectacles_noel_ecole.html", shows=shows, user=current_user())
+
+    @app.route("/spectacles-noel-entreprise")
+    def spectacles_noel_entreprise():
+        shows = Show.query.filter(
+            Show.approved.is_(True),
+            or_(
+                Show.evenements.ilike('%Arbre de Noël%'),
+                Show.title.ilike('%noël%'),
+                Show.title.ilike('%noel%'),
+                Show.description.ilike('%noël%'),
+                Show.description.ilike('%noel%'),
+            )
+        ).order_by(Show.display_order.asc(), Show.created_at.desc()).limit(24).all()
+        return render_template("spectacles_noel_entreprise.html", shows=shows, user=current_user())
 
     @app.route("/animations-entreprises")
     def animations_entreprises():

@@ -108,7 +108,7 @@
   
 
       <label>Ville
-        <input type="text" name="location" id="location-input" value="{{ show.location or '' }}">
+        <input type="text" name="location" id="location-input" value="{{ show.location if show and show.location else (show.user.ville if show and show.user and show.user.ville else '') }}">
         <span style="font-size:0.9rem;color:#fff;display:block;margin-top:2px;margin-bottom:4px;">Sélectionnez les villes dans lesquelles (et autour desquelles) vous acceptez de vous déplacer pour jouer ce spectacle. Vous pouvez en ajouter jusqu'à 10.</span>
 
         <div style="display:flex; flex-wrap:wrap; gap:8px; margin-bottom:16px; margin-top:6px;">

@@ -1,0 +1,102 @@
+{% extends "base.html" %}
+{% block title %}Père Noël à domicile : location & visite à la maison | Spectacle'ment VØtre{% endblock %}
+{% block description %}Réservez un Père Noël à domicile pour la magie d'un Noël en famille : visite surprise, distribution des cadeaux, photos avec les enfants. Père Noël professionnel partout en France.{% endblock %}
+{% block extra_head %}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Service",
+  "name": "Père Noël à domicile",
+  "serviceType": "Animation événementielle de Noël",
+  "areaServed": "France",
+  "url": "{{ url_for('pere_noel_a_domicile', _external=True) }}",
+  "description": "Visite d'un Père Noël professionnel à domicile pour la magie de Noël en famille."
+}
+</script>
+{% endblock %}
+{% block content %}
+
+<h1>Père Noël à domicile : la magie de Noël chez vous</h1>
+
+<div style="max-width:900px; margin:0 auto 40px; padding:0 20px;">
+  <p style="margin-bottom:16px; font-size:17px; line-height:1.7;">
+    Offrez à vos enfants un <strong>Noël inoubliable</strong> en réservant la <strong>visite d'un Père Noël à domicile</strong>.
+    Costume traditionnel rouge et blanc, longue barbe blanche, hotte remplie de cadeaux : nos
+    Pères Noël professionnels créent une <strong>vraie magie de Noël</strong> dans votre salon.
+    Distribution personnalisée des cadeaux, photos souvenirs, petite chanson, lecture de la lettre :
+    chaque visite dure entre 15 et 30 minutes.
+  </p>
+
+  <h2 style="font-size:20px; margin:24px 0 12px; color:var(--primary); font-weight:600;">
+    Pourquoi réserver un Père Noël à domicile ?
+  </h2>
+  <ul style="line-height:1.9; margin-bottom:24px; padding-left:0; list-style:none;">
+    <li style="padding-left:24px; position:relative; margin-bottom:8px;"><span style="position:absolute; left:0; color:#c0392b; font-weight:bold;">🎅</span> <strong>Émerveillement garanti</strong> : un Père Noël en chair et en os, c'est un souvenir de toute une vie.</li>
+    <li style="padding-left:24px; position:relative; margin-bottom:8px;"><span style="position:absolute; left:0; color:#c0392b; font-weight:bold;">🎁</span> <strong>Distribution personnalisée des cadeaux</strong> : le Père Noël appelle chaque enfant par son prénom.</li>
+    <li style="padding-left:24px; position:relative; margin-bottom:8px;"><span style="position:absolute; left:0; color:#c0392b; font-weight:bold;">📸</span> <strong>Photos souvenirs</strong> avec les enfants, parents et grands-parents.</li>
+    <li style="padding-left:24px; position:relative; margin-bottom:8px;"><span style="position:absolute; left:0; color:#c0392b; font-weight:bold;">⏱️</span> <strong>Durée flexible</strong> : 15 minutes (visite éclair) à 1 heure (animation goûter).</li>
+    <li style="padding-left:24px; position:relative; margin-bottom:8px;"><span style="position:absolute; left:0; color:#c0392b; font-weight:bold;">🚚</span> <strong>Déplacement à domicile</strong> partout en France et en Occitanie (Toulouse, Montpellier, Albi, Carcassonne, Tarbes…).</li>
+  </ul>
+
+  <h2 style="font-size:20px; margin:24px 0 12px; color:var(--primary); font-weight:600;">
+    Comment réserver un Père Noël à domicile ?
+  </h2>
+  <p style="font-size:15px; color:#666; margin-bottom:20px; line-height:1.7;">
+    <strong>Réservez dès septembre/octobre</strong> ! Les Pères Noël les plus expérimentés sont
+    pris d'assaut entre le 20 et le 24 décembre. Précisez à l'artiste : la date, l'heure, l'adresse,
+    le nombre d'enfants, leurs prénoms et âges, ainsi que les cadeaux à remettre (le Père Noël les
+    récupère discrètement avant son entrée).
+  </p>
+
+  <h2 style="font-size:20px; margin:24px 0 12px; color:var(--primary); font-weight:600;">
+    Tarifs indicatifs Père Noël à domicile
+  </h2>
+  <p style="font-size:15px; color:#666; margin-bottom:20px; line-height:1.7;">
+    Comptez en moyenne entre <strong>80 € et 200 €</strong> pour une visite de 15 à 30 minutes
+    (selon la zone géographique, l'horaire, le 24 décembre étant le créneau le plus demandé).
+    Demandez plusieurs devis directement aux artistes via notre plateforme pour comparer.
+  </p>
+</div>
+
+{% if shows %}
+<h2 style="text-align:center; margin:30px 0 20px;">Pères Noël disponibles sur notre plateforme</h2>
+<div class="cards">
+  {% for show in shows %}
+  <article class="card">
+    <a href="{{ url_for('demande_animation') }}" class="media-link">
+      <div class="media">
+        {% if show.has_image() %}
+          <img src="{{ thumbnail_url(show.file_name) }}" alt="{{ show.title }}" loading="lazy">
+        {% elif show.is_pdf() %}
+          <a class="pdf-thumb" href="{{ url_for('uploaded_file', filename=show.file_name) }}" target="_blank">PDF</a>
+        {% else %}
+          <div class="placeholder">Aucun fichier</div>
+        {% endif %}
+      </div>
+    </a>
+    <a href="{{ url_for('show_detail', show_id=show.id) }}" class="content-link">
+      <div class="content">
+        {% if show.raison_sociale %}<p class="meta" style="font-weight:600; margin-bottom:8px; color:var(--primary);">{{ show.raison_sociale|title }}</p>{% endif %}
+        <h3>{{ show.title }}</h3>
+        <p class="meta">
+          {% if show.category %}{{ show.category|title }}{% endif %}
+          {% if show.location %} • {{ show.location }}{% endif %}
+        </p>
+        {% if show.description %}<p class="desc">{{ show.description }}</p>{% endif %}
+      </div>
+    </a>
+  </article>
+  {% endfor %}
+</div>
+{% else %}
+<div style="padding:24px; background:#f8f9fa; border-radius:8px; text-align:center; max-width:700px; margin:0 auto;">
+  <p style="margin:0; font-size:16px;">Aucun Père Noël n'est listé pour le moment dans votre zone.</p>
+  <p style="margin:12px 0 0 0;"><a href="{{ url_for('demande_animation') }}" style="color:var(--primary); font-weight:600;">Postez une demande gratuite</a> et recevez plusieurs propositions d'artistes en quelques heures.</p>
+</div>
+{% endif %}
+
+<div style="text-align:center; margin:40px auto; max-width:700px;">
+  <a href="{{ url_for('demande_animation') }}" style="display:inline-block; padding:14px 28px; background:linear-gradient(135deg,#c0392b,#e74c3c); color:#fff; text-decoration:none; border-radius:8px; font-weight:600; font-size:16px;">🎅 Demander un devis Père Noël gratuit</a>
+</div>
+
+{% endblock %}

@@ -57,6 +57,67 @@ FRENCH_CITIES = [
     {"name": "Cannes", "slug": "cannes", "region": "Provence-Alpes-Côte d'Azur", "department": "06"},
     {"name": "Versailles", "slug": "versailles", "region": "Île-de-France", "department": "78"},
     {"name": "Troyes", "slug": "troyes", "region": "Grand Est", "department": "10"},
+
+    # ─── Occitanie : couverture étendue (50 villes au total) ───
+    # Ariège (09)
+    {"name": "Foix", "slug": "foix", "region": "Occitanie", "department": "09"},
+    {"name": "Pamiers", "slug": "pamiers", "region": "Occitanie", "department": "09"},
+    # Aude (11)
+    {"name": "Carcassonne", "slug": "carcassonne", "region": "Occitanie", "department": "11"},
+    {"name": "Narbonne", "slug": "narbonne", "region": "Occitanie", "department": "11"},
+    {"name": "Castelnaudary", "slug": "castelnaudary", "region": "Occitanie", "department": "11"},
+    # Aveyron (12)
+    {"name": "Rodez", "slug": "rodez", "region": "Occitanie", "department": "12"},
+    {"name": "Millau", "slug": "millau", "region": "Occitanie", "department": "12"},
+    # Gard (30)
+    {"name": "Alès", "slug": "ales", "region": "Occitanie", "department": "30"},
+    {"name": "Bagnols-sur-Cèze", "slug": "bagnols-sur-ceze", "region": "Occitanie", "department": "30"},
+    {"name": "Beaucaire", "slug": "beaucaire", "region": "Occitanie", "department": "30"},
+    # Haute-Garonne (31)
+    {"name": "Colomiers", "slug": "colomiers", "region": "Occitanie", "department": "31"},
+    {"name": "Tournefeuille", "slug": "tournefeuille", "region": "Occitanie", "department": "31"},
+    {"name": "Muret", "slug": "muret", "region": "Occitanie", "department": "31"},
+    {"name": "Blagnac", "slug": "blagnac", "region": "Occitanie", "department": "31"},
+    {"name": "Cugnaux", "slug": "cugnaux", "region": "Occitanie", "department": "31"},
+    {"name": "Saint-Gaudens", "slug": "saint-gaudens", "region": "Occitanie", "department": "31"},
+    {"name": "Plaisance-du-Touch", "slug": "plaisance-du-touch", "region": "Occitanie", "department": "31"},
+    {"name": "Castanet-Tolosan", "slug": "castanet-tolosan", "region": "Occitanie", "department": "31"},
+    {"name": "Balma", "slug": "balma", "region": "Occitanie", "department": "31"},
+    {"name": "L'Union", "slug": "l-union", "region": "Occitanie", "department": "31"},
+    {"name": "Ramonville-Saint-Agne", "slug": "ramonville-saint-agne", "region": "Occitanie", "department": "31"},
+    # Gers (32)
+    {"name": "Auch", "slug": "auch", "region": "Occitanie", "department": "32"},
+    # Hérault (34)
+    {"name": "Béziers", "slug": "beziers", "region": "Occitanie", "department": "34"},
+    {"name": "Sète", "slug": "sete", "region": "Occitanie", "department": "34"},
+    {"name": "Lunel", "slug": "lunel", "region": "Occitanie", "department": "34"},
+    {"name": "Agde", "slug": "agde", "region": "Occitanie", "department": "34"},
+    {"name": "Frontignan", "slug": "frontignan", "region": "Occitanie", "department": "34"},
+    {"name": "Mauguio", "slug": "mauguio", "region": "Occitanie", "department": "34"},
+    {"name": "Castelnau-le-Lez", "slug": "castelnau-le-lez", "region": "Occitanie", "department": "34"},
+    {"name": "Pézenas", "slug": "pezenas", "region": "Occitanie", "department": "34"},
+    {"name": "Clermont-l'Hérault", "slug": "clermont-l-herault", "region": "Occitanie", "department": "34"},
+    # Lot (46)
+    {"name": "Cahors", "slug": "cahors", "region": "Occitanie", "department": "46"},
+    {"name": "Figeac", "slug": "figeac", "region": "Occitanie", "department": "46"},
+    # Lozère (48)
+    {"name": "Mende", "slug": "mende", "region": "Occitanie", "department": "48"},
+    # Hautes-Pyrénées (65)
+    {"name": "Tarbes", "slug": "tarbes", "region": "Occitanie", "department": "65"},
+    {"name": "Lourdes", "slug": "lourdes", "region": "Occitanie", "department": "65"},
+    {"name": "Bagnères-de-Bigorre", "slug": "bagneres-de-bigorre", "region": "Occitanie", "department": "65"},
+    # Pyrénées-Orientales (66)
+    {"name": "Cabestany", "slug": "cabestany", "region": "Occitanie", "department": "66"},
+    {"name": "Saint-Estève", "slug": "saint-esteve", "region": "Occitanie", "department": "66"},
+    # Tarn (81)
+    {"name": "Albi", "slug": "albi", "region": "Occitanie", "department": "81"},
+    {"name": "Castres", "slug": "castres", "region": "Occitanie", "department": "81"},
+    {"name": "Gaillac", "slug": "gaillac", "region": "Occitanie", "department": "81"},
+    {"name": "Mazamet", "slug": "mazamet", "region": "Occitanie", "department": "81"},
+    # Tarn-et-Garonne (82)
+    {"name": "Montauban", "slug": "montauban", "region": "Occitanie", "department": "82"},
+    {"name": "Castelsarrasin", "slug": "castelsarrasin", "region": "Occitanie", "department": "82"},
+    {"name": "Moissac", "slug": "moissac", "region": "Occitanie", "department": "82"},
 ]
 
 
