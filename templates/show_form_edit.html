@@ -105,7 +105,7 @@
     </div>
   </label>
 
-  
+  <div class="row-ville-public-email" style="display:grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap:16px; align-items:start; margin-top:6px;">
 
       <label>Ville
         <input type="text" name="location" id="location-input" value="{{ show.location or '' }}">
@@ -164,12 +164,13 @@
     <input type="hidden" name="age_range" value="{{ show.age_range if show and show.age_range else '' }}">
   </label>
 
-  <label>Site internet
-    <input type="url" name="site_internet" placeholder="https://www.monsite.fr" value="{{ show.site_internet if show and show.site_internet else (show.user.site_internet if show and show.user and show.user.site_internet else '') }}">
-  </label>
-
   <label>Email de contact
     <input type="email" name="contact_email" placeholder="votre@email.fr" value="{{ show.contact_email if show and show.contact_email else (show.user.email if show and show.user and show.user.email else '') }}" required>
+  </label>
+  </div>
+
+  <label>Site internet
+    <input type="url" name="site_internet" placeholder="https://www.monsite.fr" value="{{ show.site_internet if show and show.site_internet else (show.user.site_internet if show and show.user and show.user.site_internet else '') }}">
   </label>
 
   <label>Téléphone de contact
