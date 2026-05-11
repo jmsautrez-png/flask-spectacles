@@ -28,6 +28,7 @@ class DemandeAnimation(db.Model):
     intitule = db.Column(db.String(1000), nullable=True)  # Intitulé de la demande (150 mots max)
     code_postal = db.Column(db.String(10), nullable=True)  # Code postal
     region = db.Column(db.String(200), nullable=True)  # Région (déduite du code postal)
+    departement = db.Column(db.String(100), nullable=True)  # Département (ex: "Ille-et-Vilaine (35)")
     is_private = db.Column(db.Boolean, default=False, index=True)  # True = visible admin uniquement
     approved = db.Column(db.Boolean, default=False, index=True)  # True = approuvé et publié sur le site
     portee_nationale = db.Column(db.Boolean, default=True)  # True = toute la France, False = région uniquement
