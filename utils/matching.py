@@ -232,6 +232,10 @@ def compute_score(show, demande):
     show_user = getattr(show, "user", None)
     cie_cp = (getattr(show_user, "code_postal", None) or "").strip() if show_user else None
     cie_region = (getattr(show_user, "region", None) or "").strip().lower() if show_user else ""
+    # Fallback: si pas de region utilisateur (orphelin ou compte incomplet),
+    # on utilise la region renseignee directement sur le spectacle.
+    if not cie_region:
+        cie_region = (getattr(show, "region", None) or "").strip().lower()
 
     distance = None
     if dem_cp and cie_cp:

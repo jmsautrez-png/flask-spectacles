@@ -5901,6 +5901,34 @@ def admin_reassign_show(show_id):
         return redirect(next_url)
     return redirect(url_for("admin_dashboard"))
 
+@app.route("/admin/shows/<int:show_id>/localisation", methods=["POST"])
+@login_required
+@admin_required
+def admin_update_show_localisation(show_id):
+    """Met a jour la localisation d'un spectacle (utile pour les spectacles orphelins
+    sans user_id, afin que le matching geographique fonctionne quand meme).
+    Met a jour show.location (ville) et show.region.
+    """
+    from models.models import Show
+    show = Show.query.get_or_404(show_id)
+    ville = (request.form.get("ville", "") or "").strip()
+    region = fix_mojibake((request.form.get("region", "") or "").strip())
+    try:
+        if ville:
+            show.location = ville
+        if region:
+            show.region = region
+        db.session.commit()
+        flash(f"Localisation du spectacle « {show.title} » mise a jour.", "success")
+    except Exception as e:
+        db.session.rollback()
+        flash(f"Erreur : {e}", "danger")
+        current_app.logger.error(f"[ADMIN] Erreur maj localisation show {show_id}: {e}")
+    next_url = request.form.get("next") or request.referrer
+    if next_url and next_url.startswith("/"):
+        return redirect(next_url)
+    return redirect(url_for("admin_dashboard"))
+
 @app.route("/admin/delete-user/<int:user_id>", methods=["POST"])
 @login_required
 @admin_required

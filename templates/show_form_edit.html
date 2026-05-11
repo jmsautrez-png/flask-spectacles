@@ -14,26 +14,61 @@
 {% else %}
 <div style="background:rgba(255,152,0,0.15); border-left:4px solid #ff9800; border-radius:10px; padding:14px 18px; margin:0 0 12px 0; color:#fff;">
   <div style="font-size:0.98rem; margin-bottom:10px;">⚠️ Ce spectacle n'est rattaché à <strong>aucun compte utilisateur</strong> (user_id = NULL).</div>
+  {% if user and user.is_admin %}
+  <div style="background:rgba(0,0,0,0.25); border-radius:8px; padding:12px; margin-bottom:10px;">
+    <div style="font-weight:700; color:#ffd180; margin-bottom:8px;">📍 Localisation du spectacle (pour le matching geographique)</div>
+    <form method="post" action="{{ url_for('admin_update_show_localisation', show_id=show.id) }}"
+          style="display:grid; grid-template-columns: 110px 1fr 1fr 110px; gap:10px; align-items:end;">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+      <div>
+        <label style="display:block; font-size:0.78em; color:#ffd180; margin-bottom:4px;">Code postal</label>
+        <input type="text" name="code_postal_lookup" value="" maxlength="5" pattern="[0-9]{4,5}" placeholder="ex: 75001" data-cp-autofill
+               style="width:100%; padding:7px; border-radius:6px; border:1px solid rgba(255,255,255,0.2); background:rgba(0,0,0,0.4); color:#fff;"/>
+        <div style="font-size:0.7em; color:#aaa; margin-top:3px;">Auto-remplit ville+région</div>
+      </div>
+      <div>
+        <label style="display:block; font-size:0.78em; color:#ffd180; margin-bottom:4px;">Ville</label>
+        <input type="text" name="ville" value="{{ show.location or '' }}"
+               style="width:100%; padding:7px; border-radius:6px; border:1px solid rgba(255,255,255,0.2); background:rgba(0,0,0,0.4); color:#fff;"/>
+      </div>
+      <div>
+        <label style="display:block; font-size:0.78em; color:#ffd180; margin-bottom:4px;">Région</label>
+        <select name="region" style="width:100%; padding:7px; border-radius:6px; border:1px solid rgba(255,255,255,0.2); background:rgba(0,0,0,0.4); color:#fff;">
+          <option value="">-- Choisir --</option>
+          {% set regions_fr = ['Auvergne-Rhône-Alpes','Bourgogne-Franche-Comté','Bretagne','Centre-Val de Loire','Corse','Grand Est','Hauts-de-France','Île-de-France','Normandie','Nouvelle-Aquitaine','Occitanie','Pays de la Loire',"Provence-Alpes-Côte d'Azur",'Guadeloupe','Martinique','Guyane','La Réunion','Mayotte'] %}
+          {% for r in regions_fr %}
+            <option value="{{ r }}" {% if show.region == r %}selected{% endif %}>{{ r }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div>
+        <button type="submit" style="width:100%; padding:8px 12px; border-radius:6px; border:none; background:#ff9800; color:#000; font-weight:700; cursor:pointer;">💾 Enregistrer</button>
+      </div>
+    </form>
+  </div>
+  {% endif %}
   {% if user and user.is_admin and all_users %}
-  <form method="post" action="{{ url_for('admin_reassign_show', show_id=show.id) }}"
-        style="background:rgba(0,0,0,0.25); border-radius:8px; padding:12px; display:flex; gap:10px; align-items:end; flex-wrap:wrap;">
-    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-    <div style="flex:1; min-width:280px;">
-      <label style="display:block; font-size:0.78em; color:#ffd180; margin-bottom:4px;">Rattacher à un utilisateur :</label>
-      <select name="new_user_id" required
-              style="width:100%; padding:8px; border-radius:6px; border:1px solid rgba(255,255,255,0.2); background:rgba(0,0,0,0.4); color:#fff;">
-        <option value="">-- Choisir une compagnie --</option>
-        {% for u in all_users %}
-          <option value="{{ u.id }}">
-            {{ u.raison_sociale or u.username }} — {{ u.email or 'sans email' }}
-            {% if u.code_postal %} ({{ u.code_postal }}){% endif %}
-            {% if u.region %} · {{ u.region }}{% endif %}
-          </option>
-        {% endfor %}
-      </select>
-    </div>
-    <button type="submit" style="padding:9px 16px; border-radius:6px; border:none; background:#ff9800; color:#000; font-weight:700; cursor:pointer;">🔗 Rattacher</button>
-  </form>
+  <div style="background:rgba(0,0,0,0.25); border-radius:8px; padding:12px;">
+    <div style="font-weight:700; color:#ffd180; margin-bottom:8px;">🔗 Ou rattacher à un compte existant :</div>
+    <form method="post" action="{{ url_for('admin_reassign_show', show_id=show.id) }}"
+          style="display:flex; gap:10px; align-items:end; flex-wrap:wrap;">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+      <div style="flex:1; min-width:280px;">
+        <select name="new_user_id" required
+                style="width:100%; padding:8px; border-radius:6px; border:1px solid rgba(255,255,255,0.2); background:rgba(0,0,0,0.4); color:#fff;">
+          <option value="">-- Choisir une compagnie --</option>
+          {% for u in all_users %}
+            <option value="{{ u.id }}">
+              {{ u.raison_sociale or u.username }} — {{ u.email or 'sans email' }}
+              {% if u.code_postal %} ({{ u.code_postal }}){% endif %}
+              {% if u.region %} · {{ u.region }}{% endif %}
+            </option>
+          {% endfor %}
+        </select>
+      </div>
+      <button type="submit" style="padding:9px 16px; border-radius:6px; border:none; background:#1976d2; color:#fff; font-weight:700; cursor:pointer;">🔗 Rattacher</button>
+    </form>
+  </div>
   {% endif %}
 </div>
 {% endif %}
