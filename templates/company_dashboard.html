@@ -16,13 +16,25 @@
 {% if shows|length == 0 %}
 <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 24px; border-radius: 12px; margin-bottom: 24px; box-shadow: 0 4px 16px rgba(0,0,0,0.15);">
     <div>
+        <div style="display:inline-block; background:#2ecc71; color:#fff; padding:4px 12px; border-radius:20px; font-size:0.85rem; font-weight:700; margin-bottom:10px; letter-spacing:0.5px;">
+            🎁 100% GRATUIT — AUCUNE COMMISSION
+        </div>
         <h2 style="margin: 0 0 12px 0; font-size: 1.5rem; color: white;">Bienvenue sur votre espace !</h2>
         <p style="margin: 0 0 16px 0; font-size: 1.1rem; line-height: 1.6;">
             Pour recevoir des <strong>appels d'offres</strong> et être contacté par des organisateurs d'événements, vous devez d'abord <strong>publier au moins un spectacle</strong>.
         </p>
-        <p style="margin: 0; font-size: 1rem; opacity: 0.95; line-height: 1.5;">
+        <p style="margin: 0 0 14px 0; font-size: 1rem; opacity: 0.95; line-height: 1.5;">
             📢 Créez votre première annonce dès maintenant pour que les écoles, mairies et organisateurs puissent découvrir votre talent !
         </p>
+        <div style="background:rgba(255,255,255,0.15); border-left:4px solid #2ecc71; padding:12px 16px; border-radius:6px; margin:14px 0 18px 0; font-size:0.98rem; line-height:1.6;">
+            ✅ <strong>Publication gratuite et illimitée</strong> de vos spectacles<br>
+            ✅ <strong>Mise en relation directe</strong> avec les organisateurs (mairies, écoles, entreprises…)<br>
+            ✅ <strong>Aucune commission</strong> prélevée sur vos contrats<br>
+            ✅ <strong>Visibilité Google</strong> sur des centaines de villes en France
+        </div>
+        <a href="{{ url_for('publish') }}" style="display:inline-block; background:#fff; color:#764ba2; padding:12px 28px; border-radius:8px; text-decoration:none; font-weight:700; font-size:1.05rem; box-shadow:0 2px 8px rgba(0,0,0,0.2); transition:transform .15s;">
+            ✨ Publier mon premier spectacle — c'est gratuit !
+        </a>
     </div>
 </div>
 {% endif %}
