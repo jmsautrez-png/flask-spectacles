@@ -1,10 +1,35 @@
 """Matching engine: score spectacle companies against calls for tender."""
 
+import re
+
 from constants import (
     SPECIALITES, EVENEMENTS, LIEUX, REGIONS_FRANCE, REGIONS_VOISINES,
     PUBLIC_CIBLE_CODES_VALIDES,
 )
 from utils.geo import distance_km, distance_score
+
+
+_DEPT_CODE_RE = re.compile(r"\((\d{2,3}[A-Z]?)\)")
+
+
+def _dept_code_from(obj):
+    """Extrait un code departement (str) depuis un objet ayant 'departement' ou 'code_postal'.
+
+    Priorite : champ 'departement' au format 'Nom (XX)' -> CP[:2] (ou [:3] pour DOM 97x).
+    Retourne None si rien d'exploitable.
+    """
+    if obj is None:
+        return None
+    dep = (getattr(obj, "departement", None) or "").strip()
+    if dep:
+        m = _DEPT_CODE_RE.search(dep)
+        if m:
+            return m.group(1).upper()
+    cp = (getattr(obj, "code_postal", None) or "").strip()
+    if len(cp) >= 5 and cp.isdigit():
+        # DOM : 971..978 -> 3 chiffres ; metropole : 2 chiffres (Corse 2A/2B non geree ici)
+        return cp[:3] if cp.startswith("97") else cp[:2]
+    return None
 
 # Nombre total d'options par axe (calculé une seule fois au chargement)
 _TOTAL_SPECS = sum(len(v) for v in SPECIALITES.values())
@@ -241,6 +266,10 @@ def compute_score(show, demande):
     if dem_cp and cie_cp:
         distance = distance_km(dem_cp, cie_cp)
 
+    # Codes departement (depuis champ departement "Nom (XX)" ou CP)
+    dem_dept = _dept_code_from(demande)
+    cie_dept = _dept_code_from(show_user) or _dept_code_from(show)
+
     if show_couvre_france:
         # Le spectacle se deplace partout : score regional max
         region_ratio = 1.0
@@ -250,6 +279,9 @@ def compute_score(show, demande):
         # Filtre dur "regional uniquement" : > 200 km -> exclu
         if portee_nationale is False and distance > 200:
             region_compatible = False
+    elif dem_dept and cie_dept and dem_dept == cie_dept:
+        # Meme departement : tres bon score sans avoir les CP precis
+        region_ratio = 0.95
     elif cie_region and dem_region:
         # Fallback region native : strict si meme region, sinon voisine = 0.5
         if cie_region == dem_region:
@@ -289,6 +321,8 @@ def compute_score(show, demande):
         "lieux": round(lieu_ratio * 100, 1),
         "region": round(region_ratio * 100, 1),
         "distance_km": round(distance, 1) if distance is not None else None,
+        "dem_dept": dem_dept,
+        "cie_dept": cie_dept,
         "age_compatible": age_compatible,
         "age_bonus": age_bonus,
         "region_compatible": region_compatible,
