@@ -4,6 +4,7 @@ from constants import (
     SPECIALITES, EVENEMENTS, LIEUX, REGIONS_FRANCE, REGIONS_VOISINES,
     PUBLIC_CIBLE_CODES_VALIDES,
 )
+from utils.geo import distance_km, distance_score
 
 # Nombre total d'options par axe (calculé une seule fois au chargement)
 _TOTAL_SPECS = sum(len(v) for v in SPECIALITES.values())
@@ -211,37 +212,67 @@ def compute_score(show, demande):
     else:
         lieu_ratio = 0.0
 
-    # -- Région (15%) --
+    # -- Région / Distance (15%) --
+    # Strategie hybride :
+    # 1) Si on a les CP demandeur ET cie  -> score base sur la distance km (Haversine).
+    # 2) Sinon, fallback sur la region native de la cie (User.region) avec regle stricte.
+    # 3) Sinon, fallback sur regions_intervention (ancien comportement, score divise).
     show_location = (getattr(show, "location", None) or "").strip().lower()
-    show_couvre_france = "toute la france" in show_location or "france entiere" in show_location or "france entière" in show_location
+    show_couvre_france = (
+        "toute la france" in show_location
+        or "france entiere" in show_location
+        or "france entière" in show_location
+    )
 
-    # Filtre dur si l'organisateur veut UNIQUEMENT du régional :
-    # on exclut les spectacles dont la région ne matche pas (sauf "Toute la France" explicite,
-    # car l'artiste a déclaré accepter de se déplacer partout).
     portee_nationale = getattr(demande, "portee_nationale", True)
     region_compatible = True
-    if portee_nationale is False and dem_region and not show_couvre_france:
-        if not show_regions or (dem_region not in show_regions):
-            region_compatible = False
+
+    # Recuperer les CP des deux cotes (compagnie via show.user)
+    dem_cp = (getattr(demande, "code_postal", None) or "").strip() or None
+    show_user = getattr(show, "user", None)
+    cie_cp = (getattr(show_user, "code_postal", None) or "").strip() if show_user else None
+    cie_region = (getattr(show_user, "region", None) or "").strip().lower() if show_user else ""
+
+    distance = None
+    if dem_cp and cie_cp:
+        distance = distance_km(dem_cp, cie_cp)
 
     if show_couvre_france:
-        # Le spectacle se déplace partout : score régional max, sans pénalité de spécificité
+        # Le spectacle se deplace partout : score regional max
         region_ratio = 1.0
-    elif dem_region and show_regions:
+    elif distance is not None:
+        # Cas ideal : score distance pur, pas de penalite de specificite
+        region_ratio = distance_score(distance)
+        # Filtre dur "regional uniquement" : > 200 km -> exclu
+        if portee_nationale is False and distance > 200:
+            region_compatible = False
+    elif cie_region and dem_region:
+        # Fallback region native : strict si meme region, sinon voisine = 0.5
+        if cie_region == dem_region:
+            region_ratio = 1.0
+        else:
+            neighbours = set(_REGIONS_VOISINES_LOWER.get(dem_region, []))
+            region_ratio = 0.5 if cie_region in neighbours else 0.0
+        # Filtre dur "regional uniquement" : region differente -> exclu
+        if portee_nationale is False and cie_region != dem_region:
+            region_compatible = False
+    elif show_regions and dem_region:
+        # Dernier recours : ancien comportement avec regions_intervention CSV
         if dem_region in show_regions:
             region_ratio = 1.0
         else:
             neighbours = set(_REGIONS_VOISINES_LOWER.get(dem_region, []))
-            if show_regions & neighbours:
-                region_ratio = 0.5
-            else:
-                region_ratio = 0.0
-        # Pénalité de spécificité sur les régions aussi
+            region_ratio = 0.5 if (show_regions & neighbours) else 0.0
         region_ratio *= _specificity(len(show_regions), _TOTAL_REGIONS)
+        if portee_nationale is False and dem_region not in show_regions:
+            region_compatible = False
     elif not dem_region:
         region_ratio = 0.5
     else:
+        # Aucune info geo cote cie -> score nul ; exclu si regional uniquement
         region_ratio = 0.0
+        if portee_nationale is False:
+            region_compatible = False
 
     total = (spec_ratio * 40 + event_ratio * 25 + lieu_ratio * 20 + region_ratio * 15)
     # Bonus tranche d'âge (hors pondération principale, max +10)
@@ -253,6 +284,7 @@ def compute_score(show, demande):
         "evenements": round(event_ratio * 100, 1),
         "lieux": round(lieu_ratio * 100, 1),
         "region": round(region_ratio * 100, 1),
+        "distance_km": round(distance, 1) if distance is not None else None,
         "age_compatible": age_compatible,
         "age_bonus": age_bonus,
         "region_compatible": region_compatible,

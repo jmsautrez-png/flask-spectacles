@@ -5848,6 +5848,27 @@ def admin_users():
     users = User.query.order_by(User.created_at.desc()).all()
     return render_template("admin_users.html", users=users)
 
+@app.route("/admin/users/<int:user_id>/localisation", methods=["POST"])
+@login_required
+@admin_required
+def admin_update_user_localisation(user_id):
+    """Met a jour CP / ville / region d'un utilisateur (utilise pour le matching geographique)."""
+    user = User.query.get_or_404(user_id)
+    cp = (request.form.get("code_postal", "") or "").strip()
+    ville = (request.form.get("ville", "") or "").strip()
+    region = fix_mojibake((request.form.get("region", "") or "").strip())
+    try:
+        user.code_postal = cp or None
+        user.ville = ville or None
+        user.region = region or None
+        db.session.commit()
+        flash(f"Localisation de « {user.username} » mise a jour.", "success")
+    except Exception as e:
+        db.session.rollback()
+        flash(f"Erreur : {e}", "danger")
+        current_app.logger.error(f"[ADMIN] Erreur maj localisation user {user_id}: {e}")
+    return redirect(url_for("admin_users"))
+
 @app.route("/admin/delete-user/<int:user_id>", methods=["POST"])
 @login_required
 @admin_required

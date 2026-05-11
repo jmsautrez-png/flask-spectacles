@@ -16,8 +16,12 @@
                         <h5>📋 Demande à envoyer :</h5>
                         <ul class="mb-0">
                             <li><strong>Structure :</strong> {{ demande.structure }}</li>
-                            <li><strong>Lieu :</strong> {{ demande.lieu_ville }} 
-                                <span id="region-detectee" class="badge bg-success ms-2" style="display:none;"></span>
+                            <li><strong>Lieu :</strong> {{ demande.lieu_ville }}{% if demande.code_postal %} ({{ demande.code_postal }}){% endif %}
+                                {% if demande.region %}
+                                    <span class="badge bg-success ms-2">📍 {{ demande.region }}</span>
+                                {% else %}
+                                    <span id="region-detectee" class="badge bg-success ms-2" style="display:none;"></span>
+                                {% endif %}
                             </li>
                             <li><strong>Type recherché :</strong> {{ demande.genre_recherche }}</li>
                             <li><strong>Date(s) :</strong> {{ demande.dates_horaires }}</li>
@@ -57,6 +61,7 @@
                                             <th style="width:100px;">Événements</th>
                                             <th style="width:80px;">Lieux</th>
                                             <th style="width:80px;">Région</th>
+                                            <th style="width:90px;">Distance</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -80,6 +85,7 @@
                                             <td><small>{{ score.evenements }}%</small></td>
                                             <td><small>{{ score.lieux }}%</small></td>
                                             <td><small>{{ score.region }}%</small></td>
+                                            <td><small>{% if score.distance_km is not none %}{{ score.distance_km|round|int }} km{% else %}<span class="text-muted">—</span>{% endif %}</small></td>
                                         </tr>
                                     {% endfor %}
                                     </tbody>

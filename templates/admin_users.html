@@ -54,7 +54,16 @@
           <td style="padding: 12px; color: #fff;">{{ user.email or '-' }}</td>
           <td style="padding: 12px; color: #fff;">{{ user.raison_sociale or '-' }}</td>
           <td style="padding: 12px; color: #fff;">{{ user.telephone or '-' }}</td>
-          <td style="padding: 12px; color: #fff;">{{ user.region or '-' }}</td>
+          <td style="padding: 12px; color: #fff;">
+            {% if user.region %}
+              {{ user.region }}
+            {% else %}
+              <span style="background:#dc3545; color:#fff; padding:3px 8px; border-radius:6px; font-size:0.8em; font-weight:700;" title="Region manquante : pas de matching possible">⚠ MANQUE</span>
+            {% endif %}
+            {% if not user.code_postal and not user.is_admin and user.shows %}
+              <br><span style="background:#ff9800; color:#000; padding:3px 8px; border-radius:6px; font-size:0.75em; font-weight:700; margin-top:4px; display:inline-block;" title="Code postal manquant">⚠ CP manquant</span>
+            {% endif %}
+          </td>
           <td style="padding: 12px; color: #aaa; font-size: 0.9em;">
             {{ user.created_at.strftime('%d/%m/%Y') if user.created_at else '-' }}
           </td>
@@ -107,9 +116,40 @@
         </tr>
         <tr id="details-{{ user.id }}" class="details-row" style="display:none; background:rgba(255,255,255,0.02);">
           <td colspan="11" style="padding: 14px 24px; color:#ddd; font-size:0.9em;">
+            {% if not user.is_admin %}
+            <form method="post" action="{{ url_for('admin_update_user_localisation', user_id=user.id) }}"
+                  style="background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); border-radius:10px; padding:14px 16px; margin-bottom:14px;">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+              <div style="font-weight:700; color:#ffc107; margin-bottom:10px;">📍 Localisation (utilisée par le matching)</div>
+              <div style="display:grid; grid-template-columns: 110px 1fr 1fr 100px; gap:10px; align-items:end;">
+                <div>
+                  <label style="display:block; font-size:0.8em; color:#aaa; margin-bottom:4px;">Code postal</label>
+                  <input type="text" name="code_postal" value="{{ user.code_postal or '' }}" maxlength="5" pattern="[0-9]{4,5}"
+                         placeholder="ex: 75001"
+                         style="width:100%; padding:8px; border-radius:6px; border:1px solid rgba(255,255,255,0.15); background:rgba(0,0,0,0.3); color:#fff;"/>
+                </div>
+                <div>
+                  <label style="display:block; font-size:0.8em; color:#aaa; margin-bottom:4px;">Ville</label>
+                  <input type="text" name="ville" value="{{ user.ville or '' }}"
+                         style="width:100%; padding:8px; border-radius:6px; border:1px solid rgba(255,255,255,0.15); background:rgba(0,0,0,0.3); color:#fff;"/>
+                </div>
+                <div>
+                  <label style="display:block; font-size:0.8em; color:#aaa; margin-bottom:4px;">Région</label>
+                  <select name="region" style="width:100%; padding:8px; border-radius:6px; border:1px solid rgba(255,255,255,0.15); background:rgba(0,0,0,0.3); color:#fff;">
+                    <option value="">-- Choisir --</option>
+                    {% set regions_fr = ['Auvergne-Rhône-Alpes','Bourgogne-Franche-Comté','Bretagne','Centre-Val de Loire','Corse','Grand Est','Hauts-de-France','Île-de-France','Normandie','Nouvelle-Aquitaine','Occitanie','Pays de la Loire',"Provence-Alpes-Côte d'Azur",'Guadeloupe','Martinique','Guyane','La Réunion','Mayotte'] %}
+                    {% for r in regions_fr %}
+                      <option value="{{ r }}" {% if user.region == r %}selected{% endif %}>{{ r }}</option>
+                    {% endfor %}
+                  </select>
+                </div>
+                <div>
+                  <button type="submit" style="width:100%; padding:9px 12px; border-radius:6px; border:none; background:#1976d2; color:#fff; font-weight:700; cursor:pointer;">💾 Enregistrer</button>
+                </div>
+              </div>
+            </form>
+            {% endif %}
             <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap:14px;">
-              <div><strong style="color:#ffc107;">Code postal :</strong> {{ user.code_postal or '-' }}</div>
-              <div><strong style="color:#ffc107;">Ville :</strong> {{ user.ville or '-' }}</div>
               <div><strong style="color:#ffc107;">Département :</strong> {{ user.departement or '-' }}</div>
               <div><strong style="color:#ffc107;">Site internet :</strong>
                 {% if user.site_internet %}
