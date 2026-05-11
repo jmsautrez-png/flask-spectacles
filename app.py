@@ -469,7 +469,17 @@ def create_app() -> Flask:
             request.path.startswith('/admin') or
             request.path.startswith('/favicon')):
             return
-        
+
+        # Ne pas tracker les visites de l'admin connecte (evite de polluer les stats)
+        try:
+            uid = session.get('user_id')
+            if uid:
+                u = User.query.get(uid)
+                if u and getattr(u, 'is_admin', False):
+                    return
+        except Exception:
+            pass
+
         try:
             # Récupérer la vraie IP du visiteur (derrière proxy/load balancer)
             ip = None
