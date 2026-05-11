@@ -121,15 +121,21 @@
       </div>
       <div style="background:#0d2540; border:1px solid #1976d2; border-radius:8px; padding:12px; margin-bottom:12px;">
         <div style="color:#90caf9; font-size:0.9em; margin-bottom:8px;">📍 Localisation (pré-remplie depuis votre compte — modifiable si le spectacle a lieu ailleurs)</div>
-        <div class="grid-2">
+        <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px;">
           <div>
             <label>
               <span class="label-text">Code postal <span class="req">*</span></span>
               <input type="text" name="code_postal" id="code_postal" required autocomplete="postal-code"
                      inputmode="numeric" pattern="[0-9]{5}" maxlength="5"
-                     placeholder="Ex : 75001"
+                     placeholder="Ex : 75001" data-cp-autofill
                      value="{{ request.form.get('code_postal', user.code_postal if user and user.code_postal else '') }}">
-              <span class="hint">Code postal du lieu du spectacle.</span>
+            </label>
+          </div>
+          <div>
+            <label>
+              <span class="label-text">Ville</span>
+              <input type="text" name="location" id="ville-input" placeholder="Ville"
+                     value="{{ request.form.get('location', user.ville if user and user.ville else '') }}">
             </label>
           </div>
           <div>
@@ -143,74 +149,7 @@
             <input type="hidden" name="departement" value="{{ user.departement if user and user.departement else '' }}">
           </div>
         </div>
-      </div>
-      <div class="grid-2">
-        <div>
-          <label>
-            <span class="label-text">Lieu</span>
-            <input type="text" name="location" id="ville-input" placeholder="Ville" value="{{ user.ville if user and user.ville else '' }}">
-          </label>
-          <div style="background:#e3f2fd; color:#1565c0; border:1px solid #90caf9; border-radius:7px; padding:7px 12px; margin:10px 0 8px 0; font-size:0.97em; font-weight:500;">
-            Cliquez sur une ville pour remplir automatiquement le champ ci-dessus, ou inscrivez votre ville&nbsp;:
-          </div>
-          <div class="ville-buttons" style="display:flex; flex-wrap:wrap; gap:4px 6px; margin-bottom:14px; position:relative; max-height:160px; overflow-y:auto;">
-            <div id="ville-hover-banner" style="display:none; position:absolute; left:0; right:0; top:-38px; background:#fffde7; color:#795548; border:1px solid #ffe082; border-radius:7px; padding:7px 12px; font-size:0.97em; font-weight:500; z-index:10; text-align:center; pointer-events:none; transition:opacity 0.2s; opacity:0;">
-              Cliquez pour sélectionner cette ville
-            </div>
-            {% set villes = [
-              'Paris', 'Marseille', 'Lyon', 'Toulouse', 'Nice', 'Nantes', 'Montpellier', 'Strasbourg', 'Bordeaux',
-              'Lille', 'Rennes', 'Reims', 'Le Havre', 'Saint-Étienne', 'Toulon', 'Grenoble', 'Dijon', 'Angers',
-              'Nîmes', 'Villeurbanne'
-            ] %}
-            {% set ville_depts = {
-              'Paris': '75', 'Marseille': '13', 'Lyon': '69', 'Toulouse': '31', 'Nice': '06',
-              'Nantes': '44', 'Montpellier': '34', 'Strasbourg': '67', 'Bordeaux': '33',
-              'Lille': '59', 'Rennes': '35', 'Reims': '51', 'Le Havre': '76',
-              'Saint-Étienne': '42', 'Toulon': '83', 'Grenoble': '38', 'Dijon': '21',
-              'Angers': '49', 'Nîmes': '30', 'Villeurbanne': '69'
-            } %}
-            {% set ville_styles = {
-              'Paris':         'background:#1976d2; color:#fff; border:1px solid #0d47a1;',
-              'Marseille':     'background:#ffb300; color:#fff; border:1px solid #ff6f00;',
-              'Lyon':          'background:#a084ca; color:#fff; border:1px solid #7c5eb6;',
-              'Toulouse':      'background:#e53935; color:#fff; border:1px solid #b71c1c;',
-              'Nice':          'background:#43a047; color:#fff; border:1px solid #2e7d32;',
-              'Nantes':        'background:#00bcd4; color:#fff; border:1px solid #008ba3;',
-              'Montpellier':   'background:#fbc02d; color:#fff; border:1px solid #f9a825;',
-              'Strasbourg':    'background:#607d8b; color:#fff; border:1px solid #455a64;',
-              'Bordeaux':      'background:#6d4c41; color:#fff; border:1px solid #3e2723;',
-              'Lille':         'background:#ec407a; color:#fff; border:1px solid #ad1457;',
-              'Rennes':        'background:#388e3c; color:#fff; border:1px solid #1b5e20;',
-              'Reims':         'background:#b0bec5; color:#263238; border:1px solid #607d8b;',
-              'Le Havre':      'background:#ffe082; color:#6d4c41; border:1px solid #ffb300;',
-              'Saint-Étienne': 'background:#f8bbd0; color:#ad1457; border:1px solid #ec407a;',
-              'Toulon':        'background:#b3e5fc; color:#01579b; border:1px solid #0288d1;',
-              'Grenoble':      'background:#c8e6c9; color:#2e7d32; border:1px solid #43a047;',
-              'Dijon':         'background:#ffe0b2; color:#e65100; border:1px solid #ff9800;',
-              'Angers':        'background:#f0f4c3; color:#827717; border:1px solid #cddc39;',
-              'Nîmes':         'background:#f48fb1; color:#ad1457; border:1px solid #ec407a;',
-              'Villeurbanne':  'background:#b2ebf2; color:#006064; border:1px solid #00bcd4;'
-            } %}
-            {% for ville in villes %}
-              <button type="button" class="btn-ville"
-                style="padding:4px 10px; border-radius:5px; font-size:0.95em; cursor:pointer; margin-bottom:2px; {{ ville_styles[ville]|default('background:#eee; color:#333; border:1px solid #bbb;') }}"
-                onmouseover="document.getElementById('ville-hover-banner').style.display='block'; document.getElementById('ville-hover-banner').style.opacity='1';"
-                onmouseout="document.getElementById('ville-hover-banner').style.opacity='0'; setTimeout(function(){document.getElementById('ville-hover-banner').style.display='none';},200);"
-                 onclick="ajouterVille('{{ ville }}')"
-              >{{ ville_depts[ville] }} - {{ ville }}</button>
-            {% endfor %}
-          </div>
-            <script>
-            function ajouterVille(ville) {
-              var input = document.getElementById('ville-input');
-              var villes = input.value.split(',').map(function(v) { return v.trim(); }).filter(function(v) { return v.length > 0; });
-              if (villes.indexOf(ville) === -1) {
-                villes.push(ville);
-                input.value = villes.join(' | ');
-              }
-            }
-            </script>
-        </div>
+        <span class="hint" style="display:block;margin-top:6px;">Le code postal remplit automatiquement la ville et la région.</span>
       </div>
       {# Public Cible v2 : catégories + sous-options (artiste strict, exclusivités appliquées) #}
       {{ accordion_public_cible(PUBLIC_CIBLE_CATEGORIES, [], [], PUBLIC_CIBLE_INCOMPATIBLES, "#4caf50", "#fff", "Public ciblé *", "Cochez la ou les catégories de public, puis précisez les tranches d'âge.") }}

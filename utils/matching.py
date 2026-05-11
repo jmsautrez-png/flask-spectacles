@@ -276,8 +276,8 @@ def compute_score(show, demande):
     elif distance is not None:
         # Cas ideal : score distance pur, pas de penalite de specificite
         region_ratio = distance_score(distance)
-        # Filtre dur "regional uniquement" : > 200 km -> exclu
-        if portee_nationale is False and distance > 200:
+        # Filtre dur : > 250 km -> exclu (toujours applique des qu'on a les CP)
+        if distance > 250:
             region_compatible = False
     elif dem_dept and cie_dept and dem_dept == cie_dept:
         # Meme departement : tres bon score sans avoir les CP precis

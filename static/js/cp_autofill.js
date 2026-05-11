@@ -1,35 +1,31 @@
-// Auto-remplissage ville + region a partir du code postal (API geo.api.gouv.fr)
-// Usage : ajouter data-cp-autofill sur l'input CP. Cherche dans le meme <form>
-// les champs name="ville" et name="region" (input ou select).
+// Auto-remplissage ville + region + departement a partir du code postal
+// (API geo.api.gouv.fr). Si plusieurs communes pour le meme CP, propose
+// une liste cliquable a cote du champ Ville.
 (function(){
-  function lookup(cp, cb){
+  function fetchCommunes(cp, cb){
     if (!/^\d{5}$/.test(cp)) return;
     fetch('https://geo.api.gouv.fr/communes?codePostal=' + cp + '&fields=nom,codeRegion,codeDepartement,departement&format=json')
       .then(function(r){ return r.ok ? r.json() : []; })
       .then(function(communes){
         if (!communes || !communes.length) {
           console.warn('[cp_autofill] aucune commune pour CP', cp);
+          cb([]);
           return;
         }
-        var c = communes[0];
-        var dept = null;
-        if (c.departement && c.departement.nom && c.departement.code) {
-          dept = c.departement.nom + ' (' + c.departement.code + ')';
-        } else if (c.codeDepartement) {
-          dept = c.codeDepartement;
-        }
-        if (!c.codeRegion) { cb(c.nom, null, dept); return; }
-        fetch('https://geo.api.gouv.fr/regions/' + c.codeRegion)
-          .then(function(r){ return r.ok ? r.json() : null; })
-          .then(function(reg){ cb(c.nom, reg ? reg.nom : null, dept); })
-          .catch(function(err){
-            console.warn('[cp_autofill] erreur fetch region', err);
-            cb(c.nom, null, dept);
-          });
+        cb(communes);
       })
       .catch(function(err){
         console.warn('[cp_autofill] erreur fetch communes', err);
+        cb([]);
       });
+  }
+
+  function fetchRegionName(codeRegion, cb){
+    if (!codeRegion) { cb(null); return; }
+    fetch('https://geo.api.gouv.fr/regions/' + codeRegion)
+      .then(function(r){ return r.ok ? r.json() : null; })
+      .then(function(reg){ cb(reg ? reg.nom : null); })
+      .catch(function(){ cb(null); });
   }
 
   function flash(el){
@@ -63,6 +59,71 @@
     else console.warn('[cp_autofill] region inconnue dans le select :', value);
   }
 
+  function deptFromCommune(c){
+    if (c.departement && c.departement.nom && c.departement.code) {
+      return c.departement.nom + ' (' + c.departement.code + ')';
+    }
+    if (c.codeDepartement) return c.codeDepartement;
+    return null;
+  }
+
+  function applyCommune(form, c){
+    var dept = deptFromCommune(c);
+    var inpVille = form.querySelector('input[name="ville"], input[name="location"], input[name="lieu_ville"]');
+    setInput(inpVille, c.nom);
+    var inpDept = form.querySelector('input[name="departement"]');
+    setInput(inpDept, dept);
+    var elReg = form.querySelector('select[name="region"], input[name="region"]');
+    if (elReg){
+      fetchRegionName(c.codeRegion, function(regionName){
+        if (elReg.tagName === 'SELECT') setSelect(elReg, regionName);
+        else setInput(elReg, regionName);
+      });
+    }
+  }
+
+  function ensurePicker(anchor){
+    if (anchor._cpPicker) return anchor._cpPicker;
+    var picker = document.createElement('div');
+    picker.style.cssText = 'margin-top:6px;padding:8px;border:1px solid #90caf9;background:#e3f2fd;border-radius:6px;font-size:0.9em;color:#0d47a1;display:none;';
+    anchor.parentNode.insertBefore(picker, anchor.nextSibling);
+    anchor._cpPicker = picker;
+    return picker;
+  }
+
+  function showPicker(form, communes){
+    var anchor = form.querySelector('input[name="ville"], input[name="location"], input[name="lieu_ville"]')
+              || form.querySelector('input[data-cp-autofill]');
+    if (!anchor) return;
+    var picker = ensurePicker(anchor);
+    picker.innerHTML = '';
+    var label = document.createElement('div');
+    label.textContent = 'Plusieurs communes pour ce code postal — choisissez la votre :';
+    label.style.cssText = 'margin-bottom:6px;font-weight:500;';
+    picker.appendChild(label);
+    var wrap = document.createElement('div');
+    wrap.style.cssText = 'display:flex;flex-wrap:wrap;gap:4px;';
+    communes.forEach(function(c){
+      var btn = document.createElement('button');
+      btn.type = 'button';
+      btn.textContent = c.nom;
+      btn.style.cssText = 'padding:4px 10px;border-radius:4px;border:1px solid #1976d2;background:#fff;color:#0d47a1;cursor:pointer;font-size:0.92em;';
+      btn.addEventListener('click', function(){
+        applyCommune(form, c);
+        picker.style.display = 'none';
+      });
+      wrap.appendChild(btn);
+    });
+    picker.appendChild(wrap);
+    picker.style.display = 'block';
+  }
+
+  function hidePicker(form){
+    var anchor = form.querySelector('input[name="ville"], input[name="location"], input[name="lieu_ville"]')
+              || form.querySelector('input[data-cp-autofill]');
+    if (anchor && anchor._cpPicker) anchor._cpPicker.style.display = 'none';
+  }
+
   function attach(input){
     if (input.dataset.cpAutofillBound === '1') return;
     input.dataset.cpAutofillBound = '1';
@@ -73,17 +134,13 @@
     }
     var run = function(){
       var cp = (input.value || '').trim();
-      if (!/^\d{5}$/.test(cp)) return;
-      lookup(cp, function(ville, region, departement){
-        var inpVille = form.querySelector('input[name="ville"]');
-        setInput(inpVille, ville);
-        var elReg = form.querySelector('select[name="region"], input[name="region"]');
-        if (elReg){
-          if (elReg.tagName === 'SELECT') setSelect(elReg, region);
-          else setInput(elReg, region);
-        }
-        var inpDept = form.querySelector('input[name="departement"]');
-        setInput(inpDept, departement);
+      if (!/^\d{5}$/.test(cp)) { hidePicker(form); return; }
+      fetchCommunes(cp, function(communes){
+        if (!communes.length) { hidePicker(form); return; }
+        // Toujours appliquer la 1ere : remplit dept + region (identiques pour ce CP)
+        applyCommune(form, communes[0]);
+        if (communes.length > 1) showPicker(form, communes);
+        else hidePicker(form);
       });
     };
     input.addEventListener('blur', run);
