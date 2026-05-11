@@ -3270,7 +3270,8 @@ def register_routes(app: Flask) -> None:
 
         return render_template("show_form_edit.html", show=show, user=current_user(),
                                specialites_data=SPECIALITES, evenements_data=EVENEMENTS,
-                               lieux_data=LIEUX, regions_data=REGIONS_FRANCE)
+                               lieux_data=LIEUX, regions_data=REGIONS_FRANCE,
+                               all_users=User.query.filter_by(is_admin=False).order_by(User.username).all())
 
     @app.route("/admin/shows/<int:show_id>/delete", methods=["POST"])
     @login_required
@@ -5871,6 +5872,34 @@ def admin_update_user_localisation(user_id):
     if next_url and next_url.startswith("/"):
         return redirect(next_url)
     return redirect(url_for("admin_users"))
+
+@app.route("/admin/shows/<int:show_id>/reassign", methods=["POST"])
+@login_required
+@admin_required
+def admin_reassign_show(show_id):
+    """Reattribue un spectacle a un utilisateur (notamment quand user_id IS NULL)."""
+    from models.models import Show
+    show = Show.query.get_or_404(show_id)
+    new_user_id = request.form.get("new_user_id", "").strip()
+    if not new_user_id or not new_user_id.isdigit():
+        flash("Utilisateur invalide.", "danger")
+        return redirect(request.referrer or url_for("admin_dashboard"))
+    new_user = User.query.get(int(new_user_id))
+    if not new_user:
+        flash("Utilisateur introuvable.", "danger")
+        return redirect(request.referrer or url_for("admin_dashboard"))
+    try:
+        show.user_id = new_user.id
+        db.session.commit()
+        flash(f"Spectacle « {show.title} » rattache a « {new_user.username} ».", "success")
+    except Exception as e:
+        db.session.rollback()
+        flash(f"Erreur : {e}", "danger")
+        current_app.logger.error(f"[ADMIN] Erreur reassign show {show_id}: {e}")
+    next_url = request.form.get("next") or request.referrer
+    if next_url and next_url.startswith("/"):
+        return redirect(next_url)
+    return redirect(url_for("admin_dashboard"))
 
 @app.route("/admin/delete-user/<int:user_id>", methods=["POST"])
 @login_required

@@ -12,8 +12,29 @@
   {% if show.user.raison_sociale %} &nbsp;·&nbsp; <span style="color:#cfd8dc;">{{ show.user.raison_sociale }}</span>{% endif %}
 </div>
 {% else %}
-<div style="background:rgba(255,152,0,0.15); border-left:4px solid #ff9800; border-radius:8px; padding:10px 14px; margin:0 0 12px 0; color:#fff; font-size:0.95rem;">
-  ⚠️ Ce spectacle n'est rattaché à <strong>aucun compte utilisateur</strong> (user_id = NULL).
+<div style="background:rgba(255,152,0,0.15); border-left:4px solid #ff9800; border-radius:10px; padding:14px 18px; margin:0 0 12px 0; color:#fff;">
+  <div style="font-size:0.98rem; margin-bottom:10px;">⚠️ Ce spectacle n'est rattaché à <strong>aucun compte utilisateur</strong> (user_id = NULL).</div>
+  {% if user and user.is_admin and all_users %}
+  <form method="post" action="{{ url_for('admin_reassign_show', show_id=show.id) }}"
+        style="background:rgba(0,0,0,0.25); border-radius:8px; padding:12px; display:flex; gap:10px; align-items:end; flex-wrap:wrap;">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+    <div style="flex:1; min-width:280px;">
+      <label style="display:block; font-size:0.78em; color:#ffd180; margin-bottom:4px;">Rattacher à un utilisateur :</label>
+      <select name="new_user_id" required
+              style="width:100%; padding:8px; border-radius:6px; border:1px solid rgba(255,255,255,0.2); background:rgba(0,0,0,0.4); color:#fff;">
+        <option value="">-- Choisir une compagnie --</option>
+        {% for u in all_users %}
+          <option value="{{ u.id }}">
+            {{ u.raison_sociale or u.username }} — {{ u.email or 'sans email' }}
+            {% if u.code_postal %} ({{ u.code_postal }}){% endif %}
+            {% if u.region %} · {{ u.region }}{% endif %}
+          </option>
+        {% endfor %}
+      </select>
+    </div>
+    <button type="submit" style="padding:9px 16px; border-radius:6px; border:none; background:#ff9800; color:#000; font-weight:700; cursor:pointer;">🔗 Rattacher</button>
+  </form>
+  {% endif %}
 </div>
 {% endif %}
 <div style="background:rgba(25,118,210,0.12); border:1px solid rgba(25,118,210,0.4); border-radius:10px; padding:14px 18px; margin:0 0 18px 0;">
