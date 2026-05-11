@@ -346,9 +346,10 @@ PUBLIC_CIBLE_CATEGORIES = [
         "code": "enfants",
         "label": "Spectacle pour enfants (public d'enfants seuls)",
         "icon": "",
-        "requires": ["famille"],  # cocher enfants impose de cocher aussi une option famille
+        # Pas de "requires" : l'artiste peut cocher uniquement "enfants" (Maternelle/Élémentaire/Ado)
+        # sans être obligé de cocher aussi "famille".
         "exclusive_subs": ["creche"],  # cocher crèche : aucune autre case (cat ou sous-option) ne peut être cochée
-        "exclusive_compat": {"creche": ["mat", "fam_pe"]},  # crèche peut se cumuler avec maternelle ET avec famille petite enfance (et dispense de la dépendance famille)
+        "exclusive_compat": {"creche": ["mat", "fam_pe"]},  # crèche peut se cumuler avec maternelle ET avec famille petite enfance
         "sous_options": [
             ("creche", "Crèche / Halte-garderie"),
             ("mat",  "Maternelle"),
