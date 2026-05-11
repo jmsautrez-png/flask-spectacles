@@ -4,7 +4,7 @@
 (function(){
   function lookup(cp, cb){
     if (!/^\d{5}$/.test(cp)) return;
-    fetch('https://geo.api.gouv.fr/communes?codePostal=' + cp + '&fields=nom,codeRegion&format=json')
+    fetch('https://geo.api.gouv.fr/communes?codePostal=' + cp + '&fields=nom,codeRegion,codeDepartement,departement&format=json')
       .then(function(r){ return r.ok ? r.json() : []; })
       .then(function(communes){
         if (!communes || !communes.length) {
@@ -12,13 +12,19 @@
           return;
         }
         var c = communes[0];
-        if (!c.codeRegion) { cb(c.nom, null); return; }
+        var dept = null;
+        if (c.departement && c.departement.nom && c.departement.code) {
+          dept = c.departement.nom + ' (' + c.departement.code + ')';
+        } else if (c.codeDepartement) {
+          dept = c.codeDepartement;
+        }
+        if (!c.codeRegion) { cb(c.nom, null, dept); return; }
         fetch('https://geo.api.gouv.fr/regions/' + c.codeRegion)
           .then(function(r){ return r.ok ? r.json() : null; })
-          .then(function(reg){ cb(c.nom, reg ? reg.nom : null); })
+          .then(function(reg){ cb(c.nom, reg ? reg.nom : null, dept); })
           .catch(function(err){
             console.warn('[cp_autofill] erreur fetch region', err);
-            cb(c.nom, null);
+            cb(c.nom, null, dept);
           });
       })
       .catch(function(err){
@@ -66,7 +72,7 @@
     var run = function(){
       var cp = (input.value || '').trim();
       if (!/^\d{5}$/.test(cp)) return;
-      lookup(cp, function(ville, region){
+      lookup(cp, function(ville, region, departement){
         var inpVille = form.querySelector('input[name="ville"]');
         setInput(inpVille, ville);
         var elReg = form.querySelector('select[name="region"], input[name="region"]');
@@ -74,6 +80,8 @@
           if (elReg.tagName === 'SELECT') setSelect(elReg, region);
           else setInput(elReg, region);
         }
+        var inpDept = form.querySelector('input[name="departement"]');
+        setInput(inpDept, departement);
       });
     };
     input.addEventListener('blur', run);

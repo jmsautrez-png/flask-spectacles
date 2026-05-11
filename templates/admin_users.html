@@ -121,7 +121,7 @@
                   style="background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); border-radius:10px; padding:14px 16px; margin-bottom:14px;">
               <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
               <div style="font-weight:700; color:#ffc107; margin-bottom:10px;">📍 Localisation (utilisée par le matching)</div>
-              <div style="display:grid; grid-template-columns: 110px 1fr 1fr 100px; gap:10px; align-items:end;">
+              <div style="display:grid; grid-template-columns: 110px 1fr 1fr 1fr 110px; gap:10px; align-items:end;">
                 <div>
                   <label style="display:block; font-size:0.8em; color:#aaa; margin-bottom:4px;">Code postal</label>
                   <input type="text" name="code_postal" value="{{ user.code_postal or '' }}" maxlength="5" pattern="[0-9]{4,5}"
@@ -131,6 +131,11 @@
                 <div>
                   <label style="display:block; font-size:0.8em; color:#aaa; margin-bottom:4px;">Ville</label>
                   <input type="text" name="ville" value="{{ user.ville or '' }}"
+                         style="width:100%; padding:8px; border-radius:6px; border:1px solid rgba(255,255,255,0.15); background:rgba(0,0,0,0.3); color:#fff;"/>
+                </div>
+                <div>
+                  <label style="display:block; font-size:0.8em; color:#aaa; margin-bottom:4px;">Département</label>
+                  <input type="text" name="departement" value="{{ user.departement or '' }}" placeholder="ex: Ille-et-Vilaine (35)"
                          style="width:100%; padding:8px; border-radius:6px; border:1px solid rgba(255,255,255,0.15); background:rgba(0,0,0,0.3); color:#fff;"/>
                 </div>
                 <div>

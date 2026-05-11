@@ -5858,10 +5858,12 @@ def admin_update_user_localisation(user_id):
     cp = (request.form.get("code_postal", "") or "").strip()
     ville = (request.form.get("ville", "") or "").strip()
     region = fix_mojibake((request.form.get("region", "") or "").strip())
+    departement = (request.form.get("departement", "") or "").strip()
     try:
         user.code_postal = cp or None
         user.ville = ville or None
         user.region = region or None
+        user.departement = departement or None
         db.session.commit()
         flash(f"Localisation de « {user.username} » mise a jour.", "success")
     except Exception as e:
