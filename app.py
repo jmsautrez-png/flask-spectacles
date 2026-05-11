@@ -5867,6 +5867,9 @@ def admin_update_user_localisation(user_id):
         db.session.rollback()
         flash(f"Erreur : {e}", "danger")
         current_app.logger.error(f"[ADMIN] Erreur maj localisation user {user_id}: {e}")
+    next_url = request.form.get("next") or request.referrer
+    if next_url and next_url.startswith("/"):
+        return redirect(next_url)
     return redirect(url_for("admin_users"))
 
 @app.route("/admin/delete-user/<int:user_id>", methods=["POST"])

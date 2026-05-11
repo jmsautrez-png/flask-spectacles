@@ -18,7 +18,17 @@
 {% endif %}
 <div style="background:rgba(25,118,210,0.12); border:1px solid rgba(25,118,210,0.4); border-radius:10px; padding:14px 18px; margin:0 0 18px 0;">
   <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px;">
-    <strong style="color:#64b5f6; font-size:1.0rem;">👤 Infos compte propriétaire</strong>
+    <strong style="color:#64b5f6; font-size:1.0rem;">
+      👤 Infos compte propriétaire
+      {% if show.user %}
+        {% if not show.user.code_postal %}
+          <span style="background:#ff9800; color:#000; padding:3px 9px; border-radius:6px; font-size:0.75em; font-weight:700; margin-left:8px;" title="Code postal manquant">⚠ CP manquant</span>
+        {% endif %}
+        {% if not show.user.region %}
+          <span style="background:#dc3545; color:#fff; padding:3px 9px; border-radius:6px; font-size:0.75em; font-weight:700; margin-left:6px;" title="Région manquante : pas de matching possible">⚠ Région manquante</span>
+        {% endif %}
+      {% endif %}
+    </strong>
     <button type="button" id="btn-toggle-owner-info" style="background:rgba(255,255,255,0.1); color:#fff; border:1px solid rgba(255,255,255,0.2); padding:4px 12px; border-radius:6px; cursor:pointer; font-size:0.85rem;">Afficher / masquer</button>
   </div>
   {% if show.user %}
@@ -36,6 +46,40 @@
         <a href="{{ show.user.site_internet }}" target="_blank" rel="noopener" style="color:#4caf50;">{{ show.user.site_internet }}</a>
       {% else %}-{% endif %}
     </div>
+    {% if user and user.is_admin %}
+    <div style="grid-column: 1 / -1; margin-top:10px; padding-top:12px; border-top:1px dashed rgba(255,255,255,0.15);">
+      <form method="post" action="{{ url_for('admin_update_user_localisation', user_id=show.user.id) }}"
+            style="background:rgba(0,0,0,0.25); border-radius:8px; padding:12px;">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+        <div style="font-weight:700; color:#ffc107; margin-bottom:8px;">📍 Compléter / corriger la localisation (matching)</div>
+        <div style="display:grid; grid-template-columns: 110px 1fr 1fr 110px; gap:10px; align-items:end;">
+          <div>
+            <label style="display:block; font-size:0.78em; color:#aaa; margin-bottom:4px;">Code postal</label>
+            <input type="text" name="code_postal" value="{{ show.user.code_postal or '' }}" maxlength="5" pattern="[0-9]{4,5}" placeholder="ex: 75001"
+                   style="width:100%; padding:7px; border-radius:6px; border:1px solid rgba(255,255,255,0.15); background:rgba(0,0,0,0.4); color:#fff;"/>
+          </div>
+          <div>
+            <label style="display:block; font-size:0.78em; color:#aaa; margin-bottom:4px;">Ville</label>
+            <input type="text" name="ville" value="{{ show.user.ville or '' }}"
+                   style="width:100%; padding:7px; border-radius:6px; border:1px solid rgba(255,255,255,0.15); background:rgba(0,0,0,0.4); color:#fff;"/>
+          </div>
+          <div>
+            <label style="display:block; font-size:0.78em; color:#aaa; margin-bottom:4px;">Région</label>
+            <select name="region" style="width:100%; padding:7px; border-radius:6px; border:1px solid rgba(255,255,255,0.15); background:rgba(0,0,0,0.4); color:#fff;">
+              <option value="">-- Choisir --</option>
+              {% set regions_fr = ['Auvergne-Rhône-Alpes','Bourgogne-Franche-Comté','Bretagne','Centre-Val de Loire','Corse','Grand Est','Hauts-de-France','Île-de-France','Normandie','Nouvelle-Aquitaine','Occitanie','Pays de la Loire',"Provence-Alpes-Côte d'Azur",'Guadeloupe','Martinique','Guyane','La Réunion','Mayotte'] %}
+              {% for r in regions_fr %}
+                <option value="{{ r }}" {% if show.user.region == r %}selected{% endif %}>{{ r }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div>
+            <button type="submit" style="width:100%; padding:8px 12px; border-radius:6px; border:none; background:#1976d2; color:#fff; font-weight:700; cursor:pointer;">💾 Enregistrer</button>
+          </div>
+        </div>
+      </form>
+    </div>
+    {% endif %}
   </div>
   {% else %}
   <div id="owner-info-block" style="display:none; margin-top:12px; color:#ffb74d; font-size:0.9rem;">
@@ -108,7 +152,7 @@
   
 
       <label>Ville
-        <input type="text" name="location" id="location-input" value="{{ show.location if show and show.location else (show.user.ville if show and show.user and show.user.ville else '') }}">
+        <input type="text" name="location" id="location-input" value="{{ show.location or '' }}">
         <span style="font-size:0.9rem;color:#fff;display:block;margin-top:2px;margin-bottom:4px;">Sélectionnez les villes dans lesquelles (et autour desquelles) vous acceptez de vous déplacer pour jouer ce spectacle. Vous pouvez en ajouter jusqu'à 10.</span>
 
         <div style="display:flex; flex-wrap:wrap; gap:8px; margin-bottom:16px; margin-top:6px;">
@@ -436,22 +480,6 @@
     btnTips.addEventListener('click', function(){
       blockTips.style.display = (blockTips.style.display === 'none' || !blockTips.style.display) ? 'block' : 'none';
     });
-  }
-
-  // Pré-remplissage automatique du titre dans la description (si vide)
-  var titleEl = document.querySelector('input[name="title"]');
-  function syncTitleIntoDescription(){
-    if (!titleEl) return;
-    var t = titleEl.value.trim();
-    if (!t) return;
-    if (ta.value.trim() === '') {
-      ta.value = '« ' + t + ' » — ';
-      ta.dispatchEvent(new Event('input', {bubbles:true}));
-    }
-  }
-  syncTitleIntoDescription();
-  if (titleEl) {
-    titleEl.addEventListener('blur', syncTitleIntoDescription);
   }
 
   // Mots-cl\u00e9s th\u00e9matiques d\u00e9tect\u00e9s
