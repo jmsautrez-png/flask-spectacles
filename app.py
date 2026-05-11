@@ -4058,6 +4058,30 @@ Accessibilité: {accessibilite}
         ).order_by(Show.display_order.asc(), Show.created_at.desc()).all()
         return render_template("clowns.html", shows=shows, user=current_user())
 
+    # ------------------------------------------------------------------
+    # Redirections 301 pour anciennes URLs disparues (signalées par GSC)
+    # Évite les 404 dans l'index Google et transmet le jus SEO.
+    # ------------------------------------------------------------------
+    @app.route("/orchestre/")
+    @app.route("/orchestre")
+    def _redir_orchestre():
+        return redirect(url_for("evenements"), code=301)
+
+    @app.route("/concert/")
+    @app.route("/concert")
+    def _redir_concert():
+        return redirect(url_for("evenements"), code=301)
+
+    @app.route("/enfant/")
+    @app.route("/enfant")
+    def _redir_enfant():
+        return redirect(url_for("spectacles_enfants"), code=301)
+
+    @app.route("/atelier/")
+    @app.route("/atelier")
+    def _redir_atelier():
+        return redirect(url_for("animations_enfants"), code=301)
+
     @app.route("/animations-anniversaire")
     def animations_anniversaire():
         shows = Show.query.filter(
