@@ -23,6 +23,7 @@ SPECIALITES = {
         "Spectacle de Marionnettes",
         # Types de spectacle
         "Spectacle de Rue",
+        "Parade de rue / Déambulation",
         "Spectacle Médiéval",
         "Spectacle Animalier",
         "Spectacle à Thèmes",
