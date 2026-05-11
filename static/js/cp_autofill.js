@@ -64,6 +64,8 @@
   }
 
   function attach(input){
+    if (input.dataset.cpAutofillBound === '1') return;
+    input.dataset.cpAutofillBound = '1';
     var form = input.form;
     if (!form) {
       console.warn('[cp_autofill] input CP hors <form>', input);

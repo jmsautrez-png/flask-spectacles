@@ -3653,6 +3653,7 @@ def register_routes(app: Flask) -> None:
             lieu_ville = fix_mojibake(request.form.get("lieu_ville", "").strip()).split("·")[0].strip()
             code_postal = request.form.get("code_postal", "").strip()
             region = fix_mojibake(request.form.get("region", "").strip())
+            departement = fix_mojibake(request.form.get("departement", "").strip())
             nom = request.form.get("nom", "").strip()
             date_debut = request.form.get("date_debut", "").strip()
             date_fin = request.form.get("date_fin", "").strip()
@@ -3774,6 +3775,7 @@ Accessibilité: {accessibilite}
                 lieu_ville=lieu_ville,
                 code_postal=code_postal,
                 region=region,
+                departement=departement or None,
                 nom=nom,
                 dates_horaires=dates_horaires,
                 date_debut=date_debut or None,
@@ -4364,6 +4366,7 @@ Accessibilité: {accessibilite}
             demande.contact_email = request.form.get("contact_email", demande.contact_email)
             demande.code_postal = request.form.get("code_postal", demande.code_postal)
             demande.region = request.form.get("region", demande.region)
+            demande.departement = request.form.get("departement", demande.departement)
             demande.specialites_recherchees = ",".join(request.form.getlist("specialites_recherchees")[:4]) or demande.specialites_recherchees
             demande.evenements_contexte = ",".join(request.form.getlist("evenements_contexte")) or demande.evenements_contexte
             demande.lieux_souhaites = ",".join(request.form.getlist("lieux_souhaites")) or demande.lieux_souhaites
@@ -4543,6 +4546,7 @@ Accessibilité: {accessibilite}
             lieu_ville = fix_mojibake(request.form.get("lieu_ville", "").strip()).split("·")[0].strip()
             code_postal = request.form.get("code_postal", "").strip()
             region = fix_mojibake(request.form.get("region", "").strip())
+            departement = fix_mojibake(request.form.get("departement", "").strip())
             nom = request.form.get("nom", "").strip()
             date_debut = request.form.get("date_debut", "").strip()
             date_fin = request.form.get("date_fin", "").strip()
@@ -4606,6 +4610,7 @@ Accessibilité: {accessibilite}
                 lieu_ville=lieu_ville,
                 code_postal=code_postal,
                 region=region,
+                departement=departement or None,
                 nom=nom,
                 dates_horaires=dates_horaires,
                 date_debut=date_debut or None,

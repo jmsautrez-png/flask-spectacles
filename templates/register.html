@@ -96,9 +96,17 @@
               <datalist id="ville-list"></datalist>
             </label>
           </div>
-          <input type="hidden" name="departement" id="departement-input" value="{{ request.form.get('departement','') }}">
+          <input type="hidden" id="departement-input-hidden" value="">
           <div id="cp-status" style="font-size:0.85em; color:#90caf9; margin-top:6px; min-height:18px;"></div>
         </div>
+
+        <label>
+          <span class="label-text">Departement</span>
+          <input type="text" id="departement-input" name="departement" readonly
+                 placeholder="Rempli automatiquement a partir du code postal"
+                 style="background:#1a1f2e; color:#90caf9; cursor:not-allowed;"
+                 value="{{ request.form.get('departement','') }}">
+        </label>
 
         <label>
           <span class="label-text">Région <span class="req">*</span></span>
@@ -456,7 +464,9 @@ document.addEventListener('DOMContentLoaded', function() {
             const first = data[0];
             if (!villeInput.value || data.length === 1) villeInput.value = first.nom;
             if (first.region && first.region.nom) regionInput.value = first.region.nom;
-            if (first.departement && first.departement.nom) deptInput.value = first.departement.nom;
+            if (first.departement && first.departement.nom) {
+                deptInput.value = first.departement.nom + (first.departement.code ? ' (' + first.departement.code + ')' : '');
+            }
             status.textContent = '✓ ' + first.region.nom + ' (' + first.departement.nom + ')'
                                 + (data.length > 1 ? ' — ' + data.length + ' communes possibles' : '');
             status.style.color = '#81c784';
@@ -477,7 +487,9 @@ document.addEventListener('DOMContentLoaded', function() {
         const c = communes.find(x => x.nom === this.value);
         if (c) {
             if (c.region && c.region.nom) regionInput.value = c.region.nom;
-            if (c.departement && c.departement.nom) deptInput.value = c.departement.nom;
+            if (c.departement && c.departement.nom) {
+                deptInput.value = c.departement.nom + (c.departement.code ? ' (' + c.departement.code + ')' : '');
+            }
         }
     });
 })();

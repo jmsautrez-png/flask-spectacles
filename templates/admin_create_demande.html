@@ -168,14 +168,20 @@
                             <div class="col-md-3">
                                 <div class="modern-input-group">
                                     <label class="modern-label">🔢 Code postal</label>
-                                    <input type="text" class="modern-input" id="code_postal" name="code_postal" maxlength="5" pattern="[0-9]{5}" placeholder="Ex : 75001">
-                                    <small style="color:var(--muted); font-size:0.8rem;">Détermine la région automatiquement</small>
+                                    <input type="text" class="modern-input" id="code_postal" name="code_postal" maxlength="5" pattern="[0-9]{5}" placeholder="Ex : 75001" data-cp-autofill>
+                                    <small style="color:var(--muted); font-size:0.8rem;">Determine la ville, le departement et la region automatiquement</small>
                                 </div>
                             </div>
                             <div class="col-md-3">
                                 <div class="modern-input-group">
-                                    <label class="modern-label">🗺️ Région</label>
-                                    <input type="text" class="modern-input" id="region" name="region" readonly style="background:rgba(255,255,255,0.05); cursor:not-allowed;" placeholder="Auto-détectée">
+                                    <label class="modern-label">🗺️ Region</label>
+                                    <input type="text" class="modern-input" id="region" name="region" readonly style="background:rgba(255,255,255,0.05); cursor:not-allowed;" placeholder="Auto-detectee">
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="modern-input-group">
+                                    <label class="modern-label">📍 Departement</label>
+                                    <input type="text" class="modern-input" id="departement" name="departement" readonly style="background:rgba(255,255,255,0.05); cursor:not-allowed;" placeholder="Auto-detecte">
                                 </div>
                             </div>
                             <div class="col-md-6">

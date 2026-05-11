@@ -202,18 +202,27 @@
           <span class="label-text">Code postal <span class="req">*</span></span>
           <input type="text" id="code_postal" name="code_postal" required autocomplete="postal-code"
                  inputmode="numeric" pattern="[0-9]{5}" maxlength="5"
-                 placeholder="Ex : 75001"
+                 placeholder="Ex : 75001" data-cp-autofill
                  value="{{ request.form.get('code_postal','') or (d.code_postal if d else '') }}">
-          <small class="hint">Entrez le code postal pour déterminer automatiquement la région.</small>
+          <small class="hint">Entrez le code postal pour determiner automatiquement la ville, le departement et la region.</small>
         </label>
 
         <label>
-          <span class="label-text">Région</span>
+          <span class="label-text">Region</span>
           <input type="text" id="region" name="region" readonly
-                 placeholder="Déterminée automatiquement"
+                 placeholder="Determinee automatiquement"
                  value="{{ request.form.get('region','') or (d.region if d else '') }}"
                  style="background:#1b2a4e; cursor:not-allowed;">
-          <small class="hint">La région est remplie automatiquement selon le code postal.</small>
+          <small class="hint">La region est remplie automatiquement selon le code postal.</small>
+        </label>
+
+        <label>
+          <span class="label-text">Departement</span>
+          <input type="text" id="departement" name="departement" readonly
+                 placeholder="Determine automatiquement"
+                 value="{{ request.form.get('departement','') or (d.departement if d else '') }}"
+                 style="background:#1b2a4e; cursor:not-allowed;">
+          <small class="hint">Le departement est rempli automatiquement.</small>
         </label>
       </div>
 

@@ -31,7 +31,13 @@
              style="background:#1a1f2e; color:#90caf9; cursor:not-allowed;">
     </label>
 
-    <input type="hidden" name="departement" id="departement-input" value="{{ user.departement or '' }}">
+    <label style="display:block; margin-bottom:14px;">
+      <span class="label-text">Departement</span>
+      <input type="text" name="departement" id="departement-input"
+             value="{{ user.departement or '' }}" readonly
+             placeholder="Rempli automatiquement"
+             style="background:#1a1f2e; color:#90caf9; cursor:not-allowed;">
+    </label>
     <div id="cp-status" style="font-size:0.85em; color:#90caf9; min-height:18px; margin-bottom:10px;"></div>
 
     <div style="display:flex; gap:10px; margin-top:18px;">
@@ -55,7 +61,9 @@
   function applyCommune(c) {
     villeInput.value = c.nom;
     if (c.region && c.region.nom) regionInput.value = c.region.nom;
-    if (c.departement && c.departement.nom) deptInput.value = c.departement.nom;
+    if (c.departement && c.departement.nom) {
+      deptInput.value = c.departement.nom + (c.departement.code ? ' (' + c.departement.code + ')' : '');
+    }
   }
 
   function fetchCp() {
