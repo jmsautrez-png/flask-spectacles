@@ -55,7 +55,7 @@
         <div style="display:grid; grid-template-columns: 110px 1fr 1fr 110px; gap:10px; align-items:end;">
           <div>
             <label style="display:block; font-size:0.78em; color:#aaa; margin-bottom:4px;">Code postal</label>
-            <input type="text" name="code_postal" value="{{ show.user.code_postal or '' }}" maxlength="5" pattern="[0-9]{4,5}" placeholder="ex: 75001"
+            <input type="text" name="code_postal" value="{{ show.user.code_postal or '' }}" maxlength="5" pattern="[0-9]{4,5}" placeholder="ex: 75001" data-cp-autofill
                    style="width:100%; padding:7px; border-radius:6px; border:1px solid rgba(255,255,255,0.15); background:rgba(0,0,0,0.4); color:#fff;"/>
           </div>
           <div>
@@ -87,6 +87,7 @@
   </div>
   {% endif %}
 </div>
+<script src="{{ url_for('static', filename='js/cp_autofill.js') }}"></script>
 <script>
 (function(){
   var btn = document.getElementById('btn-toggle-owner-info');
