@@ -112,10 +112,42 @@
       <div>
         <label>
           <span class="label-text">Description <span class="req">*</span></span>
-          <textarea id="description" name="description" rows="4" placeholder="Décrivez votre spectacle..." required></textarea>
+          <div style="background:rgba(255,193,7,0.10); border:1px solid rgba(255,193,7,0.45); border-radius:10px; padding:10px 14px; margin:6px 0 10px 0;">
+            <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap;">
+              <strong style="color:#ffc107; font-size:0.95rem;">💡 Comment écrire une bonne description (visible sur Google)</strong>
+              <button type="button" id="btn-toggle-seo-tips" style="background:rgba(255,255,255,0.1); color:#fff; border:1px solid rgba(255,255,255,0.2); padding:3px 10px; border-radius:6px; cursor:pointer; font-size:0.8rem;">Afficher / masquer</button>
+            </div>
+            <ul id="seo-tips-block" style="display:none; margin:10px 0 4px 0; padding-left:20px; color:#eee; font-size:0.88rem; line-height:1.55;">
+              <li><strong>Visez 150 à 300 mots</strong> : trop court = invisible sur Google, trop long = lassant.</li>
+              <li><strong>Répétez naturellement le titre du spectacle</strong> et le <strong>type</strong> (magie, clown, marionnettes, conte…) dans les premières lignes.</li>
+              <li><strong>Ajoutez le public cible</strong> : enfants, familles, écoles, entreprises, anniversaires, Noël, séminaires…</li>
+              <li><strong>Mentionnez 1 ou 2 villes/régions</strong> où vous jouez (ex. « disponible à Lyon et en Auvergne-Rhône-Alpes »).</li>
+              <li><strong>Décrivez l'ambiance, la durée et l'âge conseillé</strong> (ex. « 45 min, dès 4 ans »).</li>
+              <li><strong>Phrases courtes</strong>, paragraphes aérés, vocabulaire simple. Évitez les majuscules en bloc.</li>
+              <li>❌ Pas de copier-coller depuis votre site (Google déteste le contenu dupliqué).</li>
+            </ul>
+          </div>
+          <textarea id="description" name="description" rows="6" placeholder="Décrivez votre spectacle, ses points forts, le message..." required></textarea>
           <div style="display:flex; justify-content:space-between; align-items:center; margin-top:6px;">
-            <span class="hint" style="margin:0;">Maximum 300 mots - Décrivez votre spectacle, ses points forts, le message...</span>
+            <span class="hint" style="margin:0;">Maximum 300 mots</span>
             <span id="desc-counter" style="font-size:0.85rem; color:var(--muted); white-space:nowrap; margin-left:12px;">0/300 mots</span>
+          </div>
+          <div id="seo-analyzer" style="margin-top:8px; background:rgba(0,0,0,0.25); border:1px solid rgba(255,255,255,0.12); border-radius:8px; padding:10px 12px; font-size:0.85rem; color:#ddd;">
+            <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-bottom:6px;">
+              <strong style="color:#fff;">🎯 Score SEO :</strong>
+              <div style="flex:1; min-width:160px; height:10px; background:rgba(255,255,255,0.1); border-radius:5px; overflow:hidden;">
+                <div id="seo-score-bar" style="height:100%; width:0%; background:#e74c3c; transition:width .3s, background .3s;"></div>
+              </div>
+              <span id="seo-score-label" style="font-weight:700; color:#e74c3c; min-width:90px; text-align:right;">0 / 100</span>
+            </div>
+            <ul id="seo-checks" style="list-style:none; padding:0; margin:0; display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:4px 14px;">
+              <li id="seo-check-length">⬜ Longueur (150–300 mots)</li>
+              <li id="seo-check-title">⬜ Le titre apparaît dans le texte</li>
+              <li id="seo-check-keywords">⬜ Mots-clés thématiques (magie, clown…)</li>
+              <li id="seo-check-audience">⬜ Public cible mentionné</li>
+              <li id="seo-check-city">⬜ Ville ou région mentionnée</li>
+              <li id="seo-check-sentences">⬜ Phrases courtes (≤ 25 mots)</li>
+            </ul>
           </div>
         </label>
       </div>
@@ -483,4 +515,141 @@ document.addEventListener('DOMContentLoaded', function() {
 </script>
 {{ accordion_checkboxes_js() }}
 {{ public_cible_js() }}
+
+<!-- Compteur 300 mots + analyseur SEO (artiste) -->
+<script>
+(function () {
+  var ta = document.getElementById('description');
+  var counter = document.getElementById('desc-counter');
+  var MAX = 300;
+  if (!ta || !counter) return;
+
+  // Toggle bloc conseils
+  var btnTips = document.getElementById('btn-toggle-seo-tips');
+  var blockTips = document.getElementById('seo-tips-block');
+  if (btnTips && blockTips) {
+    btnTips.addEventListener('click', function(){
+      blockTips.style.display = (blockTips.style.display === 'none' || !blockTips.style.display) ? 'block' : 'none';
+    });
+  }
+
+  var THEME_KEYWORDS = [
+    'magie','magicien','clown','marionnette','marionnettes','conte','conteur','conteuse',
+    'th\u00e9\u00e2tre','theatre','musical','musique','chanson','spectacle','com\u00e9die','comedie',
+    'humour','humoriste','jonglerie','jongleur','mime','danse','cirque','illusion',
+    'ventriloque','pyrotechnie','feu','sculpture sur ballons','maquillage'
+  ];
+  var AUDIENCE_KEYWORDS = [
+    'enfant','enfants','famille','familles','adulte','adultes','b\u00e9b\u00e9','tout-petit','tout petits',
+    '\u00e9cole','ecole','\u00e9coles','ecoles','cr\u00e8che','creche','centre de loisirs','periscolaire','p\u00e9riscolaire',
+    'entreprise','entreprises','seminaire','s\u00e9minaire','cse','arbre de no\u00ebl','arbre de noel',
+    'anniversaire','anniversaires','mariage','mariages','no\u00ebl','noel','halloween','kermesse',
+    'collectivit\u00e9','collectivite','mairie','ehpad','maison de retraite'
+  ];
+
+  function getTitle(){
+    var t = document.querySelector('input[name="title"]');
+    return t ? t.value.trim().toLowerCase() : '';
+  }
+  function getCity(){
+    var c = document.getElementById('ville-input');
+    return c ? c.value.trim().toLowerCase() : '';
+  }
+  function normalize(s){
+    return (s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+  }
+  function setCheck(id, ok, label){
+    var el = document.getElementById(id);
+    if (!el) return;
+    el.textContent = (ok ? '\u2705 ' : '\u26aa ') + label;
+    el.style.color = ok ? '#81c784' : '#bbb';
+  }
+
+  function update() {
+    var raw = ta.value;
+    var words = raw.trim().split(/\s+/).filter(Boolean);
+    if (words.length > MAX) {
+      ta.value = words.slice(0, MAX).join(' ');
+      raw = ta.value;
+      words = raw.trim().split(/\s+/).filter(Boolean);
+    }
+    var count = words.length;
+    counter.textContent = count + '/' + MAX + ' mots';
+    if (count < 80) counter.style.color = '#e74c3c';
+    else if (count < 150) counter.style.color = '#f39c12';
+    else if (count <= 300) counter.style.color = '#2ecc71';
+    else counter.style.color = '#e74c3c';
+
+    var textN = normalize(raw);
+    var titleN = normalize(getTitle());
+    var cityN = normalize(getCity());
+
+    var okLength = count >= 150 && count <= 300;
+    setCheck('seo-check-length', okLength,
+      count < 150 ? 'Trop court (' + count + ' mots, visez 150+)'
+        : count > 300 ? 'Trop long' : 'Longueur id\u00e9ale (' + count + ' mots)');
+
+    var okTitle = false;
+    if (titleN && titleN.length >= 3) okTitle = textN.indexOf(titleN) !== -1;
+    setCheck('seo-check-title', okTitle,
+      titleN ? (okTitle ? 'Le titre appara\u00eet dans le texte' : 'Le titre du spectacle n\'est pas mentionn\u00e9')
+             : 'Renseignez d\'abord le titre');
+
+    var foundThemes = THEME_KEYWORDS.filter(function(k){ return textN.indexOf(normalize(k)) !== -1; });
+    var okThemes = foundThemes.length >= 1;
+    setCheck('seo-check-keywords', okThemes,
+      okThemes ? 'Mots-cl\u00e9s th\u00e9matiques : ' + foundThemes.slice(0,3).join(', ')
+               : 'Ajoutez le type de spectacle (magie, clown\u2026)');
+
+    var foundAud = AUDIENCE_KEYWORDS.filter(function(k){ return textN.indexOf(normalize(k)) !== -1; });
+    var okAud = foundAud.length >= 1;
+    setCheck('seo-check-audience', okAud,
+      okAud ? 'Public cible : ' + foundAud.slice(0,3).join(', ')
+            : 'Pr\u00e9cisez le public (enfants, familles, entreprises\u2026)');
+
+    var okCity = false;
+    if (cityN) {
+      var cities = cityN.split('|').map(function(s){return s.trim();}).filter(Boolean);
+      okCity = cities.some(function(c){ return c.length >= 3 && textN.indexOf(c) !== -1; });
+    }
+    var REGIONS = ['france','paris','lyon','marseille','toulouse','bordeaux','nantes','lille','rennes','strasbourg','nice','montpellier','r\u00e9gion','region'];
+    if (!okCity) {
+      okCity = REGIONS.some(function(r){ return textN.indexOf(normalize(r)) !== -1; });
+    }
+    setCheck('seo-check-city', okCity,
+      okCity ? 'Ville ou r\u00e9gion mentionn\u00e9e' : 'Mentionnez une ville ou r\u00e9gion o\u00f9 vous jouez');
+
+    var sentences = raw.split(/[.!?]+/).map(function(s){return s.trim();}).filter(Boolean);
+    var longSent = sentences.filter(function(s){ return s.split(/\s+/).length > 25; }).length;
+    var okSent = sentences.length >= 2 && longSent === 0;
+    setCheck('seo-check-sentences', okSent,
+      sentences.length < 2 ? 'Ajoutez plusieurs phrases'
+        : longSent === 0 ? 'Phrases bien rythm\u00e9es'
+        : longSent + ' phrase(s) trop longue(s) (>25 mots)');
+
+    var checks = [okLength, okTitle, okThemes, okAud, okCity, okSent];
+    var passed = checks.filter(Boolean).length;
+    var score = Math.round(passed * 100 / checks.length);
+    var bar = document.getElementById('seo-score-bar');
+    var lbl = document.getElementById('seo-score-label');
+    if (bar && lbl) {
+      bar.style.width = score + '%';
+      var col = score >= 80 ? '#2ecc71' : score >= 50 ? '#f39c12' : '#e74c3c';
+      bar.style.background = col;
+      lbl.style.color = col;
+      lbl.textContent = score + ' / 100';
+    }
+  }
+
+  ta.addEventListener('input', update);
+  var titleInput = document.querySelector('input[name="title"]');
+  if (titleInput) titleInput.addEventListener('input', update);
+  var cityInput = document.getElementById('ville-input');
+  if (cityInput) {
+    cityInput.addEventListener('input', update);
+    cityInput.addEventListener('change', update);
+  }
+  update();
+})();
+</script>
 {% endblock %}
