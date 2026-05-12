@@ -317,6 +317,66 @@
       transform: scale(1.03);
       box-shadow: 0 4px 15px rgba(102, 126, 234, 0.5);
     }
+
+    /* ===== Tooltip pour liens verrouilles (Appels d'offres) ===== */
+    .locked-link {
+      position: relative;
+      display: inline-block;
+      cursor: not-allowed !important;
+      opacity: 0.55;
+    }
+    .locked-link:hover { opacity: 0.7; }
+    .locked-link::after {
+      content: attr(data-tooltip);
+      position: absolute;
+      top: calc(100% + 10px);
+      left: 50%;
+      transform: translateX(-50%) translateY(-6px);
+      background: #1a1a1a;
+      color: #fff;
+      padding: 10px 14px;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      font-weight: 500;
+      white-space: nowrap;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.4);
+      border: 1px solid #ffc107;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity .18s ease, transform .18s ease;
+      z-index: 10000;
+    }
+    .locked-link::before {
+      content: "";
+      position: absolute;
+      top: calc(100% + 4px);
+      left: 50%;
+      transform: translateX(-50%);
+      border: 6px solid transparent;
+      border-bottom-color: #ffc107;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity .18s ease;
+      z-index: 10001;
+    }
+    .locked-link:hover::after,
+    .locked-link:hover::before {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+    .locked-link:hover::before { transform: translateX(-50%); }
+
+    @media (max-width: 600px) {
+      .locked-link::after {
+        white-space: normal;
+        max-width: 240px;
+        left: auto;
+        right: 0;
+        transform: translateY(-6px);
+      }
+      .locked-link:hover::after { transform: translateY(0); }
+      .locked-link::before { display: none; }
+    }
     
     @media (max-width: 900px) {
       .hamburger-container {
@@ -998,14 +1058,14 @@
           </li>
           {% else %}
           <li>
-            <a href="#" onclick="return false;" title="Publiez et faites valider un spectacle pour débloquer les appels d'offres" style="{{ btn_glass }}; opacity:0.45; cursor:not-allowed; pointer-events:none;">
+            <span class="locked-link" data-tooltip="🔒 Publiez et faites valider un spectacle pour débloquer les appels d'offres" style="{{ btn_glass }}; display:inline-block;">
               🔒 Appels d'offres
-            </a>
+            </span>
           </li>
           <li>
-            <a href="#" onclick="return false;" title="Publiez et faites valider un spectacle pour débloquer les appels d'offres" style="{{ btn_glass }}; opacity:0.45; cursor:not-allowed; pointer-events:none;">
+            <span class="locked-link" data-tooltip="🔒 Publiez et faites valider un spectacle pour accéder à vos appels d'offres" style="{{ btn_glass }}; display:inline-block;">
               🔒 Mes appels d'offres
-            </a>
+            </span>
           </li>
           {% endif %}
           <li>
@@ -1122,13 +1182,13 @@
     {% if user_has_show %}
     <a href="{{ url_for('mes_appels_offres') }}" class="menu-mes-appels">Mes appels d'offres</a>
     {% else %}
-    <a href="#" onclick="return false;" class="menu-mes-appels" style="opacity:0.45; cursor:not-allowed; pointer-events:none;" title="Publiez et faites valider un spectacle pour débloquer">🔒 Mes appels d'offres</a>
+    <span class="locked-link menu-mes-appels" data-tooltip="🔒 Publiez et faites valider un spectacle pour accéder à vos appels d'offres">🔒 Mes appels d'offres</span>
     {% endif %}
     {% endif %}
     <a href="{{ url_for('catalogue') }}" class="menu-catalogue">Catalogue</a>
     <a href="{{ url_for('evenements') }}" class="menu-evenements">🎪 Événements</a>
     {% if user and not user.is_admin and not user_has_show %}
-    <a href="#" onclick="return false;" class="menu-appels" style="opacity:0.45; cursor:not-allowed; pointer-events:none;" title="Publiez et faites valider un spectacle pour débloquer">🔒 Appels d'offres</a>
+    <span class="locked-link menu-appels" data-tooltip="🔒 Publiez et faites valider un spectacle pour débloquer les appels d'offres">🔒 Appels d'offres</span>
     {% else %}
     <a href="{{ url_for('demandes_animation') }}" class="menu-appels">Appels d'offres</a>
     {% endif %}
