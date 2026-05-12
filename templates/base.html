@@ -215,6 +215,30 @@
     .hamburger-menu a:last-child {
       margin-bottom: 0;
     }
+
+    /* Items verrouilles (span.locked-link) dans le menu hamburger : meme style de base que les <a> */
+    .hamburger-menu span.locked-link {
+      display: block;
+      padding: 0.85rem 1.2rem;
+      color: #fff;
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 1rem;
+      border-radius: 10px;
+      margin-bottom: 0.6rem;
+      transition: all 0.3s ease;
+      text-align: center;
+      cursor: not-allowed;
+      opacity: 0.85;
+    }
+    .hamburger-menu span.locked-link.menu-appels {
+      background: linear-gradient(135deg, #00acc1, #0097a7);
+      border: 2px solid rgba(255, 255, 255, 0.3);
+    }
+    .hamburger-menu span.locked-link.menu-mes-appels {
+      background: linear-gradient(135deg, #4caf50, #388e3c);
+      border: 2px solid rgba(255, 255, 255, 0.3);
+    }
     
     .hamburger-menu a.menu-catalogue {
       background: linear-gradient(135deg, #ff5722, #ff9800);
