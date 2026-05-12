@@ -6,7 +6,7 @@ from constants import (
     SPECIALITES, EVENEMENTS, LIEUX, REGIONS_FRANCE, REGIONS_VOISINES,
     PUBLIC_CIBLE_CODES_VALIDES,
 )
-from utils.geo import distance_km, distance_score
+from utils.geo import distance_km, distance_km_approx, distance_score
 
 
 _DEPT_CODE_RE = re.compile(r"\((\d{2,3}[A-Z]?)\)")
@@ -270,6 +270,16 @@ def compute_score(show, demande):
     dem_dept = _dept_code_from(demande)
     cie_dept = _dept_code_from(show_user) or _dept_code_from(show)
 
+    # Distance approximative pour AFFICHAGE (jamais utilisee pour le score/filtre).
+    # Si on n'a pas de CP des deux cotes, on tente un fallback centroide departemental.
+    distance_display = distance
+    distance_approx = False
+    if distance_display is None and (dem_cp or dem_dept) and (cie_cp or cie_dept):
+        d_approx, is_approx = distance_km_approx(dem_cp, cie_cp, dem_dept, cie_dept)
+        if d_approx is not None:
+            distance_display = d_approx
+            distance_approx = is_approx
+
     if show_couvre_france:
         # Le spectacle se deplace partout : score regional max
         region_ratio = 1.0
@@ -321,6 +331,8 @@ def compute_score(show, demande):
         "lieux": round(lieu_ratio * 100, 1),
         "region": round(region_ratio * 100, 1),
         "distance_km": round(distance, 1) if distance is not None else None,
+        "distance_km_display": round(distance_display, 1) if distance_display is not None else None,
+        "distance_approx": distance_approx,
         "dem_dept": dem_dept,
         "cie_dept": cie_dept,
         "age_compatible": age_compatible,

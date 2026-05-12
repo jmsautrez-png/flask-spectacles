@@ -134,6 +134,128 @@ def distance_km(cp_a: Optional[str], cp_b: Optional[str]) -> Optional[float]:
     return haversine_km(a[0], a[1], b[0], b[1])
 
 
+# ---------------------------------------------------------------------------
+# Fallback departement : centroide du dpt via geo.api.gouv.fr
+# ---------------------------------------------------------------------------
+_DEPT_CACHE: dict[str, Optional[list[float]]] = {}
+_DEPT_CACHE_FILE = _INSTANCE_DIR / "dept_coords_cache.json"
+_DEPT_CACHE_LOADED = False
+
+
+def _load_dept_cache() -> None:
+    global _DEPT_CACHE_LOADED
+    if _DEPT_CACHE_LOADED:
+        return
+    with _LOCK:
+        if _DEPT_CACHE_LOADED:
+            return
+        try:
+            if _DEPT_CACHE_FILE.exists():
+                _DEPT_CACHE.update(json.loads(_DEPT_CACHE_FILE.read_text(encoding="utf-8")))
+        except Exception:
+            pass
+        _DEPT_CACHE_LOADED = True
+
+
+def _save_dept_cache() -> None:
+    try:
+        _INSTANCE_DIR.mkdir(parents=True, exist_ok=True)
+        _DEPT_CACHE_FILE.write_text(
+            json.dumps(_DEPT_CACHE, ensure_ascii=False, separators=(",", ":")),
+            encoding="utf-8",
+        )
+    except Exception:
+        pass
+
+
+def _normalize_dept(code: Optional[str]) -> Optional[str]:
+    if not code:
+        return None
+    s = str(code).strip().upper()
+    # Garde lettres+chiffres (Corse 2A/2B)
+    s = "".join(ch for ch in s if ch.isalnum())
+    if not s:
+        return None
+    # Departements metropolitains numeriques sur 2 chiffres
+    if s.isdigit() and len(s) == 1:
+        s = "0" + s
+    return s[:3] if s.startswith("97") else s[:2]
+
+
+def coords_from_dept(code: Optional[str]) -> Optional[Tuple[float, float]]:
+    """Centroide approximatif d'un departement (lat, lon), ou None."""
+    code = _normalize_dept(code)
+    if not code:
+        return None
+    _load_dept_cache()
+    if code in _DEPT_CACHE:
+        v = _DEPT_CACHE[code]
+        return (v[0], v[1]) if v else None
+    coords = _fetch_dept_coords(code)
+    with _LOCK:
+        _DEPT_CACHE[code] = list(coords) if coords else None
+        _save_dept_cache()
+    return coords
+
+
+def _fetch_dept_coords(code: str) -> Optional[Tuple[float, float]]:
+    if requests is None:
+        return None
+    try:
+        r = requests.get(
+            f"https://geo.api.gouv.fr/departements/{code}/communes",
+            params={"fields": "centre", "format": "json"},
+            timeout=5,
+        )
+        if r.status_code != 200:
+            return None
+        data = r.json()
+        if not data:
+            return None
+        lats, lons = [], []
+        for commune in data:
+            centre = commune.get("centre") or {}
+            coords = centre.get("coordinates")
+            if coords and len(coords) == 2:
+                lons.append(float(coords[0]))
+                lats.append(float(coords[1]))
+        if not lats:
+            return None
+        return (sum(lats) / len(lats), sum(lons) / len(lons))
+    except Exception:
+        return None
+
+
+def distance_km_approx(
+    cp_a: Optional[str],
+    cp_b: Optional[str],
+    dept_a: Optional[str] = None,
+    dept_b: Optional[str] = None,
+) -> Tuple[Optional[float], bool]:
+    """Distance entre deux points avec fallback departement.
+
+    Retourne (km, is_approx).
+    - is_approx=False : calcul base sur les CP (precis).
+    - is_approx=True  : au moins un cote utilise le centroide du departement.
+    - (None, False)   : aucune information geo exploitable.
+    """
+    a = coords_from_cp(cp_a)
+    b = coords_from_cp(cp_b)
+    approx = False
+    if not a:
+        a = coords_from_dept(dept_a)
+        if a:
+            approx = True
+    if not b:
+        b = coords_from_dept(dept_b)
+        if b:
+            approx = True
+    if not a or not b:
+        return None, False
+    return haversine_km(a[0], a[1], b[0], b[1]), approx
+
+
+
 def distance_score(km: Optional[float]) -> float:
     """Convertit une distance (km) en ratio 0..1 pour le matching.
 

@@ -85,7 +85,7 @@
                                             <td><small>{{ score.evenements }}%</small></td>
                                             <td><small>{{ score.lieux }}%</small></td>
                                             <td><small>{{ score.region }}%</small></td>
-                                            <td><small>{% if score.distance_km is not none %}{{ score.distance_km|round|int }} km{% else %}<span class="text-muted">—</span>{% endif %}</small></td>
+                                            <td><small>{% if score.distance_km_display is not none %}{% if score.distance_approx %}<span title="Distance approximative (centroïde du département)" style="color:#90caf9;">≈ {{ score.distance_km_display|round|int }} km</span>{% else %}{{ score.distance_km_display|round|int }} km{% endif %}{% else %}<span class="text-muted">—</span>{% endif %}</small></td>
                                         </tr>
                                     {% endfor %}
                                     </tbody>
