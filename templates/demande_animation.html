@@ -220,7 +220,7 @@
           <span class="label-text">Departement</span>
           <input type="text" id="departement" name="departement" readonly
                  placeholder="Determine automatiquement"
-                 value="{{ request.form.get('departement','') or (d.departement if d else '') }}"
+                 value="{{ request.form.get('departement','') or (d.departement if d else '') or '' }}"
                  style="background:#1b2a4e; cursor:not-allowed;">
           <small class="hint">Le departement est rempli automatiquement.</small>
         </label>
