@@ -21,6 +21,9 @@
       <input type="text" name="ville" id="ville-input" required list="ville-list"
              value="{{ user.ville or '' }}" placeholder="Ville">
       <datalist id="ville-list"></datalist>
+      <select id="ville-select" style="display:none; margin-top:8px; width:100%; padding:8px; background:#1a1f2e; color:#fff; border:1px solid #1976d2; border-radius:6px;">
+        <option value="">— Choisissez votre commune —</option>
+      </select>
     </label>
 
     <label style="display:block; margin-bottom:14px;">
@@ -52,6 +55,7 @@
   var cpInput = document.getElementById('cp-input');
   var villeInput = document.getElementById('ville-input');
   var villeList = document.getElementById('ville-list');
+  var villeSelect = document.getElementById('ville-select');
   var regionInput = document.getElementById('region-input');
   var deptInput = document.getElementById('departement-input');
   var status = document.getElementById('cp-status');
@@ -73,20 +77,34 @@
     fetch('https://geo.api.gouv.fr/communes?codePostal=' + cp + '&fields=nom,codeDepartement,departement,region&format=json')
       .then(function(r){ return r.json(); })
       .then(function(data){
-        if (!data || !data.length) { status.textContent = '❌ Code postal inconnu.'; return; }
+        if (!data || !data.length) { status.textContent = '❌ Code postal inconnu.'; villeSelect.style.display='none'; return; }
         lastCommunes = data;
         villeList.innerHTML = '';
+        // Datalist (autocompletion en tapant)
         data.forEach(function(c){
           var opt = document.createElement('option');
           opt.value = c.nom;
           villeList.appendChild(opt);
         });
+        // Select visible si plusieurs communes
+        villeSelect.innerHTML = '<option value="">— Choisissez votre commune —</option>';
+        data.forEach(function(c, i){
+          var opt = document.createElement('option');
+          opt.value = c.nom;
+          opt.textContent = c.nom + (c.departement && c.departement.code ? ' (' + c.departement.code + ')' : '');
+          if (villeInput.value && c.nom.toLowerCase() === villeInput.value.toLowerCase()) opt.selected = true;
+          villeSelect.appendChild(opt);
+        });
         if (data.length === 1) {
+          villeSelect.style.display = 'none';
           applyCommune(data[0]);
           status.textContent = '✓ ' + data[0].nom + ' — ' + (data[0].region && data[0].region.nom);
         } else {
-          status.textContent = data.length + ' communes pour ce CP. Choisissez la vôtre.';
-          applyCommune(data[0]);
+          villeSelect.style.display = 'block';
+          status.textContent = data.length + ' communes pour ce CP. Choisissez la vôtre dans la liste ci-dessous.';
+          // Si la ville actuelle ne fait pas partie des résultats, on prend la 1ere
+          var currentMatch = data.find(function(c){ return villeInput.value && c.nom.toLowerCase() === villeInput.value.toLowerCase(); });
+          applyCommune(currentMatch || data[0]);
         }
       })
       .catch(function(){ status.textContent = 'Erreur réseau.'; });
@@ -98,6 +116,13 @@
   villeInput.addEventListener('change', function(){
     var v = villeInput.value.trim().toLowerCase();
     var match = lastCommunes.find(function(c){ return c.nom.toLowerCase() === v; });
+    if (match) applyCommune(match);
+  });
+
+  villeSelect.addEventListener('change', function(){
+    var v = villeSelect.value;
+    if (!v) return;
+    var match = lastCommunes.find(function(c){ return c.nom === v; });
     if (match) applyCommune(match);
   });
 })();
