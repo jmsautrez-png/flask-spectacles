@@ -996,6 +996,17 @@
               Mes appels d'offres
             </a>
           </li>
+          {% else %}
+          <li>
+            <a href="#" onclick="return false;" title="Publiez et faites valider un spectacle pour débloquer les appels d'offres" style="{{ btn_glass }}; opacity:0.45; cursor:not-allowed; pointer-events:none;">
+              🔒 Appels d'offres
+            </a>
+          </li>
+          <li>
+            <a href="#" onclick="return false;" title="Publiez et faites valider un spectacle pour débloquer les appels d'offres" style="{{ btn_glass }}; opacity:0.45; cursor:not-allowed; pointer-events:none;">
+              🔒 Mes appels d'offres
+            </a>
+          </li>
           {% endif %}
           <li>
             <a href="{{ url_for('catalogue') }}" style="{{ btn_glass }}">
@@ -1110,11 +1121,17 @@
     <a href="{{ url_for('my_analytics') }}">📈 Mes stats</a>
     {% if user_has_show %}
     <a href="{{ url_for('mes_appels_offres') }}" class="menu-mes-appels">Mes appels d'offres</a>
+    {% else %}
+    <a href="#" onclick="return false;" class="menu-mes-appels" style="opacity:0.45; cursor:not-allowed; pointer-events:none;" title="Publiez et faites valider un spectacle pour débloquer">🔒 Mes appels d'offres</a>
     {% endif %}
     {% endif %}
     <a href="{{ url_for('catalogue') }}" class="menu-catalogue">Catalogue</a>
     <a href="{{ url_for('evenements') }}" class="menu-evenements">🎪 Événements</a>
+    {% if user and not user.is_admin and not user_has_show %}
+    <a href="#" onclick="return false;" class="menu-appels" style="opacity:0.45; cursor:not-allowed; pointer-events:none;" title="Publiez et faites valider un spectacle pour débloquer">🔒 Appels d'offres</a>
+    {% else %}
     <a href="{{ url_for('demandes_animation') }}" class="menu-appels">Appels d'offres</a>
+    {% endif %}
     <a href="{{ url_for('contact') }}" class="menu-contact">Contact</a>
     <a href="{{ url_for('about') }}" class="menu-about">Qui sommes-nous</a>
     <a href="/ecoles" class="menu-pedagogique">Intervention pédagogique</a>
