@@ -3044,6 +3044,33 @@ def register_routes(app: Flask) -> None:
         
         return html
     
+    @app.route("/profil/localisation", methods=["GET", "POST"])
+    @login_required
+    def profil_localisation():
+        """Permet a un artiste/cie de renseigner/modifier son CP, ville, departement, region."""
+        user = current_user()
+        if request.method == "POST":
+            cp = (request.form.get("code_postal") or "").strip()
+            ville = (request.form.get("ville") or "").strip()
+            region = (request.form.get("region") or "").strip()
+            departement = (request.form.get("departement") or "").strip()
+            if not cp or len(cp) != 5 or not cp.isdigit():
+                flash("Code postal invalide (5 chiffres requis).", "danger")
+                return redirect(url_for("profil_localisation"))
+            if not ville:
+                flash("La ville est obligatoire.", "danger")
+                return redirect(url_for("profil_localisation"))
+            user.code_postal = cp
+            user.ville = ville
+            if region:
+                user.region = region
+            if departement:
+                user.departement = departement
+            db.session.commit()
+            flash("Localisation enregistree.", "success")
+            return redirect(url_for("company_dashboard"))
+        return render_template("profil_localisation.html", user=user)
+
     @app.route("/change-password", methods=["GET", "POST"])
     @login_required
     def change_password():
