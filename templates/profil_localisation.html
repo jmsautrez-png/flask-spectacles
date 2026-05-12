@@ -6,7 +6,6 @@
   <p style="color:#90caf9;">Renseignez votre code postal : la ville, le département et la région se rempliront automatiquement.</p>
 
   <form method="POST" style="background:#162447; border:1px solid #1976d2; border-radius:10px; padding:18px; margin-top:14px;">
-    {{ csrf_token() if csrf_token else '' }}
     <input type="hidden" name="csrf_token" value="{{ csrf_token() if csrf_token else '' }}">
 
     <label style="display:block; margin-bottom:14px;">
