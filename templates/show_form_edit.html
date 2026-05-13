@@ -718,10 +718,13 @@
 
   document.querySelectorAll("form").forEach(form => {
     form.addEventListener("submit", e => {
-      const words = ta.value.trim().split(/\s+/).filter(Boolean);
+      // Compte les mots en texte brut (sans HTML ni NBSP) pour rester
+      // coherent avec le compteur visible.
+      const plainSubmit = htmlToPlain(ta.value);
+      const words = plainSubmit.split(/\s+/).filter(Boolean);
       if (words.length > MAX) {
         e.preventDefault();
-        alert("La description ne doit pas dépasser 70 mots.");
+        alert("La description ne doit pas dépasser " + MAX + " mots.");
         return;
       }
 
