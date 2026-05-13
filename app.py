@@ -2495,6 +2495,44 @@ def register_routes(app: Flask) -> None:
             s.lieux_intervention = ",".join(lieux_list) if lieux_list else None
             s.regions_intervention = ",".join(reg_list) if reg_list else None
 
+            # Public ciblé v2 (catégories + sous-options)
+            _pc_cats = request.form.getlist("public_categories")
+            _pc_subs = request.form.getlist("public_sous_options")
+            # Appliquer single_select : pour chaque catégorie marquée single_select,
+            # ne garder qu'une seule sous-option (la première reçue)
+            for _cat_def in PUBLIC_CIBLE_CATEGORIES:
+                if _cat_def.get("single_select"):
+                    _allowed = [c[0] for c in _cat_def["sous_options"]]
+                    _kept = [_x for _x in _pc_subs if _x in _allowed]
+                    if len(_kept) > 1:
+                        _pc_subs = [_x for _x in _pc_subs if _x not in _allowed] + [_kept[0]]
+            # Vérifier les dépendances 'requires'
+            _exclusive_checked = False
+            for _cat_def in PUBLIC_CIBLE_CATEGORIES:
+                for _ex in _cat_def.get("exclusive_subs", []) or []:
+                    if _ex in _pc_subs:
+                        _exclusive_checked = True
+                        break
+                if _exclusive_checked:
+                    break
+            _missing_req = []
+            if not _exclusive_checked:
+                for _cat_def in PUBLIC_CIBLE_CATEGORIES:
+                    if _cat_def["code"] in _pc_cats:
+                        for _req in _cat_def.get("requires", []) or []:
+                            if _req not in _pc_cats:
+                                _missing_req.append((_cat_def["code"], _req))
+                                continue
+                            _req_subs = [c[0] for c in next((c["sous_options"] for c in PUBLIC_CIBLE_CATEGORIES if c["code"] == _req), [])]
+                            if not any(_x in _req_subs for _x in _pc_subs):
+                                _missing_req.append((_cat_def["code"], _req))
+            if _missing_req:
+                msg = " ; ".join(f"« {a} » requiert une option dans « {b} »" for a, b in _missing_req)
+                flash(f"Public ciblé incomplet : {msg}", "danger")
+                return redirect(request.url)
+            s.public_categories = ",".join(_pc_cats) or None
+            s.public_sous_options = ",".join(_pc_subs) or None
+
             # Région auto-dérivée de la 1ère région d'intervention
             s.region = reg_list[0] if reg_list else (s.region or None)
 

@@ -39,7 +39,69 @@
           var ta = editor.getElement();
           if (ta) ta.dispatchEvent(new Event('input', { bubbles: true }));
         });
+        editor.on('init', function(){
+          prefillIfEmpty(editor);
+        });
       },
     });
   });
+
+  // ===== Pré-remplissage : titre + ville + dpt + région =====
+  function getVal(form, names){
+    if (!form) return '';
+    for (var i = 0; i < names.length; i++){
+      var el = form.querySelector('[name="' + names[i] + '"]');
+      if (el && el.value && el.value.trim()) return el.value.trim();
+    }
+    return '';
+  }
+
+  function buildPrefill(form){
+    var title = getVal(form, ['title', 'titre']);
+    var city  = getVal(form, ['ville', 'location', 'lieu_ville']);
+    var dept  = getVal(form, ['departement']);
+    var reg   = getVal(form, ['region']);
+    if (!title && !city && !reg) return '';
+
+    // Extrait le code (ex: "69") depuis "Rhône (69)" si possible
+    var deptCode = '';
+    var deptName = dept;
+    var m = dept && dept.match(/^(.+?)\s*\((\d{2,3}[AB]?)\)\s*$/i);
+    if (m){ deptName = m[1].trim(); deptCode = m[2]; }
+
+    var titleHtml = title ? '« <strong>' + escapeHtml(title) + '</strong> »' : 'Ce spectacle';
+    var locParts = [];
+    if (city){
+      var cityStr = '<strong>' + escapeHtml(city) + '</strong>';
+      if (deptCode) cityStr += ' (' + escapeHtml(deptName) + ', ' + escapeHtml(deptCode) + ')';
+      else if (deptName) cityStr += ' (' + escapeHtml(deptName) + ')';
+      locParts.push('à ' + cityStr);
+    }
+    if (reg){
+      locParts.push('dans toute la région <strong>' + escapeHtml(reg) + '</strong>');
+    }
+
+    var sentence;
+    if (locParts.length){
+      sentence = titleHtml + ' est un spectacle disponible ' + locParts.join(' et ') + '.';
+    } else {
+      sentence = titleHtml + ' —';
+    }
+    return '<p>' + sentence + '</p><p><em style="color:#888;">[Rédigez ici la suite : durée, public, ambiance…]</em></p>';
+  }
+
+  function escapeHtml(s){
+    return String(s).replace(/[&<>"]/g, function(c){
+      return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];
+    });
+  }
+
+  function prefillIfEmpty(editor){
+    var current = (editor.getContent({format:'text'}) || '').trim();
+    if (current) return; // description déjà remplie : on ne touche pas
+    var ta = editor.getElement();
+    var form = ta ? ta.form : null;
+    var html = buildPrefill(form);
+    if (html) editor.setContent(html);
+  }
 })();
