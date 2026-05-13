@@ -56,11 +56,20 @@
     return '';
   }
 
-  function buildPrefill(form){
-    var title = getVal(form, ['title', 'titre']);
-    var city  = getVal(form, ['ville', 'location', 'lieu_ville']);
-    var dept  = getVal(form, ['departement']);
-    var reg   = getVal(form, ['region']);
+  function getField(ta, form, dataKey, names){
+    // 1) data-prefill-* sur le textarea (admin : champs hors du form principal)
+    if (ta && ta.dataset && ta.dataset[dataKey] && ta.dataset[dataKey].trim()){
+      return ta.dataset[dataKey].trim();
+    }
+    // 2) recherche dans le form du textarea
+    return getVal(form, names);
+  }
+
+  function buildPrefill(ta, form){
+    var title = getField(ta, form, 'prefillTitle',       ['title', 'titre']);
+    var city  = getField(ta, form, 'prefillVille',       ['ville', 'location', 'lieu_ville']);
+    var dept  = getField(ta, form, 'prefillDepartement', ['departement']);
+    var reg   = getField(ta, form, 'prefillRegion',      ['region']);
     if (!title && !city && !reg) return '';
 
     // Extrait le code (ex: "69") depuis "Rhône (69)" si possible
@@ -101,7 +110,7 @@
     if (current) return; // description déjà remplie : on ne touche pas
     var ta = editor.getElement();
     var form = ta ? ta.form : null;
-    var html = buildPrefill(form);
+    var html = buildPrefill(ta, form);
     if (html) editor.setContent(html);
   }
 })();

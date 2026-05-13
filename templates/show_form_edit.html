@@ -191,6 +191,10 @@
       </ul>
     </div>
     <textarea id="description" name="description" rows="6" required data-richtext
+      data-prefill-title="{{ show.title or '' }}"
+      data-prefill-ville="{{ show.location or '' }}"
+      data-prefill-departement="{{ show.departement or '' }}"
+      data-prefill-region="{{ show.region or '' }}"
       placeholder="Exemple : « Crack Up est un spectacle de magie comique de 50 minutes, idéal pour familles, anniversaires d'enfants et arbres de Noël en entreprise. Sur scène, un magicien égocentrique et son assistante maladroite enchaînent plus de 100 gags visuels et numéros de magie spectaculaires. Disponible partout en France, particulièrement à Lyon et dans la région Auvergne-Rhône-Alpes. Dès 5 ans. »">{{ show.description or "" }}</textarea>
     <div id="desc-counter" style="font-size:.9rem;opacity:.8;margin-top:4px;">0/300 mots</div>
     <div id="seo-analyzer" style="margin-top:8px; background:rgba(0,0,0,0.25); border:1px solid rgba(255,255,255,0.12); border-radius:8px; padding:10px 12px; font-size:0.85rem; color:#ddd;">
