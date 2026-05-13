@@ -4,11 +4,9 @@
 (function(){
   if (typeof tinymce === 'undefined') return;
   document.addEventListener('DOMContentLoaded', function(){
-    var nodes = document.querySelectorAll('textarea[data-richtext]');
-    if (!nodes.length) return;
+    if (!document.querySelector('textarea[data-richtext]')) return;
     tinymce.init({
-      target: nodes,
-      selector: undefined,
+      selector: 'textarea[data-richtext]',
       license_key: 'gpl',
       menubar: false,
       branding: false,
