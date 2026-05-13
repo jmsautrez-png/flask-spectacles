@@ -435,6 +435,10 @@
 
   <!-- Autofill CP -> ville/region/departement (geo.api.gouv.fr) sur tous les inputs [data-cp-autofill] -->
   <script src="{{ url_for('static', filename='js/cp_autofill.js') }}"></script>
+
+  <!-- TinyMCE (chargé partout, initialisé seulement sur les pages avec [data-richtext]) -->
+  <script src="https://cdn.jsdelivr.net/npm/tinymce@7/tinymce.min.js" referrerpolicy="origin"></script>
+  <script src="{{ url_for('static', filename='js/richtext.js') }}"></script>
   
   <!-- Schema.org JSON-LD -->
   <script type="application/ld+json">

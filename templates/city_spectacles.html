@@ -45,7 +45,7 @@
       "item": {
         "@type": "Event",
         "name": "{{ show.title }}",
-        "description": "{{ show.description[:150] if show.description else show.title }}",
+        "description": "{{ (show.description|striptags)[:150] if show.description else show.title }}",
         "location": {
           "@type": "Place",
           "name": "{{ city['name'] }}",
@@ -495,7 +495,7 @@
       
       {% if show.description %}
       <div class="description">
-        {{ show.description[:150] }}{% if show.description|length > 150 %}...{% endif %}
+        {% set _d = show.description|striptags %}{{ _d[:150] }}{% if _d|length > 150 %}...{% endif %}
       </div>
       {% endif %}
       

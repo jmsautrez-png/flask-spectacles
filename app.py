@@ -308,8 +308,10 @@ def create_app() -> Flask:
             content_security_policy={
                 'default-src': "'self'",
                 'img-src': ["'self'", "data:"],
-                'style-src': ["'self'", "'unsafe-inline'"],
-                'script-src': ["'self'", "'unsafe-inline'"],
+                'style-src': ["'self'", "'unsafe-inline'", "https://cdn.jsdelivr.net"],
+                'script-src': ["'self'", "'unsafe-inline'", "https://cdn.jsdelivr.net"],
+                'font-src': ["'self'", "https://cdn.jsdelivr.net", "data:"],
+                'connect-src': ["'self'", "https://geo.api.gouv.fr"],
             },
         )
     
@@ -2000,7 +2002,8 @@ def register_routes(app: Flask) -> None:
             if not raison_sociale and u:
                 raison_sociale = u.raison_sociale if u.raison_sociale else u.username
             title = request.form.get("title", "").strip()
-            description = request.form.get("description", "").strip()
+            from utils.sanitize import sanitize_html
+            description = sanitize_html(request.form.get("description", ""))
             region = fix_mojibake(request.form.get("region", "").strip())
             location = request.form.get("location", "").strip()
             date_str = request.form.get("date", "").strip()
@@ -2459,7 +2462,8 @@ def register_routes(app: Flask) -> None:
         if request.method == "POST":
             s.raison_sociale = request.form.get("raison_sociale","").strip() or None
             s.title = request.form.get("title","").strip()
-            s.description = request.form.get("description","").strip()
+            from utils.sanitize import sanitize_html
+            s.description = sanitize_html(request.form.get("description",""))
             s.region = fix_mojibake(request.form.get("region","").strip()) or None
             s.location = request.form.get("location","").strip()
             s.age_range = (request.form.get("age_range","") or None)
@@ -3141,7 +3145,8 @@ def register_routes(app: Flask) -> None:
         if request.method == "POST":
             show.raison_sociale = request.form.get("raison_sociale", "").strip() or None
             show.title = request.form.get("title", "").strip()
-            show.description = request.form.get("description", "").strip()
+            from utils.sanitize import sanitize_html
+            show.description = sanitize_html(request.form.get("description", ""))
             show.region = fix_mojibake(request.form.get("region", "").strip()) or None
             show.location = request.form.get("location", "").strip()
             show.category = request.form.get("category", "").strip()  # admin peut forcer la catégorie

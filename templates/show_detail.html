@@ -2,17 +2,17 @@
 
 {% block title %}{{ show.title }}{% if show.raison_sociale %} par {{ show.raison_sociale }}{% endif %} - Spectacle'ment VØtre{% endblock %}
 
-{% block description %}{{ show.description[:160] if show.description else 'D\u00e9couvrez ' + show.title + ' - Spectacle et animation professionnelle.' }}{% endblock %}
+{% block description %}{{ (show.description|striptags)[:160] if show.description else 'D\u00e9couvrez ' + show.title + ' - Spectacle et animation professionnelle.' }}{% endblock %}
 
 {% block og_title %}{{ show.title }}{% if show.raison_sociale %} par {{ show.raison_sociale }}{% endif %}{% endblock %}
 
-{% block og_description %}{{ show.description[:200] if show.description else 'D\u00e9couvrez ce spectacle exceptionnel sur Spectacle\'ment VØtre.' }}{% endblock %}
+{% block og_description %}{{ (show.description|striptags)[:200] if show.description else 'D\u00e9couvrez ce spectacle exceptionnel sur Spectacle\'ment VØtre.' }}{% endblock %}
 
 {% block og_image %}{% if show.has_image() %}{{ url_for('uploaded_file', filename=show.file_name, _external=True) }}{% else %}{{ url_for('static', filename='img/default-og.svg', _external=True) }}{% endif %}{% endblock %}
 
 {% block twitter_title %}{{ show.title }}{% endblock %}
 
-{% block twitter_description %}{{ show.description[:160] if show.description else 'D\u00e9couvrez ce spectacle sur Spectacle\'ment VØtre' }}{% endblock %}
+{% block twitter_description %}{{ (show.description|striptags)[:160] if show.description else 'D\u00e9couvrez ce spectacle sur Spectacle\'ment VØtre' }}{% endblock %}
 
 {% block twitter_image %}{% if show.has_image() %}{{ url_for('uploaded_file', filename=show.file_name, _external=True) }}{% else %}{{ url_for('static', filename='img/default-og.svg', _external=True) }}{% endif %}{% endblock %}
 
@@ -26,7 +26,7 @@
   "@context": "https://schema.org",
   "@type": "Event",
   "name": {{ show.title|tojson }},
-  {% if show.description %}"description": {{ (show.description[:500])|tojson }},{% endif %}
+  {% if show.description %}"description": {{ (show.description|striptags)[:500]|tojson }},{% endif %}
   {% if show.date %}"startDate": "{{ show.date.isoformat() }}",{% endif %}
   "eventStatus": "https://schema.org/EventScheduled",
   "eventAttendanceMode": "https://schema.org/OfflineEventAttendanceMode",
@@ -173,7 +173,7 @@
       {% if show.description %}
         <div style="margin-bottom:32px; padding:20px; background:rgba(255,255,255,0.02); border-left:3px solid var(--primary); border-radius:8px;">
           <h3 style="margin:0 0 12px 0; font-size:1.1rem; color:var(--text);">Description</h3>
-          <p style="line-height:1.7; color:#ddd; margin:0; font-size:1rem;">{{ show.description }}</p>
+          <div class="rich-content" style="line-height:1.7; color:#ddd; margin:0; font-size:1rem;">{{ show.description | safe }}</div>
         </div>
       {% endif %}
 
@@ -501,7 +501,7 @@ a.social-bandeau:hover {
         </h3>
         
         <p style="color:var(--muted); font-size:0.75rem; line-height:1.4; margin:0 0 10px 0; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;">
-          {{ spectacle.description[:80] }}{% if spectacle.description|length > 80 %}...{% endif %}
+          {% set _d = spectacle.description|striptags %}{{ _d[:80] }}{% if _d|length > 80 %}...{% endif %}
         </p>
         
         <div style="display:flex; flex-direction:column; gap:4px; margin-bottom:10px; font-size:0.7rem;">

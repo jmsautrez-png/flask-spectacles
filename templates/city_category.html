@@ -45,7 +45,7 @@
       "item": {
         "@type": "Event",
         "name": "{{ show.title }}",
-        "description": "{{ show.description[:150]|e if show.description else show.title|e }}",
+        "description": "{{ ((show.description|striptags)[:150])|e if show.description else show.title|e }}",
         "url": "{{ url_for('show_detail', show_id=show.id, _external=True) }}",
         "location": {
           "@type": "Place",

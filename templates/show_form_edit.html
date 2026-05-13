@@ -190,7 +190,7 @@
         <li>❌ Pas de copier-coller depuis votre site (Google déteste le contenu dupliqué).</li>
       </ul>
     </div>
-    <textarea id="description" name="description" rows="6" required
+    <textarea id="description" name="description" rows="6" required data-richtext
       placeholder="Exemple : « Crack Up est un spectacle de magie comique de 50 minutes, idéal pour familles, anniversaires d'enfants et arbres de Noël en entreprise. Sur scène, un magicien égocentrique et son assistante maladroite enchaînent plus de 100 gags visuels et numéros de magie spectaculaires. Disponible partout en France, particulièrement à Lyon et dans la région Auvergne-Rhône-Alpes. Dès 5 ans. »">{{ show.description or "" }}</textarea>
     <div id="desc-counter" style="font-size:.9rem;opacity:.8;margin-top:4px;">0/300 mots</div>
     <div id="seo-analyzer" style="margin-top:8px; background:rgba(0,0,0,0.25); border:1px solid rgba(255,255,255,0.12); border-radius:8px; padding:10px 12px; font-size:0.85rem; color:#ddd;">
@@ -581,11 +581,14 @@
 
   function update() {
     var raw = ta.value;
-    var words = raw.trim().split(/\s+/).filter(Boolean);
+    // Si TinyMCE est actif, ta.value est du HTML : on enleve les balises
+    // pour le comptage / l'analyse SEO en texte brut.
+    var plain = raw.replace(/<[^>]+>/g, ' ').replace(/&nbsp;/gi, ' ');
+    var words = plain.trim().split(/\s+/).filter(Boolean);
     if (words.length > MAX) {
-      ta.value = words.slice(0, MAX).join(' ');
-      raw = ta.value;
-      words = raw.trim().split(/\s+/).filter(Boolean);
+      // On n'auto-tronque plus (risque de casser le HTML) : on signale juste.
+      counter.textContent = words.length + '/' + MAX + ' mots (max depasse)';
+      counter.style.color = '#e74c3c';
     }
     var count = words.length;
 
@@ -596,7 +599,7 @@
     else if (count <= 300) counter.style.color = '#2ecc71';
     else counter.style.color = '#e74c3c';
 
-    var textN = normalize(raw);
+    var textN = normalize(plain);
     var titleN = normalize(getTitle());
     var cityN = normalize(getCity());
 

@@ -610,7 +610,7 @@
         </h3>
         
         <p style="color:var(--muted); font-size:0.75rem; line-height:1.4; margin:0 0 10px 0; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;">
-          {{ spectacle.description[:80] }}{% if spectacle.description|length > 80 %}...{% endif %}
+          {% set _d = spectacle.description|striptags %}{{ _d[:80] }}{% if _d|length > 80 %}...{% endif %}
         </p>
         
         <div style="display:flex; flex-direction:column; gap:4px; margin-bottom:10px; font-size:0.7rem;">

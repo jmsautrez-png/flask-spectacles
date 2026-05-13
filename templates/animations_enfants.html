@@ -95,7 +95,7 @@
           {% if show.category %} • {{ show.category|title }}{% endif %}
           {% if show.location %} • {{ show.location }}{% endif %}
         </p>
-        {% if show.description %}<p class="desc">{{ show.description }}</p>{% endif %}
+        {% if show.description %}<p class="desc">{{ show.description|striptags }}</p>{% endif %}
         {% if show.contact_email %}<p class="meta">Contact : {{ show.contact_email }}</p>{% endif %}
       </div>
     </a>
