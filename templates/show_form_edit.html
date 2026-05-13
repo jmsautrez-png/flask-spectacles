@@ -635,10 +635,23 @@
       count < 150 ? 'Trop court (' + count + ' mots, visez 150+)'
         : count > 300 ? 'Trop long' : 'Longueur id\u00e9ale (' + count + ' mots)');
 
-    // 2. Titre pr\u00e9sent
+    // 2. Titre présent (tolérant : >=70% des mots significatifs du titre dans le texte)
     var okTitle = false;
     if (titleN && titleN.length >= 3) {
-      okTitle = textN.indexOf(titleN) !== -1;
+      // Normalise traits d'union/apostrophes pour la comparaison mot-à-mot
+      var titleNorm = titleN.replace(/[\-\u2010-\u2015'’]/g, ' ');
+      var textNorm  = textN.replace(/[\-\u2010-\u2015'’]/g, ' ');
+      // 1) match direct (chaine complète)
+      if (textNorm.indexOf(titleNorm) !== -1) {
+        okTitle = true;
+      } else {
+        // 2) fallback : >= 70% des mots du titre (>= 3 lettres) trouvés
+        var titleWords = titleNorm.split(/\s+/).filter(function(w){ return w.length >= 3; });
+        if (titleWords.length){
+          var found = titleWords.filter(function(w){ return textNorm.indexOf(w) !== -1; }).length;
+          if (found / titleWords.length >= 0.7) okTitle = true;
+        }
+      }
     }
     setCheck('seo-check-title', okTitle,
       titleN ? (okTitle ? 'Le titre appara\u00eet dans le texte' : 'Le titre du spectacle n\'est pas mentionn\u00e9')

@@ -616,7 +616,19 @@ document.addEventListener('DOMContentLoaded', function() {
         : count > 300 ? 'Trop long' : 'Longueur id\u00e9ale (' + count + ' mots)');
 
     var okTitle = false;
-    if (titleN && titleN.length >= 3) okTitle = textN.indexOf(titleN) !== -1;
+    if (titleN && titleN.length >= 3) {
+      var titleNorm = titleN.replace(/[\-\u2010-\u2015'’]/g, ' ');
+      var textNorm  = textN.replace(/[\-\u2010-\u2015'’]/g, ' ');
+      if (textNorm.indexOf(titleNorm) !== -1) {
+        okTitle = true;
+      } else {
+        var titleWords = titleNorm.split(/\s+/).filter(function(w){ return w.length >= 3; });
+        if (titleWords.length){
+          var found = titleWords.filter(function(w){ return textNorm.indexOf(w) !== -1; }).length;
+          if (found / titleWords.length >= 0.7) okTitle = true;
+        }
+      }
+    }
     setCheck('seo-check-title', okTitle,
       titleN ? (okTitle ? 'Le titre appara\u00eet dans le texte' : 'Le titre du spectacle n\'est pas mentionn\u00e9')
              : 'Renseignez d\'abord le titre');
