@@ -20,9 +20,10 @@
     <form method="post" action="{{ url_for('admin_update_show_localisation', show_id=show.id) }}"
           style="display:grid; grid-template-columns: 110px 1fr 1fr 110px; gap:10px; align-items:end;">
       <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+      <input type="hidden" name="departement" value="{{ show.departement or '' }}"/>
       <div>
         <label style="display:block; font-size:0.78em; color:#ffd180; margin-bottom:4px;">Code postal</label>
-        <input type="text" name="code_postal_lookup" value="" maxlength="5" pattern="[0-9]{4,5}" placeholder="ex: 75001" data-cp-autofill
+        <input type="text" name="code_postal_lookup" value="{{ show.code_postal or '' }}" maxlength="5" pattern="[0-9]{4,5}" placeholder="ex: 75001" data-cp-autofill
                style="width:100%; padding:7px; border-radius:6px; border:1px solid rgba(255,255,255,0.2); background:rgba(0,0,0,0.4); color:#fff;"/>
         <div style="font-size:0.7em; color:#aaa; margin-top:3px;">Auto-remplit ville+région</div>
       </div>

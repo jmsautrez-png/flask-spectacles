@@ -5945,13 +5945,19 @@ def admin_update_show_localisation(show_id):
     """
     from models.models import Show
     show = Show.query.get_or_404(show_id)
+    cp = (request.form.get("code_postal_lookup", "") or request.form.get("code_postal", "") or "").strip()
     ville = (request.form.get("ville", "") or "").strip()
     region = fix_mojibake((request.form.get("region", "") or "").strip())
+    departement = (request.form.get("departement", "") or "").strip()
     try:
+        if cp:
+            show.code_postal = cp[:10]
         if ville:
             show.location = ville
         if region:
             show.region = region
+        if departement:
+            show.departement = departement[:100]
         db.session.commit()
         flash(f"Localisation du spectacle « {show.title} » mise a jour.", "success")
     except Exception as e:

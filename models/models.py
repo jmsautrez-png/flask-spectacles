@@ -79,6 +79,8 @@ class Show(db.Model):
     description = db.Column(db.Text, nullable=True)
     region = db.Column(db.String(200), nullable=True)
     location = db.Column(db.String(500), nullable=True, index=True)  # Augmenté à 500 pour plusieurs villes
+    code_postal = db.Column(db.String(10), nullable=True)   # CP du spectacle (utile pour orphelins sans user)
+    departement = db.Column(db.String(100), nullable=True)  # Département (ex: "Ille-et-Vilaine (35)")
     category = db.Column(db.String(500), nullable=True, index=True)  # Augmenté à 500 pour plusieurs catégories
     date = db.Column(db.Date, nullable=True)
     age_range = db.Column(db.String(50), nullable=True)
