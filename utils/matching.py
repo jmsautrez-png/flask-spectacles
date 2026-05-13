@@ -157,6 +157,11 @@ def _public_cible_compatible(show, demande):
     # la catégorie commune suffit
     if not dem_subs_in_common:
         return True, True
+    # Wildcard "polyvalent" : si le show a coché la catégorie sans aucune
+    # sous-option dans cette catégorie, on considère qu'il accepte toutes
+    # les sous-options de cette catégorie -> match.
+    if not show_subs_in_common:
+        return True, True
     # Sinon il faut au moins 1 sous-option commune
     if dem_subs_in_common & show_subs_in_common:
         return True, True

@@ -359,7 +359,7 @@ PUBLIC_CIBLE_CATEGORIES = [
     },
     {
         "code": "famille",
-        "label": "Spectacle ou événement pour la famille (tous spectacles ou événements comprenant un public familial : enfants et adultes — atelier, parade, défilé, etc.)",
+        "label": "Spectacle ou événement pour la famille (tous événements comprenant un public familial : enfants et adultes — concert, atelier, spectacle de rue, carnaval, parade, défilé, etc.)",
         "icon": "",
         "single_select": True,  # une seule sous-option (Petite enfance OU Dès 3 ans OU Dès 6 ans)
         "sub_requires": {"fam_pe": "creche"},  # « petite enfance » n'est cochable que si la sous-option « crèche » est aussi cochée
@@ -367,6 +367,7 @@ PUBLIC_CIBLE_CATEGORIES = [
             ("fam_pe", "Petite enfance (0-3 ans accompagnés)"),
             ("fam_3", "Dès 3 ans"),
             ("fam_6", "Dès 6 ans"),
+            ("fam_16", "Dès 16 ans"),
         ],
     },
     {
@@ -401,13 +402,14 @@ PUBLIC_CIBLE_ORGANISATEUR = [
         "code": "famille",
         "label": "Événement public / familial (enfants et adultes ensemble)",
         "icon": "",
-        "hint": "Kermesse, fête de quartier, fête de Noël, marché, spectacle / théâtre, parade, défilé, spectacle de rue…",
+        "hint": "Kermesse, fête de quartier, fête de Noël, marché, concert, spectacle / théâtre, parade, défilé, spectacle de rue…",
         "single_select": True,
         "sub_requires": {"fam_pe": "creche"},
         "sous_options": [
             ("fam_pe", "Petite enfance (0-3 ans accompagnés)"),
             ("fam_3", "Dès 3 ans (tout-petits accompagnés)"),
             ("fam_6", "Dès 6 ans (familles avec enfants scolarisés)"),
+            ("fam_16", "Dès 16 ans"),
         ],
     },
     {
