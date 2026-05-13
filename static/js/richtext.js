@@ -14,15 +14,20 @@
       height: 320,
       language: 'fr_FR',
       language_url: 'https://cdn.jsdelivr.net/npm/tinymce-i18n@25.7.7/langs7/fr_FR.js',
-      plugins: 'lists link autolink paste',
+      plugins: 'lists link autolink',
       toolbar:
         'undo redo | blocks | ' +
         'bold italic underline | bullist numlist | ' +
         'alignleft aligncenter alignright | ' +
-        'link removeformat',
+        'link removeformat | pastetext',
       block_formats: 'Paragraphe=p; Titre=h2; Sous-titre=h3',
-      paste_as_text: false,
+      paste_block_drop: false,
       paste_data_images: false,
+      paste_remove_styles_if_webkit: true,
+      paste_webkit_styles: 'none',
+      smart_paste: true,
+      browser_spellcheck: true,
+      contextmenu: 'link copy paste',
       content_style:
         'body{font-family:Arial,Helvetica,sans-serif;font-size:14px;color:#222;background:#fff;}' +
         'p{margin:0 0 8px 0;}',
