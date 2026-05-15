@@ -103,7 +103,7 @@
       {% else %}
       <p style="margin:0 0 0.2rem 0;"><span style="color:#1976d2; font-weight:600;">{{ demande.genre_recherche }}</span></p>
       {% endif %}
-      <p style="margin:0 0 0.2rem 0;"><strong>📍</strong> <a href="{{ url_for('register') }}" style="color:#7c4dff; font-style:italic; text-decoration:underline;">[Lieu masqué]</a></p>
+      <p style="margin:0 0 0.2rem 0;"><strong>📍</strong> {% if user and user.is_admin %}{{ demande.lieu_ville }}{% if demande.region %} · {{ demande.region }}{% endif %}{% else %}<a href="{{ url_for('register') }}" style="color:#7c4dff; font-style:italic; text-decoration:underline;">[Lieu masqué]</a>{% endif %}</p>
       <p style="margin:0 0 0.4rem 0;"><strong>💶</strong> <span style="color:#28a745; font-weight:700;">{{ demande.budget }}</span> · <strong>👥</strong> {{ demande.jauge }} pers.</p>
 
       <!-- Bouton voir détails -->
@@ -115,8 +115,9 @@
         <p style="font-size:0.85em;color:#888; margin:0.3rem 0 0.2rem 0;">🕒 Créée le {{ demande.created_at.strftime('%d/%m/%Y %H:%M') }}</p>
         <p style="font-size:0.85em;color:#444; margin:0.1rem 0;">bonjour nous sommes un(e)</p>
         <div style="display:flex; align-items:center; gap:0.5rem; margin-bottom:0.2rem;">
-          <strong style="color:#1976d2;">[Structure masquée]</strong>
-          <span style="color:#1976d2; font-weight:700;"><a href="{{ url_for('register') }}" style="color:#7c4dff; font-style:italic; text-decoration:underline;">[Nom masqué]</a></span>
+          {% if user and user.is_admin %}<strong style="color:#1976d2;">{{ demande.structure }}</strong>
+          <span style="color:#1976d2; font-weight:700;">{{ demande.nom }}</span>{% else %}<strong style="color:#1976d2;">[Structure masquée]</strong>
+          <span style="color:#1976d2; font-weight:700;"><a href="{{ url_for('register') }}" style="color:#7c4dff; font-style:italic; text-decoration:underline;">[Nom masqué]</a></span>{% endif %}
         </div>
         <hr style="margin:0.2rem 0 0.5rem 0;">
         <p style="margin:0.1rem 0; color:#444; font-size:0.9em;">et nous recherchons pour notre manifestation</p>
@@ -127,7 +128,7 @@
           </div>
         </details>
 
-        {% if has_show %}
+        {% if has_show or (user and user.is_admin) %}
           {% if demande.intitule %}
           <p style="margin:0.3rem 0;"><strong style="color:#d32f2f;">📝 Intitulé :</strong>
             {% if demande.intitule|length > 80 %}
@@ -142,7 +143,7 @@
           <a href="{{ url_for('register') }}" style="display:block;margin:0.4rem 0;background:linear-gradient(135deg,#7c4dff,#536dfe);color:#fff;padding:10px 16px;border-radius:10px;text-decoration:none;font-weight:700;text-align:center;font-size:0.85rem;">🔒 Publier votre spectacle pour voir l'intitulé complet</a>
         {% endif %}
 
-        {% if has_show %}
+        {% if has_show or (user and user.is_admin) %}
           {% if demande.code_postal %}<p style="margin:0.2rem 0;"><strong>🏛️ Département :</strong> {{ demande.code_postal }}</p>{% endif %}
           {% if demande.region %}<p style="margin:0.2rem 0;"><strong>🗺️ Région :</strong> {{ demande.region }}</p>{% endif %}
           {% if demande.portee_nationale is defined %}
@@ -153,7 +154,7 @@
             <p style="margin:0.2rem 0;"><strong>📞 Téléphone :</strong> {{ demande.telephone }}</p>
             <p style="margin:0.2rem 0;"><strong>✉️ Email :</strong> <a href="mailto:{{ demande.contact_email }}" style="background:#1976d2;color:#fff;padding:4px 12px;border-radius:6px;text-decoration:none;font-weight:600;font-size:0.85rem;">Répondre</a></p>
           </div>
-          <p style="margin:0.2rem 0;"><strong>📍 Lieu/Ville :</strong> <a href="{{ url_for('register') }}" style="color:#7c4dff; font-style:italic; text-decoration:underline;">[Lieu masqué]</a></p>
+          <p style="margin:0.2rem 0;"><strong>📍 Lieu/Ville :</strong> {% if user and user.is_admin %}{{ demande.lieu_ville }}{% else %}<a href="{{ url_for('register') }}" style="color:#7c4dff; font-style:italic; text-decoration:underline;">[Lieu masqué]</a>{% endif %}</p>
           <div style="margin:0.4rem 0;">
             <iframe width="100%" height="140" style="border-radius:10px;border:1px solid #ccc;" frameborder="0" src="https://www.google.com/maps?q={{ demande.lieu_ville|urlencode }}&output=embed"></iframe>
           </div>
