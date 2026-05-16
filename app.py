@@ -4920,7 +4920,18 @@ Accessibilité: {accessibilite}
                         cie_rows = ""
                         for show in shows:
                             s_email = show.contact_email or (show.user.email if show.user and hasattr(show.user, 'email') else "—")
-                            cie_rows += f'<tr><td style="padding:6px 10px;border-bottom:1px solid #eee;">{show.title}</td><td style="padding:6px 10px;border-bottom:1px solid #eee;">{show.category or "—"}</td><td style="padding:6px 10px;border-bottom:1px solid #eee;">{s_email}</td></tr>'
+                            try:
+                                s_url = url_for("show_detail", show_id=show.id, _external=True)
+                            except Exception:
+                                s_url = f"https://www.spectacleanimation.fr/show/{show.id}"
+                            cie_rows += (
+                                f'<tr>'
+                                f'<td style="padding:6px 10px;border-bottom:1px solid #eee;">{show.title}</td>'
+                                f'<td style="padding:6px 10px;border-bottom:1px solid #eee;">{show.category or "—"}</td>'
+                                f'<td style="padding:6px 10px;border-bottom:1px solid #eee;">{s_email}</td>'
+                                f'<td style="padding:6px 10px;border-bottom:1px solid #eee;"><a href="{s_url}" style="color:#8b1e1e;text-decoration:none;font-weight:600;">🎭 Voir</a></td>'
+                                f'</tr>'
+                            )
                         # Erreurs éventuelles
                         err_html = ""
                         if errors_detail:
@@ -4948,7 +4959,7 @@ Accessibilité: {accessibilite}
 </table>
 <h4 style="margin:16px 0 8px 0;color:#1b2a4e;">✅ {success_count} compagnie(s) contactée(s) :</h4>
 <table style="width:100%;border-collapse:collapse;font-size:0.85em;background:#fff;border-radius:6px;">
-<tr style="background:#e8eaf6;"><th style="padding:8px 10px;text-align:left;">Spectacle</th><th style="padding:8px 10px;text-align:left;">Catégorie</th><th style="padding:8px 10px;text-align:left;">Email</th></tr>
+<tr style="background:#e8eaf6;"><th style="padding:8px 10px;text-align:left;">Spectacle</th><th style="padding:8px 10px;text-align:left;">Catégorie</th><th style="padding:8px 10px;text-align:left;">Email</th><th style="padding:8px 10px;text-align:left;">Fiche</th></tr>
 {cie_rows}
 </table>
 {err_html}
