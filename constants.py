@@ -30,10 +30,13 @@ SPECIALITES = {
         "Spectacle Médiéval",
         "Spectacle Animalier",
         "Spectacle à Thèmes",
+        "Spectacle Halloween",
         "Spectacle Événementiel",
         "Spectacle de Cabaret",
         # Cirque / Visuel
         "Cirque",
+        "Cracheur de feu",
+        "Spectacle de feu",
         "Échassier",
         "Sculpteur de ballons",
         "Caricaturistes et Silhouettiste",
