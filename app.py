@@ -984,6 +984,28 @@ def register_error_handlers(app: Flask) -> None:
         return render_template("500.html", user=current_user()), 500
 
 
+def _format_age_label(value):
+    """Convertit un code age_range (ex: 'jp_des_3') en libellé lisible.
+    Utilisé dans les emails où le filtre Jinja format_age n'est pas disponible."""
+    if not value:
+        return "Non précisé"
+    v = str(value).strip().lower()
+    labels = {
+        "jp_0_3":   "Jeune public 0/3 ans",
+        "jp_4_8":   "Jeune public 4/8 ans",
+        "jp_7_11":  "Jeune public 7/11 ans",
+        "jp_8_11":  "Jeune public 5/11 ans",
+        "jp_des_3": "Jeune public dès 3 ans",
+        "anim_div": "Animations diverses",
+        "ad_12":    "Adulte 12 ans+",
+        "ad_16":    "Adulte 16 ans+",
+        "fam_2":    "Famille dès 2 ans",
+        "fam_3":    "Familial dès 3 ans",
+        "fam_8":    "Familial dès 8 ans",
+    }
+    return labels.get(v, value)
+
+
 def _build_appel_offre_email(demande, show):
     """Génère le HTML d'email pour un appel d'offre envoyé à un artiste."""
     return f"""<!DOCTYPE html>
@@ -1020,7 +1042,7 @@ h2 {{ color: #1b2a4e; margin-top: 0; }}
             <div class="info-item"><div class="info-label">🎭 Spécialités</div>{demande.specialites_recherchees.replace(',', ', ') if demande.specialites_recherchees else 'Non précisées'}</div>
             <div class="info-item"><div class="info-label">👥 Jauge</div>{demande.jauge}</div>
             <div class="info-item"><div class="info-label">💰 Budget</div>{demande.budget}</div>
-            <div class="info-item"><div class="info-label">👶 Public</div>{demande.age_range}</div>
+            <div class="info-item"><div class="info-label">👶 Public</div>{_format_age_label(demande.age_range)}</div>
         </div>
         <p><strong>🏢 Type d'espace :</strong> {demande.type_espace}</p>
         <p style="color:#333;"><strong>📝 Intitulé :</strong> {demande.intitule or 'Non précisé'}</p>
@@ -4765,7 +4787,7 @@ Accessibilité: {accessibilite}
                     <strong>💰 Budget :</strong> {demande.budget}
                 </div>
                 <div class="info-item">
-                    <strong>👶 Public :</strong> {demande.age_range}
+                    <strong>👶 Public :</strong> {_format_age_label(demande.age_range)}
                 </div>
             </div>
             <p><strong>🏢 Type d'espace :</strong> {demande.type_espace}</p>
@@ -4924,10 +4946,14 @@ Accessibilité: {accessibilite}
                                 s_url = url_for("show_detail", show_id=show.id, _external=True)
                             except Exception:
                                 s_url = f"https://www.spectacleanimation.fr/show/{show.id}"
+                            # Catégorie : fallback sur specialites (CSV) si category vide
+                            s_cat = show.category or getattr(show, 'specialites', None) or "—"
+                            if s_cat and "," in s_cat:
+                                s_cat = s_cat.replace(",", ", ")
                             cie_rows += (
                                 f'<tr>'
                                 f'<td style="padding:6px 10px;border-bottom:1px solid #eee;">{show.title}</td>'
-                                f'<td style="padding:6px 10px;border-bottom:1px solid #eee;">{show.category or "—"}</td>'
+                                f'<td style="padding:6px 10px;border-bottom:1px solid #eee;">{s_cat}</td>'
                                 f'<td style="padding:6px 10px;border-bottom:1px solid #eee;">{s_email}</td>'
                                 f'<td style="padding:6px 10px;border-bottom:1px solid #eee;"><a href="{s_url}" style="color:#8b1e1e;text-decoration:none;font-weight:600;">🎭 Voir</a></td>'
                                 f'</tr>'
@@ -4953,7 +4979,7 @@ Accessibilité: {accessibilite}
 <tr><td style="padding:3px 0;"><strong>✉️ Email :</strong></td><td>{demande.contact_email}</td></tr>
 <tr><td style="padding:3px 0;"><strong>👥 Jauge :</strong></td><td>{demande.jauge}</td></tr>
 <tr><td style="padding:3px 0;"><strong>💰 Budget :</strong></td><td>{demande.budget}</td></tr>
-<tr><td style="padding:3px 0;"><strong>👶 Public :</strong></td><td>{demande.age_range}</td></tr>
+<tr><td style="padding:3px 0;"><strong>👶 Public :</strong></td><td>{_format_age_label(demande.age_range)}</td></tr>
 <tr><td style="padding:3px 0;"><strong>🏛️ Espace :</strong></td><td>{demande.type_espace}</td></tr>
 <tr><td style="padding:3px 0;"><strong>📍 Région :</strong></td><td>{demande.region or '—'}</td></tr>
 </table>
@@ -5251,7 +5277,7 @@ Accessibilité: {accessibilite}
                 </div>
                 <div class="info-item">
                     <div class="info-label">👶 Public</div>
-                    {demande.age_range}
+                    {_format_age_label(demande.age_range)}
                 </div>
             </div>
             <p><strong>🏢 Type d'espace :</strong> {demande.type_espace}</p>
@@ -5372,7 +5398,7 @@ Accessibilité: {accessibilite}
                 </div>
                 <div class="info-item">
                     <div class="info-label">👶 Public</div>
-                    {demande.age_range}
+                    {_format_age_label(demande.age_range)}
                 </div>
             </div>
             <p><strong>🏢 Type d'espace :</strong> {demande.type_espace}</p>
@@ -5536,7 +5562,7 @@ Accessibilité: {accessibilite}
                 </div>
                 <div class="info-item">
                     <div class="info-label">👶 Public</div>
-                    {demande.age_range}
+                    {_format_age_label(demande.age_range)}
                 </div>
             </div>
             <p><strong>🏢 Type d'espace :</strong> {demande.type_espace}</p>
