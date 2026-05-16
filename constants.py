@@ -11,8 +11,10 @@ SPECIALITES = {
         "Magie et Magicien",
         "Prestidigitateur",
         "Mentaliste",
+        "Close-up",
         # Humour / Personnages
         "Clown",
+        "Clown suiveur",
         "Humoriste et Imitateur",
         "Sosie",
         "Ventriloque",
@@ -24,6 +26,7 @@ SPECIALITES = {
         # Types de spectacle
         "Spectacle de Rue",
         "Parade de rue / Déambulation",
+        "Spectacle en roulotte",
         "Spectacle Médiéval",
         "Spectacle Animalier",
         "Spectacle à Thèmes",
@@ -47,6 +50,7 @@ SPECIALITES = {
         "Théâtre classique",
         "Théâtre contemporain",
         "Théâtre d'auteur",
+        "Théâtre sur tréteaux",
         # Léger / Comique
         "Théâtre de comédie",
         "Théâtre de boulevard",
