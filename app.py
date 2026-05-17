@@ -1631,11 +1631,11 @@ def register_routes(app: Flask) -> None:
         public_subs_selected = [s.strip() for s in request.args.getlist("public_sous_options") if s.strip()]
         dept                = request.args.get("dept", "", type=str).strip().upper()
         try:
-            dept_radius = int(request.args.get("dept_radius", 250))
+            dept_radius = int(request.args.get("dept_radius", 120))
         except (TypeError, ValueError):
-            dept_radius = 250
-        if dept_radius not in (50, 100, 150, 200, 250, 500):
-            dept_radius = 250
+            dept_radius = 120
+        if dept_radius not in (30, 60, 80, 120, 200, 300, 500):
+            dept_radius = 120
         page                = request.args.get("page", 1, type=int)
 
         # Résolution ville → région (ex: "Toulouse" → "Occitanie")

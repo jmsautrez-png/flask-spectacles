@@ -256,7 +256,7 @@
                 title="Rayon autour du département"
                 style="flex:1; min-width:0; background:rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.2); color:#fff; padding:8px 6px; border-radius:8px; font-size:0.9rem;"
                 onchange="this.form.submit()">
-          {% for r in [50, 100, 150, 200, 250, 500] %}
+          {% for r in [30, 60, 80, 120, 200, 300, 500] %}
           <option value="{{ r }}" {% if dept_radius == r %}selected{% endif %}>{{ r }} km</option>
           {% endfor %}
         </select>
