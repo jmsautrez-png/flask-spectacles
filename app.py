@@ -1618,6 +1618,7 @@ def register_routes(app: Flask) -> None:
     @app.route("/catalogue", endpoint="catalogue")
     def catalogue():
         """Page catalogue avec filtres structurés (spécialité, région, âge) + recherche par nom."""
+        from utils.geo import depts_within_radius, DEPT_LABELS
         # -- Paramètres --
         q                   = request.args.get("q", "", type=str).strip()
         specialites         = [s.strip() for s in request.args.getlist("specialite") if s.strip()]
@@ -1628,6 +1629,13 @@ def register_routes(app: Flask) -> None:
         # Public ciblé v2 (filtre indépendant du matching)
         public_cats_selected = [c.strip() for c in request.args.getlist("public_categories") if c.strip()]
         public_subs_selected = [s.strip() for s in request.args.getlist("public_sous_options") if s.strip()]
+        dept                = request.args.get("dept", "", type=str).strip().upper()
+        try:
+            dept_radius = int(request.args.get("dept_radius", 250))
+        except (TypeError, ValueError):
+            dept_radius = 250
+        if dept_radius not in (50, 100, 150, 200, 250, 500):
+            dept_radius = 250
         page                = request.args.get("page", 1, type=int)
 
         # Résolution ville → région (ex: "Toulouse" → "Occitanie")
@@ -1714,6 +1722,24 @@ def register_routes(app: Flask) -> None:
                 shows = shows.filter(Show.public_sous_options.isnot(None))
                 shows = shows.filter(or_(*_csv_match_conds(Show.public_sous_options, public_subs_selected)))
 
+        # -- Filtre département + rayon (km) : matche tous les spectacles dont le
+        # département (ou le CP) tombe dans le rayon autour du dpt sélectionné.
+        # Les champs géo peuvent être renseignés soit sur Show, soit sur User (compagnie).
+        if dept:
+            accepted_depts = depts_within_radius(dept, dept_radius)
+            if accepted_depts:
+                shows = shows.outerjoin(User, Show.user_id == User.id)
+                conds = []
+                for code in accepted_depts:
+                    like_dept = f"%({code})%"
+                    like_cp = f"{code}%"
+                    conds.append(Show.departement.ilike(like_dept))
+                    conds.append(Show.code_postal.ilike(like_cp))
+                    conds.append(User.departement.ilike(like_dept))
+                    conds.append(User.departement.ilike(f"%{code}%"))
+                    conds.append(User.code_postal.ilike(like_cp))
+                shows = shows.filter(or_(*conds))
+
         # -- Filtre tranche d'âge / public (STRICT pour nouvelles valeurs, tolérant pour anciennes) --
         if age:
             from utils.matching import _GROUPE_NEUTRE, _GROUPE_ENFANT, _GROUPE_ADULTE, _AGE_PROCHES
@@ -1775,6 +1801,9 @@ def register_routes(app: Flask) -> None:
             age=age,
             public_cats_selected=public_cats_selected,
             public_subs_selected=public_subs_selected,
+            dept=dept,
+            dept_radius=dept_radius,
+            dept_labels=DEPT_LABELS,
             all_specialites=all_specialites,
             all_regions=REGIONS_FRANCE,
             age_options=[("", "Tous les publics")] + PUBLICS,

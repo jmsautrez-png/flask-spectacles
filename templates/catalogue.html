@@ -241,6 +241,28 @@
       </select>
     </div>
 
+    <div style="flex:1.4; min-width:200px;">
+      <div style="color:#ffc107; font-size:0.8rem; font-weight:600; margin-bottom:4px;">DÉPARTEMENT &nbsp;<span style="opacity:0.7; font-weight:400;">(autour de)</span></div>
+      <div style="display:flex; gap:6px;">
+        <select name="dept"
+                style="flex:2; min-width:0; background:rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.2); color:#fff; padding:8px 10px; border-radius:8px; font-size:0.9rem;"
+                onchange="this.form.submit()">
+          <option value="" {% if not dept %}selected{% endif %}>Tous</option>
+          {% for code, label in dept_labels.items()|sort %}
+          <option value="{{ code }}" {% if dept == code %}selected{% endif %}>{{ code }} — {{ label }}</option>
+          {% endfor %}
+        </select>
+        <select name="dept_radius"
+                title="Rayon autour du département"
+                style="flex:1; min-width:0; background:rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.2); color:#fff; padding:8px 6px; border-radius:8px; font-size:0.9rem;"
+                onchange="this.form.submit()">
+          {% for r in [50, 100, 150, 200, 250, 500] %}
+          <option value="{{ r }}" {% if dept_radius == r %}selected{% endif %}>{{ r }} km</option>
+          {% endfor %}
+        </select>
+      </div>
+    </div>
+
     <div style="flex:1; min-width:160px;">
       <div style="color:#ffc107; font-size:0.8rem; font-weight:600; margin-bottom:4px;">PUBLIC</div>
       <button type="button" id="btn-toggle-public-cible"
@@ -328,7 +350,7 @@
   });
 </script>
 
-{% if specialites or evenements_selected or region or age or q %}
+{% if specialites or evenements_selected or region or age or q or dept %}
 <div style="display:flex; align-items:center; gap:8px; margin-bottom:16px; flex-wrap:wrap;">
   <a href="{{ url_for('catalogue') }}"
      style="display:inline-flex; align-items:center; gap:6px; padding:8px 14px; background:linear-gradient(135deg,#e74c3c,#c0392b); color:#fff; text-decoration:none; border-radius:20px; font-weight:600; font-size:0.85rem; box-shadow:0 2px 8px rgba(231,76,60,0.4); white-space:nowrap;">
@@ -338,6 +360,7 @@
     {% for s in specialites %}<strong style="color:#ffc107;">{{ s }}</strong>{% endfor %}
     {% for e in evenements_selected %}<strong style="color:#ffaa44;">{{ e }}</strong>{% endfor %}
     {% if region %}<span>📍 {{ region }}</span>{% endif %}
+    {% if dept %}<span>📌 Dpt {{ dept }} (≤ {{ dept_radius }} km)</span>{% endif %}
     {% if age %}<span>👥 {{ age }}</span>{% endif %}
     {% if q %}<span>🔤 "{{ q }}"</span>{% endif %}
   </span>
@@ -454,7 +477,7 @@
     <nav class="pagination" style="margin: 30px 0; text-align: center;">
       <div style="display: inline-flex; gap: 8px; align-items: center; flex-wrap: wrap; justify-content: center;">
         {% if pagination.has_prev %}
-           <a href="{{ url_for('catalogue', page=pagination.prev_num, q=q, specialite=specialites, evenement=evenements_selected, region=region, age=age, public_categories=public_cats_selected, public_sous_options=public_subs_selected) }}"
+           <a href="{{ url_for('catalogue', page=pagination.prev_num, q=q, specialite=specialites, evenement=evenements_selected, region=region, age=age, public_categories=public_cats_selected, public_sous_options=public_subs_selected, dept=dept, dept_radius=dept_radius) }}"
              style="padding: 8px 12px; background: var(--primary); color: white; text-decoration: none; border-radius: 4px; font-weight: 600;">
             ← Précédent
           </a>
@@ -471,7 +494,7 @@
                 {{ p }}
               </span>
             {% else %}
-                <a href="{{ url_for('catalogue', page=p, q=q, specialite=specialites, evenement=evenements_selected, region=region, age=age, public_categories=public_cats_selected, public_sous_options=public_subs_selected) }}"
+                <a href="{{ url_for('catalogue', page=p, q=q, specialite=specialites, evenement=evenements_selected, region=region, age=age, public_categories=public_cats_selected, public_sous_options=public_subs_selected, dept=dept, dept_radius=dept_radius) }}"
                   style="padding: 8px 12px; background: #f2f3f7; color: var(--text); text-decoration: none; border-radius: 4px; font-weight: 600;"{% if p == 1 %} rel="first"{% endif %}>
                 {{ p }}
               </a>
@@ -482,7 +505,7 @@
         {% endfor %}
 
         {% if pagination.has_next %}
-           <a href="{{ url_for('catalogue', page=pagination.next_num, q=q, specialite=specialites, evenement=evenements_selected, region=region, age=age, public_categories=public_cats_selected, public_sous_options=public_subs_selected) }}"
+           <a href="{{ url_for('catalogue', page=pagination.next_num, q=q, specialite=specialites, evenement=evenements_selected, region=region, age=age, public_categories=public_cats_selected, public_sous_options=public_subs_selected, dept=dept, dept_radius=dept_radius) }}"
              rel="next"
              style="padding: 8px 12px; background: var(--primary); color: white; text-decoration: none; border-radius: 4px; font-weight: 600;">
             Suivant →

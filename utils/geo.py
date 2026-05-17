@@ -280,3 +280,85 @@ def distance_score(km: Optional[float]) -> float:
     if km <= 500:
         return 0.20
     return 0.0
+
+
+# ---------------------------------------------------------------------------
+# Centroides departements (fallback statique, lat/lon approximatifs)
+# Permet d'eviter des appels reseau a geo.api.gouv.fr lors du filtrage par rayon
+# ---------------------------------------------------------------------------
+DEPT_CENTROIDS_STATIC: dict[str, Tuple[float, float]] = {
+    "01": (46.10, 5.35), "02": (49.55, 3.55), "03": (46.40, 3.20), "04": (44.10, 6.25),
+    "05": (44.65, 6.40), "06": (43.92, 7.15), "07": (44.75, 4.40), "08": (49.60, 4.65),
+    "09": (42.95, 1.50), "10": (48.30, 4.10), "11": (43.10, 2.50), "12": (44.30, 2.70),
+    "13": (43.55, 5.10), "14": (49.10, -0.30), "15": (45.05, 2.65), "16": (45.70, 0.20),
+    "17": (45.85, -0.80), "18": (47.05, 2.50), "19": (45.35, 1.85), "21": (47.45, 4.75),
+    "22": (48.50, -2.85), "23": (46.10, 2.05), "24": (45.10, 0.75), "25": (47.15, 6.40),
+    "26": (44.75, 5.15), "27": (49.10, 1.10), "28": (48.45, 1.45), "29": (48.25, -4.00),
+    "2A": (41.85, 8.95), "2B": (42.45, 9.15), "30": (44.05, 4.20), "31": (43.40, 1.45),
+    "32": (43.65, 0.55), "33": (44.85, -0.45), "34": (43.60, 3.40), "35": (48.15, -1.65),
+    "36": (46.80, 1.55), "37": (47.25, 0.70), "38": (45.25, 5.55), "39": (46.70, 5.75),
+    "40": (43.95, -0.85), "41": (47.60, 1.40), "42": (45.65, 4.30), "43": (45.10, 3.80),
+    "44": (47.30, -1.65), "45": (47.85, 2.30), "46": (44.60, 1.65), "47": (44.35, 0.60),
+    "48": (44.55, 3.50), "49": (47.40, -0.55), "50": (49.10, -1.30), "51": (49.05, 4.15),
+    "52": (48.10, 5.15), "53": (48.10, -0.65), "54": (48.85, 6.15), "55": (49.00, 5.40),
+    "56": (47.85, -2.85), "57": (49.05, 6.65), "58": (47.10, 3.55), "59": (50.45, 3.15),
+    "60": (49.40, 2.45), "61": (48.65, 0.10), "62": (50.50, 2.30), "63": (45.75, 3.15),
+    "64": (43.30, -0.80), "65": (43.05, 0.15), "66": (42.60, 2.55), "67": (48.65, 7.65),
+    "68": (47.85, 7.30), "69": (45.85, 4.65), "70": (47.60, 6.05), "71": (46.65, 4.55),
+    "72": (47.95, 0.15), "73": (45.50, 6.40), "74": (46.05, 6.40), "75": (48.86, 2.35),
+    "76": (49.65, 1.00), "77": (48.60, 3.05), "78": (48.80, 1.85), "79": (46.55, -0.30),
+    "80": (49.95, 2.30), "81": (43.85, 2.15), "82": (44.05, 1.30), "83": (43.45, 6.20),
+    "84": (44.00, 5.15), "85": (46.70, -1.40), "86": (46.55, 0.45), "87": (45.85, 1.20),
+    "88": (48.20, 6.45), "89": (47.80, 3.55), "90": (47.65, 6.95), "91": (48.55, 2.25),
+    "92": (48.85, 2.25), "93": (48.90, 2.45), "94": (48.80, 2.45), "95": (49.10, 2.10),
+    "971": (16.25, -61.55), "972": (14.65, -61.00), "973": (4.00, -53.10),
+    "974": (-21.10, 55.55), "976": (-12.85, 45.15),
+}
+
+# Libelles humains pour affichage dans des <select>
+DEPT_LABELS: dict[str, str] = {
+    "01": "Ain", "02": "Aisne", "03": "Allier", "04": "Alpes-de-Haute-Provence",
+    "05": "Hautes-Alpes", "06": "Alpes-Maritimes", "07": "Ardèche", "08": "Ardennes",
+    "09": "Ariège", "10": "Aube", "11": "Aude", "12": "Aveyron",
+    "13": "Bouches-du-Rhône", "14": "Calvados", "15": "Cantal", "16": "Charente",
+    "17": "Charente-Maritime", "18": "Cher", "19": "Corrèze", "2A": "Corse-du-Sud",
+    "2B": "Haute-Corse", "21": "Côte-d'Or", "22": "Côtes-d'Armor", "23": "Creuse",
+    "24": "Dordogne", "25": "Doubs", "26": "Drôme", "27": "Eure", "28": "Eure-et-Loir",
+    "29": "Finistère", "30": "Gard", "31": "Haute-Garonne", "32": "Gers", "33": "Gironde",
+    "34": "Hérault", "35": "Ille-et-Vilaine", "36": "Indre", "37": "Indre-et-Loire",
+    "38": "Isère", "39": "Jura", "40": "Landes", "41": "Loir-et-Cher", "42": "Loire",
+    "43": "Haute-Loire", "44": "Loire-Atlantique", "45": "Loiret", "46": "Lot",
+    "47": "Lot-et-Garonne", "48": "Lozère", "49": "Maine-et-Loire", "50": "Manche",
+    "51": "Marne", "52": "Haute-Marne", "53": "Mayenne", "54": "Meurthe-et-Moselle",
+    "55": "Meuse", "56": "Morbihan", "57": "Moselle", "58": "Nièvre", "59": "Nord",
+    "60": "Oise", "61": "Orne", "62": "Pas-de-Calais", "63": "Puy-de-Dôme",
+    "64": "Pyrénées-Atlantiques", "65": "Hautes-Pyrénées", "66": "Pyrénées-Orientales",
+    "67": "Bas-Rhin", "68": "Haut-Rhin", "69": "Rhône", "70": "Haute-Saône",
+    "71": "Saône-et-Loire", "72": "Sarthe", "73": "Savoie", "74": "Haute-Savoie",
+    "75": "Paris", "76": "Seine-Maritime", "77": "Seine-et-Marne", "78": "Yvelines",
+    "79": "Deux-Sèvres", "80": "Somme", "81": "Tarn", "82": "Tarn-et-Garonne",
+    "83": "Var", "84": "Vaucluse", "85": "Vendée", "86": "Vienne", "87": "Haute-Vienne",
+    "88": "Vosges", "89": "Yonne", "90": "Territoire de Belfort", "91": "Essonne",
+    "92": "Hauts-de-Seine", "93": "Seine-Saint-Denis", "94": "Val-de-Marne",
+    "95": "Val-d'Oise", "971": "Guadeloupe", "972": "Martinique", "973": "Guyane",
+    "974": "La Réunion", "976": "Mayotte",
+}
+
+
+def depts_within_radius(code: Optional[str], radius_km: float) -> list[str]:
+    """Retourne la liste des codes departements dont le centroide est dans le rayon.
+
+    Inclut toujours le departement lui-meme s'il est connu. Utilise les centroides
+    statiques (DEPT_CENTROIDS_STATIC) pour eviter des appels reseau.
+    """
+    norm = _normalize_dept(code)
+    if not norm or norm not in DEPT_CENTROIDS_STATIC:
+        return []
+    if radius_km <= 0:
+        return [norm]
+    lat0, lon0 = DEPT_CENTROIDS_STATIC[norm]
+    res: list[str] = []
+    for c, (lat, lon) in DEPT_CENTROIDS_STATIC.items():
+        if haversine_km(lat0, lon0, lat, lon) <= radius_km:
+            res.append(c)
+    return res
