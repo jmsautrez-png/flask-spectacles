@@ -105,7 +105,9 @@ SPECIALITES = {
         "Auteur-Interprète",
         "Orgue de Barbarie",
         # Groupes / Ensembles
-        "D.J. et Orchestre",
+        "Orchestre de bal",
+        "Orchestre",
+        "DJ",
         "Chorale et Gospel",
         "Fanfare et Batucada",
         "Fanfare (Parade de rue / Défilé)",
