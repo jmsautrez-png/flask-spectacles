@@ -222,22 +222,37 @@ def compute_score(show, demande):
             age_bonus = 0.0
 
     # -- Spécialités (40%) --
+    # Sémantique OR : organisateur cochant plusieurs catégories est ouvert à n'importe laquelle.
+    # On normalise par min(dem, show) pour ne pas pénaliser un show spécialisé sur 1 seule
+    # catégorie quand la demande en coche 10 (sinon ratio = 1/10 = 10%, faussement bas).
     if dem_specs:
-        match_ratio = len(show_specs & dem_specs) / len(dem_specs)
+        inter = show_specs & dem_specs
+        if inter:
+            match_ratio = min(1.0, len(inter) / max(1, min(len(dem_specs), len(show_specs))))
+        else:
+            match_ratio = 0.0
         spec_ratio = match_ratio * _specificity(len(show_specs), _TOTAL_SPECS)
     else:
         spec_ratio = 1.0 if show_specs else 0.5
 
     # -- Événements (25%) --
     if dem_events:
-        match_ratio = len(show_events & dem_events) / len(dem_events)
+        inter = show_events & dem_events
+        if inter:
+            match_ratio = min(1.0, len(inter) / max(1, min(len(dem_events), len(show_events))))
+        else:
+            match_ratio = 0.0
         event_ratio = match_ratio * _specificity(len(show_events), _TOTAL_EVENTS)
     else:
         event_ratio = 0.0
 
     # -- Lieux (20%) --
     if dem_lieux:
-        match_ratio = len(show_lieux & dem_lieux) / len(dem_lieux)
+        inter = show_lieux & dem_lieux
+        if inter:
+            match_ratio = min(1.0, len(inter) / max(1, min(len(dem_lieux), len(show_lieux))))
+        else:
+            match_ratio = 0.0
         lieu_ratio = match_ratio * _specificity(len(show_lieux), _TOTAL_LIEUX)
     else:
         lieu_ratio = 0.0

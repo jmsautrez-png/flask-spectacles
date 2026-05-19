@@ -4939,27 +4939,35 @@ Accessibilité: {accessibilite}
                 error_count = 0
                 errors_detail = []
                 
-                for show in shows:
-                    email = show.contact_email
-                    if not email and show.user:
-                        email = show.user.email if hasattr(show.user, 'email') else None
-                    
-                    if email and email not in emails_sent:
-                        emails_sent.add(email)
-                        body_html = _build_appel_offre_email(demande, show)
-                        try:
-                            msg = MailMessage(
-                                subject=f"Nouvelle Opportunité - {demande.genre_recherche} à {demande.lieu_ville}",
-                                recipients=[email]
-                            )
-                            msg.html = body_html
-                            current_app.mail.send(msg)
-                            success_count += 1
-                            print(f"[DEBUG] ✅ Email envoyé à {email}")
-                        except Exception as e:
-                            error_count += 1
-                            errors_detail.append(f"{email}: {str(e)[:100]}")
-                            print(f"[MAIL] ❌ Erreur envoi à {email}: {e}")
+                # OPTIMISATION : une seule connexion SMTP pour tous les emails
+                # Évite handshake TLS répété (cause du WORKER TIMEOUT gunicorn)
+                try:
+                    with current_app.mail.connect() as conn:
+                        for show in shows:
+                            email = show.contact_email
+                            if not email and show.user:
+                                email = show.user.email if hasattr(show.user, 'email') else None
+                            
+                            if email and email not in emails_sent:
+                                emails_sent.add(email)
+                                body_html = _build_appel_offre_email(demande, show)
+                                try:
+                                    msg = MailMessage(
+                                        subject=f"Nouvelle Opportunité - {demande.genre_recherche} à {demande.lieu_ville}",
+                                        recipients=[email]
+                                    )
+                                    msg.html = body_html
+                                    conn.send(msg)
+                                    success_count += 1
+                                    print(f"[DEBUG] ✅ Email envoyé à {email}")
+                                except Exception as e:
+                                    error_count += 1
+                                    errors_detail.append(f"{email}: {str(e)[:100]}")
+                                    print(f"[MAIL] ❌ Erreur envoi à {email}: {e}")
+                except Exception as e:
+                    print(f"[MAIL] ❌ Erreur connexion SMTP : {e}")
+                    error_count += 1
+                    errors_detail.append(f"Connexion SMTP : {str(e)[:120]}")
                 
                 # Copie admin
                 admin_email = current_user().email if current_user() and current_user().email else None
@@ -5504,21 +5512,28 @@ Accessibilité: {accessibilite}
                 
                 print(f"[BATCH {batch_num}/{total_batchs}] Envoi de {len(batch)} emails...")
                 
-                for email_data in batch:
-                    try:
-                        msg = MailMessage(
-                            subject=f"Nouvelle Opportunité - {demande.genre_recherche} à {demande.lieu_ville}",
-                            recipients=[email_data['email']]
-                        )
-                        msg.html = email_data['body_html']
-                        current_app.mail.send(msg)
-                        success_count += 1
-                        print(f"[DEBUG] ✅ Email envoyé à {email_data['email']} ({success_count}/{total_emails})")
-                    except Exception as e:
-                        error_msg = str(e)
-                        error_count += 1
-                        errors_detail.append(f"{email_data['email']}: {error_msg[:100]}")
-                        print(f"[MAIL] ❌ Erreur envoi à {email_data['email']}: {error_msg}")
+                # OPTIMISATION : une seule connexion SMTP par batch (évite WORKER TIMEOUT)
+                try:
+                    with current_app.mail.connect() as conn:
+                        for email_data in batch:
+                            try:
+                                msg = MailMessage(
+                                    subject=f"Nouvelle Opportunité - {demande.genre_recherche} à {demande.lieu_ville}",
+                                    recipients=[email_data['email']]
+                                )
+                                msg.html = email_data['body_html']
+                                conn.send(msg)
+                                success_count += 1
+                                print(f"[DEBUG] ✅ Email envoyé à {email_data['email']} ({success_count}/{total_emails})")
+                            except Exception as e:
+                                error_msg = str(e)
+                                error_count += 1
+                                errors_detail.append(f"{email_data['email']}: {error_msg[:100]}")
+                                print(f"[MAIL] ❌ Erreur envoi à {email_data['email']}: {error_msg}")
+                except Exception as e:
+                    print(f"[MAIL] ❌ Erreur connexion SMTP batch {batch_num}: {e}")
+                    error_count += len(batch)
+                    errors_detail.append(f"Batch {batch_num} : {str(e)[:120]}")
                 
                 # Pause entre les batchs (sauf pour le dernier)
                 if i + BATCH_SIZE < total_emails:

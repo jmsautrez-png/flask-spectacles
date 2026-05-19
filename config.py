@@ -46,6 +46,8 @@ class Config:
     # SÉCURITÉ : Ne JAMAIS mettre de mot de passe par défaut
     MAIL_PASSWORD = os.environ.get("MAIL_PASSWORD")
     MAIL_DEFAULT_SENDER = os.environ.get("MAIL_DEFAULT_SENDER", "contact@spectacleanimation.fr")
+    # Timeout SMTP en secondes : évite qu'une connexion bloquée fige le worker gunicorn
+    MAIL_TIMEOUT = int(os.environ.get("MAIL_TIMEOUT", 15))
     # Affichage de l'adresse email utilisée pour l'envoi des mails
     print(f"[CONFIG] MAIL_DEFAULT_SENDER utilisé : {MAIL_DEFAULT_SENDER}")
 
