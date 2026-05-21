@@ -1434,8 +1434,10 @@ def register_routes(app: Flask) -> None:
                     elif not current_app.config.get("MAIL_PASSWORD"):
                         current_app.logger.warning("[MAIL] ⚠ MAIL_PASSWORD non défini")
 
-                flash("Compte créé ! Vous pouvez maintenant vous connecter.", "success")
-                return redirect(url_for("login"))
+                # Connexion automatique après inscription
+                session["username"] = username
+                flash("Bienvenue ! Votre compte a été créé avec succès.", "success")
+                return redirect(url_for("company_dashboard"))
             except Exception as e:
                 db.session.rollback()
                 current_app.logger.error(f"[INSCRIPTION] Erreur lors de la création du compte pour {username}: {e}")
@@ -1654,6 +1656,9 @@ def register_routes(app: Flask) -> None:
         u = current_user()
         if not u or not u.is_admin:
             shows = shows.filter(Show.approved.is_(True))
+
+        # Exclure les événements annoncés (is_event=True) du catalogue
+        shows = shows.filter(or_(Show.is_event.is_(False), Show.is_event.is_(None)))
 
         # -- Filtre texte : nom de compagnie ou titre seulement --
         if q:
