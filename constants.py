@@ -40,6 +40,7 @@ SPECIALITES = {
         "Échassier",
         "Sculpteur de ballons",
         "Caricaturistes et Silhouettiste",
+        "Cascadeur",
         # Ateliers / Animations
         "Atelier maquillage",
         "Atelier divers",
