@@ -850,6 +850,7 @@ def _run_critical_migrations(app: Flask) -> None:
         ("shows", "is_event", "BOOLEAN DEFAULT FALSE", "BOOLEAN DEFAULT 0", "FALSE"),
         ("shows", "display_order", "INTEGER DEFAULT 0", "INTEGER DEFAULT 0", "0"),
         ("shows", "site_internet", "VARCHAR(255)", "VARCHAR(255)", None),
+        ("shows", "lien_youtube", "VARCHAR(500)", "VARCHAR(500)", None),
         ("shows", "specialites", "TEXT", "TEXT", None),
         ("shows", "evenements", "TEXT", "TEXT", None),
         ("shows", "lieux_intervention", "TEXT", "TEXT", None),
@@ -2067,6 +2068,7 @@ def register_routes(app: Flask) -> None:
             contact_email = request.form.get("contact_email", "").strip()
             contact_phone = request.form.get("contact_phone", "").strip()
             site_internet = request.form.get("site_internet", "").strip()
+            lien_youtube = request.form.get("lien_youtube", "").strip()
             is_event = request.form.get("is_event", "0") == "1"
 
             # Nouveaux champs matching (CSV)
@@ -2185,6 +2187,7 @@ def register_routes(app: Flask) -> None:
                 contact_email=contact_email or None,
                 contact_phone=contact_phone or None,
                 site_internet=site_internet or None,
+                lien_youtube=request.form.get("lien_youtube", "").strip() or None,
                 is_event=is_event,
                 approved=False,
                 user_id=current_user().id if current_user() else None,   # associer l'auteur
@@ -3249,6 +3252,7 @@ def register_routes(app: Flask) -> None:
             show.contact_phone = request.form.get("contact_phone", "").strip() or None
             date_str = request.form.get("date", "").strip()
             show.site_internet = request.form.get("site_internet", "").strip() or None
+            show.lien_youtube = request.form.get("lien_youtube", "").strip() or None
             # Gérer le champ is_event (admin seulement)
             show.is_event = request.form.get("is_event", "0") == "1"
             # Gérer le champ is_featured (admin seulement) - Affichage "à la une"

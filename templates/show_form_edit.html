@@ -275,6 +275,10 @@
     <input type="url" name="site_internet" placeholder="https://www.monsite.fr" value="{{ show.site_internet if show and show.site_internet else (show.user.site_internet if show and show.user and show.user.site_internet else '') }}">
   </label>
 
+  <label>Lien vidéo YouTube <span style="font-weight:400; color:#888;">(optionnel — apparaît sur votre fiche)</span>
+    <input type="url" name="lien_youtube" placeholder="https://www.youtube.com/watch?v=..." value="{{ show.lien_youtube if show and show.lien_youtube else '' }}">
+  </label>
+
   <label>Email de contact
     <input type="email" name="contact_email" placeholder="votre@email.fr" value="{{ show.contact_email if show and show.contact_email else (show.user.email if show and show.user and show.user.email else '') }}" required>
   </label>

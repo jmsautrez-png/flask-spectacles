@@ -300,7 +300,7 @@
     {% endif %}
     <!-- Réseaux sociaux en bas de fiche -->
     <div style="display:flex; flex-direction:row; align-items:flex-start; gap:12px; margin:32px 0 0 0; flex-wrap:wrap;">
-      <a class="social-bandeau youtube" href="#" title="Notre chaîne YouTube" target="_blank">
+      <a class="social-bandeau youtube" href="{% if show.lien_youtube %}{{ show.lien_youtube }}{% else %}#{% endif %}" title="Notre chaîne YouTube" target="_blank" {% if not show.lien_youtube %}style="opacity:0.4;pointer-events:none;"{% endif %}>
         <i class="fa fa-youtube"></i> <span>YouTube</span>
       </a>
       <a class="social-bandeau facebook" href="https://www.facebook.com/profile.php?id=61570711294378" title="Notre page Facebook" target="_blank">

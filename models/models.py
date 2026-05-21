@@ -102,6 +102,7 @@ class Show(db.Model):
     contact_email = db.Column(db.String(255), nullable=True)
     contact_phone = db.Column(db.String(20), nullable=True)
     site_internet = db.Column(db.String(255), nullable=True)
+    lien_youtube = db.Column(db.String(500), nullable=True)  # Lien vidéo YouTube de présentation
     display_order = db.Column(db.Integer, default=0)  # Ordre d'affichage (0 = ordre par défaut, plus petit = plus haut)
 
     # ── Matching : 3 axes + régions (CSV, séparés par des virgules) ──
