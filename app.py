@@ -4497,7 +4497,7 @@ Accessibilité: {accessibilite}
             demande.code_postal = request.form.get("code_postal", demande.code_postal)
             demande.region = request.form.get("region", demande.region)
             demande.departement = request.form.get("departement", demande.departement)
-            demande.specialites_recherchees = ",".join(request.form.getlist("specialites_recherchees")[:4]) or demande.specialites_recherchees
+            demande.specialites_recherchees = ",".join(request.form.getlist("specialites_recherchees")) or demande.specialites_recherchees
             demande.evenements_contexte = ",".join(request.form.getlist("evenements_contexte")) or demande.evenements_contexte
             demande.lieux_souhaites = ",".join(request.form.getlist("lieux_souhaites")) or demande.lieux_souhaites
             _new_pc = ",".join(request.form.getlist("public_categories"))
