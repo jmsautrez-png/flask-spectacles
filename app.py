@@ -2527,6 +2527,7 @@ def register_routes(app: Flask) -> None:
             s.location = request.form.get("location","").strip()
             s.age_range = (request.form.get("age_range","") or None)
             s.site_internet = request.form.get("site_internet","").strip() or None
+            s.lien_youtube = request.form.get("lien_youtube","").strip() or None
             s.contact_email = request.form.get("contact_email","").strip() or None
             s.contact_phone = request.form.get("contact_phone","").strip() or None
 

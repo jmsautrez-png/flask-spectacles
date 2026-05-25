@@ -178,7 +178,7 @@
       {% endif %}
 
       <!-- Contact Section -->
-      {% if show.contact_email or show.contact_phone or show.site_internet %}
+      {% if show.contact_email or show.contact_phone or show.site_internet or show.lien_youtube %}
         <div style="margin-bottom:32px; padding:24px; background:var(--panel); border:1px solid var(--border); border-radius:12px;">
           <h3 style="margin:0 0 16px 0; font-size:1.2rem; color:var(--text);">Contact</h3>
           <div style="display:flex; flex-direction:column; gap:12px;">
@@ -209,6 +209,17 @@
                 <div style="flex:1;">
                   <div style="font-size:0.8rem; color:var(--muted); margin-bottom:2px;">Site internet</div>
                   <div style="font-weight:500; color:var(--primary); word-break:break-all;">{{ show.site_internet }}</div>
+                </div>
+                <span style="font-size:1.2rem; opacity:0.5;">→</span>
+              </a>
+            {% endif %}
+
+            {% if show.lien_youtube %}
+              <a href="{{ show.lien_youtube }}" target="_blank" rel="noopener" class="contact-item" style="display:flex; align-items:center; gap:12px; padding:12px 16px; background:rgba(255,255,255,0.03); border:1px solid rgba(255,0,0,0.3); border-radius:8px; color:var(--text); text-decoration:none; transition:all 0.2s ease;">
+                <span style="font-size:1.3rem;">▶️</span>
+                <div style="flex:1;">
+                  <div style="font-size:0.8rem; color:var(--muted); margin-bottom:2px;">Vidéo YouTube</div>
+                  <div style="font-weight:500; color:#ff4444; word-break:break-all;">{{ show.lien_youtube }}</div>
                 </div>
                 <span style="font-size:1.2rem; opacity:0.5;">→</span>
               </a>
