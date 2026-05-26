@@ -61,6 +61,8 @@ SPECIALITES = {
         "Théâtre de comédie",
         "Théâtre de boulevard",
         "One-man-show",
+        # Conférence
+        "Conférence gesticulée",
         # Amateur
         "Théâtre amateur",
         "Théâtre d'improvisation",
