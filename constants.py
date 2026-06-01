@@ -135,6 +135,7 @@ EVENEMENTS = {
     "Fêtes traditionnelles": [
         "Arbre de Noël",
         "Marché de Noël",
+        "Fête des aînés",
         "Fête de village / Fête locale",
         "Carnaval",
         "Halloween / Fête d'Halloween",
