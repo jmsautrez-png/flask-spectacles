@@ -1101,7 +1101,13 @@ def _send_recap_to_organisateur(demande, shows_contactes):
             print("[RECAP] Aucun show à lister, recap ignoré")
             return False
 
-        # Construire les lignes de fiches
+        # Construire les lignes de fiches.
+        # IMPORTANT anti-spam / anti-phishing :
+        #  - on échappe les données (titre, compagnie) -> évite le HTML cassé (ex. </li>
+        #    parasite) qui fait flagger le mail comme frauduleux ;
+        #  - on n'affiche JAMAIS l'URL brute comme texte du lien (signal n°1 de phishing
+        #    pour Thunderbird/Outlook) -> on met un libellé « Voir la fiche ».
+        from markupsafe import escape
         rows_html = ""
         for s in unique_shows:
             try:
@@ -1111,12 +1117,12 @@ def _send_recap_to_organisateur(demande, shows_contactes):
             cie_name = ""
             if getattr(s, "user", None):
                 cie_name = (s.user.company_name or s.user.email or "") if hasattr(s.user, "company_name") else ""
-            cie_html = f' <span style="color:#777;font-size:0.9em;">— {cie_name}</span>' if cie_name else ""
+            cie_html = f' <span style="color:#777;font-size:0.9em;">— {escape(cie_name)}</span>' if cie_name else ""
             rows_html += (
                 f'<li style="margin:8px 0;">'
                 f'<a href="{show_url}" style="color:#8b1e1e;font-weight:700;text-decoration:none;">'
-                f'🎭 {s.title}</a>{cie_html}<br>'
-                f'<a href="{show_url}" style="color:#888;font-size:0.85em;text-decoration:none;">{show_url}</a>'
+                f'🎭 {escape(s.title)}</a>{cie_html}<br>'
+                f'<a href="{show_url}" style="color:#8b1e1e;font-size:0.85em;text-decoration:none;">▶ Voir la fiche</a>'
                 f'</li>'
             )
 
@@ -1130,7 +1136,7 @@ def _send_recap_to_organisateur(demande, shows_contactes):
 <head><meta charset="UTF-8"></head>
 <body style="font-family:Arial,sans-serif;max-width:620px;margin:0 auto;color:#333;background:#fafafa;">
   <div style="text-align:center;margin:18px 0;">
-    <img src="https://www.spectacleanimation.fr/static/img/logo_spectaclement_votre.png" alt="Spectacle'ment Vôtre" style="max-width:180px;">
+    <span style="font-family:Georgia,'Times New Roman',serif;font-size:1.4em;font-weight:700;color:#8b1e1e;letter-spacing:0.5px;">Spectacle'ment Vôtre</span>
   </div>
   <div style="background:linear-gradient(135deg,#1a0a0a 0%,#3d1a1a 50%,#1a0a0a 100%);color:#ffc107;padding:18px 22px;border-radius:10px 10px 0 0;text-align:center;">
     <h2 style="margin:0;font-size:1.25em;">✅ Votre demande a été transmise</h2>
