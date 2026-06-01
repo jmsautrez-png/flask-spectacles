@@ -89,6 +89,7 @@ SPECIALITES = {
         "Chanson française",
         "Variété française",
         "Pop",
+        "Pop latino",
         "Rock",
         "Country",
         "Blues",

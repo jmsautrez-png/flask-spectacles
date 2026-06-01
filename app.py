@@ -2096,8 +2096,8 @@ def register_routes(app: Flask) -> None:
             if not specialites_list:
                 flash("Veuillez cocher au moins une spécialité artistique.", "danger")
                 return redirect(request.url)
-            if len(specialites_list) > 4:
-                flash("Maximum 4 spécialités autorisées.", "danger")
+            if len(specialites_list) > 5:
+                flash("Maximum 5 spécialités autorisées.", "danger")
                 return redirect(request.url)
 
             if not regions_list:
@@ -2545,8 +2545,8 @@ def register_routes(app: Flask) -> None:
             if not spec_list:
                 flash("Veuillez cocher au moins une spécialité artistique.", "danger")
                 return redirect(request.url)
-            if len(spec_list) > 4:
-                flash("Maximum 4 spécialités autorisées.", "danger")
+            if len(spec_list) > 5:
+                flash("Maximum 5 spécialités autorisées.", "danger")
                 return redirect(request.url)
             if not reg_list:
                 flash("Veuillez cocher au moins une région d'intervention.", "danger")
