@@ -123,7 +123,7 @@
           </p>
           {% endif %}
           <p style="margin:0.2rem 0;"><strong>📅</strong> {{ demande.dates_horaires }}</p>
-          <p style="margin:0.2rem 0;"><strong>👶</strong> {{ demande.age_range|format_age }}</p>
+          <p style="margin:0.2rem 0;"><strong>👶</strong> {{ demande|format_public_cible }}</p>
           {% if demande.code_postal %}<p style="margin:0.2rem 0;"><strong>🏛️</strong> Département {{ demande.code_postal }}</p>{% endif %}
 
           <!-- Contact -->
