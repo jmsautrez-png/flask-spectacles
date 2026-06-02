@@ -307,11 +307,15 @@ def create_app() -> Flask:
             strict_transport_security=True,
             content_security_policy={
                 'default-src': "'self'",
-                'img-src': ["'self'", "data:"],
+                'img-src': ["'self'", "data:", "blob:", "https://cdn.jsdelivr.net"],
                 'style-src': ["'self'", "'unsafe-inline'", "https://cdn.jsdelivr.net"],
                 'script-src': ["'self'", "'unsafe-inline'", "https://cdn.jsdelivr.net"],
                 'font-src': ["'self'", "https://cdn.jsdelivr.net", "data:"],
-                'connect-src': ["'self'", "https://geo.api.gouv.fr"],
+                # jsdelivr requis : TinyMCE telecharge en fetch() ses skins / packs de langue
+                'connect-src': ["'self'", "https://geo.api.gouv.fr", "https://cdn.jsdelivr.net"],
+                # iframe interne de l'editeur TinyMCE (about:blank / blob:)
+                'frame-src': ["'self'", "blob:"],
+                'worker-src': ["'self'", "blob:"],
             },
         )
     
@@ -3152,6 +3156,44 @@ def register_routes(app: Flask) -> None:
         
         return html
     
+    @app.route("/profil", methods=["GET", "POST"], endpoint="profil_compte")
+    @login_required
+    def profil_compte():
+        """Permet a un artiste/cie de consulter et modifier ses donnees de compte
+        (raison sociale, email, telephone, site internet)."""
+        user = current_user()
+        if not user:
+            return redirect(url_for("login"))
+
+        if request.method == "POST":
+            raison_sociale = (request.form.get("raison_sociale") or "").strip()
+            email = (request.form.get("email") or "").strip()
+            telephone = (request.form.get("telephone") or "").strip()
+            site_internet = (request.form.get("site_internet") or "").strip()
+
+            if not raison_sociale:
+                flash("La raison sociale est obligatoire.", "danger")
+                return redirect(url_for("profil_compte"))
+
+            # Verifier l'unicite de l'email s'il a change
+            if email and email != (user.email or ""):
+                existing_email = User.query.filter(
+                    User.email == email, User.id != user.id
+                ).first()
+                if existing_email:
+                    flash("Cette adresse email est deja utilisee par un autre compte.", "danger")
+                    return redirect(url_for("profil_compte"))
+
+            user.raison_sociale = raison_sociale
+            user.email = email or None
+            user.telephone = telephone or None
+            user.site_internet = site_internet or None
+            db.session.commit()
+            flash("Vos informations ont ete mises a jour.", "success")
+            return redirect(url_for("company_dashboard"))
+
+        return render_template("profil_compte.html", user=user)
+
     @app.route("/profil/localisation", methods=["GET", "POST"])
     @login_required
     def profil_localisation():

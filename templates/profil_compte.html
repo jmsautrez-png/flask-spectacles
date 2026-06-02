@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+{% block title %}Mes informations - Spectacle'ment VØtre{% endblock %}
+{% block content %}
+<div class="container" style="max-width:640px; margin:24px auto;">
+  <h1>👤 Mes informations</h1>
+  <p style="color:#90caf9;">Modifiez ici les données de votre compte (inscription). Ces informations vous identifient auprès des organisateurs.</p>
+
+  <form method="POST" style="background:#162447; border:1px solid #1976d2; border-radius:10px; padding:18px; margin-top:14px;">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() if csrf_token else '' }}">
+
+    <label style="display:block; margin-bottom:14px;">
+      <span class="label-text">Nom d'utilisateur</span>
+      <input type="text" value="{{ user.username }}" readonly
+             style="background:#1a1f2e; color:#90caf9; cursor:not-allowed; width:100%;">
+      <span style="font-size:0.82em; color:#90caf9; display:block; margin-top:4px;">Le nom d'utilisateur ne peut pas être modifié.</span>
+    </label>
+
+    <label style="display:block; margin-bottom:14px;">
+      <span class="label-text">Raison sociale <span class="req">*</span></span>
+      <input type="text" name="raison_sociale" required
+             value="{{ user.raison_sociale or '' }}"
+             placeholder="Nom de votre compagnie / structure"
+             style="width:100%;">
+    </label>
+
+    <label style="display:block; margin-bottom:14px;">
+      <span class="label-text">Email</span>
+      <input type="email" name="email"
+             value="{{ user.email or '' }}"
+             placeholder="votre@email.fr"
+             style="width:100%;">
+    </label>
+
+    <label style="display:block; margin-bottom:14px;">
+      <span class="label-text">Téléphone</span>
+      <input type="tel" name="telephone"
+             value="{{ user.telephone or '' }}"
+             placeholder="06 12 34 56 78"
+             style="width:100%;">
+    </label>
+
+    <label style="display:block; margin-bottom:14px;">
+      <span class="label-text">Site internet</span>
+      <input type="url" name="site_internet"
+             value="{{ user.site_internet or '' }}"
+             placeholder="https://www.monsite.fr"
+             style="width:100%;">
+    </label>
+
+    <div style="background:rgba(25,118,210,0.12); border:1px solid rgba(25,118,210,0.4); border-radius:8px; padding:12px 14px; margin-bottom:14px; font-size:0.88rem; color:#bbdefb;">
+      💡 Pour modifier votre <strong>localisation</strong> (code postal, ville, région),
+      utilisez la page <a href="{{ url_for('profil_localisation') }}" style="color:#64b5f6;">Ma localisation</a>.
+      Pour changer la raison sociale affichée sur <strong>un spectacle précis</strong>, modifiez directement ce spectacle.
+    </div>
+
+    <div style="display:flex; gap:10px; margin-top:18px;">
+      <button type="submit" class="publish-btn" style="flex:1; padding:12px;">Enregistrer</button>
+      <a href="{{ url_for('company_dashboard') }}" class="btn-secondary"
+         style="flex:1; padding:12px; border-radius:8px; background:#23232a; color:var(--text); text-decoration:none; text-align:center; border:1px solid var(--border);">Annuler</a>
+    </div>
+  </form>
+</div>
+{% endblock %}
