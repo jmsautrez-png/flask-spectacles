@@ -2092,8 +2092,12 @@ def register_routes(app: Flask) -> None:
             # Catégorie auto-dérivée de la 1ère spécialité
             category = specialites_list[0] if specialites_list else ""
 
-            # Région auto-dérivée de la 1ère région d'intervention
-            if regions_list:
+            # Région principale : on utilise la région de la compagnie telle
+            # qu'indiquée à son inscription (user.region). Fallback sur le champ
+            # du formulaire ou la 1ère région d'intervention.
+            if u and u.region:
+                region = u.region
+            elif not region and regions_list:
                 region = regions_list[0]
 
             # Validation : au moins 1 spécialité et 1 région + limites max
@@ -2603,8 +2607,15 @@ def register_routes(app: Flask) -> None:
             s.public_categories = ",".join(_pc_cats) or None
             s.public_sous_options = ",".join(_pc_subs) or None
 
-            # Région auto-dérivée de la 1ère région d'intervention
-            s.region = reg_list[0] if reg_list else (s.region or None)
+            # Région principale : on utilise la région de la compagnie telle
+            # qu'indiquée à son inscription (user.region). Fallback sur le champ
+            # du formulaire ou la 1ère région d'intervention si l'owner n'a pas
+            # de région renseignée.
+            _owner = s.user or u
+            if _owner and _owner.region:
+                s.region = _owner.region
+            elif not s.region:
+                s.region = reg_list[0] if reg_list else None
 
             date_str = request.form.get("date","").strip()
             if date_str:
