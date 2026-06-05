@@ -521,6 +521,12 @@
       box-shadow: 0 4px 15px rgba(67,160,71,0.4); transition: all 0.3s; letter-spacing: 0.5px;
     }
     .btn-update:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(67,160,71,0.6); }
+    .btn-validate {
+      padding: 14px 40px; font-size: 1.1rem; font-weight: 700; border: none; border-radius: 8px;
+      background: linear-gradient(135deg, #f9a825, #ffca28); color: #1a1a1a; cursor: pointer;
+      box-shadow: 0 4px 15px rgba(249,168,37,0.45); transition: all 0.3s; letter-spacing: 0.5px;
+    }
+    .btn-validate:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(249,168,37,0.65); }
     .btn-dashboard {
       padding: 14px 28px; font-size: 1rem; font-weight: 600; border: none; border-radius: 8px;
       background: linear-gradient(135deg, #1565c0, #42a5f5); color: #fff; text-decoration: none;
@@ -536,7 +542,13 @@
     .btn-cancel:hover { background: rgba(255,255,255,0.15); color: #fff; transform: translateY(-2px); }
   </style>
   <div class="actions-box">
+    {% if user and user.is_admin and request.args.get('updated') and not show.approved %}
+    <button type="submit" class="btn-validate"
+            formaction="{{ url_for('show_approve', show_id=show.id) }}" formnovalidate
+            onclick="return confirm('Valider et publier ce spectacle ? (au moins 2 photos requises)');">👍 Valider le spectacle</button>
+    {% else %}
     <button type="submit" class="btn-update">✅ Mettre à jour</button>
+    {% endif %}
     <a href="{{ url_for('company_dashboard') }}" class="btn-dashboard">📋 Tableau de bord</a>
     <a href="{{ url_for('home') }}" class="btn-cancel">← Annuler</a>
   </div>

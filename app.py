@@ -3456,7 +3456,9 @@ def register_routes(app: Flask) -> None:
 
             db.session.commit()
             flash("Annonce mise à jour.", "success")
-            return redirect(url_for("admin_dashboard"))
+            # Rester sur la page d'édition ; le bouton « Mettre à jour » laisse place
+            # au bouton « Valider le spectacle » (indicateur updated=1).
+            return redirect(url_for("show_edit", show_id=show.id, updated=1))
 
         return render_template("show_form_edit.html", show=show, user=current_user(),
                                specialites_data=SPECIALITES, evenements_data=EVENEMENTS,
