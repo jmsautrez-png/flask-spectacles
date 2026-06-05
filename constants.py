@@ -74,7 +74,7 @@ SPECIALITES = {
     ],
     "Danse": [
         # Danse de scène
-        "Spectacle de danse",
+        "Spectacle de danse contemporaine",
         "Spectacle de danse pour enfant",
         "Revue Cabaret et Danse",
         "Danse contemporaine",
