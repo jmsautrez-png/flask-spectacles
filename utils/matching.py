@@ -1,6 +1,7 @@
 """Matching engine: score spectacle companies against calls for tender."""
 
 import re
+from datetime import datetime
 
 from constants import (
     SPECIALITES, EVENEMENTS, LIEUX, REGIONS_FRANCE, REGIONS_VOISINES,
@@ -36,6 +37,40 @@ _TOTAL_SPECS = sum(len(v) for v in SPECIALITES.values())
 _TOTAL_EVENTS = sum(len(v) for v in EVENEMENTS.values())
 _TOTAL_LIEUX = sum(len(v) for v in LIEUX.values())
 _TOTAL_REGIONS = len(REGIONS_FRANCE)
+
+# Spécialités saisonnières "Noël" : ne comptent comme match que si la demande
+# se situe en novembre ou décembre (mois 11 ou 12). Hors saison, elles sont
+# retirées de l'intersection des spécialités.
+_NOEL_SPECS = {"spectacle autour de noël"}
+_NOEL_MONTHS = {11, 12}
+
+
+def _demande_month(demande):
+    """Retourne le mois (1-12) de la demande à partir de date_debut/dates_horaires.
+
+    Retourne None si aucune date exploitable (dans ce cas, pas d'exclusion saisonnière).
+    """
+    raw = (getattr(demande, "date_debut", None) or "").strip()
+    if not raw:
+        raw = (getattr(demande, "dates_horaires", None) or "").strip()
+    if not raw:
+        return None
+    # Format ISO prioritaire : AAAA-MM-JJ
+    m = re.search(r"\b(\d{4})-(\d{1,2})-(\d{1,2})\b", raw)
+    if m:
+        try:
+            return datetime(int(m.group(1)), int(m.group(2)), int(m.group(3))).month
+        except ValueError:
+            return None
+    # Format français : JJ/MM/AAAA
+    m = re.search(r"\b(\d{1,2})/(\d{1,2})/(\d{4})\b", raw)
+    if m:
+        try:
+            return datetime(int(m.group(3)), int(m.group(2)), int(m.group(1))).month
+        except ValueError:
+            return None
+    return None
+
 
 # Lookup case-insensitive pour REGIONS_VOISINES
 _REGIONS_VOISINES_LOWER = {k.lower(): [r.lower() for r in v] for k, v in REGIONS_VOISINES.items()}
@@ -253,6 +288,12 @@ def compute_score(show, demande):
     # catégorie quand la demande en coche 10 (sinon ratio = 1/10 = 10%, faussement bas).
     if dem_specs:
         inter = show_specs & dem_specs
+        # Exclusion saisonnière : hors novembre/décembre, les spectacles de Noël
+        # ne comptent pas comme correspondance. Si la date de la demande est connue
+        # et hors saison, on retire ces spécialités de l'intersection.
+        dem_month = _demande_month(demande)
+        if dem_month is not None and dem_month not in _NOEL_MONTHS:
+            inter = {s for s in inter if s.strip().lower() not in _NOEL_SPECS}
         if inter:
             match_ratio = min(1.0, len(inter) / max(1, min(len(dem_specs), len(show_specs))))
         else:
