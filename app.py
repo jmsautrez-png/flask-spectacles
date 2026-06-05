@@ -1701,8 +1701,10 @@ def register_routes(app: Flask) -> None:
                     conds.append(Show.category.ilike(like))
             shows = shows.filter(or_(*conds))
 
-        # -- Filtre événement : désactivé (les événements ne font plus partie du matching) --
-        # Les cases restent dans le formulaire mais n'influencent plus les résultats.
+        # -- Filtre événement --
+        if evenements_selected:
+            conds = [Show.evenements.ilike(f"%{e}%") for e in evenements_selected]
+            shows = shows.filter(or_(*conds))
 
         # -- Filtre région : champ structuré regions_intervention + fallback region/location --
         if region_resolved:

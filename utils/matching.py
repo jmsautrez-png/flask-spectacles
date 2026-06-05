@@ -376,10 +376,8 @@ def compute_score(show, demande):
         if portee_nationale is False:
             region_compatible = False
 
-    # Les événements ne font plus partie du score de matching : leur poids (25 %)
-    # est redistribué proportionnellement sur spécialités (40), lieux (20) et région (15).
-    # event_ratio reste calculé plus haut, uniquement pour l'affichage admin.
-    total = (spec_ratio * 53.33 + lieu_ratio * 26.67 + region_ratio * 20.0)
+    # Score pondéré : spécialités 40 %, événements 25 %, lieux 20 %, région 15 %.
+    total = (spec_ratio * 40 + event_ratio * 25 + lieu_ratio * 20 + region_ratio * 15)
     # Bonus tranche d'âge (hors pondération principale, max +10)
     total = min(100.0, total + age_bonus)
 
