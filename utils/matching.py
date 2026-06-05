@@ -329,6 +329,14 @@ def compute_score(show, demande):
     if show_couvre_france:
         # Le spectacle se deplace partout : score regional max
         region_ratio = 1.0
+        # MAIS le choix "ma region uniquement" de l'organisateur prime : un artiste
+        # national reste exclu s'il est trop loin (> 250 km) ou hors region quand la
+        # demande est strictement regionale.
+        if portee_nationale is False:
+            if distance is not None and distance > 250:
+                region_compatible = False
+            elif distance is None and cie_region and dem_region and cie_region != dem_region:
+                region_compatible = False
     elif distance is not None:
         # Cas ideal : score distance pur, pas de penalite de specificite
         region_ratio = distance_score(distance)
@@ -368,7 +376,10 @@ def compute_score(show, demande):
         if portee_nationale is False:
             region_compatible = False
 
-    total = (spec_ratio * 40 + event_ratio * 25 + lieu_ratio * 20 + region_ratio * 15)
+    # Les événements ne font plus partie du score de matching : leur poids (25 %)
+    # est redistribué proportionnellement sur spécialités (40), lieux (20) et région (15).
+    # event_ratio reste calculé plus haut, uniquement pour l'affichage admin.
+    total = (spec_ratio * 53.33 + lieu_ratio * 26.67 + region_ratio * 20.0)
     # Bonus tranche d'âge (hors pondération principale, max +10)
     total = min(100.0, total + age_bonus)
 

@@ -84,7 +84,8 @@ SPECIALITES = {
         "Tango",
         "Danse Traditionnelle",
     ],
-    "Musique": [
+    # AXE MUSIQUE — STYLE : le genre musical et la formation/effectif
+    "Musique — Styles & formations": [
         # Genres musicaux
         "Chanson française",
         "Variété française",
@@ -111,16 +112,32 @@ SPECIALITES = {
         "Auteur-Interprète",
         "Orgue de Barbarie",
         # Groupes / Ensembles
-        "Orchestre de bal",
         "Orchestre",
         "DJ",
         "Chorale et Gospel",
         "Fanfare et Batucada",
         "Fanfare (Parade de rue / Défilé)",
         "Groupe folklorique",
-        # Événements musicaux
+    ],
+    # AXE MUSIQUE — FORMAT : la forme de la prestation proposée
+    "Musique — Formats de prestation": [
+        # Concerts
         "Concert",
+        "Concert de reprises (covers)",
+        "Concert d'auteur-interprète",
+        "Concert acoustique / Intimiste",
         "Concert pour enfants",
+        # Bals & soirées dansantes
+        "Orchestre de bal",
+        "Bal grande production",
+        "Bal folk / trad",
+        "Soirée dansante / Piste de danse",
+        "Animation mariage (cérémonie + soirée)",
+        # Ambiance & déambulation
+        "Apéro-concert / Cocktail musical",
+        "Musique d'ambiance / Lounge",
+        "Déambulation musicale",
+        # Spectacles musicaux
         "Spectacle Musical",
         "Spectacle Musical pour enfant",
         "Animation Musicale",
