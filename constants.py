@@ -70,6 +70,7 @@ SPECIALITES = {
         "Comédie musicale",
         # Jeunesse
         "Théâtre pour enfant",
+        "Spectacle de comptines et de théâtre",
     ],
     "Danse": [
         # Danse de scène
