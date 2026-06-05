@@ -244,6 +244,7 @@
       return el && el.checked;
     });
   }
+
   function applyExclusiveLock(){
     var locked = isAnyExclusiveChecked();
     var compat = compatSubsForCheckedExclusives();
@@ -463,7 +464,23 @@ function updateRegionCount(fieldName) {
   if (el) el.textContent = total;
 }
 
+// Paires de spécialités mutuellement exclusives : cocher l'une décoche l'autre
+var MATCHING_EXCLUSIVES = {
+  "Concert": "Concert pour enfants",
+  "Concert pour enfants": "Concert"
+};
+
 function checkMatchingLimit(fieldName, cb) {
+  // Exclusion mutuelle : si on coche une case, on décoche sa paire opposée
+  if (cb.checked && MATCHING_EXCLUSIVES.hasOwnProperty(cb.value)) {
+    var partner = MATCHING_EXCLUSIVES[cb.value];
+    document.querySelectorAll('input[name="' + fieldName + '"]').forEach(function(other) {
+      if (other.value === partner && other.checked) {
+        other.checked = false;
+      }
+    });
+  }
+
   var section = null;
   document.querySelectorAll('.matching-accordion-section').forEach(function(s) {
     if (s.getAttribute('data-field') === fieldName) section = s;

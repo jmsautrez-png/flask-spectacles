@@ -123,8 +123,10 @@ def _csv_to_set(value):
 
 
 # Échelle « dès X ans » : sous-option → âge plancher (en années).
-# Sert au matching hiérarchique : un spectacle « dès 6 ans » couvre aussi
-# les publics « dès 12 / dès 16 ans » (mais pas l'inverse).
+# Sert au matching hiérarchique côté DEMANDE : une demande « dès X ans »
+# accepte tous les spectacles dont l'âge plancher est ≥ X.
+# Ainsi une demande « dès 3 ans » (la plus large) reçoit TOUS les spectacles,
+# tandis qu'une demande « dès 16 ans » ne reçoit que les spectacles « dès 16 ans ».
 # Les sous-options « niveaux scolaires » (creche/mat/elem/ado) en sont
 # volontairement absentes : elles gardent un matching exact.
 _AGE_LADDER = {
@@ -181,12 +183,13 @@ def _public_cible_compatible(show, demande):
     # Correspondance exacte (niveaux scolaires ou même âge) : 1 sous-option commune suffit
     if dem_subs_in_common & show_subs_in_common:
         return True, True
-    # Échelle « dès X ans » : un spectacle dont l'âge plancher est inférieur ou
-    # égal à l'âge demandé convient (il couvre tous les âges au-dessus).
-    # Ex. spectacle « dès 6 ans » → matche une demande « dès 12 ans ».
+    # Échelle « dès X ans » (côté demande) : une demande « dès X ans » accepte
+    # tous les spectacles dont l'âge plancher est supérieur ou égal à X.
+    # Ex. demande « dès 3 ans » → reçoit tous les spectacles (3/6/12/16) ;
+    #     demande « dès 12 ans » → reçoit seulement les spectacles « dès 12/16 ans ».
     show_ladder = {_AGE_LADDER[s] for s in show_subs_in_common if s in _AGE_LADDER}
     dem_ladder = {_AGE_LADDER[s] for s in dem_subs_in_common if s in _AGE_LADDER}
-    if show_ladder and dem_ladder and min(show_ladder) <= min(dem_ladder):
+    if show_ladder and dem_ladder and min(show_ladder) >= min(dem_ladder):
         return True, True
     return False, True
 
