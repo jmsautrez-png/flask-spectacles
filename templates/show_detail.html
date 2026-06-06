@@ -159,11 +159,13 @@
             <span class="badge">({{ show.age_range|format_age }})</span>
           {% endif %}
         {% endif %}
-        {% if show.region %}
-          <span class="badge">🗺️ {{ show.region }}</span>
+        {% set _cie_region = (show.user.region if (show.user and show.user.region) else show.region) %}
+        {% if _cie_region %}
+          <span class="badge">🗺️ {{ _cie_region }}</span>
         {% endif %}
         {% if show.location %}
-          <span class="badge">📍 {{ show.location }}</span>
+          {% set _dept = (show.user.departement if (show.user and show.user.departement) else show.departement) %}
+          <span class="badge">📍 {{ show.location }}{% if _dept %} — {{ _dept }}{% endif %}</span>
         {% endif %}
         {% if show.date %}
           <span class="badge">📅 {{ show.date.strftime('%d/%m/%Y') }}</span>

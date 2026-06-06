@@ -47,7 +47,7 @@ SPECIALITES = {
         # Stands / Fête
         "Manège",
         # Noël
-        "Spectacle autour de Noël",
+        "Spectacle de Noël",
         # Autres
         "Speaker",
     ],

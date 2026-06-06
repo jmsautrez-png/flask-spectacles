@@ -461,7 +461,7 @@
 
   {# ═══ SECTION MATCHING : Spécialités + Événements + Lieux + Régions ════ #}
   <div style="background: linear-gradient(135deg, rgba(76,175,80,0.1) 0%, rgba(67,160,71,0.1) 100%); border: 2px solid #4caf50; border-radius:12px; padding:20px; margin-bottom:20px;">
-    <h3 style="color: #4caf50; margin:0 0 8px 0; font-size:1.1rem;">Profil de matching — Cochez uniquement ce que vous savez vraiment faire !</h3>
+    <h3 style="color: #4caf50; margin:0 0 8px 0; font-size:1.1rem;">Profil de matching</h3>
 
     {% set current_specialites = (show.specialites or "").split(",") | map('trim') | select | list %}
     {% set current_evenements = (show.evenements or "").split(",") | map('trim') | select | list %}
