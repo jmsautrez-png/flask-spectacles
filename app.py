@@ -1780,10 +1780,7 @@ def register_routes(app: Flask) -> None:
                 ))
 
         # -- Tri avant pagination (corrigé) --
-        # Les spectacles labellisés (Premium, Coup de cœur…) remontent en tête.
-        from sqlalchemy import case
-        _has_label = case((or_(Show.labels.is_(None), Show.labels == ""), 1), else_=0)
-        shows = shows.order_by(_has_label.asc(), Show.display_order.asc(), Show.created_at.desc())
+        shows = shows.order_by(Show.display_order.asc(), Show.created_at.desc())
 
         # -- Pagination --
         try:
