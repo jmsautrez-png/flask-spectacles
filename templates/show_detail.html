@@ -141,6 +141,12 @@
       
       <!-- Badges -->
       <div style="display:flex; gap:10px; flex-wrap:wrap; margin-bottom:32px;">
+        {% if show.labels %}
+          {% for code in show.labels.split(',') %}
+            {% set lbl = LABELS_QUALITE_LABELS.get(code.strip()) %}
+            {% if lbl %}<span class="badge badge-label">{{ lbl }}</span>{% endif %}
+          {% endfor %}
+        {% endif %}
         {% if show.specialites %}
           {% for spec in show.specialites.split(',') %}
             {% set s = spec.strip() %}
@@ -360,6 +366,25 @@ a.btn-demande:hover {
   color: white;
   border-color: var(--primary);
   font-weight: 600;
+}
+
+.badge-label {
+  background: linear-gradient(135deg,#6a1b9a 0%,#283593 100%);
+  color: #fff;
+  border-color: transparent;
+  font-weight: 700;
+}
+
+/* Liens dans la description : lisibles sur fond sombre */
+.rich-content a {
+  color: #4fc3f7;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  word-break: break-word;
+  font-weight: 600;
+}
+.rich-content a:hover {
+  color: #81d4fa;
 }
 
 .back-link:hover {

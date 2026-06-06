@@ -413,6 +413,14 @@
 
         <a href="{{ url_for('show_detail', show_id=show.id) }}" class="content-link">
           <div class="content">
+            {% if show.labels %}
+              <div style="display:flex; gap:6px; flex-wrap:wrap; margin-bottom:8px;">
+                {% for code in show.labels.split(',') %}
+                  {% set lbl = LABELS_QUALITE_LABELS.get(code.strip()) %}
+                  {% if lbl %}<span style="background:linear-gradient(135deg,#6a1b9a 0%,#283593 100%); color:#fff; border-radius:10px; padding:3px 10px; font-size:0.78rem; font-weight:700; white-space:nowrap;">{{ lbl }}</span>{% endif %}
+                {% endfor %}
+              </div>
+            {% endif %}
             {% if show.raison_sociale %}
               <p class="meta" style="font-weight:600; margin-bottom:8px; color:var(--primary); font-size:0.85em;">
                 {{ show.raison_sociale|title }}

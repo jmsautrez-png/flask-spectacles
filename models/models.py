@@ -111,6 +111,9 @@ class Show(db.Model):
     lieux_intervention = db.Column(db.Text, nullable=True)    # "Salle des fêtes,Parc / Jardin public"
     regions_intervention = db.Column(db.Text, nullable=True)  # "Île-de-France,Centre-Val de Loire"
 
+    # ── Labels qualité (réservés à l'admin, jusqu'à 2) ──
+    labels = db.Column(db.Text, nullable=True, index=True)    # "premium,coup_de_coeur"
+
     # ⬇⬇⬇ Association au propriétaire (compagnie)
     user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=True)
     user = db.relationship("User", backref="shows")

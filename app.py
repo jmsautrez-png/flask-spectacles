@@ -95,7 +95,7 @@ from utils.security import (
 )
 from utils.search import normalize_search_text, generate_search_patterns
 from utils.seo import SEO_CATEGORIES, optimize_title_seo
-from constants import SPECIALITES, EVENEMENTS, LIEUX, REGIONS_FRANCE, REGIONS_VOISINES, PUBLICS, PUBLIC_CIBLE_CATEGORIES, PUBLIC_CIBLE_ORGANISATEUR, PUBLIC_CIBLE_ADMIN, PUBLIC_CIBLE_INCOMPATIBLES, PUBLIC_CIBLE_CODES_VALIDES
+from constants import SPECIALITES, EVENEMENTS, LIEUX, REGIONS_FRANCE, REGIONS_VOISINES, PUBLICS, PUBLIC_CIBLE_CATEGORIES, PUBLIC_CIBLE_ORGANISATEUR, PUBLIC_CIBLE_ADMIN, PUBLIC_CIBLE_INCOMPATIBLES, PUBLIC_CIBLE_CODES_VALIDES, LABELS_QUALITE, LABELS_QUALITE_CODES, LABELS_QUALITE_LABELS
 
 print("✓ Config, models et utils importés")
 
@@ -817,6 +817,7 @@ def create_app() -> Flask:
             'PUBLIC_CIBLE_ORGANISATEUR': PUBLIC_CIBLE_ORGANISATEUR,
             'PUBLIC_CIBLE_ADMIN': PUBLIC_CIBLE_ADMIN,
             'PUBLIC_CIBLE_INCOMPATIBLES': PUBLIC_CIBLE_INCOMPATIBLES,
+            'LABELS_QUALITE_LABELS': LABELS_QUALITE_LABELS,
         }
 
     register_routes(app)
@@ -861,6 +862,7 @@ def _run_critical_migrations(app: Flask) -> None:
         ("shows", "regions_intervention", "TEXT", "TEXT", None),
         ("shows", "public_categories", "TEXT", "TEXT", None),
         ("shows", "public_sous_options", "TEXT", "TEXT", None),
+        ("shows", "labels", "TEXT", "TEXT", None),
         # ── demande_animation ──
         ("demande_animation", "is_private", "BOOLEAN DEFAULT FALSE", "BOOLEAN DEFAULT 0", "FALSE"),
         ("demande_animation", "approved", "BOOLEAN DEFAULT FALSE", "BOOLEAN DEFAULT 0", "FALSE"),
@@ -1778,7 +1780,10 @@ def register_routes(app: Flask) -> None:
                 ))
 
         # -- Tri avant pagination (corrigé) --
-        shows = shows.order_by(Show.display_order.asc(), Show.created_at.desc())
+        # Les spectacles labellisés (Premium, Coup de cœur…) remontent en tête.
+        from sqlalchemy import case
+        _has_label = case((or_(Show.labels.is_(None), Show.labels == ""), 1), else_=0)
+        shows = shows.order_by(_has_label.asc(), Show.display_order.asc(), Show.created_at.desc())
 
         # -- Pagination --
         try:
@@ -3454,6 +3459,11 @@ def register_routes(app: Flask) -> None:
             show.public_categories = ",".join(_pc_cats) or None
             show.public_sous_options = ",".join(_pc_subs) or None
 
+            # Labels qualité (réservés à l'admin, max 2)
+            if current_user() and current_user().is_admin:
+                _labels = [l for l in request.form.getlist("labels") if l in LABELS_QUALITE_CODES][:2]
+                show.labels = ",".join(_labels) or None
+
             db.session.commit()
             flash("Annonce mise à jour.", "success")
             # Rester sur la page d'édition ; le bouton « Mettre à jour » laisse place
@@ -3463,6 +3473,7 @@ def register_routes(app: Flask) -> None:
         return render_template("show_form_edit.html", show=show, user=current_user(),
                                specialites_data=SPECIALITES, evenements_data=EVENEMENTS,
                                lieux_data=LIEUX, regions_data=REGIONS_FRANCE,
+                               labels_data=LABELS_QUALITE,
                                all_users=User.query.filter_by(is_admin=False).order_by(User.username).all())
 
     @app.route("/admin/shows/<int:show_id>/delete", methods=["POST"])

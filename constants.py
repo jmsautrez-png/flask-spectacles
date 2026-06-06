@@ -491,3 +491,21 @@ STRUCTURES_SPECIALISEES = [
     ("foyer", "Foyer de vie / MAS"),
     ("hopital", "Hôpital spécialisé"),
 ]
+
+# ═══════════════════════════════════════════════════════════════════
+# LABELS QUALITÉ — réservés à l'admin (jusqu'à 2 par spectacle)
+# Stockés en CSV dans Show.labels (codes séparés par des virgules)
+# Affichés en badge public + bonus de tri (catalogue) et de score (matching)
+# ═══════════════════════════════════════════════════════════════════
+LABELS_QUALITE = [
+    ("premium",        "💎 Premium"),
+    ("incontournable", "🌟 Incontournable"),
+    ("pro_verifie",    "🛡️ Pro vérifié"),
+    ("coup_de_coeur",  "💜 Coup de cœur"),
+]
+
+# Codes valides (pour validation backend)
+LABELS_QUALITE_CODES = {code for code, _ in LABELS_QUALITE}
+
+# Mapping code → libellé d'affichage (avec emoji)
+LABELS_QUALITE_LABELS = dict(LABELS_QUALITE)

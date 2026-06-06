@@ -421,6 +421,11 @@ def compute_score(show, demande):
     total = (spec_ratio * 40 + event_ratio * 25 + lieu_ratio * 20 + region_ratio * 15)
     # Bonus tranche d'âge (hors pondération principale, max +10)
     total = min(100.0, total + age_bonus)
+    # Bonus labels qualité (admin) : +3 par label, plafonné à +6
+    label_set = _csv_to_set(getattr(show, "labels", None))
+    label_bonus = min(6.0, 3.0 * len(label_set))
+    if label_bonus:
+        total = min(100.0, total + label_bonus)
 
     return {
         "total": round(total, 1),
