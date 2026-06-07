@@ -416,8 +416,16 @@
             {% if show.labels %}
               <div style="display:flex; gap:6px; flex-wrap:wrap; margin-bottom:8px;">
                 {% for code in show.labels.split(',') %}
-                  {% set lbl = LABELS_QUALITE_LABELS.get(code.strip()) %}
-                  {% if lbl %}<span style="background:linear-gradient(135deg,#6a1b9a 0%,#283593 100%); color:#fff; border-radius:10px; padding:3px 10px; font-size:0.78rem; font-weight:700; white-space:nowrap;">{{ lbl }}</span>{% endif %}
+                  {% set _c = code.strip() %}
+                  {% set lbl = LABELS_QUALITE_LABELS.get(_c) %}
+                  {% set _desc = LABELS_QUALITE_DESCRIPTIONS.get(_c) %}
+                  {% if lbl %}
+                    {% if _c == 'edition_libre' %}
+                      <span{% if _desc %} title="{{ _desc }}"{% endif %} style="background:rgba(255,255,255,0.06); color:#b0b0b0; border:1px solid rgba(255,255,255,0.18); border-radius:10px; padding:3px 10px; font-size:0.78rem; font-weight:600; white-space:nowrap; cursor:help;">{{ lbl }}</span>
+                    {% else %}
+                      <span{% if _desc %} title="{{ _desc }}"{% endif %} style="background:linear-gradient(135deg,#6a1b9a 0%,#283593 100%); color:#fff; border-radius:10px; padding:3px 10px; font-size:0.78rem; font-weight:700; white-space:nowrap; cursor:help;">{{ lbl }}</span>
+                    {% endif %}
+                  {% endif %}
                 {% endfor %}
               </div>
             {% endif %}

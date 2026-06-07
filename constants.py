@@ -495,17 +495,36 @@ STRUCTURES_SPECIALISEES = [
 # ═══════════════════════════════════════════════════════════════════
 # LABELS QUALITÉ — réservés à l'admin (jusqu'à 2 par spectacle)
 # Stockés en CSV dans Show.labels (codes séparés par des virgules)
-# Affichés en badge public + bonus de tri (catalogue) et de score (matching)
+# Affichés en badge public + bonus de score (matching)
+#
+# Les labels « qualité » (premium, incontournable, pro_verifie, coup_de_coeur)
+# valorisent le spectacle et donnent un bonus de matching.
+# Le label « neutre » (edition_libre) est purement informatif : il signale que
+# le spectacle est publié en accès libre, HORS sélection Spectacle'ment.
+# Il n'apporte AUCUN bonus de matching et s'affiche en gris.
 # ═══════════════════════════════════════════════════════════════════
 LABELS_QUALITE = [
     ("premium",        "💎 Premium"),
     ("incontournable", "🌟 Incontournable"),
     ("pro_verifie",    "🛡️ Pro vérifié"),
     ("coup_de_coeur",  "💜 Coup de cœur"),
+    ("edition_libre",  "📖 Édition libre (hors sélection Spectacle'ment)"),
 ]
+
+# Labels neutres : informatifs, sans bonus de matching, style gris
+LABELS_QUALITE_NEUTRES = {"edition_libre"}
 
 # Codes valides (pour validation backend)
 LABELS_QUALITE_CODES = {code for code, _ in LABELS_QUALITE}
 
 # Mapping code → libellé d'affichage (avec emoji)
 LABELS_QUALITE_LABELS = dict(LABELS_QUALITE)
+
+# Mapping code → description (infobulle affichée au survol du badge)
+LABELS_QUALITE_DESCRIPTIONS = {
+    "premium":        "Spectacle d'exception, sélectionné et mis en avant par Spectacle'ment pour sa qualité remarquable.",
+    "incontournable": "Une valeur sûre plébiscitée par les organisateurs et Spectacle'ment Vôtre : un spectacle à ne pas manquer.",
+    "pro_verifie":    "Compagnie professionnelle dont l'identité et le sérieux ont été vérifiés par Spectacle'ment.",
+    "coup_de_coeur":  "Le coup de cœur de l'équipe Spectacle'ment : un spectacle que nous avons particulièrement apprécié.",
+    "edition_libre":  "Cette compagnie publie sa fiche en accès libre. Elle ne fait pas partie de la sélection vérifiée par Spectacle'ment.",
+}

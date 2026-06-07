@@ -5,7 +5,7 @@ from datetime import datetime
 
 from constants import (
     SPECIALITES, EVENEMENTS, LIEUX, REGIONS_FRANCE, REGIONS_VOISINES,
-    PUBLIC_CIBLE_CODES_VALIDES,
+    PUBLIC_CIBLE_CODES_VALIDES, LABELS_QUALITE_NEUTRES,
 )
 from utils.geo import distance_km, distance_km_approx, distance_score
 
@@ -421,8 +421,9 @@ def compute_score(show, demande):
     total = (spec_ratio * 40 + event_ratio * 25 + lieu_ratio * 20 + region_ratio * 15)
     # Bonus tranche d'âge (hors pondération principale, max +10)
     total = min(100.0, total + age_bonus)
-    # Bonus labels qualité (admin) : +3 par label, plafonné à +6
-    label_set = _csv_to_set(getattr(show, "labels", None))
+    # Bonus labels qualité (admin) : +3 par label, plafonné à +6.
+    # Les labels neutres (ex. « édition libre ») sont informatifs : aucun bonus.
+    label_set = _csv_to_set(getattr(show, "labels", None)) - LABELS_QUALITE_NEUTRES
     label_bonus = min(6.0, 3.0 * len(label_set))
     if label_bonus:
         total = min(100.0, total + label_bonus)
@@ -457,6 +458,10 @@ def find_matching_shows(demande, all_shows, min_score=1):
     dem_specs = _csv_to_set(demande.specialites_recherchees)
     results = []
     for show in all_shows:
+        # Exclure totalement les spectacles « hors sélection » (label neutre,
+        # ex. « édition libre ») : ils ne reçoivent jamais d'appel d'offres.
+        if _csv_to_set(getattr(show, "labels", None)) & LABELS_QUALITE_NEUTRES:
+            continue
         score = compute_score(show, demande)
         # Exclure les shows incompatibles avec la tranche d'âge
         if not score["age_compatible"]:

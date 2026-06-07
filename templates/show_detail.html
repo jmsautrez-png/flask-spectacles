@@ -143,8 +143,10 @@
       <div style="display:flex; gap:10px; flex-wrap:wrap; margin-bottom:32px;">
         {% if show.labels %}
           {% for code in show.labels.split(',') %}
-            {% set lbl = LABELS_QUALITE_LABELS.get(code.strip()) %}
-            {% if lbl %}<span class="badge badge-label">{{ lbl }}</span>{% endif %}
+            {% set _c = code.strip() %}
+            {% set lbl = LABELS_QUALITE_LABELS.get(_c) %}
+            {% set _desc = LABELS_QUALITE_DESCRIPTIONS.get(_c) %}
+            {% if lbl %}<span class="badge {% if _c == 'edition_libre' %}badge-label-neutral{% else %}badge-label{% endif %}"{% if _desc %} title="{{ _desc }}"{% endif %}>{{ lbl }}</span>{% endif %}
           {% endfor %}
         {% endif %}
         {% if show.specialites %}
@@ -373,6 +375,15 @@ a.btn-demande:hover {
   color: #fff;
   border-color: transparent;
   font-weight: 700;
+  cursor: help;
+}
+
+.badge-label-neutral {
+  background: rgba(255,255,255,0.06);
+  color: #b0b0b0;
+  border: 1px solid rgba(255,255,255,0.18);
+  font-weight: 600;
+  cursor: help;
 }
 
 /* Liens dans la description : lisibles sur fond sombre */
