@@ -523,8 +523,8 @@ LABELS_QUALITE_LABELS = dict(LABELS_QUALITE)
 # Mapping code → description (infobulle affichée au survol du badge)
 LABELS_QUALITE_DESCRIPTIONS = {
     "premium":        "Spectacle d'exception, sélectionné et mis en avant par Spectacle'ment pour sa qualité remarquable.",
-    "incontournable": "Une valeur sûre plébiscitée par les organisateurs et Spectacle'ment Vôtre : un spectacle à ne pas manquer.",
-    "pro_verifie":    "Compagnie professionnelle dont l'identité et le sérieux ont été vérifiés par Spectacle'ment.",
+    "incontournable": "Une valeur sûre plébiscitée par les organisateurs : un spectacle à ne pas manquer.",
+    "pro_verifie":    "Compagnie professionnelle dont la qualité a été approuvée par Spectacle'ment Vôtre.",
     "coup_de_coeur":  "Le coup de cœur de l'équipe Spectacle'ment : un spectacle que nous avons particulièrement apprécié.",
     "edition_libre":  "Cette compagnie publie sa fiche en accès libre. Elle ne fait pas partie de la sélection vérifiée par Spectacle'ment.",
 }
