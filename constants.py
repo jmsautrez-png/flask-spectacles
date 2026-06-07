@@ -508,7 +508,7 @@ LABELS_QUALITE = [
     ("incontournable", "🌟 Incontournable"),
     ("pro_verifie",    "🛡️ Pro vérifié"),
     ("coup_de_coeur",  "💜 Coup de cœur"),
-    ("edition_libre",  "📖 Édition libre (hors sélection Spectacle'ment)"),
+    ("edition_libre",  "📖 Édition libre"),
 ]
 
 # Labels neutres : informatifs, sans bonus de matching, style gris
