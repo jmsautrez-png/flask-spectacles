@@ -3033,6 +3033,35 @@ def register_routes(app: Flask) -> None:
             db.session.rollback()
             return f"<h1>❌ Erreur lors de la migration</h1><pre>{str(e)}</pre><a href='/admin'>Retour admin</a>"
     
+    @app.route("/admin/labels/pro-verifie-tous", methods=["POST"])
+    @login_required
+    @admin_required
+    def labels_pro_verifie_tous():
+        """Ajoute le label « pro_verifie » à TOUS les spectacles, en une passe.
+
+        Idempotent : préserve les labels existants, n'ajoute pas de doublon,
+        respecte le maximum de 2 labels et ignore les spectacles « édition libre ».
+        S'exécute sur la base de l'application en cours (donc la bonne base en prod).
+        """
+        ajoutes = deja = ignores = 0
+        for show in Show.query.all():
+            codes = [c.strip() for c in (show.labels or "").split(",") if c.strip()]
+            if "edition_libre" in codes:
+                ignores += 1
+                continue
+            if "pro_verifie" in codes:
+                deja += 1
+                continue
+            if len(codes) >= 2:
+                ignores += 1
+                continue
+            codes.append("pro_verifie")
+            show.labels = ",".join(codes)
+            ajoutes += 1
+        db.session.commit()
+        flash(f"Pro vérifié appliqué : {ajoutes} ajouté(s), {deja} déjà présent(s), {ignores} ignoré(s).", "success")
+        return redirect(url_for("admin_dashboard"))
+    
     # Route de DEBUG pour voir tous les headers HTTP (TEMPORAIRE)
     @app.route("/admin/debug-headers")
     @admin_required
