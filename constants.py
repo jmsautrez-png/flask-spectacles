@@ -508,6 +508,7 @@ LABELS_QUALITE = [
     ("incontournable", "🌟 Incontournable"),
     ("pro_verifie",    "🛡️ Pro vérifié"),
     ("coup_de_coeur",  "💜 Coup de cœur"),
+    ("jeune_public",   "🧒 Spécialiste jeune public"),
     ("edition_libre",  "📖 Édition libre"),
 ]
 
@@ -526,5 +527,6 @@ LABELS_QUALITE_DESCRIPTIONS = {
     "incontournable": "Une valeur sûre plébiscitée par les organisateurs : un spectacle à ne pas manquer.",
     "pro_verifie":    "Compagnie professionnelle dont la qualité a été approuvée par Spectacle'ment Vôtre.",
     "coup_de_coeur":  "Le coup de cœur de l'équipe Spectacle'ment : un spectacle que nous avons particulièrement apprécié.",
+    "jeune_public":   "Compagnie spécialisée dans les spectacles pour le jeune public (crèches, écoles, familles).",
     "edition_libre":  "Cette compagnie publie sa fiche en accès libre. Elle ne fait pas partie de la sélection vérifiée par Spectacle'ment.",
 }
