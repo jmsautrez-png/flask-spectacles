@@ -30,6 +30,7 @@ SPECIALITES = {
         "Spectacle Médiéval",
         "Spectacle Animalier",
         "Spectacle à Thèmes",
+        "Spectacle écologie et nature",
         "Spectacle Halloween",
         "Spectacle Événementiel",
         "Spectacle de Cabaret",
