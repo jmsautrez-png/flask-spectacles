@@ -1,0 +1,123 @@
+{% extends "base.html" %}
+{% block title %}Soutenir Spectacle'ment VØtre{% endblock %}
+
+{% block content %}
+<style>
+  .don-hero {
+    text-align: center;
+    padding: 3rem 1rem;
+    background: linear-gradient(135deg, rgba(109, 19, 19, 0.12), rgba(255, 193, 7, 0.12));
+    border-radius: 20px;
+    margin-bottom: 2rem;
+  }
+  .don-hero h1 {
+    font-size: 2.4rem;
+    color: var(--primary);
+    margin-bottom: 1rem;
+  }
+  .don-hero .subtitle {
+    font-size: 1.15rem;
+    color: var(--text-muted);
+    max-width: 720px;
+    margin: 0 auto;
+  }
+  .don-section {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 2rem;
+    margin-bottom: 2rem;
+    max-width: 760px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  .don-section h2 {
+    color: var(--primary);
+    font-size: 1.4rem;
+    margin-bottom: 1rem;
+  }
+  .don-section p {
+    line-height: 1.7;
+    margin-bottom: 1rem;
+  }
+  .don-cta {
+    text-align: center;
+    margin: 2.5rem 0 1rem;
+  }
+  .don-btn {
+    display: inline-block;
+    padding: 16px 40px;
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: #fff;
+    background: linear-gradient(135deg, #e91e63 0%, #ff9800 100%);
+    border: none;
+    border-radius: 50px;
+    text-decoration: none;
+    box-shadow: 0 6px 20px rgba(233, 30, 99, 0.35);
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+  }
+  .don-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 26px rgba(233, 30, 99, 0.45);
+  }
+  .don-note {
+    text-align: center;
+    font-size: 0.9rem;
+    color: var(--text-muted);
+    margin-top: 1rem;
+  }
+  .don-args {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+  .don-args li {
+    padding: 8px 0 8px 32px;
+    position: relative;
+    line-height: 1.6;
+  }
+  .don-args li::before {
+    content: "💛";
+    position: absolute;
+    left: 0;
+  }
+</style>
+
+<div class="don-hero">
+  <h1>💛 Soutenir Spectacle'ment VØtre</h1>
+  <p class="subtitle">
+    Notre association met gratuitement en relation les organisateurs d'événements
+    et les artistes du spectacle vivant. Votre soutien nous aide à faire vivre et
+    grandir cette plateforme.
+  </p>
+</div>
+
+<div class="don-section">
+  <h2>Pourquoi faire un don ?</h2>
+  <p>
+    Spectacle'ment VØtre est porté par une <strong>association</strong>. Chaque don,
+    même modeste, contribue directement à :
+  </p>
+  <ul class="don-args">
+    <li>Maintenir la plateforme en ligne (hébergement, nom de domaine, sécurité)</li>
+    <li>Développer de nouvelles fonctionnalités pour les compagnies et les organisateurs</li>
+    <li>Garder le service <strong>gratuit et accessible</strong> au plus grand nombre</li>
+    <li>Soutenir la visibilité du spectacle vivant partout en France</li>
+  </ul>
+
+  <div class="don-cta">
+    {% if don_url %}
+      <a href="{{ don_url }}" class="don-btn" target="_blank" rel="noopener noreferrer">
+        Faire un don
+      </a>
+      <p class="don-note">
+        Paiement 100 % sécurisé via PayPal. Don libre, sans contrepartie.
+      </p>
+    {% else %}
+      <span class="don-btn" style="opacity:0.6; cursor:not-allowed;">Faire un don (bientôt disponible)</span>
+      <p class="don-note">Le module de don sera disponible très prochainement. Merci de votre soutien&nbsp;!</p>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

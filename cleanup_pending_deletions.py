@@ -7,7 +7,7 @@ Usage :
     python cleanup_pending_deletions.py
 """
 from datetime import datetime
-from app import app, db
+from app import app, db, notify_admin_show_deletion
 from models.models import User, Show, ShowView, Review, Conversation, Message, Notification
 
 try:
@@ -96,10 +96,26 @@ def main():
             print(f"  🗑️  Suppression {u.username} (id={u.id}, email={u.email})")
             email = u.email
             username = u.username
+            # Capture des fiches AVANT suppression (pour l'alerte e-mail admin)
+            shows_info = []
+            if hasattr(u, 'shows'):
+                for s in u.shows:
+                    shows_info.append({
+                        "id": s.id,
+                        "title": s.title,
+                        "raison_sociale": getattr(s, "raison_sociale", None),
+                        "category": getattr(s, "category", None),
+                        "region": getattr(s, "region", None),
+                    })
             try:
                 _delete_user_cascade(u)
                 db.session.commit()
                 _send_final_email(username, email)
+                notify_admin_show_deletion(
+                    "Compte supprimé pour inactivité",
+                    shows_info,
+                    {"username": username, "email": email},
+                )
                 nb_deleted += 1
             except Exception as e:
                 db.session.rollback()
