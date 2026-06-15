@@ -24,6 +24,7 @@ SPECIALITES = {
         "Conte",
         "Spectacle de Marionnettes",
         # Types de spectacle
+        "Spectacle d'animation enfant, adulte ou EHPAD",
         "Spectacle de Rue",
         "Parade de rue / Déambulation",
         "Spectacle en roulotte",
