@@ -32,6 +32,7 @@ SPECIALITES = {
         "Spectacle Animalier",
         "Spectacle à Thèmes",
         "Spectacle écologie et nature",
+        "Spectacle champêtre",
         "Spectacle Halloween",
         "Spectacle Événementiel",
         "Spectacle de Cabaret",
@@ -134,6 +135,7 @@ SPECIALITES = {
         "Orchestre de bal",
         "Bal grande production",
         "Bal folk / trad",
+        "Thé dansant",
         "Soirée dansante / Piste de danse",
         "Animation mariage (cérémonie + soirée)",
         # Ambiance & déambulation
@@ -163,6 +165,7 @@ EVENEMENTS = {
         "Fête de fin d'année",
         "Fête de la musique",
         "Bal populaire",
+        "Thé dansant",
         "Soirée dansante",
         "Soirée à thème",
         "Gala",
