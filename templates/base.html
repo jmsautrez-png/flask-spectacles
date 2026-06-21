@@ -1222,7 +1222,7 @@
     {% endif %}
     <a href="{{ url_for('contact') }}" class="menu-contact">Contact</a>
     <a href="{{ url_for('about') }}" class="menu-about">Qui sommes-nous</a>
-    <a href="{{ url_for('soutenir') }}" class="menu-soutenir">💛 Soutenir</a>
+    <a href="{{ url_for('contact', sujet='don') }}" class="menu-soutenir">💛 Soutenir</a>
     <a href="/ecoles" class="menu-pedagogique">Intervention pédagogique</a>
     <a href="{{ url_for('abonnement_compagnie') }}" class="menu-abonnement">Accompagnement Premium</a>
   </div>

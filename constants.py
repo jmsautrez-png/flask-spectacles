@@ -2,6 +2,15 @@
 # Chaque dictionnaire : clé = nom de l'accordéon, valeur = liste de choix
 
 # ═══════════════════════════════════════════════════════════════════
+# INTERRUPTEUR — Affichage des coordonnées directes sur la fiche spectacle
+# Mettre à True pour MASQUER l'email et le site internet (le visiteur passe
+# alors par le formulaire « Demander un devis » → boîte Spectacle'ment Vôtre).
+# Le téléphone reste affiché. Repasser à False pour tout réafficher à tout moment.
+# Aucune donnée n'est supprimée : seul l'affichage est masqué.
+# ═══════════════════════════════════════════════════════════════════
+MASQUER_COORDONNEES_DIRECTES = True
+
+# ═══════════════════════════════════════════════════════════════════
 # AXE 1 — SPÉCIALITÉS ARTISTIQUES ("Ce que je fais")
 # Utilisé sur : carte spectacle (compagnie) + appel d'offre (mairie)
 # ═══════════════════════════════════════════════════════════════════

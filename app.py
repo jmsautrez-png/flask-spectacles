@@ -95,7 +95,7 @@ from utils.security import (
 )
 from utils.search import normalize_search_text, generate_search_patterns
 from utils.seo import SEO_CATEGORIES, optimize_title_seo
-from constants import SPECIALITES, EVENEMENTS, LIEUX, REGIONS_FRANCE, REGIONS_VOISINES, PUBLICS, PUBLIC_CIBLE_CATEGORIES, PUBLIC_CIBLE_ORGANISATEUR, PUBLIC_CIBLE_ADMIN, PUBLIC_CIBLE_INCOMPATIBLES, PUBLIC_CIBLE_CODES_VALIDES, LABELS_QUALITE, LABELS_QUALITE_CODES, LABELS_QUALITE_LABELS, LABELS_QUALITE_DESCRIPTIONS
+from constants import SPECIALITES, EVENEMENTS, LIEUX, REGIONS_FRANCE, REGIONS_VOISINES, PUBLICS, PUBLIC_CIBLE_CATEGORIES, PUBLIC_CIBLE_ORGANISATEUR, PUBLIC_CIBLE_ADMIN, PUBLIC_CIBLE_INCOMPATIBLES, PUBLIC_CIBLE_CODES_VALIDES, LABELS_QUALITE, LABELS_QUALITE_CODES, LABELS_QUALITE_LABELS, LABELS_QUALITE_DESCRIPTIONS, MASQUER_COORDONNEES_DIRECTES
 
 print("✓ Config, models et utils importés")
 
@@ -819,6 +819,7 @@ def create_app() -> Flask:
             'PUBLIC_CIBLE_INCOMPATIBLES': PUBLIC_CIBLE_INCOMPATIBLES,
             'LABELS_QUALITE_LABELS': LABELS_QUALITE_LABELS,
             'LABELS_QUALITE_DESCRIPTIONS': LABELS_QUALITE_DESCRIPTIONS,
+            'MASQUER_COORDONNEES_DIRECTES': MASQUER_COORDONNEES_DIRECTES,
         }
 
     register_routes(app)
@@ -4582,7 +4583,8 @@ Accessibilité: {accessibilite}
                 print("[MAIL] Erreur envoi contact:", e)
                 flash(f"Erreur lors de l'envoi du message: {e}", "danger")
             return render_template("contact.html")
-        return render_template("contact.html")
+        sujet = request.args.get("sujet", "").strip()
+        return render_template("contact.html", sujet=sujet)
 
     @app.route("/demandes-animation")
     def demandes_animation():

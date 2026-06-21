@@ -10,12 +10,47 @@
   
   <!-- Page Header -->
   <div style="text-align:center; margin-bottom:40px; color:#fff;">
-    <h1 style="font-size:2rem; margin:0 0 12px 0; text-shadow:0 2px 8px #16244766;">Contact/Abonnement</h1>
+    <h1 style="font-size:2rem; margin:0 0 12px 0; text-shadow:0 2px 8px #16244766;">{% if sujet == 'don' %}Soutenir{% elif sujet == 'fiche-paie' %}Devis fiches de paie{% else %}Contact/Abonnement{% endif %}</h1>
+    {% if sujet != 'don' and sujet != 'fiche-paie' %}
     <p style="color:#fff; font-size:1rem; line-height:1.6; max-width:600px; margin:0 auto; text-shadow:0 1px 4px #16244744; font-weight:700;">
       Pour toute demande d'abonnement, de question ou information complémentaire, veuillez remplir le formulaire ci-dessous ou nous écrire à 
       <a href="mailto:contact@spectacleanimation.fr" style="color:#fff; font-weight:700; text-decoration:none; border-bottom:2px solid #fff;">contact@spectacleanimation.fr</a>
     </p>
+    {% endif %}
   </div>
+
+  {% if sujet == 'don' %}
+  <!-- Encart dédié : Soutenir / Don -->
+  <div style="background:linear-gradient(135deg,#1b2a4e 0%,#283e5e 100%); border:2px solid #ffc107; border-radius:16px; padding:28px 32px; margin-bottom:32px; color:#fff; box-shadow:0 4px 16px rgba(255,193,7,0.25);">
+    <h2 style="font-size:1.4rem; margin:0 0 16px 0; color:#ffc107;">💛 Soutenir Spectacle'ment VØtre</h2>
+    <p style="color:#e0e6f6; font-size:0.95rem; line-height:1.7; margin:0 0 12px 0;">
+      Vous souhaitez nous soutenir par un <strong style="color:#fff;">don</strong> (PayPal par exemple) ?
+      Laissez-nous un message ci-dessous : nous vous répondrons avec les informations nécessaires pour effectuer votre don.
+    </p>
+    <p style="color:#e0e6f6; font-size:0.9rem; line-height:1.6; margin:0;">
+      Chaque contribution nous aide à faire vivre et grandir la plateforme. Merci de votre générosité ❤️
+    </p>
+  </div>
+  {% endif %}
+
+  {% if sujet == 'fiche-paie' %}
+  <!-- Encart dédié : Service de fiches de paie -->
+  <div style="background:linear-gradient(135deg,#1b2a4e 0%,#283e5e 100%); border:2px solid #ffc107; border-radius:16px; padding:28px 32px; margin-bottom:32px; color:#fff; box-shadow:0 4px 16px rgba(255,193,7,0.25);">
+    <h2 style="font-size:1.4rem; margin:0 0 16px 0; color:#ffc107;">💶 Service de fiches de paie</h2>
+    <p style="color:#e0e6f6; font-size:0.95rem; line-height:1.7; margin:0 0 16px 0;">
+      Confiez-nous l'établissement des fiches de paie de vos artistes et techniciens intermittents.
+      Nous prenons en charge l'intégralité des déclarations sociales associées.
+    </p>
+    <ul style="margin:0 0 16px 0; padding-left:20px; font-size:0.95rem; color:#e0e6f6; line-height:1.9;">
+      <li><strong style="color:#fff;">Licence annuelle : 220 € TTC</strong></li>
+      <li><strong style="color:#fff;">16 € la fiche de paie</strong> <span style="color:#e0e6f6;">(incluant DPAE / AEM / DSN)</span></li>
+    </ul>
+    <p style="color:#e0e6f6; font-size:0.9rem; line-height:1.6; margin:0;">
+      Indiquez ci-dessous le <strong style="color:#fff;">nombre estimé de fiches par mois</strong> et la période concernée,
+      nous vous établirons un devis personnalisé.
+    </p>
+  </div>
+  {% endif %}
 
   <!-- Contact Form Card -->
   <div style="background:linear-gradient(135deg,#162447 0%,#283e5e 100%); border:2px solid #283e5e; border-radius:16px; padding:32px; margin-bottom:32px; position:relative; overflow:hidden; box-shadow:0 4px 16px #16244722; color:#fff;">
@@ -58,7 +93,22 @@
           rows="6" 
           required
           placeholder="Décrivez votre demande..."
-          style="width:100%; padding:12px 16px; border-radius:10px; border:1px solid var(--border); background:#121218; color:var(--text); font-size:1rem; font-family:inherit; resize:vertical; min-height:120px; line-height:1.5; transition:all 0.2s ease;"></textarea>
+          style="width:100%; padding:12px 16px; border-radius:10px; border:1px solid var(--border); background:#121218; color:var(--text); font-size:1rem; font-family:inherit; resize:vertical; min-height:120px; line-height:1.5; transition:all 0.2s ease;">{% if sujet == 'fiche-paie' %}Bonjour,
+
+Je souhaite obtenir un devis personnalisé pour le service de fiches de paie (licence annuelle 220 € TTC + 16 € la fiche, DPAE/AEM/DSN inclus).
+
+- Nombre estimé de fiches par mois : 
+- Période concernée : 
+- Nom de la compagnie : 
+
+Merci.{% elif sujet == 'don' %}Bonjour,
+
+Je souhaite soutenir Spectacle'ment VØtre par un don.
+
+- Mode de don souhaité (PayPal, autre) : 
+- Montant envisagé (facultatif) : 
+
+Merci de me communiquer les informations nécessaires.{% endif %}</textarea>
       </div>
 
       <!-- Submit Button -->
