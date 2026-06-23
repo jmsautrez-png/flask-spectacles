@@ -2601,8 +2601,8 @@ def register_routes(app: Flask) -> None:
   </div>
   <div style="background:#f9f9f9; padding:24px; border-radius:0 0 8px 8px; border:1px solid #e0e0e0;">
     <p>Bonjour <strong>{nom}</strong>,</p>
-    <p>Votre demande de devis pour le spectacle <strong>« {show.title} »</strong> a bien été transmise à la compagnie.</p>
-    <p>Elle vous contactera directement par email ou téléphone.</p>
+    <p>Nous avons bien reçu votre demande de devis pour le spectacle <strong>« {show.title} »</strong>.</p>
+    <p>Notre équipe la traite dans les plus brefs délais et reviendra vers vous très rapidement.</p>
     <p style="margin-top:20px; font-size:0.85rem; color:#666;">— L'équipe Spectacle'ment VØtre</p>
   </div>
 </body></html>"""

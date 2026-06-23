@@ -72,7 +72,10 @@ SPECIALITES = {
         # Léger / Comique
         "Théâtre de comédie",
         "Théâtre de boulevard",
+        "Café-théâtre",
         "One-man-show",
+        "Stand-up",
+        "Seul en scène",
         # Conférence
         "Conférence gesticulée",
         # Amateur
