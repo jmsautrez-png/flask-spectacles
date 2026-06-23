@@ -36,7 +36,7 @@ services:
       - key: S3_REGION
         value: eu-west-1
 
-  # === Cron : marquer en préavis 7j les comptes inactifs (sans spectacle publié) ===
+  # === Cron : marquer en préavis 2j les comptes inactifs (sans spectacle publié) ===
   - type: cron
     name: auto-flag-inactive-users
     env: python

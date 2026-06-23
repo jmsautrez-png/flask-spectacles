@@ -2,7 +2,7 @@
 Script à exécuter périodiquement (cron / Render Cron Job, ex. quotidien) pour
 détecter les comptes utilisateurs inscrits depuis plus de N_INACTIVITY_DAYS
 qui n'ont **aucun spectacle approuvé** et leur poser un préavis de suppression
-de 7 jours + envoyer un email d'avertissement.
+de 2 jours + envoyer un email d'avertissement.
 
 Le script `cleanup_pending_deletions.py` se charge ensuite de la suppression
 définitive une fois le préavis dépassé.
@@ -21,9 +21,9 @@ except Exception:
 
 
 # Nombre de jours d'inactivité (depuis inscription) avant de poser le préavis
-N_INACTIVITY_DAYS = 7
+N_INACTIVITY_DAYS = 2
 # Durée du préavis (avant suppression définitive)
-N_NOTICE_DAYS = 7
+N_NOTICE_DAYS = 2
 
 
 def _send_notice_email(username, email, deadline_str):
@@ -58,7 +58,7 @@ def _send_notice_email(username, email, deadline_str):
 </body></html>"""
     try:
         msg = MailMessage(
-            subject="\u23F3 Votre compte Spectacle'ment V\u00D8tre sera supprim\u00E9 dans 7 jours",
+            subject="\u23F3 Votre compte Spectacle'ment V\u00D8tre sera supprim\u00E9 dans 2 jours",
             recipients=[email],
         )
         msg.html = body_html

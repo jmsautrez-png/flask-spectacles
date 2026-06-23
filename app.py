@@ -95,7 +95,7 @@ from utils.security import (
 )
 from utils.search import normalize_search_text, generate_search_patterns
 from utils.seo import SEO_CATEGORIES, optimize_title_seo
-from constants import SPECIALITES, EVENEMENTS, LIEUX, REGIONS_FRANCE, REGIONS_VOISINES, PUBLICS, PUBLIC_CIBLE_CATEGORIES, PUBLIC_CIBLE_ORGANISATEUR, PUBLIC_CIBLE_ADMIN, PUBLIC_CIBLE_INCOMPATIBLES, PUBLIC_CIBLE_CODES_VALIDES, LABELS_QUALITE, LABELS_QUALITE_CODES, LABELS_QUALITE_LABELS, LABELS_QUALITE_DESCRIPTIONS, MASQUER_COORDONNEES_DIRECTES
+from constants import SPECIALITES, EVENEMENTS, LIEUX, REGIONS_FRANCE, REGIONS_VOISINES, PUBLICS, PUBLIC_CIBLE_CATEGORIES, PUBLIC_CIBLE_ORGANISATEUR, PUBLIC_CIBLE_ADMIN, PUBLIC_CIBLE_INCOMPATIBLES, PUBLIC_CIBLE_CODES_VALIDES
 
 print("✓ Config, models et utils importés")
 
@@ -817,9 +817,6 @@ def create_app() -> Flask:
             'PUBLIC_CIBLE_ORGANISATEUR': PUBLIC_CIBLE_ORGANISATEUR,
             'PUBLIC_CIBLE_ADMIN': PUBLIC_CIBLE_ADMIN,
             'PUBLIC_CIBLE_INCOMPATIBLES': PUBLIC_CIBLE_INCOMPATIBLES,
-            'LABELS_QUALITE_LABELS': LABELS_QUALITE_LABELS,
-            'LABELS_QUALITE_DESCRIPTIONS': LABELS_QUALITE_DESCRIPTIONS,
-            'MASQUER_COORDONNEES_DIRECTES': MASQUER_COORDONNEES_DIRECTES,
         }
 
     register_routes(app)
@@ -864,7 +861,6 @@ def _run_critical_migrations(app: Flask) -> None:
         ("shows", "regions_intervention", "TEXT", "TEXT", None),
         ("shows", "public_categories", "TEXT", "TEXT", None),
         ("shows", "public_sous_options", "TEXT", "TEXT", None),
-        ("shows", "labels", "TEXT", "TEXT", None),
         # ── demande_animation ──
         ("demande_animation", "is_private", "BOOLEAN DEFAULT FALSE", "BOOLEAN DEFAULT 0", "FALSE"),
         ("demande_animation", "approved", "BOOLEAN DEFAULT FALSE", "BOOLEAN DEFAULT 0", "FALSE"),
@@ -1205,114 +1201,6 @@ def _send_recap_to_organisateur(demande, shows_contactes):
         return True
     except Exception as e:
         print(f"[RECAP] ⚠️ Erreur envoi récap organisateur: {e}")
-        return False
-
-
-def notify_admin_show_deletion(reason, items, owner_info=None):
-    """Envoie un e-mail d'alerte à l'admin quand une ou plusieurs fiches (ou un
-    compte et ses fiches) sont supprimées.
-
-    - reason : texte court décrivant le contexte (ex. "Fiche supprimée (admin)").
-    - items  : liste de dict {id, title, raison_sociale, category, region}.
-    - owner_info : dict {username, email} du propriétaire, ou None.
-
-    Doit être appelée DANS un contexte d'application (current_app disponible).
-    Les données doivent être capturées AVANT la suppression effective en base.
-    Ne lève jamais d'exception (échec d'envoi non bloquant).
-    """
-    try:
-        if MailMessage is None:
-            return False
-        if not getattr(current_app, "mail", None):
-            return False
-        if not current_app.config.get("MAIL_USERNAME") or not current_app.config.get("MAIL_PASSWORD"):
-            return False
-        admin_email = current_app.config.get("MAIL_DEFAULT_SENDER") or current_app.config.get("MAIL_USERNAME")
-        if not admin_email:
-            return False
-
-        from markupsafe import escape
-
-        items = items or []
-        nb = len(items)
-        rows = ""
-        for it in items:
-            sid = escape(str(it.get("id", "") or ""))
-            titre = escape(it.get("title") or "(sans titre)")
-            rs = escape(it.get("raison_sociale") or "")
-            cat = escape(it.get("category") or "")
-            reg = escape(it.get("region") or "")
-            rows += (
-                "<tr>"
-                f"<td style='padding:6px 10px;border:1px solid #eee;'>#{sid}</td>"
-                f"<td style='padding:6px 10px;border:1px solid #eee;'><strong>{titre}</strong></td>"
-                f"<td style='padding:6px 10px;border:1px solid #eee;'>{rs}</td>"
-                f"<td style='padding:6px 10px;border:1px solid #eee;'>{cat} · {reg}</td>"
-                "</tr>"
-            )
-        table_block = ""
-        if rows:
-            table_block = (
-                "<table style='border-collapse:collapse;width:100%;margin-top:8px;font-size:14px;'>"
-                "<tr style='background:#f5f5f5;'>"
-                "<th style='padding:6px 10px;border:1px solid #eee;text-align:left;'>ID</th>"
-                "<th style='padding:6px 10px;border:1px solid #eee;text-align:left;'>Titre</th>"
-                "<th style='padding:6px 10px;border:1px solid #eee;text-align:left;'>Compagnie</th>"
-                "<th style='padding:6px 10px;border:1px solid #eee;text-align:left;'>Catégorie · Région</th>"
-                "</tr>"
-                f"{rows}</table>"
-            )
-        else:
-            table_block = "<p style='color:#666;margin:8px 0 0;'>Aucune fiche associée.</p>"
-
-        owner_block = ""
-        if owner_info:
-            uname = escape(owner_info.get("username") or "")
-            uemail = escape(owner_info.get("email") or "")
-            owner_block = (
-                f"<p style='margin:0 0 12px;'>Compte concerné : "
-                f"<strong>{uname}</strong>"
-                + (f" — {uemail}" if uemail else "")
-                + "</p>"
-            )
-
-        reason_safe = escape(reason or "Suppression de fiche")
-        now_str = datetime.utcnow().strftime("%d/%m/%Y %H:%M UTC")
-        # Si aucune fiche (ex. compte inactif jamais utilisé), l'e-mail parle
-        # du compte supprimé et n'affiche pas de tableau "0 fiche".
-        if nb == 0:
-            fiches_block = (
-                "<p style='margin:0 0 4px;color:#666;'>"
-                "Ce compte ne possédait <strong>aucune fiche publiée</strong>.</p>"
-            )
-            subject = f"🗑️ {reason_safe} (compte sans fiche)"
-        else:
-            fiches_block = (
-                f"<p style='margin:0 0 4px;'><strong>Fiche(s) supprimée(s) ({nb}) :</strong></p>"
-                f"{table_block}"
-            )
-            subject = f"🗑️ {reason_safe} ({nb} fiche{'s' if nb != 1 else ''})"
-        body_html = f"""<!DOCTYPE html>
-<html lang="fr"><head><meta charset="UTF-8"></head>
-<body style="font-family:Arial,sans-serif;color:#333;max-width:640px;margin:0 auto;">
-  <div style="background:linear-gradient(135deg,#b71c1c,#e53935);padding:20px;text-align:center;border-radius:8px 8px 0 0;">
-    <h2 style="color:#fff;margin:0;">🗑️ Suppression sur Spectacle'ment VØtre</h2>
-  </div>
-  <div style="background:#f9f9f9;padding:24px;border-radius:0 0 8px 8px;border:1px solid #e0e0e0;">
-    <p style="margin:0 0 12px;"><strong>Motif :</strong> {reason_safe}</p>
-    {owner_block}
-    {fiches_block}
-    <p style="color:#999;font-size:12px;margin-top:20px;">Notification automatique — {now_str}</p>
-  </div>
-</body></html>"""
-
-        msg = MailMessage(subject=subject, recipients=[admin_email])
-        msg.html = body_html
-        current_app.mail.send(msg)
-        print(f"[NOTIF ADMIN] ✅ Alerte suppression envoyée à {admin_email} ({reason})")
-        return True
-    except Exception as e:
-        print(f"[NOTIF ADMIN] ⚠️ Alerte suppression non envoyée (non bloquant): {e}")
         return False
 
 
@@ -2601,8 +2489,8 @@ def register_routes(app: Flask) -> None:
   </div>
   <div style="background:#f9f9f9; padding:24px; border-radius:0 0 8px 8px; border:1px solid #e0e0e0;">
     <p>Bonjour <strong>{nom}</strong>,</p>
-    <p>Nous avons bien reçu votre demande de devis pour le spectacle <strong>« {show.title} »</strong>.</p>
-    <p>Notre équipe la traite dans les plus brefs délais et reviendra vers vous très rapidement.</p>
+    <p>Votre demande de devis pour le spectacle <strong>« {show.title} »</strong> a bien été transmise à la compagnie.</p>
+    <p>Elle vous contactera directement par email ou téléphone.</p>
     <p style="margin-top:20px; font-size:0.85rem; color:#666;">— L'équipe Spectacle'ment VØtre</p>
   </div>
 </body></html>"""
@@ -3142,35 +3030,6 @@ def register_routes(app: Flask) -> None:
             db.session.rollback()
             return f"<h1>❌ Erreur lors de la migration</h1><pre>{str(e)}</pre><a href='/admin'>Retour admin</a>"
     
-    @app.route("/admin/labels/pro-verifie-tous", methods=["POST"])
-    @login_required
-    @admin_required
-    def labels_pro_verifie_tous():
-        """Ajoute le label « pro_verifie » à TOUS les spectacles, en une passe.
-
-        Idempotent : préserve les labels existants, n'ajoute pas de doublon,
-        respecte le maximum de 2 labels et ignore les spectacles « édition libre ».
-        S'exécute sur la base de l'application en cours (donc la bonne base en prod).
-        """
-        ajoutes = deja = ignores = 0
-        for show in Show.query.all():
-            codes = [c.strip() for c in (show.labels or "").split(",") if c.strip()]
-            if "edition_libre" in codes:
-                ignores += 1
-                continue
-            if "pro_verifie" in codes:
-                deja += 1
-                continue
-            if len(codes) >= 2:
-                ignores += 1
-                continue
-            codes.append("pro_verifie")
-            show.labels = ",".join(codes)
-            ajoutes += 1
-        db.session.commit()
-        flash(f"Pro vérifié appliqué : {ajoutes} ajouté(s), {deja} déjà présent(s), {ignores} ignoré(s).", "success")
-        return redirect(url_for("admin_dashboard"))
-    
     # Route de DEBUG pour voir tous les headers HTTP (TEMPORAIRE)
     @app.route("/admin/debug-headers")
     @admin_required
@@ -3595,21 +3454,13 @@ def register_routes(app: Flask) -> None:
             show.public_categories = ",".join(_pc_cats) or None
             show.public_sous_options = ",".join(_pc_subs) or None
 
-            # Labels qualité (réservés à l'admin, max 2)
-            if current_user() and current_user().is_admin:
-                _labels = [l for l in request.form.getlist("labels") if l in LABELS_QUALITE_CODES][:2]
-                show.labels = ",".join(_labels) or None
-
             db.session.commit()
             flash("Annonce mise à jour.", "success")
-            # Rester sur la page d'édition ; le bouton « Mettre à jour » laisse place
-            # au bouton « Valider le spectacle » (indicateur updated=1).
-            return redirect(url_for("show_edit", show_id=show.id, updated=1))
+            return redirect(url_for("admin_dashboard"))
 
         return render_template("show_form_edit.html", show=show, user=current_user(),
                                specialites_data=SPECIALITES, evenements_data=EVENEMENTS,
                                lieux_data=LIEUX, regions_data=REGIONS_FRANCE,
-                               labels_data=LABELS_QUALITE,
                                all_users=User.query.filter_by(is_admin=False).order_by(User.username).all())
 
     @app.route("/admin/shows/<int:show_id>/delete", methods=["POST"])
@@ -3617,20 +3468,6 @@ def register_routes(app: Flask) -> None:
     @admin_required
     def show_delete(show_id: int):
         show = Show.query.get_or_404(show_id)
-
-        # Capture des infos AVANT suppression (pour l'alerte e-mail admin)
-        _deleted_info = [{
-            "id": show.id,
-            "title": show.title,
-            "raison_sociale": getattr(show, "raison_sociale", None),
-            "category": getattr(show, "category", None),
-            "region": getattr(show, "region", None),
-        }]
-        _owner_info = None
-        if getattr(show, "user_id", None):
-            _owner = User.query.get(show.user_id)
-            if _owner:
-                _owner_info = {"username": _owner.username, "email": _owner.email}
 
         # Supprimer tous les fichiers (photo 1, 2 et 3)
         for fname in [show.file_name, show.file_name2, show.file_name3]:
@@ -3653,7 +3490,6 @@ def register_routes(app: Flask) -> None:
 
         db.session.delete(show)
         db.session.commit()
-        notify_admin_show_deletion("Fiche supprimée (admin)", _deleted_info, _owner_info)
         flash("Annonce supprimée.", "success")
         return redirect(request.referrer or url_for("admin_dashboard"))
 
@@ -4550,18 +4386,6 @@ Accessibilité: {accessibilite}
     def about():
         return render_template("about.html")
 
-    @app.route("/soutenir")
-    def soutenir():
-        """Page de soutien : don libre via PayPal (association, sans contrepartie)."""
-        # Bouton "Don" PayPal : on utilise un hosted_button_id pour ne PAS exposer
-        # l'adresse e-mail du compte. L'identifiant se récupère dans PayPal
-        # (Outils > Boutons PayPal > créer un bouton "Don").
-        button_id = os.environ.get("PAYPAL_BUTTON_ID", "").strip()
-        don_url = os.environ.get("PAYPAL_DON_URL", "").strip()
-        if not don_url and button_id:
-            don_url = f"https://www.paypal.com/donate/?hosted_button_id={button_id}"
-        return render_template("soutenir.html", don_url=don_url)
-
     @app.route("/contact", methods=["GET", "POST"])
     def contact():
         if request.method == "POST":
@@ -4583,8 +4407,7 @@ Accessibilité: {accessibilite}
                 print("[MAIL] Erreur envoi contact:", e)
                 flash(f"Erreur lors de l'envoi du message: {e}", "danger")
             return render_template("contact.html")
-        sujet = request.args.get("sujet", "").strip()
-        return render_template("contact.html", sujet=sujet)
+        return render_template("contact.html")
 
     @app.route("/demandes-animation")
     def demandes_animation():
@@ -6343,7 +6166,7 @@ def admin_update_show_localisation(show_id):
 @login_required
 @admin_required
 def admin_delete_user(user_id):
-    """Suppression d'utilisateur avec préavis 7j si inactif.
+    """Suppression d'utilisateur avec préavis 2j si inactif.
 
     Comportement :
     - Compte avec au moins 1 spectacle approuvé → suppression immédiate (sans email).
@@ -6373,9 +6196,9 @@ def admin_delete_user(user_id):
     # ─── CAS 1 : compte inactif jamais prévenu → enregistrer préavis + mail ───
     if nb_approved == 0 and not pending and not forcer:
         try:
-            user.pending_deletion_at = datetime.utcnow() + timedelta(days=7)
+            user.pending_deletion_at = datetime.utcnow() + timedelta(days=2)
             db.session.commit()
-            current_app.logger.info(f"[ADMIN] Préavis 7j posé sur {username} (ID: {user_id}) par {current_user().username}")
+            current_app.logger.info(f"[ADMIN] Préavis 2j posé sur {username} (ID: {user_id}) par {current_user().username}")
             if user_email and getattr(current_app, "mail", None) and current_app.config.get("MAIL_USERNAME") and current_app.config.get("MAIL_PASSWORD"):
                 deadline_str = user.pending_deletion_at.strftime('%d/%m/%Y')
                 body_html = f"""<!DOCTYPE html>
@@ -6388,7 +6211,7 @@ def admin_delete_user(user_id):
     <div style="padding:28px;color:#333;line-height:1.6;">
       <p>Bonjour <strong>{username}</strong>,</p>
       <p>Nous avons remarqué qu'<strong>aucun spectacle n'a encore été publié</strong> sur votre compte Spectacle'ment VØtre.</p>
-      <p>Sans publication de votre part, votre compte sera <strong>automatiquement supprimé le {deadline_str}</strong> (dans 7 jours).</p>
+      <p>Sans publication de votre part, votre compte sera <strong>automatiquement supprimé le {deadline_str}</strong> (dans 2 jours).</p>
       <div style="background:#e8f5e9;border-left:4px solid #2e7d32;padding:16px 18px;border-radius:6px;margin:20px 0;">
         <p style="margin:0;"><strong>✅ Comment conserver votre compte ?</strong></p>
         <p style="margin:8px 0 0 0;">Connectez-vous et publiez votre premier spectacle. C'est <strong>gratuit</strong> et cela prend quelques minutes.</p>
@@ -6410,13 +6233,13 @@ def admin_delete_user(user_id):
   </div>
 </body></html>"""
                 try:
-                    msg = MailMessage(subject="⏳ Votre compte Spectacle'ment VØtre sera supprimé dans 7 jours", recipients=[user_email])  # type: ignore[arg-type]
+                    msg = MailMessage(subject="⏳ Votre compte Spectacle'ment VØtre sera supprimé dans 2 jours", recipients=[user_email])  # type: ignore[arg-type]
                     msg.html = body_html  # type: ignore[assignment]
                     current_app.mail.send(msg)  # type: ignore[attr-defined]
-                    current_app.logger.info(f"[MAIL] ✓ Préavis 7j envoyé à {user_email}")
+                    current_app.logger.info(f"[MAIL] ✓ Préavis 2j envoyé à {user_email}")
                 except Exception as e:
-                    current_app.logger.error(f"[MAIL] ✗ Préavis 7j non envoyé: {e}")
-            flash(f"⏳ Préavis de 7 jours posé sur « {username} ». Suppression automatique le {user.pending_deletion_at.strftime('%d/%m/%Y')} si aucun spectacle n'est publié.", "warning")
+                    current_app.logger.error(f"[MAIL] ✗ Préavis 2j non envoyé: {e}")
+            flash(f"⏳ Préavis de 2 jours posé sur « {username} ». Suppression automatique le {user.pending_deletion_at.strftime('%d/%m/%Y')} si aucun spectacle n'est publié.", "warning")
         except Exception as e:
             db.session.rollback()
             flash(f"❌ Erreur préavis : {str(e)}", "danger")
@@ -6430,18 +6253,6 @@ def admin_delete_user(user_id):
     try:
         # Supprimer les enregistrements liés à chaque spectacle
         from models.models import ShowView, Review, Conversation, Message, Notification
-        # Capture des fiches AVANT suppression (pour l'alerte e-mail admin)
-        _deleted_shows_info = []
-        if hasattr(user, 'shows'):
-            for show in user.shows:
-                _deleted_shows_info.append({
-                    "id": show.id,
-                    "title": show.title,
-                    "raison_sociale": getattr(show, "raison_sociale", None),
-                    "category": getattr(show, "category", None),
-                    "region": getattr(show, "region", None),
-                })
-        _owner_info = {"username": username, "email": user_email}
         if hasattr(user, 'shows'):
             for show in user.shows:
                 ShowView.query.filter_by(show_id=show.id).delete()
@@ -6461,7 +6272,6 @@ def admin_delete_user(user_id):
         db.session.delete(user)
         db.session.commit()
 
-        notify_admin_show_deletion("Compte supprimé (admin)", _deleted_shows_info, _owner_info)
         flash(f"✅ L'utilisateur « {username} » et ses {nb_shows} spectacle(s) ont été supprimés.", "success")
         current_app.logger.info(f"[ADMIN] Utilisateur {username} (ID: {user_id}) supprimé par {current_user().username}")
 

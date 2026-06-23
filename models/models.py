@@ -61,7 +61,7 @@ class User(db.Model):
     ville = db.Column(db.String(150), nullable=True)        # Ville (ex: Paris)
     departement = db.Column(db.String(100), nullable=True)  # Département (ex: Paris, Rhône)
     site_internet = db.Column(db.String(255), nullable=True)  # Site web de l'utilisateur
-    pending_deletion_at = db.Column(db.DateTime, nullable=True, index=True)  # Date prévue de suppression (préavis 7j inactivité)
+    pending_deletion_at = db.Column(db.DateTime, nullable=True, index=True)  # Date prévue de suppression (préavis 2j inactivité)
 
     def set_password(self, password: str):
         self.password_hash = generate_password_hash(password)
