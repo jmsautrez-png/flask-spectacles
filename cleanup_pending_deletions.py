@@ -32,7 +32,7 @@ def _send_final_email(username, email):
     </div>
     <div style="padding:28px;color:#333;line-height:1.6;">
       <p>Bonjour <strong>{username}</strong>,</p>
-      <p>Conform&eacute;ment au pr&eacute;avis envoy&eacute; il y a 2 jours, votre compte sur <strong>Spectacle'ment V&Oslash;tre</strong> vient d'&ecirc;tre <strong>supprim&eacute; pour inactivit&eacute;</strong> (aucun spectacle publi&eacute;).</p>
+      <p>Conform&eacute;ment au pr&eacute;avis envoy&eacute; il y a 7 jours, votre compte sur <strong>Spectacle'ment V&Oslash;tre</strong> vient d'&ecirc;tre <strong>supprim&eacute; pour inactivit&eacute;</strong> (aucun spectacle publi&eacute;).</p>
       <div style="background:#e8f5e9;border-left:4px solid #2e7d32;padding:16px 18px;border-radius:6px;margin:20px 0;">
         <p style="margin:0;"><strong>Vous changez d'avis ?</strong></p>
         <p style="margin:8px 0 0 0;">L'inscription est toujours <strong>100 % gratuite</strong>.</p>
