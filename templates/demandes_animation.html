@@ -151,7 +151,11 @@
           <div style="background:#e8f5e9; padding:8px; border-radius:8px; margin:0.4rem 0; border:1px solid #4caf50;">
             <p style="margin:0.2rem 0;"><strong>👤 Contact :</strong> {{ demande.nom }}</p>
             <p style="margin:0.2rem 0;"><strong>📞 Téléphone :</strong> {{ demande.telephone }}</p>
-            <p style="margin:0.2rem 0;"><strong>✉️ Email :</strong> <a href="mailto:{{ demande.contact_email }}" style="background:#1976d2;color:#fff;padding:4px 12px;border-radius:6px;text-decoration:none;font-weight:600;font-size:0.85rem;">Répondre</a></p>
+            <p style="margin:0.2rem 0;"><strong>✉️ Email :</strong> <span style="word-break:break-all;font-weight:600;color:#0d47a1;">{{ demande.contact_email }}</span></p>
+            <div style="display:flex;gap:6px;flex-wrap:wrap;margin:0.2rem 0;">
+              <a href="mailto:{{ demande.contact_email }}" style="background:#1976d2;color:#fff;padding:4px 12px;border-radius:6px;text-decoration:none;font-weight:600;font-size:0.85rem;">✉️ Répondre</a>
+              <button type="button" onclick="copierEmail(this, '{{ demande.contact_email|e }}')" style="background:#fff;color:#1976d2;border:1px solid #1976d2;padding:4px 12px;border-radius:6px;font-weight:600;font-size:0.85rem;cursor:pointer;">📋 Copier l'email</button>
+            </div>
           </div>
           <p style="margin:0.2rem 0;"><strong>📍 Lieu/Ville :</strong> {% if user and user.is_admin %}{{ demande.lieu_ville }}{% else %}<a href="{{ url_for('register') }}" style="color:#7c4dff; font-style:italic; text-decoration:underline;">[Lieu masqué]</a>{% endif %}</p>
           <div style="margin:0.4rem 0;">
@@ -324,4 +328,31 @@
   }
 </style>
 {% endif %}
+
+<script>
+function copierEmail(btn, email) {
+  var ancien = btn.innerHTML;
+  function feedback() {
+    btn.innerHTML = '✅ Copié !';
+    setTimeout(function () { btn.innerHTML = ancien; }, 2000);
+  }
+  function fallback() {
+    var ta = document.createElement('textarea');
+    ta.value = email;
+    ta.style.position = 'fixed';
+    ta.style.opacity = '0';
+    document.body.appendChild(ta);
+    ta.focus();
+    ta.select();
+    try { document.execCommand('copy'); feedback(); }
+    catch (e) { window.prompt('Copiez l\'adresse email :', email); }
+    document.body.removeChild(ta);
+  }
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(email).then(feedback).catch(fallback);
+  } else {
+    fallback();
+  }
+}
+</script>
 {% endblock %}
