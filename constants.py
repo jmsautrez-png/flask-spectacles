@@ -76,6 +76,8 @@ SPECIALITES = {
         "One-man-show",
         "Stand-up",
         "Seul en scène",
+        # Arts du geste
+        "Mime",
         # Conférence
         "Conférence gesticulée",
         # Amateur
