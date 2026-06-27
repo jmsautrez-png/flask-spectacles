@@ -281,8 +281,8 @@
               <button class="carousel-nav carousel-prev" aria-label="Photo précédente">‹</button>
               <button class="carousel-nav carousel-next" aria-label="Photo suivante">›</button>
             </div>
-          {% elif spectacle.has_image() %}
-            <img src="{{ thumbnail_url(spectacle.file_name) }}" alt="{{ spectacle.title }}" loading="lazy">
+          {% elif images|length == 1 %}
+            <img src="{{ thumbnail_url(images[0]) }}" alt="{{ spectacle.title }}" loading="lazy">
           {% else %}
             <div class="placeholder">SPECTACLE</div>
           {% endif %}
