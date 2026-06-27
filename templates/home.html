@@ -1607,9 +1607,11 @@ details summary span {
 // Fonction pour initialiser les carousels des spectacles à la une
 (function() {
   var carousels = document.querySelectorAll('[data-carousel]');
-  
-  carousels.forEach(function(carousel, carouselIndex) {
-    if (carousel.dataset.initialized === 'true') return;
+  var raf = window.requestAnimationFrame || function(cb) { return setTimeout(cb, 16); };
+
+  for (var c = 0; c < carousels.length; c++) {
+    var carousel = carousels[c];
+    if (carousel.dataset.initialized === 'true') continue;
     carousel.dataset.initialized = 'true';
     
     var slidesContainer = carousel.querySelector('.carousel-slides');
@@ -1623,7 +1625,7 @@ details summary span {
     var lastChangeTime = Date.now();
     var INTERVAL = 6000;
 
-    if (totalSlides <= 1) return;
+    if (totalSlides <= 1) continue;
 
     function goToSlide(index) {
       if (index < 0) index = totalSlides - 1;
@@ -1632,9 +1634,9 @@ details summary span {
       if (slidesContainer) {
         slidesContainer.style.transform = 'translateX(-' + (currentSlide * 100) + '%)';
       }
-      indicators.forEach(function(ind, i) {
-        ind.classList.toggle('active', i === currentSlide);
-      });
+      for (var i = 0; i < indicators.length; i++) {
+        indicators[i].classList.toggle('active', i === currentSlide);
+      }
       lastChangeTime = Date.now();
     }
 
@@ -1644,18 +1646,24 @@ details summary span {
     function tick() {
       if (!isPaused && document.body.contains(carousel)) {
         if (Date.now() - lastChangeTime >= INTERVAL) nextSlide();
-        requestAnimationFrame(tick);
+        raf(tick);
       }
     }
 
     if (prevBtn) prevBtn.addEventListener('click', function(e) { e.preventDefault(); e.stopPropagation(); prevSlide(); });
     if (nextBtn) nextBtn.addEventListener('click', function(e) { e.preventDefault(); e.stopPropagation(); nextSlide(); });
-    indicators.forEach(function(indicator, i) {
-      indicator.addEventListener('click', function(e) { e.preventDefault(); e.stopPropagation(); goToSlide(i); });
-    });
+    for (var i = 0; i < indicators.length; i++) {
+      (function(index) {
+        indicators[index].addEventListener('click', function(e) {
+          e.preventDefault();
+          e.stopPropagation();
+          goToSlide(index);
+        });
+      })(i);
+    }
 
-    requestAnimationFrame(tick);
-  });
+    raf(tick);
+  }
 })();
 </script>
 
