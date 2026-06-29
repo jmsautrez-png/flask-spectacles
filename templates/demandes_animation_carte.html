@@ -1,0 +1,157 @@
+{% extends "base.html" %}
+{% block title %}Carte des demandes d'animation{% endblock %}
+{% block description %}Carte de France des demandes d'animation par ville.{% endblock %}
+{% block content %}
+<style>
+  .map-hero {
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-start;
+    gap:16px;
+    flex-wrap:wrap;
+    margin-bottom:18px;
+    padding:18px;
+    border-radius:18px;
+    background:linear-gradient(135deg, #101a35 0%, #163a5f 100%);
+    color:#fff;
+    box-shadow:0 10px 30px rgba(0,0,0,0.18);
+  }
+  .map-hero h1 {
+    margin:0 0 6px 0;
+    font-size:clamp(1.5rem, 2.4vw, 2.2rem);
+  }
+  .map-hero p {
+    margin:0;
+    opacity:0.9;
+    line-height:1.5;
+  }
+  .map-actions {
+    display:flex;
+    gap:10px;
+    flex-wrap:wrap;
+  }
+  .map-actions a {
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    padding:10px 16px;
+    border-radius:10px;
+    text-decoration:none;
+    font-weight:700;
+  }
+  .map-panel {
+    display:grid;
+    grid-template-columns:minmax(0, 1.5fr) minmax(280px, 0.7fr);
+    gap:16px;
+    align-items:start;
+  }
+  .map-box,
+  .map-side {
+    background:#fff;
+    border-radius:18px;
+    box-shadow:0 8px 26px rgba(0,0,0,0.12);
+    overflow:hidden;
+  }
+  #demandes-map {
+    width:100%;
+    height:min(72vh, 760px);
+    min-height:520px;
+  }
+  .map-side {
+    padding:18px;
+    color:#1b1b1b;
+  }
+  .map-side .stat {
+    display:flex;
+    justify-content:space-between;
+    gap:12px;
+    padding:12px 0;
+    border-bottom:1px solid #eee;
+  }
+  .map-side .stat:last-child { border-bottom:none; }
+  .legend {
+    display:grid;
+    gap:10px;
+    margin-top:16px;
+  }
+  .legend-item {
+    display:flex;
+    align-items:center;
+    gap:10px;
+    font-size:0.95rem;
+  }
+  .legend-dot {
+    width:14px;
+    height:14px;
+    border-radius:50%;
+    background:#1976d2;
+    box-shadow:0 0 0 4px rgba(25,118,210,0.18);
+    flex:0 0 auto;
+  }
+  @media (max-width: 980px) {
+    .map-panel {
+      grid-template-columns:1fr;
+    }
+    #demandes-map {
+      height:60vh;
+      min-height:420px;
+    }
+  }
+</style>
+
+<div class="map-hero">
+  <div>
+    <h1>🗺️ Carte de France des demandes d'animation</h1>
+    <p>Les épingles sont placées sur la ville de chaque demande publiée.</p>
+  </div>
+  <div class="map-actions">
+    <a href="{{ url_for('demandes_animation', categorie=categorie, region=region) }}" style="background:#fff;color:#1976d2;">← Retour à la liste</a>
+    <a href="{{ url_for('demandes_animation_carte', categorie=categorie, region=region) }}" style="background:#1976d2;color:#fff;">↻ Actualiser</a>
+  </div>
+</div>
+
+<div class="map-panel">
+  <div class="map-box">
+    <div id="demandes-map"></div>
+  </div>
+  <aside class="map-side">
+    <div class="stat"><span>Total des demandes</span><strong>{{ total_demandes }}</strong></div>
+    <div class="stat"><span>Épingles affichées</span><strong>{{ cartes_geocodees }}</strong></div>
+    <div class="stat"><span>Demandes ignorées</span><strong>{{ cartes_ignorees }}</strong></div>
+    <div class="legend">
+      <div class="legend-item"><span class="legend-dot"></span><span>Une épingle = une ville</span></div>
+      <div class="legend-item"><span class="legend-dot" style="background:#28a745; box-shadow:0 0 0 4px rgba(40,167,69,0.18);"></span><span>Clic sur une épingle = résumé de la demande</span></div>
+      <div class="legend-item"><span class="legend-dot" style="background:#ff9800; box-shadow:0 0 0 4px rgba(255,152,0,0.18);"></span><span>La carte suit les filtres catégorie / région</span></div>
+    </div>
+    {% if cartes_ignorees %}
+    <p style="margin-top:18px;color:#666;font-size:0.92rem;line-height:1.5;">
+      Certaines demandes n'ont pas encore pu être positionnées automatiquement. Elles restent visibles dans la liste.
+    </p>
+    {% endif %}
+  </aside>
+</div>
+
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+<script>
+  const markers = {{ markers | tojson }};
+  const franceCenter = [46.603354, 2.213749];
+  const map = L.map('demandes-map', { scrollWheelZoom: true }).setView(franceCenter, 5);
+
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    maxZoom: 18,
+    attribution: '&copy; OpenStreetMap contributors'
+  }).addTo(map);
+
+  const markerGroup = L.featureGroup().addTo(map);
+
+  markers.forEach(function(item) {
+    const marker = L.marker([item.lat, item.lng]).addTo(markerGroup);
+    marker.bindPopup(item.popup_html, { maxWidth: 320 });
+  });
+
+  if (markerGroup.getLayers().length) {
+    map.fitBounds(markerGroup.getBounds().pad(0.18));
+  }
+</script>
+{% endblock %}

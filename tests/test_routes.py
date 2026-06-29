@@ -114,6 +114,20 @@ class TestDemandeAnimationPage:
         assert 'name="contact_email"' in html
 
 
+class TestDemandesAnimationPages:
+    """Tests for the public demandes animation pages."""
+
+    def test_list_page_has_map_button(self, client):
+        resp = client.get("/demandes-animation")
+        assert resp.status_code == 200
+        html = resp.data.decode("utf-8")
+        assert "Carte de France" in html
+
+    def test_map_page_returns_200(self, client):
+        resp = client.get("/demandes-animation/carte")
+        assert resp.status_code == 200
+
+
 class TestEvenementsPage:
     """Tests for the evenements page."""
 

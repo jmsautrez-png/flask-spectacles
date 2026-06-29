@@ -26,6 +26,10 @@ _CACHE_LOADED = False
 _INSTANCE_DIR = Path(__file__).resolve().parent.parent / "instance"
 _CACHE_FILE = _INSTANCE_DIR / "cp_coords_cache.json"
 
+_CITY_CACHE: dict[str, Optional[list[float]]] = {}
+_CITY_CACHE_LOADED = False
+_CITY_CACHE_FILE = _INSTANCE_DIR / "city_coords_cache.json"
+
 
 def _load_cache() -> None:
     global _CACHE_LOADED
@@ -53,6 +57,32 @@ def _save_cache() -> None:
         pass
 
 
+def _load_city_cache() -> None:
+    global _CITY_CACHE_LOADED
+    if _CITY_CACHE_LOADED:
+        return
+    with _LOCK:
+        if _CITY_CACHE_LOADED:
+            return
+        try:
+            if _CITY_CACHE_FILE.exists():
+                _CITY_CACHE.update(json.loads(_CITY_CACHE_FILE.read_text(encoding="utf-8")))
+        except Exception:
+            pass
+        _CITY_CACHE_LOADED = True
+
+
+def _save_city_cache() -> None:
+    try:
+        _INSTANCE_DIR.mkdir(parents=True, exist_ok=True)
+        _CITY_CACHE_FILE.write_text(
+            json.dumps(_CITY_CACHE, ensure_ascii=False, separators=(",", ":")),
+            encoding="utf-8",
+        )
+    except Exception:
+        pass
+
+
 def _normalize_cp(cp: Optional[str]) -> Optional[str]:
     if not cp:
         return None
@@ -62,6 +92,18 @@ def _normalize_cp(cp: Optional[str]) -> Optional[str]:
     if len(s) != 5:
         return None
     return s
+
+
+def _normalize_city(city: Optional[str]) -> Optional[str]:
+    if not city:
+        return None
+    s = str(city).strip()
+    if not s:
+        return None
+    for sep in ("·", ",", " / ", " - "):
+        if sep in s:
+            s = s.split(sep, 1)[0].strip()
+    return s or None
 
 
 # ---------------------------------------------------------------------------
@@ -84,6 +126,67 @@ def coords_from_cp(cp: Optional[str]) -> Optional[Tuple[float, float]]:
         _CACHE[cp] = list(coords) if coords else None
         _save_cache()
     return coords
+
+
+def coords_from_city(
+    city: Optional[str],
+    cp: Optional[str] = None,
+    dept: Optional[str] = None,
+) -> Optional[Tuple[float, float]]:
+    """Retourne (lat, lon) pour une commune francaise, ou None.
+
+    Utilise geo.api.gouv.fr/communes avec cache memoire + disque.
+    Le code postal est utilise en priorité lorsqu'il est disponible.
+    """
+    city = _normalize_city(city)
+    if not city:
+        return None
+    cp_norm = _normalize_cp(cp)
+    dept_norm = _normalize_dept(dept)
+    cache_key = f"{city.casefold()}|{cp_norm or ''}|{dept_norm or ''}"
+    _load_city_cache()
+    if cache_key in _CITY_CACHE:
+        v = _CITY_CACHE[cache_key]
+        return (v[0], v[1]) if v else None
+    coords = _fetch_city_coords(city, cp_norm, dept_norm)
+    with _LOCK:
+        _CITY_CACHE[cache_key] = list(coords) if coords else None
+        _save_city_cache()
+    return coords
+
+
+def _fetch_city_coords(
+    city: str,
+    cp: Optional[str] = None,
+    dept: Optional[str] = None,
+) -> Optional[Tuple[float, float]]:
+    if requests is None:
+        return None
+    try:
+        params = {
+            "nom": city,
+            "fields": "centre,nom,code,codePostal",
+            "format": "json",
+            "boost": "population",
+        }
+        if cp:
+            params["codePostal"] = cp
+        if dept:
+            params["codeDepartement"] = dept
+        r = requests.get("https://geo.api.gouv.fr/communes", params=params, timeout=5)
+        if r.status_code != 200:
+            return None
+        data = r.json()
+        if not data:
+            return None
+        first = data[0] or {}
+        centre = first.get("centre") or {}
+        coords = centre.get("coordinates")
+        if coords and len(coords) == 2:
+            return float(coords[1]), float(coords[0])
+        return None
+    except Exception:
+        return None
 
 
 def _fetch_coords(cp: str) -> Optional[Tuple[float, float]]:

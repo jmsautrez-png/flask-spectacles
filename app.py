@@ -36,6 +36,7 @@ socket.setdefaulttimeout(15)
 print("✓ Imports standards OK")
 
 import uuid
+import html
 import requests  # Pour l'API de géolocalisation
 
 # Import global de boto3 pour éviter NameError
@@ -4634,6 +4635,92 @@ Accessibilité: {accessibilite}
         
         return render_template("demandes_animation.html", demandes=demandes, page=page, nb_pages=nb_pages, total=total, per_page=per_page, user=current_user(), has_show=has_show, categories=categories, regions=regions, categorie=categorie, region=region, spectacles_une=spectacles_une)
 
+
+    @app.route("/demandes-animation/carte")
+    def demandes_animation_carte():
+        from models.models import DemandeAnimation
+        from utils.geo import coords_from_city, coords_from_cp, coords_from_dept
+
+        user = current_user()
+        categorie = request.args.get('categorie', '').strip()
+        region = request.args.get('region', '').strip()
+
+        if user and user.is_admin:
+            demandes_query = DemandeAnimation.query.filter(DemandeAnimation.is_private == False).order_by(DemandeAnimation.created_at.desc())
+        else:
+            demandes_query = DemandeAnimation.query.filter(
+                DemandeAnimation.is_private == False,
+                DemandeAnimation.approved == True
+            ).order_by(DemandeAnimation.created_at.desc())
+
+        if categorie:
+            demandes_query = demandes_query.filter(DemandeAnimation.genre_recherche.ilike(f"%{categorie}%"))
+        if region:
+            demandes_query = demandes_query.filter(DemandeAnimation.lieu_ville.ilike(f"%{region}%"))
+
+        demandes = demandes_query.all()
+
+        markers = []
+        skipped = 0
+        for demande in demandes:
+            ville = (demande.lieu_ville or "").strip()
+            if "·" in ville:
+                ville = ville.split("·", 1)[0].strip()
+
+            coords = coords_from_city(
+                ville,
+                getattr(demande, "code_postal", None),
+                getattr(demande, "departement", None),
+            )
+            if not coords:
+                coords = coords_from_cp(getattr(demande, "code_postal", None))
+            if not coords:
+                coords = coords_from_dept(getattr(demande, "departement", None))
+            if not coords:
+                skipped += 1
+                continue
+
+            title = demande.structure or demande.intitule or "Demande d\'animation"
+            popup_html = (
+                f"<div style='min-width:220px'>"
+                f"<div style='font-weight:700;font-size:1rem;margin-bottom:4px;'>{html.escape(title)}</div>"
+                f"<div style='margin-bottom:4px;'>📍 {html.escape(ville)}</div>"
+            )
+            if demande.region:
+                popup_html += f"<div style='margin-bottom:4px;'>🗺️ {html.escape(demande.region)}</div>"
+            if demande.budget:
+                popup_html += f"<div style='margin-bottom:4px;'>💶 {html.escape(str(demande.budget))}</div>"
+            if demande.jauge:
+                popup_html += f"<div style='margin-bottom:4px;'>👥 {html.escape(str(demande.jauge))} personnes</div>"
+            popup_html += (
+                f"<div style='margin-top:8px;'><a href='{url_for('demandes_animation', categorie=categorie, region=region)}' style='display:inline-block;background:#1976d2;color:#fff;text-decoration:none;padding:6px 10px;border-radius:8px;font-weight:600;'>Voir la liste</a></div>"
+                f"</div>"
+            )
+
+            markers.append({
+                "id": demande.id,
+                "lat": coords[0],
+                "lng": coords[1],
+                "title": title,
+                "city": ville,
+                "region": demande.region or "",
+                "budget": str(demande.budget or ""),
+                "jauge": str(demande.jauge or ""),
+                "genre": demande.genre_recherche or "",
+                "popup_html": popup_html,
+            })
+
+        return render_template(
+            "demandes_animation_carte.html",
+            user=user,
+            categorie=categorie,
+            region=region,
+            markers=markers,
+            total_demandes=len(demandes),
+            cartes_geocodees=len(markers),
+            cartes_ignorees=skipped,
+        )
+
     @app.route("/mes-appels-offres")
     @login_required
     def mes_appels_offres():
@@ -7231,3 +7318,7 @@ def unread_messages_count():
 # -----------------------------------------------------
 if __name__ == "__main__":
     app.run(debug=True, host="127.0.0.1", port=5000)
+
+
+
+
