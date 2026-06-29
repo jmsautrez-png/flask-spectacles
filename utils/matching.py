@@ -41,7 +41,10 @@ _TOTAL_REGIONS = len(REGIONS_FRANCE)
 # Spécialités saisonnières "Noël" : ne comptent comme match que si la demande
 # se situe en novembre ou décembre (mois 11 ou 12). Hors saison, elles sont
 # retirées de l'intersection des spécialités.
-_NOEL_SPECS = {"spectacle de noël"}
+_NOEL_SPECS = {
+    "spectacle de noël",  # ancien libellé conservé pour compatibilité historique
+    "spectacle thématique de noël",
+}
 _NOEL_MONTHS = {11, 12}
 
 
