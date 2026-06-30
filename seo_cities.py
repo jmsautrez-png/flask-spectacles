@@ -348,7 +348,7 @@ CATEGORY_SEO_DATA = {
     },
     # Nouveaux thèmes longue traîne
     "conte": {
-        "intro": "spectacle de contes (traditionnels, musicaux, illustrés ou interactifs)",
+        "intro": "conteuse conteur (traditionnels, musicaux, illustrés ou interactifs)",
         "occasions": "médiathèques, écoles, centres de loisirs, festivals jeune public, EHPAD",
         "audience": "enfants à partir de 3 ans, familles, public adulte selon le répertoire",
         "duration": "30 à 60 minutes",
