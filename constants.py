@@ -30,7 +30,7 @@ SPECIALITES = {
         "Mascotte",
         # Jeunesse / Famille
         "Père Noël",
-        "Conte",
+        "Conteuse Conteur",
         "Spectacle de Marionnettes",
         # Types de spectacle
         "Spectacle d'animation enfant, adulte ou EHPAD",
