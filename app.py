@@ -1751,6 +1751,7 @@ def register_routes(app: Flask) -> None:
         specialite          = specialites[0] if specialites else ""  # pour le formulaire du haut
         evenements_selected = [e.strip() for e in request.args.getlist("evenement") if e.strip()]
         region              = request.args.get("region", "", type=str).strip()
+        cie_region          = request.args.get("cie_region", "", type=str).strip()
         age                 = request.args.get("age", "", type=str).strip()
         # Public ciblé v2 (filtre indépendant du matching)
         public_cats_selected = [c.strip() for c in request.args.getlist("public_categories") if c.strip()]
@@ -1828,6 +1829,17 @@ def register_routes(app: Flask) -> None:
                 Show.location.ilike(like),
             ))
 
+        # -- Filtre COMPAGNIE basée dans la région (User.region) --
+        # Ce filtre est indépendant du filtre "region" ci-dessus :
+        # celui-ci matche où le SPECTACLE peut être joué (Show.region),
+        # celui-là matche où la COMPAGNIE est domiciliée (User.region).
+        # On garde une trace du join pour ne pas le refaire dans le filtre département.
+        _user_joined = False
+        if cie_region:
+            shows = shows.outerjoin(User, Show.user_id == User.id)
+            _user_joined = True
+            shows = shows.filter(User.region == cie_region)
+
         # -- Filtre Public ciblé v2 (catégories + sous-options) --
         # Logique : si au moins une catégorie cochée, on garde les shows dont
         # public_categories contient au moins une cat commune. Si en plus des
@@ -1857,7 +1869,9 @@ def register_routes(app: Flask) -> None:
         if dept:
             accepted_depts = depts_within_radius(dept, dept_radius)
             if accepted_depts:
-                shows = shows.outerjoin(User, Show.user_id == User.id)
+                if not _user_joined:
+                    shows = shows.outerjoin(User, Show.user_id == User.id)
+                    _user_joined = True
                 conds = []
                 for code in accepted_depts:
                     like_dept = f"%({code})%"
@@ -1927,6 +1941,7 @@ def register_routes(app: Flask) -> None:
             specialites_data=SPECIALITES,
             evenements_data=EVENEMENTS,
             region=region,
+            cie_region=cie_region,
             age=age,
             public_cats_selected=public_cats_selected,
             public_subs_selected=public_subs_selected,
@@ -6337,6 +6352,69 @@ def admin_users():
     """Affiche la liste de tous les utilisateurs pour gestion admin."""
     users = User.query.order_by(User.created_at.desc()).all()
     return render_template("admin_users.html", users=users)
+
+
+@app.route("/admin/recherche-compagnies-region", endpoint="admin_search_companies_region")
+@login_required
+@admin_required
+def admin_search_companies_region():
+    """Moteur de recherche ADMIN : trouve les compagnies UNIQUEMENT par leur region initiale.
+
+    Filtre sur User.region (region d'inscription/localisation de la compagnie),
+    contrairement au catalogue public qui filtre sur Show.region.
+    Optionnellement, on peut restreindre par departement et/ou ville de la compagnie.
+    """
+    region = (request.args.get("region", "") or "").strip()
+    departement = (request.args.get("departement", "") or "").strip()
+    ville = (request.args.get("ville", "") or "").strip()
+    q = (request.args.get("q", "") or "").strip()
+    only_with_shows = request.args.get("only_with_shows") == "1"
+
+    users_query = User.query.filter(User.is_admin.is_(False))
+
+    if region:
+        users_query = users_query.filter(User.region == region)
+    if departement:
+        users_query = users_query.filter(User.departement.ilike(f"%{departement}%"))
+    if ville:
+        users_query = users_query.filter(User.ville.ilike(f"%{ville}%"))
+    if q:
+        like = f"%{q}%"
+        users_query = users_query.filter(or_(
+            User.username.ilike(like),
+            User.raison_sociale.ilike(like),
+            User.email.ilike(like),
+        ))
+
+    users = users_query.order_by(User.raison_sociale.asc(), User.username.asc()).all()
+
+    # Comptage des spectacles pour chaque compagnie (approuves / total)
+    results = []
+    for u in users:
+        shows = list(u.shows) if hasattr(u, "shows") else []
+        nb_total = len(shows)
+        nb_approved = sum(1 for s in shows if getattr(s, "approved", False))
+        if only_with_shows and nb_total == 0:
+            continue
+        results.append({
+            "user": u,
+            "nb_total": nb_total,
+            "nb_approved": nb_approved,
+            "shows": sorted(shows, key=lambda s: (not getattr(s, "approved", False), s.title or "")),
+        })
+
+    return render_template(
+        "admin_search_companies_region.html",
+        results=results,
+        nb_results=len(results),
+        region=region,
+        departement=departement,
+        ville=ville,
+        q=q,
+        only_with_shows=only_with_shows,
+        all_regions=REGIONS_FRANCE,
+        user=current_user(),
+    )
 
 @app.route("/admin/users/<int:user_id>/localisation", methods=["POST"])
 @login_required

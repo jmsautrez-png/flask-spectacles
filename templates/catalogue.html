@@ -239,6 +239,16 @@
         <option value="{{ r }}" {% if region == r %}selected{% endif %}>{{ r }}</option>
         {% endfor %}
       </select>
+      <div style="color:#ffc107; font-size:0.75rem; font-weight:600; margin:8px 0 4px 0;">🎪 COMPAGNIE BASÉE EN&hellip;</div>
+      <select name="cie_region"
+              title="Filtre uniquement les spectacles de compagnies dont le siège est dans cette région (peu importe leurs zones d'intervention)."
+              style="width:100%; background:rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.2); color:#fff; padding:7px 10px; border-radius:8px; font-size:0.85rem;"
+              onchange="this.form.submit()">
+        <option value="" {% if not cie_region %}selected{% endif %}>— Toutes les compagnies —</option>
+        {% for r in all_regions %}
+        <option value="{{ r }}" {% if cie_region == r %}selected{% endif %}>{{ r }}</option>
+        {% endfor %}
+      </select>
     </div>
 
     <div style="flex:1.4; min-width:200px;">
@@ -350,7 +360,7 @@
   });
 </script>
 
-{% if specialites or evenements_selected or region or age or q or dept %}
+{% if specialites or evenements_selected or region or cie_region or age or q or dept %}
 <div style="display:flex; align-items:center; gap:8px; margin-bottom:16px; flex-wrap:wrap;">
   <a href="{{ url_for('catalogue') }}"
      style="display:inline-flex; align-items:center; gap:6px; padding:8px 14px; background:linear-gradient(135deg,#e74c3c,#c0392b); color:#fff; text-decoration:none; border-radius:20px; font-weight:600; font-size:0.85rem; box-shadow:0 2px 8px rgba(231,76,60,0.4); white-space:nowrap;">
@@ -360,6 +370,7 @@
     {% for s in specialites %}<strong style="color:#ffc107;">{{ s }}</strong>{% endfor %}
     {% for e in evenements_selected %}<strong style="color:#ffaa44;">{{ e }}</strong>{% endfor %}
     {% if region %}<span>📍 {{ region }}</span>{% endif %}
+    {% if cie_region %}<span>🎪 Cie basée en {{ cie_region }}</span>{% endif %}
     {% if dept %}<span>📌 Dpt {{ dept }} (≤ {{ dept_radius }} km)</span>{% endif %}
     {% if age %}<span>👥 {{ age }}</span>{% endif %}
     {% if q %}<span>🔤 "{{ q }}"</span>{% endif %}
@@ -493,7 +504,7 @@
     <nav class="pagination" style="margin: 30px 0; text-align: center;">
       <div style="display: inline-flex; gap: 8px; align-items: center; flex-wrap: wrap; justify-content: center;">
         {% if pagination.has_prev %}
-           <a href="{{ url_for('catalogue', page=pagination.prev_num, q=q, specialite=specialites, evenement=evenements_selected, region=region, age=age, public_categories=public_cats_selected, public_sous_options=public_subs_selected, dept=dept, dept_radius=dept_radius) }}"
+           <a href="{{ url_for('catalogue', page=pagination.prev_num, q=q, specialite=specialites, evenement=evenements_selected, region=region, cie_region=cie_region, age=age, public_categories=public_cats_selected, public_sous_options=public_subs_selected, dept=dept, dept_radius=dept_radius) }}"
              style="padding: 8px 12px; background: var(--primary); color: white; text-decoration: none; border-radius: 4px; font-weight: 600;">
             ← Précédent
           </a>
@@ -510,7 +521,7 @@
                 {{ p }}
               </span>
             {% else %}
-                <a href="{{ url_for('catalogue', page=p, q=q, specialite=specialites, evenement=evenements_selected, region=region, age=age, public_categories=public_cats_selected, public_sous_options=public_subs_selected, dept=dept, dept_radius=dept_radius) }}"
+                <a href="{{ url_for('catalogue', page=p, q=q, specialite=specialites, evenement=evenements_selected, region=region, cie_region=cie_region, age=age, public_categories=public_cats_selected, public_sous_options=public_subs_selected, dept=dept, dept_radius=dept_radius) }}"
                   style="padding: 8px 12px; background: #f2f3f7; color: var(--text); text-decoration: none; border-radius: 4px; font-weight: 600;"{% if p == 1 %} rel="first"{% endif %}>
                 {{ p }}
               </a>
@@ -521,7 +532,7 @@
         {% endfor %}
 
         {% if pagination.has_next %}
-           <a href="{{ url_for('catalogue', page=pagination.next_num, q=q, specialite=specialites, evenement=evenements_selected, region=region, age=age, public_categories=public_cats_selected, public_sous_options=public_subs_selected, dept=dept, dept_radius=dept_radius) }}"
+           <a href="{{ url_for('catalogue', page=pagination.next_num, q=q, specialite=specialites, evenement=evenements_selected, region=region, cie_region=cie_region, age=age, public_categories=public_cats_selected, public_sous_options=public_subs_selected, dept=dept, dept_radius=dept_radius) }}"
              rel="next"
              style="padding: 8px 12px; background: var(--primary); color: white; text-decoration: none; border-radius: 4px; font-weight: 600;">
             Suivant →
