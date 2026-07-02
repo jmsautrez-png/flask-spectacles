@@ -470,6 +470,31 @@ var MATCHING_EXCLUSIVES = {
   "Concert pour enfants": "Concert"
 };
 
+// Spécialités "SOLO" : quand cochée, aucune autre spécialité ne peut être cochée
+// (ex: un spectacle 100% Noël ou 100% Conte ne peut pas être aussi un spectacle magie/clown/etc.)
+var MATCHING_SOLO = [
+  "Spectacle thématique de Noël",
+  "Conteuse Conteur"
+];
+
+function _isSoloValue(val) {
+  return MATCHING_SOLO.indexOf(val) !== -1;
+}
+
+function _showSoloMessage(fieldName, msg) {
+  var limitDiv = document.getElementById('limit-' + fieldName);
+  if (!limitDiv) return;
+  limitDiv.textContent = msg;
+  limitDiv.style.color = '#e65100';
+  limitDiv.style.display = 'block';
+  // Efface automatiquement le message apres 4s
+  clearTimeout(limitDiv._soloTimer);
+  limitDiv._soloTimer = setTimeout(function() {
+    limitDiv.style.display = 'none';
+    limitDiv.style.color = '';
+  }, 4000);
+}
+
 function checkMatchingLimit(fieldName, cb) {
   // Exclusion mutuelle : si on coche une case, on décoche sa paire opposée
   if (cb.checked && MATCHING_EXCLUSIVES.hasOwnProperty(cb.value)) {
@@ -479,6 +504,37 @@ function checkMatchingLimit(fieldName, cb) {
         other.checked = false;
       }
     });
+  }
+
+  // Regle SOLO : une specialite "solo" doit etre seule cochee
+  if (cb.checked) {
+    if (_isSoloValue(cb.value)) {
+      // On vient de cocher une case SOLO => decocher toutes les autres du meme field
+      var decoched = 0;
+      document.querySelectorAll('input[name="' + fieldName + '"]').forEach(function(other) {
+        if (other !== cb && other.checked) {
+          other.checked = false;
+          decoched++;
+        }
+      });
+      if (decoched > 0) {
+        _showSoloMessage(fieldName,
+          'ℹ️ "' + cb.value + '" est une spécialité exclusive : les autres choix ont été décochés.');
+      }
+    } else {
+      // On coche une case normale => decocher toutes les cases SOLO qui seraient cochees
+      var soloDecoched = null;
+      document.querySelectorAll('input[name="' + fieldName + '"]:checked').forEach(function(other) {
+        if (other !== cb && _isSoloValue(other.value)) {
+          other.checked = false;
+          soloDecoched = other.value;
+        }
+      });
+      if (soloDecoched) {
+        _showSoloMessage(fieldName,
+          'ℹ️ "' + soloDecoched + '" a été décoché (spécialité exclusive incompatible avec d\'autres choix).');
+      }
+    }
   }
 
   var section = null;
@@ -494,16 +550,24 @@ function checkMatchingLimit(fieldName, cb) {
     cb.checked = false;
     if (limitDiv) {
       limitDiv.textContent = '⚠️ Maximum ' + maxVal + ' choix. Au-delà, faites un nouvel appel d\'offre !';
+      limitDiv.style.color = '#ff1744';
       limitDiv.style.display = 'block';
     }
-  } else {
-    if (limitDiv) limitDiv.style.display = 'none';
+  } else if (limitDiv && limitDiv.style.color === 'rgb(255, 23, 68)') {
+    // Efface uniquement le message d'erreur "max", pas le message SOLO
+    limitDiv.style.display = 'none';
   }
 }
 
 function toggleAllMatching(fieldName, checked) {
+  // Si on tente de "Tout cocher" alors qu'un SOLO est present, on l'ignore
+  // pour ne pas creer un conflit (SOLO doit rester seul coche)
   document.querySelectorAll('input[name="' + fieldName + '"]').forEach(function(cb) {
-    cb.checked = checked;
+    if (checked && _isSoloValue(cb.value)) {
+      cb.checked = false;
+    } else {
+      cb.checked = checked;
+    }
   });
   // Mise à jour des compteurs
   var section = null;
