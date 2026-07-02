@@ -232,19 +232,23 @@
     <div style="flex:1; min-width:160px;">
       <div style="color:#ffc107; font-size:0.8rem; font-weight:600; margin-bottom:4px;">RÉGION / VILLE</div>
       <select name="region"
+              title="Régions où le spectacle peut être joué (zones de déplacement déclarées par la compagnie)."
               style="width:100%; background:rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.2); color:#fff; padding:8px 10px; border-radius:8px; font-size:0.9rem;"
-              onchange="this.form.submit()">
+              onchange="if(this.value){var o=this.form.elements['cie_region']; if(o) o.value='';} this.form.submit();">
         <option value="" {% if not region %}selected{% endif %}>Toute la France</option>
         {% for r in all_regions %}
         <option value="{{ r }}" {% if region == r %}selected{% endif %}>{{ r }}</option>
         {% endfor %}
       </select>
-      <div style="color:#ffc107; font-size:0.75rem; font-weight:600; margin:8px 0 4px 0;">🎪 COMPAGNIE BASÉE EN&hellip;</div>
+    </div>
+
+    <div style="flex:1; min-width:160px;">
+      <div style="color:#ffc107; font-size:0.8rem; font-weight:600; margin-bottom:4px;">🎪 CIE BASÉE EN&hellip;</div>
       <select name="cie_region"
               title="Filtre uniquement les spectacles de compagnies dont le siège est dans cette région (peu importe leurs zones d'intervention)."
-              style="width:100%; background:rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.2); color:#fff; padding:7px 10px; border-radius:8px; font-size:0.85rem;"
-              onchange="this.form.submit()">
-        <option value="" {% if not cie_region %}selected{% endif %}>— Toutes les compagnies —</option>
+              style="width:100%; background:rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.2); color:#fff; padding:8px 10px; border-radius:8px; font-size:0.9rem;"
+              onchange="if(this.value){var o=this.form.elements['region']; if(o) o.value='';} this.form.submit();">
+        <option value="" {% if not cie_region %}selected{% endif %}>Toutes les compagnies</option>
         {% for r in all_regions %}
         <option value="{{ r }}" {% if cie_region == r %}selected{% endif %}>{{ r }}</option>
         {% endfor %}
