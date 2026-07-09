@@ -1085,20 +1085,26 @@ h2 {{ color: #1b2a4e; margin-top: 0; }}
 </html>"""
 
 
-def _send_recap_to_organisateur(demande, shows_contactes):
+def _send_recap_to_organisateur(demande, shows_contactes, admin_email_extra=None):
     """Envoie un email récap court à l'organisateur de la demande, avec les liens
     des fiches des artistes/spectacles qui ont été contactés.
 
     - shows_contactes : liste d'objets Show réellement ciblés par l'envoi
+    - admin_email_extra : email supplémentaire à copier (typiquement l'admin
+      connecté qui déclenche l'envoi). En plus de MAIL_USERNAME, on lui envoie
+      aussi une copie du récap.
     - Silencieux en cas d'erreur (ne doit jamais bloquer l'envoi principal).
+
+    Retourne un tuple (ok: bool, err_msg: str|None) : err_msg contient la
+    raison exacte en cas d'échec (ex. erreur SMTP), pour affichage flash admin.
     """
     try:
         if not demande or not getattr(demande, "contact_email", None):
             print("[RECAP] Pas d'email organisateur, recap ignoré")
-            return False
+            return (False, "Pas d'email organisateur.")
         if not getattr(current_app, "mail", None):
             print("[RECAP] Mail non configuré, recap ignoré")
-            return False
+            return (False, "Service email non configuré.")
         # Dédoublonnage par show.id
         unique_shows = []
         seen_ids = set()
@@ -1108,7 +1114,7 @@ def _send_recap_to_organisateur(demande, shows_contactes):
                 unique_shows.append(s)
         if not unique_shows:
             print("[RECAP] Aucun show à lister, recap ignoré")
-            return False
+            return (False, "Aucune fiche à lister.")
 
         # Construire les lignes de fiches.
         # IMPORTANT anti-spam / anti-phishing :
@@ -1191,22 +1197,38 @@ def _send_recap_to_organisateur(demande, shows_contactes):
         msg.html = body_html
         current_app.mail.send(msg)
         print(f"[RECAP] ✅ Récap envoyé à organisateur {demande.contact_email} ({nb} fiches)")
-        # Copie admin (mail séparé si adresse différente)
-        if admin_email and admin_email != demande.contact_email:
+        # Copie admin : MAIL_USERNAME + admin connecté (si fourni et différent)
+        # Dédoublonnage + on ne renvoie pas au demandeur.
+        admin_targets = []
+        for candidate in (admin_email, admin_email_extra):
+            if not candidate:
+                continue
+            c = candidate.strip().lower()
+            if not c or c == (demande.contact_email or "").strip().lower():
+                continue
+            if c not in [t.lower() for t in admin_targets]:
+                admin_targets.append(candidate.strip())
+        for target in admin_targets:
             try:
                 admin_copy = MailMessage(
                     subject=f"[COPIE ADMIN] Récap transmis à {demande.contact_email} — {nb} fiche(s)",
-                    recipients=[admin_email],
+                    recipients=[target],
                 )
                 admin_copy.html = body_html
                 current_app.mail.send(admin_copy)
-                print(f"[RECAP] ✅ Copie admin envoyée à {admin_email}")
+                print(f"[RECAP] ✅ Copie admin envoyée à {target}")
             except Exception as ae:
-                print(f"[RECAP] ⚠️ Copie admin échouée (non bloquant): {ae}")
-        return True
+                print(f"[RECAP] ⚠️ Copie admin à {target} échouée (non bloquant): {ae}")
+        return (True, None)
     except Exception as e:
-        print(f"[RECAP] ⚠️ Erreur envoi récap organisateur: {e}")
-        return False
+        err = str(e)
+        print(f"[RECAP] ⚠️ Erreur envoi récap organisateur: {err}")
+        # Message court, orienté diagnostic pour l'admin
+        if "535" in err or "Authentication failed" in err or "authentification" in err.lower():
+            return (False, "Authentification SMTP refusée (535). Vérifier MAIL_USERNAME / MAIL_PASSWORD.")
+        if "550" in err or "554" in err:
+            return (False, f"Serveur SMTP a refusé le mail : {err[:160]}")
+        return (False, f"Erreur envoi : {err[:200]}")
 
 
 def notify_admin_show_deletion(reason, items, owner_info=None):
@@ -5251,11 +5273,13 @@ Accessibilité: {accessibilite}
                 if not shows_recap:
                     flash("Aucune fiche valide trouvée.", "warning")
                     return redirect(url_for("admin_demandes_animation"))
-                ok = _send_recap_to_organisateur(demande, shows_recap)
+                admin_connecte_email = current_user().email if current_user() else None
+                ok, err_msg = _send_recap_to_organisateur(demande, shows_recap, admin_email_extra=admin_connecte_email)
                 if ok:
-                    flash(f"📧 Récap envoyé à l'organisateur ({demande.contact_email}) avec {len(shows_recap)} fiche(s). Aucun mail aux artistes.", "success")
+                    copie_admin = f" (copie à {admin_connecte_email})" if admin_connecte_email else ""
+                    flash(f"📧 Récap envoyé à l'organisateur ({demande.contact_email}) avec {len(shows_recap)} fiche(s){copie_admin}. Aucun mail aux artistes.", "success")
                 else:
-                    flash("⚠️ Le récap n'a pas pu être envoyé à l'organisateur (voir les logs).", "warning")
+                    flash(f"❌ Échec envoi récap : {err_msg or 'voir les logs.'}", "danger")
                 return redirect(url_for("admin_demandes_animation"))
             
             # === ACTION send_matched : envoi direct aux shows sélectionnés par auto-matching ===
@@ -5428,11 +5452,13 @@ Accessibilité: {accessibilite}
                 if not shows_recap:
                     flash("⚠️ Aucune fiche valide trouvée pour les emails cochés.", "warning")
                     return redirect(url_for("admin_demandes_animation"))
-                ok = _send_recap_to_organisateur(demande, shows_recap)
+                admin_connecte_email = current_user().email if current_user() else None
+                ok, err_msg = _send_recap_to_organisateur(demande, shows_recap, admin_email_extra=admin_connecte_email)
                 if ok:
-                    flash(f"📧 Récap envoyé à l'organisateur ({demande.contact_email}) avec {len(shows_recap)} fiche(s). Aucun mail aux artistes.", "success")
+                    copie_admin = f" (copie à {admin_connecte_email})" if admin_connecte_email else ""
+                    flash(f"📧 Récap envoyé à l'organisateur ({demande.contact_email}) avec {len(shows_recap)} fiche(s){copie_admin}. Aucun mail aux artistes.", "success")
                 else:
-                    flash("⚠️ Le récap n'a pas pu être envoyé à l'organisateur (voir les logs).", "warning")
+                    flash(f"❌ Échec envoi récap : {err_msg or 'voir les logs.'}", "danger")
                 return redirect(url_for("admin_demandes_animation"))
 
             # === ACTIONS preview / send : recherche manuelle par catégories ===
@@ -5990,7 +6016,9 @@ Accessibilité: {accessibilite}
             # Envoi auto d'un récap court à l'organisateur avec les liens des fiches contactées
             if success_count > 0:
                 shows_recap = [e['show'] for e in emails_to_send if e.get('type') == 'spectacle' and e.get('show')]
-                _send_recap_to_organisateur(demande, shows_recap)
+                recap_ok, recap_err = _send_recap_to_organisateur(demande, shows_recap, admin_email_extra=admin_email)
+                if not recap_ok:
+                    flash(f"⚠️ Récap non transmis à l'organisateur : {recap_err or 'voir logs.'}", "warning")
 
             print(f"[DEBUG] Envoi terminé - Succès: {success_count}, Erreurs: {error_count}")
             if success_count > 0:
