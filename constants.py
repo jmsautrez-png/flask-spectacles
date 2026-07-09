@@ -47,6 +47,7 @@ SPECIALITES = {
         "Spectacle de Cabaret",
         # Cirque / Visuel
         "Cirque",
+        "Cirque nouveau",
         "Cracheur de feu",
         "Spectacle de feu",
         "Échassier",
@@ -109,6 +110,7 @@ SPECIALITES = {
         "Variété française",
         "Pop",
         "Pop latino",
+        "Musique latino",
         "Rock",
         "Country",
         "Blues",

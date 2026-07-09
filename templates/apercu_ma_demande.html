@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+{% block title %}Aperçu de ma demande #{{ demande.id }} - Spectacle'ment VØtre{% endblock %}
+
+{% block content %}
+<div class="container my-4" style="max-width:900px;">
+  <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px; margin-bottom:18px;">
+    <a href="{{ url_for('mes_demandes') }}" style="color:#555; text-decoration:none; font-weight:600;">← Retour à mes demandes</a>
+    <div style="display:flex; gap:8px; flex-wrap:wrap;">
+      <a href="{{ url_for('edit_ma_demande', demande_id=demande.id) }}" style="background:#1976d2; color:#fff; padding:8px 16px; border-radius:6px; text-decoration:none; font-weight:600;">✏️ Modifier</a>
+      <form action="{{ url_for('duplicate_ma_demande', demande_id=demande.id) }}" method="post" style="display:inline; margin:0;">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+        <button type="submit" style="background:#6a1b9a; color:#fff; padding:8px 16px; border:none; border-radius:6px; font-weight:600; cursor:pointer;">📋 Dupliquer</button>
+      </form>
+      <form action="{{ url_for('delete_ma_demande', demande_id=demande.id) }}" method="post" style="display:inline; margin:0;"
+            onsubmit="return confirm('⚠️ Supprimer définitivement cette demande ?\n\nCette action est irréversible.');">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+        <button type="submit" style="background:#c62828; color:#fff; padding:8px 16px; border:none; border-radius:6px; font-weight:600; cursor:pointer;">🗑️ Supprimer</button>
+      </form>
+    </div>
+  </div>
+
+  <div style="background:linear-gradient(135deg,#1b2a4e 0%,#355c7d 100%); color:#fff; padding:22px 26px; border-radius:12px 12px 0 0;">
+    <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:8px;">
+      <h1 style="margin:0; font-size:1.4rem; font-weight:700;">🎭 {{ demande.intitule or demande.genre_recherche }}</h1>
+      {% if demande.approved %}
+        <span style="background:#a5d6a7; color:#1b5e20; padding:5px 14px; border-radius:14px; font-size:0.85rem; font-weight:700;">✅ Publiée</span>
+      {% elif demande.is_private %}
+        <span style="background:#e1bee7; color:#4a148c; padding:5px 14px; border-radius:14px; font-size:0.85rem; font-weight:700;">🔒 Privée</span>
+      {% else %}
+        <span style="background:#ffcc80; color:#e65100; padding:5px 14px; border-radius:14px; font-size:0.85rem; font-weight:700;">⏳ En attente de validation</span>
+      {% endif %}
+    </div>
+    <p style="margin:8px 0 0 0; color:rgba(255,255,255,0.85); font-size:0.9rem;">
+      Créée le {{ demande.created_at.strftime('%d/%m/%Y à %H:%M') if demande.created_at else '—' }}
+    </p>
+  </div>
+
+  <div style="background:#fff; border:1px solid #e0e0e0; border-top:none; border-radius:0 0 12px 12px; padding:24px; color:#333;">
+    <h3 style="color:#1b2a4e; margin:0 0 12px 0; font-size:1.1rem;">📋 Détails de la demande</h3>
+    <table style="width:100%; border-collapse:collapse; font-size:0.95rem; color:#333;">
+      <tr><td style="padding:8px 4px; color:#666; width:200px;">🏛️ Structure</td><td style="padding:8px 4px; font-weight:600; color:#222;">{{ demande.structure }}</td></tr>
+      <tr><td style="padding:8px 4px; color:#666;">👤 Contact</td><td style="padding:8px 4px; color:#222;">{{ demande.nom }}</td></tr>
+      <tr><td style="padding:8px 4px; color:#666;">✉️ Email</td><td style="padding:8px 4px; color:#222;">{{ demande.contact_email }}</td></tr>
+      <tr><td style="padding:8px 4px; color:#666;">📞 Téléphone</td><td style="padding:8px 4px; color:#222;">{{ demande.telephone or '—' }}</td></tr>
+      <tr><td style="padding:8px 4px; color:#666;">📍 Lieu</td><td style="padding:8px 4px; color:#222;">{{ demande.lieu_ville }}{% if demande.code_postal %} ({{ demande.code_postal }}){% endif %}</td></tr>
+      <tr><td style="padding:8px 4px; color:#666;">🗺️ Région</td><td style="padding:8px 4px; color:#222;">{{ demande.region or '—' }}</td></tr>
+      <tr><td style="padding:8px 4px; color:#666;">📅 Date(s)</td><td style="padding:8px 4px; font-weight:600; color:#222;">{{ demande.dates_horaires }}</td></tr>
+      <tr><td style="padding:8px 4px; color:#666;">🏛️ Type d'espace</td><td style="padding:8px 4px; color:#222;">{{ demande.type_espace }}</td></tr>
+      <tr><td style="padding:8px 4px; color:#666;">🎉 Type d'événement</td><td style="padding:8px 4px; color:#222;">{{ demande.type_evenement or '—' }}</td></tr>
+      <tr><td style="padding:8px 4px; color:#666;">🎭 Genre recherché</td><td style="padding:8px 4px; font-weight:600; color:#222;">{{ demande.genre_recherche }}</td></tr>
+      <tr><td style="padding:8px 4px; color:#666;">👶 Public visé</td><td style="padding:8px 4px; color:#222;">{{ demande.age_range }}</td></tr>
+      <tr><td style="padding:8px 4px; color:#666;">👥 Jauge</td><td style="padding:8px 4px; color:#222;">{{ demande.jauge }}</td></tr>
+      <tr><td style="padding:8px 4px; color:#666;">💰 Budget</td><td style="padding:8px 4px; font-weight:600; color:#222;">{{ demande.budget }}</td></tr>
+      {% if demande.specialites_recherchees %}
+      <tr><td style="padding:8px 4px; color:#666;">🎨 Spécialités</td><td style="padding:8px 4px; color:#222;">{{ demande.specialites_recherchees.replace(',', ', ') }}</td></tr>
+      {% endif %}
+      {% if demande.evenements_contexte %}
+      <tr><td style="padding:8px 4px; color:#666;">🎊 Événements</td><td style="padding:8px 4px; color:#222;">{{ demande.evenements_contexte.replace(',', ', ') }}</td></tr>
+      {% endif %}
+      {% if demande.lieux_souhaites %}
+      <tr><td style="padding:8px 4px; color:#666;">📌 Lieux souhaités</td><td style="padding:8px 4px; color:#222;">{{ demande.lieux_souhaites.replace(',', ', ') }}</td></tr>
+      {% endif %}
+      {% if demande.contraintes %}
+      <tr><td style="padding:8px 4px; color:#666; vertical-align:top;">⚙️ Contraintes</td><td style="padding:8px 4px; color:#222;">{{ demande.contraintes }}</td></tr>
+      {% endif %}
+      {% if demande.accessibilite %}
+      <tr><td style="padding:8px 4px; color:#666;">♿ Accessibilité</td><td style="padding:8px 4px; color:#222;">{{ demande.accessibilite }}</td></tr>
+      {% endif %}
+    </table>
+
+    {% if not demande.approved and not demande.is_private %}
+    <div style="background:#fff3e0; border-left:4px solid #ff9800; padding:12px 14px; border-radius:6px; margin-top:20px; color:#e65100; font-size:0.9rem;">
+      ⏳ Cette demande est en attente de validation par l'équipe. Elle sera publiée sous 24h et visible par tous les artistes.
+    </div>
+    {% elif demande.approved %}
+    <div style="background:#e8f5e9; border-left:4px solid #2e7d32; padding:12px 14px; border-radius:6px; margin-top:20px; color:#1b5e20; font-size:0.9rem;">
+      ✅ Cette demande est publiée. <a href="{{ url_for('demandes_animation') }}" style="color:#1b5e20; font-weight:700;">Voir la page publique</a>
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

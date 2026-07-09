@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+{% block title %}Inscription demandeur - Spectacle'ment VØtre{% endblock %}
+
+{% block content %}
+<div class="demande-wrap" style="max-width:560px; background:linear-gradient(135deg,#1b5e20 0%,#2e7d32 100%); border:2px solid #2e7d32; border-radius:16px; padding:32px; margin-bottom:32px; box-shadow:0 4px 16px rgba(27,94,32,0.25); color:#fff;">
+  <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px; margin:0 0 8px 0;">
+    <h1 style="margin:0; font-size:1.4rem; font-weight:700;">🏛️ Créer un compte demandeur</h1>
+    <a href="{{ url_for('login') }}" style="color:#ffeb3b; font-weight:700; text-decoration:none; border-bottom:2px solid #ffeb3b; font-size:0.95rem;">Déjà inscrit ? Se connecter</a>
+  </div>
+  <p style="margin:0 0 24px 0; color:rgba(255,255,255,0.85);">
+    Créez un compte pour publier vos demandes de spectacles et les retrouver à tout moment.
+  </p>
+
+  <form method="post" class="form demande-form" novalidate>
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+    {# Honeypot anti-bot (invisible) #}
+    <input type="text" name="website" value="" style="position:absolute; left:-9999px;" tabindex="-1" autocomplete="off"/>
+
+    <fieldset class="demande-section">
+      <legend>Vos identifiants</legend>
+
+      <label style="margin-bottom:16px;">
+        <span class="label-text">Pseudo (nom d'utilisateur) <span class="req">*</span></span>
+        <input name="username" type="text" required autofocus placeholder="ex: mairie-plessis"
+               value="{{ request.form.get('username','') }}">
+        <small style="color:rgba(255,255,255,0.7); font-size:0.85rem;">Sans espaces. Utilisé pour vous connecter.</small>
+      </label>
+
+      <label style="margin-bottom:16px;">
+        <span class="label-text">Email <span class="req">*</span></span>
+        <input name="email" type="email" required placeholder="contact@votre-structure.fr"
+               value="{{ request.form.get('email','') }}">
+      </label>
+
+      <label style="margin-bottom:0; position:relative;">
+        <span class="label-text">Mot de passe <span class="req">*</span></span>
+        <input name="password" type="password" id="org-password" required minlength="6" placeholder="6 caractères minimum" style="padding-right:38px;">
+        <span onclick="toggleOrgPwd()" style="position:absolute; right:10px; top:38px; cursor:pointer; color:#ffeb3b; font-size:1.2em; user-select:none;" title="Afficher/masquer">
+          👁
+        </span>
+      </label>
+    </fieldset>
+
+    <div style="margin-top:20px; text-align:center;">
+      <button type="submit" style="background:#ffeb3b; color:#1b5e20; border:none; padding:12px 32px; border-radius:8px; font-weight:700; font-size:1rem; cursor:pointer; box-shadow:0 2px 8px rgba(0,0,0,0.2);">
+        ✅ Créer mon compte
+      </button>
+    </div>
+
+    <p style="margin-top:20px; font-size:0.85rem; color:rgba(255,255,255,0.75); text-align:center;">
+      Vous êtes une compagnie ou un artiste ? <a href="{{ url_for('register') }}" style="color:#ffeb3b; font-weight:700;">Inscrivez-vous ici</a>.
+    </p>
+  </form>
+</div>
+
+<script>
+function toggleOrgPwd() {
+  const el = document.getElementById('org-password');
+  if (!el) return;
+  el.type = (el.type === 'password') ? 'text' : 'password';
+}
+</script>
+{% endblock %}

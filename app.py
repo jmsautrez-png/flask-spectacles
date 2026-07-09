@@ -877,8 +877,10 @@ def _run_critical_migrations(app: Flask) -> None:
         ("demande_animation", "date_fin", "VARCHAR(20)", "VARCHAR(20)", None),
         ("demande_animation", "public_categories", "TEXT", "TEXT", None),
         ("demande_animation", "public_sous_options", "TEXT", "TEXT", None),
+        ("demande_animation", "user_id", "INTEGER", "INTEGER", None),
         # ── users ──
         ("users", "pending_deletion_at", "TIMESTAMP", "DATETIME", None),
+        ("users", "is_organisateur", "BOOLEAN DEFAULT FALSE", "BOOLEAN DEFAULT 0", "FALSE"),
     ]
 
     is_pg = 'postgresql' in str(db.engine.url)
@@ -1593,11 +1595,73 @@ def register_routes(app: Flask) -> None:
 
         return render_template("register.html")
 
+    # ---------------------------
+    # Inscription organisateur (compte demandeur)
+    # ---------------------------
+    @app.route("/inscription-organisateur", methods=["GET", "POST"])
+    def inscription_organisateur():
+        """Formulaire minimal d'inscription pour les demandeurs d'animation
+        (mairies, écoles, associations, particuliers).
+        Différent de /register (qui cible les compagnies/artistes)."""
+        if _is_suspicious_request():
+            flash("Requête suspecte détectée.", "danger")
+            return redirect(url_for("home"))
+
+        if request.method == "POST":
+            # Honeypot anti-bot
+            if request.form.get("website", ""):
+                flash("Votre compte a été créé avec succès.", "success")
+                return redirect(url_for("login"))
+
+            username = request.form.get("username", "").strip()
+            email = request.form.get("email", "").strip()
+            password = request.form.get("password", "").strip()
+
+            if not username or not email or not password:
+                flash("Veuillez remplir tous les champs obligatoires.", "danger")
+                return render_template("inscription_organisateur.html")
+
+            if len(password) < 6:
+                flash("Le mot de passe doit contenir au moins 6 caractères.", "danger")
+                return render_template("inscription_organisateur.html")
+
+            if User.query.filter_by(username=username).first():
+                flash("Ce pseudo est déjà utilisé.", "warning")
+                return render_template("inscription_organisateur.html")
+
+            if User.query.filter_by(email=email).first():
+                flash("Cette adresse email est déjà utilisée.", "warning")
+                return render_template("inscription_organisateur.html")
+
+            try:
+                user = User(
+                    username=username,
+                    email=email,
+                    is_organisateur=True,
+                )
+                user.set_password(password)
+                db.session.add(user)
+                db.session.commit()
+                session["username"] = username
+                flash("✅ Bienvenue ! Votre compte demandeur a été créé.", "success")
+                return redirect(url_for("mes_demandes"))
+            except Exception as e:
+                db.session.rollback()
+                current_app.logger.error(f"[INSCRIPTION ORG] Erreur {username}: {e}")
+                flash("Erreur lors de la création du compte. Veuillez réessayer.", "danger")
+                return render_template("inscription_organisateur.html")
+
+        return render_template("inscription_organisateur.html")
+
     @app.route("/login", methods=["GET", "POST"])
     def login():
         if "username" in session:
             u = current_user()
-            return redirect(url_for("admin_dashboard" if (u and u.is_admin) else "company_dashboard"))
+            if u and u.is_admin:
+                return redirect(url_for("admin_dashboard"))
+            if u and getattr(u, "is_organisateur", False):
+                return redirect(url_for("mes_demandes"))
+            return redirect(url_for("company_dashboard"))
         
         # Protection anti-bot
         if _is_suspicious_request():
@@ -1623,7 +1687,11 @@ def register_routes(app: Flask) -> None:
                     if not parsed.netloc and next_url.startswith('/') and '//' not in next_url:
                         return redirect(next_url)
                 
-                return redirect(url_for("admin_dashboard" if user.is_admin else "company_dashboard"))
+                if user.is_admin:
+                    return redirect(url_for("admin_dashboard"))
+                if getattr(user, "is_organisateur", False):
+                    return redirect(url_for("mes_demandes"))
+                return redirect(url_for("company_dashboard"))
 
             flash("Nom d'utilisateur ou mot de passe incorrect. Vérifiez vos identifiants.", "danger")
 
@@ -4160,6 +4228,7 @@ Accessibilité: {accessibilite}
 
             # Enregistrement de la demande en base
             from models.models import DemandeAnimation
+            _u_current = current_user()
             demande = DemandeAnimation(
                 auto_datetime=auto_datetime,
                 structure=structure,
@@ -4189,7 +4258,8 @@ Accessibilité: {accessibilite}
                 public_sous_options=public_sous_options or None,
                 portee_nationale=portee_nationale,
                 is_private=False,  # Publique par défaut
-                approved=False  # En attente de validation par l'admin
+                approved=False,  # En attente de validation par l'admin
+                user_id=_u_current.id if _u_current else None,  # Lié au demandeur si connecté
             )
             db.session.add(demande)
             db.session.commit()
@@ -4197,6 +4267,42 @@ Accessibilité: {accessibilite}
             # Email d'accusé de réception à l'auteur de la demande
             if getattr(current_app, "mail", None) and current_app.config.get("MAIL_USERNAME"):
                 try:
+                    # Bloc "retour vers la carte" : varie selon si l'organisateur est connecté
+                    if _u_current and _u_current.id == demande.user_id:
+                        try:
+                            _apercu_url = url_for("apercu_ma_demande", demande_id=demande.id, _external=True)
+                        except Exception:
+                            _apercu_url = f"https://www.spectacleanimation.fr/mes-demandes/apercu/{demande.id}"
+                        try:
+                            _mes_url = url_for("mes_demandes", _external=True)
+                        except Exception:
+                            _mes_url = "https://www.spectacleanimation.fr/mes-demandes"
+                        retour_html = f"""
+                        <tr>
+                            <td style="padding:0 40px 25px;">
+                                <div style="background:#e3f2fd; border:1px solid #90caf9; border-radius:8px; padding:16px 20px; text-align:center;">
+                                    <p style="margin:0 0 10px 0; font-size:14px; color:#1565c0; font-weight:700;">👁️ Retrouvez votre demande à tout moment</p>
+                                    <p style="margin:0 0 14px 0; font-size:13px; color:#1976d2;">Connectez-vous pour consulter, modifier ou dupliquer votre demande.</p>
+                                    <a href="{_apercu_url}" style="display:inline-block; background:#1976d2; color:#fff; padding:10px 22px; border-radius:6px; text-decoration:none; font-weight:700; font-size:14px; margin:0 4px 6px 0;">Voir ma demande</a>
+                                    <a href="{_mes_url}" style="display:inline-block; background:#fff; color:#1976d2; border:1px solid #1976d2; padding:9px 22px; border-radius:6px; text-decoration:none; font-weight:700; font-size:14px;">Mes demandes</a>
+                                </div>
+                            </td>
+                        </tr>"""
+                    else:
+                        try:
+                            _inscr_url = url_for("inscription_organisateur", _external=True)
+                        except Exception:
+                            _inscr_url = "https://www.spectacleanimation.fr/inscription-organisateur"
+                        retour_html = f"""
+                        <tr>
+                            <td style="padding:0 40px 25px;">
+                                <div style="background:#fff3e0; border:1px dashed #ff9800; border-radius:8px; padding:16px 20px; text-align:center;">
+                                    <p style="margin:0 0 10px 0; font-size:14px; color:#e65100; font-weight:700;">💡 Créez un compte pour suivre votre demande</p>
+                                    <p style="margin:0 0 14px 0; font-size:13px; color:#f57c00;">Un compte gratuit vous permet de consulter, modifier ou dupliquer vos demandes à tout moment.</p>
+                                    <a href="{_inscr_url}" style="display:inline-block; background:#e65100; color:#fff; padding:10px 22px; border-radius:6px; text-decoration:none; font-weight:700; font-size:14px;">➕ Créer mon compte gratuit</a>
+                                </div>
+                            </td>
+                        </tr>"""
                     confirmation_html = f"""<!DOCTYPE html>
 <html lang="fr">
 <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"></head>
@@ -4249,6 +4355,7 @@ Accessibilité: {accessibilite}
                         </div>
                     </td>
                 </tr>
+                {retour_html}
                 <tr>
                     <td style="background:linear-gradient(135deg,#667eea 0%,#764ba2 100%); padding:30px 40px; text-align:center;">
                         <p style="margin:0 0 4px 0; font-size:14px; color:#fff; font-weight:600;">Spectaclement v&ocirc;tre,</p>
@@ -4800,6 +4907,169 @@ Accessibilité: {accessibilite}
         regions = [r[0] for r in db.session.query(DemandeAnimation.lieu_ville).distinct().all() if r[0]]
         
         return render_template("mes_appels_offres.html", demandes=demandes, page=page, nb_pages=nb_pages, total=total, per_page=per_page, user=current_user(), categories=categories, regions=regions, categorie=categorie, region=region)
+
+    @app.route("/mes-demandes")
+    @login_required
+    def mes_demandes():
+        """Page personnelle du demandeur : liste de SES demandes uniquement.
+        Accessible à tout utilisateur connecté (organisateur ou compagnie qui aurait créé
+        des demandes en étant connecté). Les demandes créées anonymement ne sont pas listées ici."""
+        from models.models import DemandeAnimation
+        user = current_user()
+        demandes = (
+            DemandeAnimation.query
+            .filter(DemandeAnimation.user_id == user.id)
+            .order_by(DemandeAnimation.created_at.desc())
+            .all()
+        )
+        return render_template("mes_demandes.html", user=user, demandes=demandes)
+
+    def _get_my_demande_or_403(demande_id):
+        """Récupère une demande et vérifie que le user connecté en est propriétaire (ou admin)."""
+        from models.models import DemandeAnimation
+        d = DemandeAnimation.query.get_or_404(demande_id)
+        u = current_user()
+        if not u or (d.user_id != u.id and not u.is_admin):
+            flash("⛔ Vous n'avez pas accès à cette demande.", "danger")
+            return None
+        return d
+
+    @app.route("/mes-demandes/apercu/<int:demande_id>")
+    @login_required
+    def apercu_ma_demande(demande_id):
+        """Aperçu détaillé d'une demande pour son propriétaire (même si non approuvée)."""
+        demande = _get_my_demande_or_403(demande_id)
+        if demande is None:
+            return redirect(url_for("mes_demandes"))
+        return render_template("apercu_ma_demande.html", demande=demande, user=current_user())
+
+    @app.route("/mes-demandes/edit/<int:demande_id>", methods=["GET", "POST"])
+    @login_required
+    def edit_ma_demande(demande_id):
+        """Édition d'une demande par son propriétaire (organisateur)."""
+        demande = _get_my_demande_or_403(demande_id)
+        if demande is None:
+            return redirect(url_for("mes_demandes"))
+
+        if request.method == "POST":
+            demande.structure = request.form.get("structure", demande.structure)
+            demande.telephone = request.form.get("telephone", demande.telephone)
+            demande.lieu_ville = fix_mojibake(request.form.get("lieu_ville", demande.lieu_ville))
+            demande.nom = request.form.get("nom", demande.nom)
+            demande.date_debut = request.form.get("date_debut", demande.date_debut) or None
+            demande.date_fin = request.form.get("date_fin", demande.date_fin) or None
+            _new_debut = request.form.get("date_debut", "").strip()
+            _new_fin = request.form.get("date_fin", "").strip()
+            if _new_debut:
+                from datetime import datetime as _dt3
+                try:
+                    d1 = _dt3.strptime(_new_debut, "%Y-%m-%d").strftime("%d/%m/%Y")
+                    if _new_fin and _new_fin != _new_debut:
+                        d2 = _dt3.strptime(_new_fin, "%Y-%m-%d").strftime("%d/%m/%Y")
+                        demande.dates_horaires = f"Du {d1} au {d2}"
+                    else:
+                        demande.dates_horaires = d1
+                except ValueError:
+                    demande.dates_horaires = request.form.get("dates_horaires", demande.dates_horaires)
+            else:
+                demande.dates_horaires = request.form.get("dates_horaires", demande.dates_horaires)
+            demande.type_espace = request.form.get("type_espace", demande.type_espace)
+            demande.type_evenement = request.form.get("type_evenement", demande.type_evenement)
+            demande.genre_recherche = request.form.get("genre_recherche", demande.genre_recherche)
+            demande.age_range = request.form.get("age_range", demande.age_range)
+            demande.jauge = request.form.get("jauge", demande.jauge)
+            demande.budget = request.form.get("budget", demande.budget)
+            demande.intitule = request.form.get("intitule", demande.intitule)
+            demande.contraintes = request.form.get("contraintes", demande.contraintes)
+            demande.accessibilite = request.form.get("accessibilite", demande.accessibilite)
+            demande.contact_email = request.form.get("contact_email", demande.contact_email)
+            demande.code_postal = request.form.get("code_postal", demande.code_postal)
+            demande.region = fix_mojibake(request.form.get("region", demande.region))
+            demande.departement = fix_mojibake(request.form.get("departement", demande.departement))
+            demande.specialites_recherchees = ",".join(request.form.getlist("specialites_recherchees")) or demande.specialites_recherchees
+            demande.evenements_contexte = ",".join(request.form.getlist("evenements_contexte")) or demande.evenements_contexte
+            demande.lieux_souhaites = ",".join(request.form.getlist("lieux_souhaites")) or demande.lieux_souhaites
+            _new_pc = ",".join(request.form.getlist("public_categories"))
+            _new_pso = ",".join(request.form.getlist("public_sous_options"))
+            demande.public_categories = _new_pc if _new_pc else demande.public_categories
+            demande.public_sous_options = _new_pso if _new_pso else demande.public_sous_options
+            demande.portee_nationale = request.form.get("portee_nationale", "1") == "1"
+            # is_private réservé à l'admin (l'organisateur ne peut pas cacher sa demande à l'admin)
+            # approved reste géré par l'admin uniquement
+            db.session.commit()
+            flash("✅ Votre demande a été modifiée.", "success")
+            return redirect(url_for("mes_demandes"))
+
+        return render_template(
+            "demande_animation.html",
+            demande=demande,
+            user=current_user(),
+            specialites_data=SPECIALITES,
+            evenements_data=EVENEMENTS,
+            lieux_data=LIEUX,
+            form_action=url_for("edit_ma_demande", demande_id=demande.id),
+        )
+
+    @app.route("/mes-demandes/duplicate/<int:demande_id>", methods=["POST"])
+    @login_required
+    def duplicate_ma_demande(demande_id):
+        """Duplique une demande existante (propriétaire uniquement). La copie est
+        créée en brouillon (approved=False) pour que le propriétaire puisse la modifier."""
+        from models.models import DemandeAnimation
+        src = _get_my_demande_or_403(demande_id)
+        if src is None:
+            return redirect(url_for("mes_demandes"))
+
+        u = current_user()
+        copy = DemandeAnimation(
+            auto_datetime=datetime.utcnow().strftime("%Y-%m-%dT%H:%M"),
+            structure=src.structure,
+            telephone=src.telephone,
+            lieu_ville=src.lieu_ville,
+            code_postal=src.code_postal,
+            region=src.region,
+            departement=src.departement,
+            nom=src.nom,
+            dates_horaires=src.dates_horaires,
+            date_debut=src.date_debut,
+            date_fin=src.date_fin,
+            type_espace=src.type_espace,
+            type_evenement=src.type_evenement,
+            genre_recherche=src.genre_recherche,
+            age_range=src.age_range,
+            jauge=src.jauge,
+            budget=src.budget,
+            contraintes=src.contraintes,
+            accessibilite=src.accessibilite,
+            contact_email=src.contact_email,
+            intitule=(src.intitule or "") + " (copie)",
+            specialites_recherchees=src.specialites_recherchees,
+            evenements_contexte=src.evenements_contexte,
+            lieux_souhaites=src.lieux_souhaites,
+            public_categories=src.public_categories,
+            public_sous_options=src.public_sous_options,
+            portee_nationale=src.portee_nationale,
+            is_private=False,
+            approved=False,
+            user_id=u.id,
+        )
+        db.session.add(copy)
+        db.session.commit()
+        flash(f"📋 Demande dupliquée (#{copy.id}). Modifiez-la avant qu'elle soit republiée.", "success")
+        return redirect(url_for("edit_ma_demande", demande_id=copy.id, dup=1))
+
+    @app.route("/mes-demandes/delete/<int:demande_id>", methods=["POST"])
+    @login_required
+    def delete_ma_demande(demande_id):
+        """Supprime une demande dont le user connecté est propriétaire (ou admin)."""
+        demande = _get_my_demande_or_403(demande_id)
+        if demande is None:
+            return redirect(url_for("mes_demandes"))
+        _id = demande.id
+        db.session.delete(demande)
+        db.session.commit()
+        flash(f"🗑️ Demande #{_id} supprimée.", "success")
+        return redirect(url_for("mes_demandes"))
 
     @app.route("/test-demandes")
     def test_demandes():
@@ -6352,6 +6622,57 @@ def export_shows_xlsx():
     file_path = "instance/spectacles_export.xlsx"
     df.to_excel(file_path, index=False)
     return send_file(file_path, as_attachment=True, download_name="spectacles_export.xlsx")
+
+# === ROUTE EXPORT DEMANDES D'ANIMATION EXCEL ===
+@app.route("/admin/export-demandes-xlsx")
+@login_required
+@admin_required
+def export_demandes_xlsx():
+    """Archive toutes les demandes d'animation dans un fichier Excel téléchargeable
+    (à l'identique de l'export utilisateurs / spectacles)."""
+    from models.models import DemandeAnimation
+    demandes = DemandeAnimation.query.order_by(DemandeAnimation.created_at.desc()).all()
+    data = []
+    for d in demandes:
+        owner = d.user if getattr(d, "user_id", None) else None
+        data.append({
+            "ID": d.id,
+            "Créée le": d.created_at.strftime("%Y-%m-%d %H:%M") if d.created_at else "",
+            "Statut": "Publiée" if d.approved else ("Privée" if d.is_private else "En attente"),
+            "Intitulé": d.intitule or "",
+            "Structure": d.structure or "",
+            "Nom contact": d.nom or "",
+            "Email": d.contact_email or "",
+            "Téléphone": d.telephone or "",
+            "Lieu": d.lieu_ville or "",
+            "Code postal": d.code_postal or "",
+            "Département": d.departement or "",
+            "Région": d.region or "",
+            "Date début": d.date_debut or "",
+            "Date fin": d.date_fin or "",
+            "Dates / Horaires": d.dates_horaires or "",
+            "Type d'espace": d.type_espace or "",
+            "Type d'événement": d.type_evenement or "",
+            "Genre recherché": d.genre_recherche or "",
+            "Public visé": d.age_range or "",
+            "Jauge": d.jauge or "",
+            "Budget": d.budget or "",
+            "Spécialités": (d.specialites_recherchees or "").replace(",", ", "),
+            "Événements": (d.evenements_contexte or "").replace(",", ", "),
+            "Lieux souhaités": (d.lieux_souhaites or "").replace(",", ", "),
+            "Public catégories": d.public_categories or "",
+            "Public sous-options": d.public_sous_options or "",
+            "Contraintes": d.contraintes or "",
+            "Accessibilité": d.accessibilite or "",
+            "Portée nationale": "OUI" if d.portee_nationale else "NON",
+            "Propriétaire (user_id)": d.user_id or "",
+            "Propriétaire (pseudo)": owner.username if owner else "",
+        })
+    print(f"[EXPORT DEMANDES XLSX] {len(data)} demandes exportées")
+    df = pd.DataFrame(data)
+    file_path = "instance/demandes_animation_export.xlsx"
+    df.to_excel(file_path, index=False)
+    return send_file(file_path, as_attachment=True, download_name="demandes_animation_export.xlsx")
 
 # === GESTION DES UTILISATEURS ===
 @app.route("/admin/delete-bots", methods=["POST"])

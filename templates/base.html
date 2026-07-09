@@ -1067,6 +1067,28 @@
           </li>
 
         {# ----- UTILISATEUR CONNECTÉ mais pas admin ----- #}
+        {% elif user and user.is_organisateur %}
+          <li>
+            <a href="{{ url_for('mes_demandes') }}" style="{{ btn_gold }}">
+              🏛️ Mes demandes
+            </a>
+          </li>
+          <li>
+            <a href="{{ url_for('demande_animation') }}" style="{{ btn_glass }}">
+              ➕ Nouvelle demande
+            </a>
+          </li>
+          <li>
+            <a href="{{ url_for('catalogue') }}" style="{{ btn_glass }}">
+              Catalogue
+            </a>
+          </li>
+          <li>
+            <a href="{{ url_for('logout') }}" style="{{ btn_outline }}">
+              Déconnexion
+            </a>
+          </li>
+
         {% elif user %}
           <li>
             <a href="{{ url_for('company_dashboard') }}" style="{{ btn_gold }}">

@@ -30,6 +30,12 @@
   </a>
 </div>
 
+<div style="margin: 0 0 20px 0; display:flex; gap:10px; flex-wrap:wrap;">
+  <a href="{{ url_for('export_demandes_xlsx') }}" style="padding:8px 16px; border-radius:6px; font-weight:600; background:#1b5e20; color:#fff; text-decoration:none; font-size:0.9rem;">
+    📊 Exporter toutes les demandes (Excel)
+  </a>
+</div>
+
 <!-- Section EN ATTENTE DE VALIDATION -->
 {% if pending %}
 <h2 style="color:#ff9800; margin-bottom:16px;">⏳ EN ATTENTE DE VALIDATION ({{ pending|length }})</h2>

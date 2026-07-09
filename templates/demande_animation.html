@@ -2,7 +2,8 @@
 {% extends "base.html" %}
 {% from "_accordion_checkboxes.html" import accordion_checkboxes, accordion_checkboxes_js, accordion_public_cible, public_cible_js %}
 {% set d = demande if demande is defined and demande else none %}
-{% block title %}{% if d %}Modifier l'appel d'offre{% else %}Demander une animation pour anniversaire, entreprise, école{% endif %} - Spectacle'ment Vôtre{% endblock %}
+{% set is_dup = request.args.get('dup') == '1' %}
+{% block title %}{% if is_dup %}Dupliquer l'appel d'offre{% elif d %}Modifier l'appel d'offre{% else %}Demander une animation pour anniversaire, entreprise, école{% endif %} - Spectacle'ment Vôtre{% endblock %}
 
 {% block content %}
 <div style="margin-bottom:18px; font-size:1.15em; color:#fff; font-weight:600; text-align:center;">
@@ -10,12 +11,29 @@
 </div>
 <div class="demande-wrap" style="background:linear-gradient(135deg,#1b2a4e 0%,#355c7d 100%); border:2px solid #355c7d; border-radius:16px; padding:32px; margin-bottom:32px; position:relative; overflow:hidden; box-shadow:0 4px 16px #355c7d22; color:#fff;">
   <div style="background:linear-gradient(90deg,#1b2a4e 0%,#355c7d 100%); color:#fff; border-radius:10px; padding:14px 18px; margin-bottom:18px; text-align:center; font-size:1.18em; font-weight:700; box-shadow:0 2px 8px #1b2a4e33; letter-spacing:0.1px;">
-    {% if d %}Modifier l'appel d'offre #{{ d.id }}{% else %}Faire un appel d'offre animation, spectacle et autres{% endif %}
+    {% if is_dup %}📋 Dupliquer l'appel d'offre — copie #{{ d.id }}{% elif d %}Modifier l'appel d'offre #{{ d.id }}{% else %}Faire un appel d'offre animation, spectacle et autres{% endif %}
   </div>
+  {% if is_dup %}
+  <div style="background:#f3e5f5; border:1px solid #ce93d8; color:#4a148c; border-radius:10px; padding:12px 16px; margin-bottom:18px; text-align:center; font-size:0.95rem;">
+    📋 <strong>Duplication</strong> — modifiez les champs souhaités puis enregistrez. La copie sera republiée en attente de validation.
+  </div>
+  {% endif %}
   {% if not d %}
   <div style="background:#e8f5e9; border:1px solid #a5d6a7; border-radius:10px; padding:14px 18px; margin-bottom:18px; text-align:center;">
     <p style="margin:0 0 6px 0; font-size:1.05rem; color:#2e7d32; font-weight:700;">Appel d'offre GRATUIT - Un gain de temps considérable</p>
     <p style="margin:0; font-size:0.95rem; color:#388e3c;">Vous ne cherchez plus, ce sont les artistes qui viennent à vous !</p>
+  </div>
+  {% endif %}
+
+  {% if not d and not user %}
+  <div style="background:#fff3e0; border:1px dashed #ff9800; border-radius:10px; padding:12px 16px; margin-bottom:18px; display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:10px;">
+    <div style="color:#e65100; font-size:0.93rem; flex:1; min-width:200px;">
+      💡 <strong>Créez un compte demandeur</strong> pour retrouver vos demandes et publier plus rapidement la prochaine fois.
+    </div>
+    <div style="display:flex; gap:8px; flex-wrap:wrap;">
+      <a href="{{ url_for('inscription_organisateur') }}" style="background:#e65100; color:#fff; padding:8px 16px; border-radius:6px; text-decoration:none; font-weight:700; font-size:0.9rem;">➕ Créer un compte</a>
+      <a href="{{ url_for('login') }}" style="background:#fff; color:#e65100; border:1px solid #e65100; padding:8px 16px; border-radius:6px; text-decoration:none; font-weight:700; font-size:0.9rem;">Se connecter</a>
+    </div>
   </div>
   {% endif %}
   <p class="text-muted" style="margin:0 0 16px 0; text-align:center;">
@@ -26,7 +44,7 @@
     ✨ <strong>"Spectacle'ment Vôtre"</strong> effectuera aussi une recherche poussée en fonction de la spécificité de votre demande et vous enverra une liste d'artistes non abonnés suivant vos critères demandés.
   </div>
 
-  <form action="{{ url_for('edit_demande_animation', demande_id=d.id) if d else url_for('demande_animation') }}" method="POST" class="form demande-form" novalidate>
+  <form action="{{ form_action or (url_for('edit_demande_animation', demande_id=d.id) if d else url_for('demande_animation')) }}" method="POST" class="form demande-form" novalidate>
       <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
       <input type="hidden" name="auto_datetime" id="auto_datetime" value="">
 
@@ -44,12 +62,19 @@
     <fieldset class="demande-section">
       <legend>1) Vos coordonnées</legend>
 
+      {% if user and user.is_organisateur %}
+      <div style="background:#e8f5e9; border-left:4px solid #2e7d32; padding:10px 14px; border-radius:6px; margin-bottom:14px; font-size:0.92rem; color:#1b5e20;">
+        👋 Connecté en tant que <strong>{{ user.username }}</strong> — vos coordonnées sont pré-remplies.
+        <a href="{{ url_for('mes_demandes') }}" style="color:#1b5e20; font-weight:700; margin-left:8px;">← Mes demandes</a>
+      </div>
+      {% endif %}
+
       <div class="grid-2">
         <label>
           <span class="label-text">Structure / Organisateur <span class="req">*</span></span>
           <input type="text" id="structure" name="structure" required autocomplete="organization"
                  placeholder="Mairie, école, association…"
-                 value="{{ request.form.get('structure','') or (d.structure if d else '') }}">
+                 value="{{ (request.form.get('structure','') or (d.structure if d else '') or (user.raison_sociale if user and user.is_organisateur else '')) or '' }}">
           <small class="hint">Ex : Mairie de X, École Y, Association Z…</small>
         </label>
 
@@ -57,7 +82,7 @@
           <span class="label-text">Nom / Prénom (contact principal) <span class="req">*</span></span>
           <input type="text" id="nom" name="nom" required autocomplete="name"
                  placeholder="Votre nom"
-                 value="{{ request.form.get('nom','') or (d.nom if d else '') }}">
+                 value="{{ (request.form.get('nom','') or (d.nom if d else '') or (user.username if user and user.is_organisateur else '')) or '' }}">
         </label>
       </div>
 
@@ -66,7 +91,7 @@
           <span class="label-text">Adresse mail <span class="req">*</span></span>
           <input type="email" id="contact_email" name="contact_email" required
                  placeholder="email@exemple.fr"
-                 value="{{ request.form.get('contact_email','') or (d.contact_email if d else '') }}">
+                 value="{{ (request.form.get('contact_email','') or (d.contact_email if d else '') or (user.email if user and user.is_organisateur else '')) or '' }}">
           <small class="hint">Nous l'utilisons pour vous contacter.</small>
         </label>
 
@@ -74,7 +99,7 @@
           <span class="label-text">Téléphone (optionnel)</span>
           <input type="tel" id="telephone" name="telephone" autocomplete="tel"
                  inputmode="tel" placeholder="06 00 00 00 00"
-                 value="{{ request.form.get('telephone','') or (d.telephone if d else '') }}">
+                 value="{{ (request.form.get('telephone','') or (d.telephone if d else '') or (user.telephone if user and user.is_organisateur else '')) or '' }}">
         </label>
       </div>
 
