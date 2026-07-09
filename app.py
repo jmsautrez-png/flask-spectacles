@@ -95,7 +95,7 @@ from utils.security import (
     fix_mojibake,
 )
 from utils.search import normalize_search_text, generate_search_patterns
-from utils.seo import SEO_CATEGORIES, optimize_title_seo
+from utils.seo import SEO_CATEGORIES, optimize_title_seo, company_slug, company_id_from_slug
 from constants import SPECIALITES, EVENEMENTS, LIEUX, REGIONS_FRANCE, REGIONS_VOISINES, PUBLICS, PUBLIC_CIBLE_CATEGORIES, PUBLIC_CIBLE_ORGANISATEUR, PUBLIC_CIBLE_ADMIN, PUBLIC_CIBLE_INCOMPATIBLES, PUBLIC_CIBLE_CODES_VALIDES, LABELS_QUALITE, LABELS_QUALITE_CODES, LABELS_QUALITE_LABELS, LABELS_QUALITE_DESCRIPTIONS, MASQUER_COORDONNEES_DIRECTES
 
 print("✓ Config, models et utils importés")
@@ -822,6 +822,12 @@ def create_app() -> Flask:
             'LABELS_QUALITE_DESCRIPTIONS': LABELS_QUALITE_DESCRIPTIONS,
             'MASQUER_COORDONNEES_DIRECTES': MASQUER_COORDONNEES_DIRECTES,
         }
+
+    @app.context_processor
+    def inject_company_slug():
+        """Expose la fonction company_slug() dans tous les templates.
+        Usage : {{ url_for('compagnie_profile', slug=company_slug(show.user)) }}"""
+        return {'company_slug': company_slug}
 
     register_routes(app)
     register_error_handlers(app)
@@ -1653,6 +1659,91 @@ def register_routes(app: Flask) -> None:
 
         return render_template("inscription_organisateur.html")
 
+    # ---------------------------
+    # Proposition de compte après création anonyme d'une demande (option hybride)
+    # ---------------------------
+    @app.route("/demande/proposition-compte", methods=["GET", "POST"])
+    def demande_proposition_compte():
+        """Écran intermédiaire après création anonyme d'une demande.
+        Propose : (a) créer un compte rapide et lier la demande, (b) se connecter, (c) continuer sans compte.
+
+        Sécurité : ne fonctionne que si session['pending_demande_id'] a été posé
+        juste avant par demande_animation(). Empêche de détourner une demande d'autrui.
+        """
+        from models.models import DemandeAnimation
+        pending_id = session.get("pending_demande_id")
+        if not pending_id:
+            # Pas de demande en attente → parcours obsolète ou tentative directe
+            return redirect(url_for("home"))
+        demande = DemandeAnimation.query.get(pending_id)
+        if not demande:
+            session.pop("pending_demande_id", None)
+            return redirect(url_for("home"))
+        # Si la demande a déjà un propriétaire, ne pas la réassigner
+        if demande.user_id is not None:
+            session.pop("pending_demande_id", None)
+            flash("✅ Votre demande a bien été envoyée.", "success")
+            return redirect(url_for("home"))
+
+        if request.method == "POST":
+            action = request.form.get("action", "create")
+
+            # Skip : l'utilisateur choisit de ne pas créer de compte
+            if action == "skip":
+                session.pop("pending_demande_id", None)
+                flash("✅ Votre demande a bien été envoyée ! Elle sera publiée après validation par notre équipe (sous 24h).", "success")
+                return redirect(url_for("home"))
+
+            # Créer un compte rapide et lier la demande
+            username = request.form.get("username", "").strip()
+            password = request.form.get("password", "").strip()
+            # L'email est celui de la demande (pré-rempli, non modifiable ici)
+            email = (demande.contact_email or "").strip()
+
+            if not username or not password:
+                flash("Veuillez remplir le pseudo et le mot de passe.", "danger")
+                return render_template("demande_proposition_compte.html", demande=demande)
+            if len(password) < 6:
+                flash("Le mot de passe doit contenir au moins 6 caractères.", "danger")
+                return render_template("demande_proposition_compte.html", demande=demande)
+            if User.query.filter_by(username=username).first():
+                flash("Ce pseudo est déjà utilisé. Choisissez-en un autre.", "warning")
+                return render_template("demande_proposition_compte.html", demande=demande)
+            if email and User.query.filter_by(email=email).first():
+                flash("Cette adresse email est déjà utilisée. Connectez-vous plutôt.", "warning")
+                return render_template("demande_proposition_compte.html", demande=demande)
+
+            try:
+                new_user = User(
+                    username=username,
+                    email=email or None,
+                    telephone=demande.telephone or None,
+                    raison_sociale=demande.structure or None,
+                    region=demande.region or None,
+                    code_postal=demande.code_postal or None,
+                    ville=demande.lieu_ville or None,
+                    departement=demande.departement or None,
+                    is_organisateur=True,
+                )
+                new_user.set_password(password)
+                db.session.add(new_user)
+                db.session.commit()
+                # Lier la demande au nouveau compte
+                demande.user_id = new_user.id
+                db.session.commit()
+                # Nettoyer la session et connecter automatiquement
+                session.pop("pending_demande_id", None)
+                session["username"] = new_user.username
+                flash(f"✅ Compte créé et demande liée. Retrouvez-la ci-dessous.", "success")
+                return redirect(url_for("mes_demandes"))
+            except Exception as e:
+                db.session.rollback()
+                current_app.logger.error(f"[PROPOSITION COMPTE] Erreur {username}: {e}")
+                flash("Erreur lors de la création du compte. Veuillez réessayer.", "danger")
+                return render_template("demande_proposition_compte.html", demande=demande)
+
+        return render_template("demande_proposition_compte.html", demande=demande)
+
     @app.route("/login", methods=["GET", "POST"])
     def login():
         if "username" in session:
@@ -2150,6 +2241,26 @@ def register_routes(app: Flask) -> None:
                 'changefreq': 'weekly',
                 'priority': '0.7'
             })
+
+        # Profils compagnies (users NON admin, NON organisateur, avec ≥ 1 show approuvé)
+        try:
+            company_ids = {show.user_id for show in shows if show.user_id}
+            if company_ids:
+                cies = User.query.filter(
+                    User.id.in_(company_ids),
+                    User.is_admin.is_(False),
+                ).all()
+                for cie in cies:
+                    if getattr(cie, "is_organisateur", False):
+                        continue
+                    pages.append({
+                        'loc': url_for('compagnie_profile', slug=company_slug(cie), _external=True),
+                        'lastmod': datetime.utcnow().strftime('%Y-%m-%d'),
+                        'changefreq': 'weekly',
+                        'priority': '0.8'
+                    })
+        except Exception as _e_cie:
+            current_app.logger.warning(f"[SITEMAP] Compagnies non ajoutées: {_e_cie}")
         
         # Générer le XML
         sitemap_xml = '<?xml version="1.0" encoding="UTF-8"?>\n'
@@ -2615,6 +2726,50 @@ def register_routes(app: Flask) -> None:
         return render_template("show_detail.html", show=show, user=u, admin_email=admin_email,
                                spectacles_une=spectacles_une, view_count=view_count,
                                reviews=reviews, avg_rating=avg_rating, review_count=len(reviews))
+
+    # ---------------------------
+    # Profil public d'une compagnie (SEO local business)
+    # ---------------------------
+    @app.route("/compagnie/<slug>")
+    def compagnie_profile(slug):
+        """Fiche profil public d'une compagnie / artiste.
+
+        - Slug format : "raison-sociale-<id>" (ID à la fin pour unicité).
+        - Ne montre que les users NON admin, NON organisateur, avec ≥ 1 spectacle approuvé.
+        - Si le slug ne correspond pas au slug canonique (nom modifié), redirect 301 vers l'URL propre.
+        - Fournit toutes les infos pour Schema.org LocalBusiness/PerformingGroup.
+        """
+        uid = company_id_from_slug(slug)
+        if not uid:
+            abort(404)
+        cie = User.query.get(uid)
+        if not cie:
+            abort(404)
+        if cie.is_admin or getattr(cie, "is_organisateur", False):
+            abort(404)
+
+        # Doit avoir au moins un spectacle approuvé pour être indexé publiquement
+        shows = (
+            Show.query
+            .filter(Show.user_id == cie.id, Show.approved.is_(True))
+            .order_by(Show.display_order.asc(), Show.created_at.desc())
+            .all()
+        )
+        if not shows:
+            abort(404)
+
+        # SEO : rediriger 301 vers l'URL canonique si le slug affiché n'est pas le slug canonique actuel
+        canonical_slug = company_slug(cie)
+        if slug != canonical_slug:
+            return redirect(url_for("compagnie_profile", slug=canonical_slug), code=301)
+
+        return render_template(
+            "compagnie_profile.html",
+            cie=cie,
+            shows=shows,
+            user=current_user(),
+            canonical_slug=canonical_slug,
+        )
 
     @app.route("/demande-devis/<int:show_id>", methods=["GET", "POST"])
     def demande_devis(show_id: int):
@@ -4379,8 +4534,16 @@ Accessibilité: {accessibilite}
                 except Exception as e:
                     current_app.logger.error(f"[MAIL] ✗ Envoi email accusé réception impossible: {e}")
 
-            flash("✅ Votre demande a bien été envoyée ! Elle sera publiée après validation par notre équipe (sous 24h).", "success")
-            return redirect(url_for("home"))
+            # === PARCOURS HYBRIDE (option C) ===
+            # Si l'utilisateur est déjà connecté (organisateur ou compagnie) → home avec flash
+            # Sinon → écran de proposition de création de compte, avec la demande stockée en session
+            if _u_current:
+                flash("✅ Votre demande a bien été envoyée ! Elle sera publiée après validation par notre équipe (sous 24h).", "success")
+                return redirect(url_for("home"))
+            else:
+                # Stocker l'ID de la demande en session pour sécuriser la liaison ultérieure
+                session["pending_demande_id"] = demande.id
+                return redirect(url_for("demande_proposition_compte"))
 
         # Récupérer les spectacles "à la une" pour affichage
         spectacles_une = Show.query.filter(
