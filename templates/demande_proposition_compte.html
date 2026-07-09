@@ -1,0 +1,89 @@
+{% extends "base.html" %}
+{% block title %}Créez votre compte en 15 secondes - Spectacle'ment VØtre{% endblock %}
+
+{% block content %}
+<div class="container my-4" style="max-width:640px;">
+
+  {# Bandeau succès #}
+  <div style="background:linear-gradient(135deg,#1b5e20 0%,#2e7d32 100%); color:#fff; padding:22px 26px; border-radius:12px 12px 0 0; text-align:center; box-shadow:0 4px 14px rgba(27,94,32,0.25);">
+    <h1 style="margin:0 0 6px 0; font-size:1.5rem;">✅ Votre demande a été envoyée !</h1>
+    <p style="margin:0; color:rgba(255,255,255,0.9); font-size:0.95rem;">
+      Elle sera publiée après validation par notre équipe (sous 24h).
+    </p>
+  </div>
+
+  {# Carte proposition #}
+  <div style="background:#fff; border:1px solid #e0e0e0; border-top:none; border-radius:0 0 12px 12px; padding:26px; color:#333;">
+
+    <h2 style="color:#1b2a4e; margin:0 0 8px 0; font-size:1.25rem;">
+      🎁 Créez votre compte en 15 secondes
+    </h2>
+    <p style="margin:0 0 18px 0; color:#555; font-size:0.95rem; line-height:1.5;">
+      Un compte gratuit vous permet de :
+    </p>
+    <ul style="margin:0 0 22px 0; padding-left:22px; color:#333; font-size:0.95rem; line-height:1.9;">
+      <li>👁️ <strong>Retrouver et suivre</strong> votre demande actuelle</li>
+      <li>✏️ <strong>Modifier ou dupliquer</strong> votre demande à tout moment</li>
+      <li>➕ <strong>Publier de nouvelles demandes</strong> plus rapidement (infos pré-remplies)</li>
+      <li>📬 <strong>Recevoir les réponses des artistes</strong> par email centralisées</li>
+    </ul>
+
+    {# Récap discret de la demande créée #}
+    <div style="background:#f5f7fa; border-left:4px solid #1976d2; border-radius:6px; padding:10px 14px; margin-bottom:20px; font-size:0.88rem; color:#555;">
+      📋 Votre demande : <strong>{{ demande.intitule or demande.genre_recherche }}</strong>
+      à {{ demande.lieu_ville }} — sera liée à votre nouveau compte.
+    </div>
+
+    {# Formulaire de création rapide #}
+    <form method="post" style="margin:0;">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+      <input type="hidden" name="action" value="create"/>
+
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+        <label style="display:flex; flex-direction:column;">
+          <span style="font-weight:600; color:#333; font-size:0.9rem; margin-bottom:4px;">Choisissez un pseudo <span style="color:#c62828;">*</span></span>
+          <input type="text" name="username" required autofocus placeholder="ex: mairie-plessis"
+                 style="padding:10px 12px; border:1px solid #ccc; border-radius:6px; font-size:0.95rem;">
+        </label>
+        <label style="display:flex; flex-direction:column;">
+          <span style="font-weight:600; color:#333; font-size:0.9rem; margin-bottom:4px;">Mot de passe <span style="color:#c62828;">*</span></span>
+          <input type="password" name="password" required minlength="6" placeholder="6 caractères minimum"
+                 style="padding:10px 12px; border:1px solid #ccc; border-radius:6px; font-size:0.95rem;">
+        </label>
+      </div>
+
+      <p style="margin:10px 0 20px 0; color:#666; font-size:0.85rem;">
+        📧 Email associé : <strong>{{ demande.contact_email }}</strong> (celui de votre demande)
+      </p>
+
+      <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:6px;">
+        <button type="submit" style="flex:1; min-width:220px; background:linear-gradient(135deg,#1b5e20,#2e7d32); color:#fff; border:none; padding:14px 20px; border-radius:8px; font-weight:700; font-size:1rem; cursor:pointer; box-shadow:0 2px 8px rgba(27,94,32,0.3);">
+          ✅ Créer mon compte gratuit
+        </button>
+      </div>
+    </form>
+
+    {# Séparateur "ou" #}
+    <div style="display:flex; align-items:center; margin:22px 0 16px 0;">
+      <hr style="flex:1; border:none; border-top:1px solid #e0e0e0;">
+      <span style="padding:0 12px; color:#999; font-size:0.85rem;">OU</span>
+      <hr style="flex:1; border:none; border-top:1px solid #e0e0e0;">
+    </div>
+
+    {# Actions alternatives #}
+    <div style="display:flex; gap:10px; flex-wrap:wrap;">
+      <a href="{{ url_for('login') }}" style="flex:1; min-width:180px; text-align:center; background:#fff; color:#1976d2; border:1px solid #1976d2; padding:11px 16px; border-radius:8px; text-decoration:none; font-weight:600;">
+        🔑 J'ai déjà un compte
+      </a>
+      <form method="post" style="flex:1; min-width:180px; margin:0;">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+        <input type="hidden" name="action" value="skip"/>
+        <button type="submit" style="width:100%; background:#fff; color:#666; border:1px solid #ccc; padding:11px 16px; border-radius:8px; font-size:0.95rem; cursor:pointer;">
+          Non merci, continuer sans compte
+        </button>
+      </form>
+    </div>
+
+  </div>
+</div>
+{% endblock %}

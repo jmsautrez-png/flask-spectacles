@@ -133,7 +133,17 @@
     <div class="content" style="padding:32px;">
       <!-- Company Name -->
       {% if show.raison_sociale %}
-        <p style="font-size:1.15rem; font-weight:700; color:var(--primary); margin:0 0 12px 0; text-transform:uppercase; letter-spacing:0.5px;">{{ show.raison_sociale|title }}</p>
+        {% if show.user and not show.user.is_admin and not show.user.is_organisateur %}
+          <p style="font-size:1.15rem; font-weight:700; margin:0 0 12px 0; text-transform:uppercase; letter-spacing:0.5px;">
+            <a href="{{ url_for('compagnie_profile', slug=company_slug(show.user)) }}"
+               style="color:var(--primary); text-decoration:none; border-bottom:2px dotted var(--primary);"
+               title="Voir tous les spectacles de {{ show.raison_sociale|title }}">
+              {{ show.raison_sociale|title }} →
+            </a>
+          </p>
+        {% else %}
+          <p style="font-size:1.15rem; font-weight:700; color:var(--primary); margin:0 0 12px 0; text-transform:uppercase; letter-spacing:0.5px;">{{ show.raison_sociale|title }}</p>
+        {% endif %}
       {% endif %}
       
       <!-- Title -->

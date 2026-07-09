@@ -1,4 +1,44 @@
 """SEO optimization utilities."""
+import re
+from unicodedata import normalize
+
+
+def company_slug(user) -> str:
+    """Génère un slug SEO stable pour une compagnie/artiste (User).
+
+    Format : `raison-sociale-<id>` — l'ID final garantit l'unicité sans
+    collision de nom. Ex : "les-marionnettes-du-nord-42".
+    """
+    if user is None:
+        return ""
+    base = (getattr(user, "raison_sociale", None)
+            or getattr(user, "username", None)
+            or "compagnie")
+    base = str(base).lower()
+    # Supprime les accents
+    base = normalize("NFKD", base).encode("ascii", "ignore").decode("ascii")
+    # Remplace tout ce qui n'est pas alphanumérique par un tiret
+    base = re.sub(r"[^a-z0-9]+", "-", base).strip("-")
+    # Limite la longueur
+    base = base[:60].strip("-") or "compagnie"
+    return f"{base}-{user.id}"
+
+
+def company_id_from_slug(slug: str):
+    """Extrait l'ID numérique de fin d'un slug de compagnie.
+
+    Retourne l'entier ou None si le format ne matche pas.
+    """
+    if not slug or not isinstance(slug, str):
+        return None
+    parts = slug.rsplit("-", 1)
+    if len(parts) != 2 or not parts[1].isdigit():
+        return None
+    try:
+        return int(parts[1])
+    except (ValueError, TypeError):
+        return None
+
 
 SEO_CATEGORIES = {
     "marionnette": "marionnette",
