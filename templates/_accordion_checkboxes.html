@@ -5,8 +5,8 @@
      {{ accordion_checkboxes("specialites", specialites_data, current_values, "🎭", "Spécialités artistiques") }}
    ═══════════════════════════════════════════════════════════════════ #}
 
-{% macro accordion_checkboxes(field_name, categories_dict, current_values, icon, title, color="#6a1b9a", description="", text_color="#000", max_checked=0, show_counter=True, show_tip=True, show_toggle_buttons=True) %}
-<div class="matching-accordion-section" style="margin:18px 0;" data-field="{{ field_name }}" {% if max_checked > 0 %}data-max="{{ max_checked }}"{% endif %}>
+{% macro accordion_checkboxes(field_name, categories_dict, current_values, icon, title, color="#6a1b9a", description="", text_color="#000", max_checked=0, show_counter=True, show_tip=True, show_toggle_buttons=True, enable_solo=True) %}
+<div class="matching-accordion-section" style="margin:18px 0;" data-field="{{ field_name }}"{% if max_checked > 0 %} data-max="{{ max_checked }}"{% endif %} data-solo-enabled="{{ '1' if enable_solo else '0' }}">
   <h3 style="color:{{ color }}; margin:0 0 6px 0; font-size:1.05rem; display:flex; align-items:center; gap:8px;">
     {% if icon %}{{ icon }} {% endif %}{{ title }}
     {% if show_counter %}
@@ -506,8 +506,17 @@ function checkMatchingLimit(fieldName, cb) {
     });
   }
 
-  // Regle SOLO : une specialite "solo" doit etre seule cochee
-  if (cb.checked) {
+  // Determiner si la regle SOLO est active pour ce champ (via data-attribute pose par la macro)
+  // Cote compagnie (submit/edit spectacle) : SOLO ACTIF (comportement historique)
+  // Cote demande d'animation / admin / catalogue : SOLO DESACTIVE (l'organisateur cumule librement)
+  var _soloSection = null;
+  document.querySelectorAll('.matching-accordion-section').forEach(function(s) {
+    if (s.getAttribute('data-field') === fieldName) _soloSection = s;
+  });
+  var _soloEnabled = !_soloSection || _soloSection.getAttribute('data-solo-enabled') !== '0';
+
+  // Regle SOLO : une specialite "solo" doit etre seule cochee (uniquement si activee)
+  if (_soloEnabled && cb.checked) {
     if (_isSoloValue(cb.value)) {
       // On vient de cocher une case SOLO => decocher toutes les autres du meme field
       var decoched = 0;
@@ -537,10 +546,7 @@ function checkMatchingLimit(fieldName, cb) {
     }
   }
 
-  var section = null;
-  document.querySelectorAll('.matching-accordion-section').forEach(function(s) {
-    if (s.getAttribute('data-field') === fieldName) section = s;
-  });
+  var section = _soloSection;
   if (!section) return;
   var maxVal = parseInt(section.getAttribute('data-max') || '0', 10);
   if (maxVal <= 0) return;
@@ -560,20 +566,24 @@ function checkMatchingLimit(fieldName, cb) {
 }
 
 function toggleAllMatching(fieldName, checked) {
-  // Si on tente de "Tout cocher" alors qu'un SOLO est present, on l'ignore
-  // pour ne pas creer un conflit (SOLO doit rester seul coche)
+  // Cherche la section pour determiner si SOLO est actif sur ce champ
+  var section = null;
+  document.querySelectorAll('.matching-accordion-section').forEach(function(s) {
+    if (s.getAttribute('data-field') === fieldName) section = s;
+  });
+  var soloEnabled = !section || section.getAttribute('data-solo-enabled') !== '0';
+
+  // Si SOLO actif et qu'on tente de "Tout cocher" alors qu'un SOLO est present,
+  // on l'ignore pour ne pas creer un conflit (SOLO doit rester seul coche).
+  // Si SOLO desactive (cote demande / catalogue), on coche tout sans exception.
   document.querySelectorAll('input[name="' + fieldName + '"]').forEach(function(cb) {
-    if (checked && _isSoloValue(cb.value)) {
+    if (checked && soloEnabled && _isSoloValue(cb.value)) {
       cb.checked = false;
     } else {
       cb.checked = checked;
     }
   });
   // Mise à jour des compteurs
-  var section = null;
-  document.querySelectorAll('.matching-accordion-section').forEach(function(s) {
-    if (s.querySelector('input[name="' + fieldName + '"]')) section = s;
-  });
   if (section) {
     var groupCount = section.querySelectorAll('details.matching-accordion').length;
     updateMatchingCounts(fieldName, groupCount);

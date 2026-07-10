@@ -573,7 +573,7 @@
         {% if age %}<input type="hidden" name="age" value="{{ age }}">{% endif %}
         {% if q %}<input type="hidden" name="q" value="{{ q }}">{% endif %}
 
-        {{ accordion_checkboxes("specialite", specialites_data, specialites, "", "Type de spectacle", "#6a1b9a", "Filtrez le catalogue par spécialité artistique.", "#fff", 0, show_counter=False, show_tip=False, show_toggle_buttons=False) }}
+        {{ accordion_checkboxes("specialite", specialites_data, specialites, "", "Type de spectacle", "#6a1b9a", "Filtrez le catalogue par spécialité artistique.", "#fff", 0, show_counter=False, show_tip=False, show_toggle_buttons=False, enable_solo=False) }}
         {{ accordion_checkboxes("evenement", evenements_data, evenements_selected, "", "Contexte événement", "#e65100", "Filtrez par type d'événement recherché.", "#fff", 0, show_counter=False, show_tip=False, show_toggle_buttons=False) }}
 
         <button type="submit" style="width:100%; margin-top:8px; background:linear-gradient(135deg,#6d1313,#8b1e1e); color:#fff; border:none; padding:10px 16px; border-radius:8px; font-weight:700; font-size:0.95rem; cursor:pointer;">🔍 Filtrer les résultats</button>
