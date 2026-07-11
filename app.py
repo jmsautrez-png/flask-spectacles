@@ -3128,6 +3128,34 @@ def register_routes(app: Flask) -> None:
     # ---------------------------
     # Espace Admin
     # ---------------------------
+    class _AdminSearchPagination:
+        """Objet léger imitant l'API de Flask-SQLAlchemy Pagination pour l'admin search.
+
+        Utilisé quand la recherche par mot entier nécessite un filtrage Python
+        (après pré-filtre SQL) et donc une pagination manuelle.
+        """
+        def __init__(self, page, pages, total, per_page):
+            self.page = page
+            self.pages = pages
+            self.total = total
+            self.per_page = per_page
+            self.has_prev = page > 1
+            self.has_next = page < pages
+            self.prev_num = page - 1 if self.has_prev else None
+            self.next_num = page + 1 if self.has_next else None
+
+        def iter_pages(self, left_edge=1, right_edge=1, left_current=2, right_current=2):
+            last = 0
+            for num in range(1, self.pages + 1):
+                if (num <= left_edge
+                        or (num > self.page - left_current - 1
+                            and num < self.page + right_current)
+                        or num > self.pages - right_edge):
+                    if last + 1 != num:
+                        yield None
+                    yield num
+                    last = num
+
     @app.route("/admin", endpoint="admin_dashboard")
     @login_required
     @admin_required
@@ -3135,17 +3163,34 @@ def register_routes(app: Flask) -> None:
         page = request.args.get("page", 1, type=int)
         q = (request.args.get("q") or "").strip()
 
-        # Requête de base + filtre exclusif sur la description
-        base_query = Show.query
-        if q:
-            like_pattern = f"%{q}%"
-            base_query = base_query.filter(Show.description.ilike(like_pattern))
+        per_page = 30
 
-        # Pagination pour tous les spectacles (filtrés si q présent)
-        pagination = base_query.order_by(Show.created_at.desc()).paginate(
-            page=page, per_page=30, error_out=False
-        )
-        shows = pagination.items
+        if q:
+            # Pré-filtre SQL rapide (indexable) : toutes les descriptions contenant
+            # la sous-chaîne (peut inclure des faux positifs, ex. "pirate" dans "aspirateur").
+            like_pattern = f"%{q}%"
+            candidates = (
+                Show.query
+                .filter(Show.description.ilike(like_pattern))
+                .order_by(Show.created_at.desc())
+                .all()
+            )
+            # Raffinage Python : match du MOT ENTIER uniquement (word boundary Unicode).
+            # Élimine les faux positifs comme "aspirateur" quand on cherche "pirate".
+            word_re = re.compile(r"\b" + re.escape(q) + r"\b", re.IGNORECASE | re.UNICODE)
+            filtered = [s for s in candidates if s.description and word_re.search(s.description)]
+
+            total = len(filtered)
+            pages = max(1, (total + per_page - 1) // per_page) if total else 1
+            page = max(1, min(page, pages))
+            start = (page - 1) * per_page
+            shows = filtered[start:start + per_page]
+            pagination = _AdminSearchPagination(page=page, pages=pages, total=total, per_page=per_page)
+        else:
+            pagination = Show.query.order_by(Show.created_at.desc()).paginate(
+                page=page, per_page=per_page, error_out=False
+            )
+            shows = pagination.items
 
         # Liste des spectacles en attente (non paginée pour le badge, non affectée par la recherche)
         pending = Show.query.filter_by(approved=False).all()

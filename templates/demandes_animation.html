@@ -108,7 +108,7 @@
       {% else %}
       <p style="margin:0 0 0.2rem 0;"><span style="color:#1976d2; font-weight:600;">{{ demande.genre_recherche }}</span></p>
       {% endif %}
-      <p style="margin:0 0 0.2rem 0;"><strong>📍</strong> {% if user and user.is_admin %}{{ demande.lieu_ville }}{% if demande.region %} · {{ demande.region }}{% endif %}{% else %}<a href="{{ url_for('register') }}" style="color:#7c4dff; font-style:italic; text-decoration:underline;">[Lieu masqué]</a>{% endif %}</p>
+      <p style="margin:0 0 0.2rem 0;"><strong>📍</strong> {% if user %}{{ demande.lieu_ville }}{% if demande.code_postal %} ({{ demande.code_postal }}){% endif %}{% if demande.region %} · {{ demande.region }}{% endif %}{% else %}<a href="{{ url_for('register') }}" style="color:#7c4dff; font-style:italic; text-decoration:underline;">[Lieu masqué]</a>{% endif %}</p>
       <p style="margin:0 0 0.4rem 0;"><strong>💶</strong> <span style="color:#28a745; font-weight:700;">{{ demande.budget }}</span> · <strong>👥</strong> {{ demande.jauge }} pers.</p>
 
       <!-- Bouton voir détails -->
