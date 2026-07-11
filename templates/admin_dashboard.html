@@ -90,6 +90,22 @@
 <hr>
 
 <h2>📚 Toutes les annonces</h2>
+
+<form method="get" action="{{ url_for('admin_dashboard') }}"
+      style="margin: 0 0 20px 0; display: flex; gap: 8px; flex-wrap: wrap; align-items: center; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.15); border-radius: 10px; padding: 12px 14px;">
+  <label for="admin-search-q" style="color:#fff; font-weight:600;">🔍 Rechercher dans la description :</label>
+  <input type="text" id="admin-search-q" name="q" value="{{ q or '' }}"
+         placeholder="ex. pirate, halloween, magie…"
+         style="flex:1; min-width:220px; padding:8px 12px; border-radius:6px; border:1px solid rgba(255,255,255,0.25); background:#1a1a1e; color:#fff; font-size:0.95rem;">
+  <button type="submit" class="btn" style="padding:8px 16px; border-radius:6px; font-weight:600; background:var(--primary); color:#fff; border:none; cursor:pointer;">Rechercher</button>
+  {% if q %}
+    <a href="{{ url_for('admin_dashboard') }}" class="btn" style="padding:8px 16px; border-radius:6px; font-weight:600; background:#6c757d; color:#fff; text-decoration:none;">✗ Réinitialiser</a>
+    <span style="color:#ffc107; font-weight:600; margin-left:6px;">
+      {{ pagination.total }} résultat{{ 's' if pagination.total > 1 else '' }} pour « {{ q }} »
+    </span>
+  {% endif %}
+</form>
+
 <div class="cards">
 {% for show in shows %}
     <article class="card">
@@ -143,6 +159,12 @@
 {% endfor %}
 </div>
 
+{% if q and not shows %}
+  <p style="color:var(--muted); text-align:center; margin:20px 0;">
+    Aucune carte ne contient « {{ q }} » dans sa description.
+  </p>
+{% endif %}
+
 <!-- Pagination -->
 {% if pagination and pagination.pages > 1 %}
 <nav class="pagination" style="margin: 30px 0; text-align: center;">
@@ -150,7 +172,7 @@
     
     <!-- Page précédente -->
     {% if pagination.has_prev %}
-      <a href="{{ url_for('admin_dashboard', page=pagination.prev_num) }}"
+      <a href="{{ url_for('admin_dashboard', page=pagination.prev_num, q=q or None) }}"
          style="padding: 8px 12px; background: var(--primary); color: white; text-decoration: none; border-radius: 4px; font-weight: 600;">
         ← Précédent
       </a>
@@ -168,7 +190,7 @@
             {{ p }}
           </span>
         {% else %}
-          <a href="{{ url_for('admin_dashboard', page=p) }}"
+          <a href="{{ url_for('admin_dashboard', page=p, q=q or None) }}"
              style="padding: 8px 12px; background: #f2f3f7; color: var(--text); text-decoration: none; border-radius: 4px; font-weight: 600;">
             {{ p }}
           </a>
@@ -180,7 +202,7 @@
 
     <!-- Page suivante -->
     {% if pagination.has_next %}
-      <a href="{{ url_for('admin_dashboard', page=pagination.next_num) }}"
+      <a href="{{ url_for('admin_dashboard', page=pagination.next_num, q=q or None) }}"
          style="padding: 8px 12px; background: var(--primary); color: white; text-decoration: none; border-radius: 4px; font-weight: 600;">
         Suivant →
       </a>

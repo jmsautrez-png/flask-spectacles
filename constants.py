@@ -43,6 +43,7 @@ SPECIALITES = {
         "Spectacle écologie et nature",
         "Spectacle champêtre",
         "Spectacle Halloween",
+        "Spectacle de Pirate",
         "Spectacle Événementiel",
         "Spectacle de Cabaret",
         # Cirque / Visuel

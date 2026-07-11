@@ -3133,22 +3133,30 @@ def register_routes(app: Flask) -> None:
     @admin_required
     def admin_dashboard():
         page = request.args.get("page", 1, type=int)
-        
-        # Pagination pour tous les spectacles
-        pagination = Show.query.order_by(Show.created_at.desc()).paginate(
+        q = (request.args.get("q") or "").strip()
+
+        # Requête de base + filtre exclusif sur la description
+        base_query = Show.query
+        if q:
+            like_pattern = f"%{q}%"
+            base_query = base_query.filter(Show.description.ilike(like_pattern))
+
+        # Pagination pour tous les spectacles (filtrés si q présent)
+        pagination = base_query.order_by(Show.created_at.desc()).paginate(
             page=page, per_page=30, error_out=False
         )
         shows = pagination.items
-        
-        # Liste des spectacles en attente (non paginée pour le badge)
+
+        # Liste des spectacles en attente (non paginée pour le badge, non affectée par la recherche)
         pending = Show.query.filter_by(approved=False).all()
-        
+
         return render_template(
-            "admin_dashboard.html", 
-            user=current_user(), 
-            shows=shows, 
+            "admin_dashboard.html",
+            user=current_user(),
+            shows=shows,
             pending=pending,
-            pagination=pagination
+            pagination=pagination,
+            q=q,
         )
     
     @app.route("/admin/statistiques", endpoint="admin_statistics")
