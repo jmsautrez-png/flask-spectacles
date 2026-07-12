@@ -197,6 +197,28 @@ def _validate_production_config(app: Flask) -> None:
         app.logger.error("[CONFIG] ❌ CRITICAL CONFIGURATION ERRORS DETECTED. App may not work correctly!")
 
 
+def _user_is_edition_libre_only(user) -> bool:
+    """Retourne True si la compagnie a au moins un spectacle approuvé
+    et si TOUS ses spectacles approuvés portent le label « edition_libre ».
+
+    Faux pour l'admin, les organisateurs, les visiteurs et toute compagnie
+    ayant au moins un spectacle validé qualitativement (autre label ou aucun).
+    """
+    if not user or getattr(user, "is_admin", False) or getattr(user, "is_organisateur", False):
+        return False
+    shows_approved = Show.query.filter(
+        Show.user_id == user.id,
+        Show.approved.is_(True)
+    ).all()
+    if not shows_approved:
+        return False
+    for s in shows_approved:
+        labels = {c.strip().lower() for c in (s.labels or "").split(",") if c.strip()}
+        if "edition_libre" not in labels:
+            return False
+    return True
+
+
 def create_app() -> Flask:
     print("\n📦 Entrée dans create_app()")
     
@@ -810,6 +832,16 @@ def create_app() -> Flask:
             Show.approved.is_(True)
         ).count() > 0
         return {'user_has_show': has}
+
+    @app.context_processor
+    def inject_user_edition_libre_only():
+        """Indique si la compagnie connectée est « en édition libre stricte » :
+        au moins un spectacle approuvé, et TOUS ses spectacles approuvés
+        portent le label « edition_libre » (aucune fiche validée qualitativement).
+        Utilisé pour masquer certains liens (ex. Appels d'offres) dans le menu.
+        """
+        return {'user_edition_libre_only': _user_is_edition_libre_only(current_user())}
+
 
     @app.context_processor
     def inject_public_cible():
@@ -4957,6 +4989,16 @@ Accessibilité: {accessibilite}
         
         # Base de la requête - Filtrer les demandes privées ET non approuvées sur la page publique
         user = current_user()
+
+        # Blocage des comptes en édition libre stricte (fiches non validées qualitativement)
+        if _user_is_edition_libre_only(user):
+            flash(
+                "Votre compte est en « édition libre » : l'accès aux appels d'offres "
+                "est réservé aux compagnies vérifiées.",
+                "warning",
+            )
+            return redirect(url_for("abonnement_compagnie"))
+
         if user and user.is_admin:
             # Admin voit toutes les demandes (sauf les privées)
             demandes_query = DemandeAnimation.query.filter(DemandeAnimation.is_private == False).order_by(DemandeAnimation.created_at.desc())
@@ -5004,6 +5046,15 @@ Accessibilité: {accessibilite}
         user = current_user()
         categorie = request.args.get('categorie', '').strip()
         region = request.args.get('region', '').strip()
+
+        # Blocage des comptes en édition libre stricte
+        if _user_is_edition_libre_only(user):
+            flash(
+                "Votre compte est en « édition libre » : l'accès aux appels d'offres "
+                "est réservé aux compagnies vérifiées.",
+                "warning",
+            )
+            return redirect(url_for("abonnement_compagnie"))
 
         if user and user.is_admin:
             demandes_query = DemandeAnimation.query.filter(DemandeAnimation.is_private == False).order_by(DemandeAnimation.created_at.desc())
@@ -5097,6 +5148,15 @@ Accessibilité: {accessibilite}
         if not has_show and not user.is_admin:
             flash("Vous devez avoir un spectacle approuvé pour accéder aux appels d'offre.", "warning")
             return redirect(url_for("company_dashboard"))
+
+        # Blocage des comptes en édition libre stricte (toutes leurs fiches sont neutres)
+        if _user_is_edition_libre_only(user):
+            flash(
+                "Votre compte est en « édition libre » : l'accès aux appels d'offres "
+                "est réservé aux compagnies vérifiées.",
+                "warning",
+            )
+            return redirect(url_for("abonnement_compagnie"))
         
         page = request.args.get('page', 1, type=int)
         per_page = 12
