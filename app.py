@@ -4038,7 +4038,49 @@ def register_routes(app: Flask) -> None:
                 # On privilégie l'email de la compagnie si présent, sinon fallback admin
                 to_addr = show.contact_email if show.contact_email else (current_app.config.get("MAIL_DEFAULT_SENDER") or current_app.config.get("MAIL_USERNAME"))
                 show_url = url_for("show_detail", show_id=show.id, _external=True)
-                
+
+                # Détection du label « édition libre » : mail court et discret
+                _show_labels = {c.strip().lower() for c in (show.labels or "").split(",") if c.strip()}
+                _edition_libre = "edition_libre" in _show_labels
+
+                if _edition_libre:
+                    # Fiche en édition libre : email volontairement minimaliste, sans mention
+                    # du statut, sans pub premium. Copie cachée à l'admin pour traçabilité.
+                    _username = (show.user.username if show.user else None) or show.raison_sociale or "Bonjour"
+                    subject = "Votre fiche est en ligne sur Spectacle'ment VØtre"
+                    body_html = f"""<!DOCTYPE html>
+<html lang=\"fr\">
+<head><meta charset=\"UTF-8\"><title>Votre fiche est en ligne</title></head>
+<body style=\"margin:0; padding:24px; font-family: Arial, Helvetica, sans-serif; background:#f4f4f6; color:#222;\">
+    <table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" style=\"max-width:560px; margin:0 auto; background:#fff; border-radius:8px; padding:28px 32px; box-shadow:0 2px 6px rgba(0,0,0,0.05);\">
+        <tr><td>
+            <p style=\"margin:0 0 14px 0; font-size:15px; line-height:1.6;\">Bonjour <strong>{_username}</strong>,</p>
+            <p style=\"margin:0 0 14px 0; font-size:15px; line-height:1.6;\">Votre fiche <strong>&laquo;&nbsp;{show.title}&nbsp;&raquo;</strong> est en ligne sur Spectacle'ment V&Oslash;tre.</p>
+            <p style=\"margin:22px 0; text-align:center;\">
+                <a href=\"{show_url}\" style=\"display:inline-block; padding:10px 22px; background:#6a1b9a; color:#fff; text-decoration:none; border-radius:5px; font-weight:600; font-size:14px;\">Voir ma fiche</a>
+            </p>
+            <p style=\"margin:0; font-size:13px; color:#666; line-height:1.5;\">L'&eacute;quipe Spectacle'ment V&Oslash;tre</p>
+        </td></tr>
+    </table>
+</body>
+</html>"""
+                    body_text = (
+                        f"Bonjour {_username},\n\n"
+                        f"Votre fiche « {show.title} » est en ligne sur Spectacle'ment VØtre.\n\n"
+                        f"Voir ma fiche : {show_url}\n\n"
+                        f"L'équipe Spectacle'ment VØtre"
+                    )
+                    msg = MailMessage(subject=subject, recipients=[to_addr])  # type: ignore[arg-type]
+                    admin_email = "contact@spectacleanimation.fr"
+                    if to_addr != admin_email:
+                        msg.bcc = [admin_email]  # type: ignore[assignment]
+                    msg.html = body_html  # type: ignore[assignment]
+                    msg.body = body_text  # type: ignore[assignment]
+                    current_app.mail.send(msg)  # type: ignore[attr-defined]
+                    current_app.logger.info(f"[MAIL] ✓ Email 'édition libre' envoyé à {to_addr} (copie admin: {admin_email}) pour: {show.title}")
+                    flash("Annonce validée ✅", "success")
+                    return redirect(url_for("admin_dashboard"))
+
                 # Déterminer si c'est une carte créée par l'admin (pas de user_id) ou par l'utilisateur
                 if show.user_id:
                     # Carte créée par l'utilisateur lui-même → Email de validation classique
