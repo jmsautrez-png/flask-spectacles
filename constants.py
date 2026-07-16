@@ -82,6 +82,7 @@ SPECIALITES = {
         "Seul en scène",
         # Arts du geste
         "Mime",
+        "Travail du masque / Commedia dell'arte",
         # Conférence
         "Conférence gesticulée",
         # Amateur
