@@ -32,6 +32,7 @@ SPECIALITES = {
         "Père Noël",
         "Conteuse Conteur",
         "Conte théâtralisé",
+        "Conte burlesque",
         "Spectacle de Marionnettes",
         # Types de spectacle
         "Spectacle d'animation enfant, adulte ou EHPAD",
