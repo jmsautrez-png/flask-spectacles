@@ -88,9 +88,11 @@ SPECIALITES = {
         # Amateur
         "Théâtre amateur",
         "Théâtre d'improvisation",
+        "Théâtre participatif",
         # Musical
         "Comédie musicale",
         # Jeunesse
+        "Théâtre pour la famille",
         "Théâtre pour enfant",
         "Spectacle de comptines et de théâtre",
     ],
