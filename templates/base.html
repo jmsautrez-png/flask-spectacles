@@ -526,11 +526,24 @@
       background: linear-gradient(135deg, #0a0a1a 0%, #1a0a0a 20%, #6d1313 50%, #1a0a0a 80%, #0a0a1a 100%);
       background-size: 300% 300%;
       animation: header-gradient 15s ease infinite;
-      border-bottom: 3px solid;
-      border-image: linear-gradient(90deg, #ffc107, #ff5722, #e91e63, #9c27b0, #ffc107) 1;
+      /* Fix Safari : border-image sur border-bottom seul est bugué (appliqué aux 4 côtés).
+         On passe par un pseudo-élément ::after (voir plus bas) pour le liséré coloré. */
       box-shadow: 0 4px 30px rgba(109, 19, 19, 0.7), 0 0 60px rgba(255, 193, 7, 0.15);
       overflow: hidden;
       min-height: 7.875rem; /* 126px en rem */
+    }
+
+    /* Liséré coloré en bas du header (remplace le border-image bugué sur Safari) */
+    .site-header::after {
+      content: '';
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      height: 3px;
+      background: linear-gradient(90deg, #ffc107, #ff5722, #e91e63, #9c27b0, #ffc107);
+      pointer-events: none;
+      z-index: 6;
     }
     
     /* ============================================
@@ -1032,7 +1045,7 @@
     <nav>
       <ul class="nav header-nav">
         {# === Style unifié des boutons d'en-tête === #}
-        {% set btn_base = "padding:8px 14px; border-radius:6px; font-weight:600; font-size:0.85rem; text-decoration:none; display:inline-block; transition:all 0.2s; backdrop-filter:blur(4px); border:1px solid rgba(255,255,255,0.18);" %}
+        {% set btn_base = "padding:8px 14px; border-radius:6px; font-weight:600; font-size:0.85rem; text-decoration:none; display:inline-block; transition:all 0.2s; -webkit-backdrop-filter:blur(4px); backdrop-filter:blur(4px); border:1px solid rgba(255,255,255,0.18);" %}
         {% set btn_glass = btn_base + " background:rgba(255,255,255,0.10); color:#fff;" %}
         {% set btn_gold = btn_base + " background:linear-gradient(135deg,#ffc107,#ff9800); color:#3b1f00; border-color:rgba(255,193,7,0.6); box-shadow:0 2px 6px rgba(255,152,0,0.25);" %}
         {% set btn_admin = btn_base + " background:#dc3545; color:#fff; border-color:rgba(255,255,255,0.25);" %}

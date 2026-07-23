@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+{% block title %}Supprimer mon compte - Spectacle'ment VØtre{% endblock %}
+{% block content %}
+<div class="container" style="max-width:680px; margin:24px auto;">
+  <h1 style="color:#ef4444;">🗑️ Supprimer mon compte</h1>
+  <p style="color:#ffb3b3;">
+    Cette action est <strong>irréversible</strong>. Merci de lire attentivement les informations ci-dessous avant de confirmer.
+  </p>
+
+  <div style="background:#3b1414; border:1px solid #ef4444; border-radius:10px; padding:18px; margin-top:14px;">
+    <h3 style="margin:0 0 10px 0; color:#fff;">⚠️ Ce qui sera définitivement supprimé</h3>
+    <ul style="margin:0 0 8px 20px; padding:0; color:#fecaca; line-height:1.8;">
+      <li>Votre profil <strong>{{ user.username }}</strong>{% if user.raison_sociale %} ({{ user.raison_sociale }}){% endif %}</li>
+      <li>Vos <strong>{{ nb_shows }}</strong> spectacle{{ 's' if nb_shows > 1 else '' }} publié{{ 's' if nb_shows > 1 else '' }} (avec photos)</li>
+      <li>Vos <strong>{{ nb_conversations }}</strong> conversation{{ 's' if nb_conversations > 1 else '' }} et <strong>{{ nb_messages }}</strong> message{{ 's' if nb_messages > 1 else '' }} envoyé{{ 's' if nb_messages > 1 else '' }}</li>
+      <li>Toutes vos notifications, avis publiés et statistiques de vues</li>
+    </ul>
+    <p style="margin:10px 0 0 0; color:#fecaca; font-size:0.9em;">
+      Les demandes d'animation que vous auriez déposées seront <strong>conservées</strong> mais <strong>anonymisées</strong>
+      (elles ne seront plus reliées à votre compte).
+    </p>
+  </div>
+
+  <form method="POST" style="background:#162447; border:1px solid #1976d2; border-radius:10px; padding:18px; margin-top:14px;">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() if csrf_token else '' }}">
+
+    <label style="display:block; margin-bottom:14px;">
+      <span class="label-text">Confirmez votre mot de passe <span class="req">*</span></span>
+      <input type="password" name="password" required autocomplete="current-password"
+             placeholder="Votre mot de passe actuel"
+             style="width:100%;">
+      <span style="font-size:0.82em; color:#90caf9; display:block; margin-top:4px;">
+        Nous vérifions votre mot de passe pour éviter toute suppression accidentelle.
+      </span>
+    </label>
+
+    <label style="display:block; margin-bottom:14px;">
+      <span class="label-text">Tapez <code style="background:#0d1b3a; padding:2px 6px; border-radius:4px; color:#ff6b6b;">SUPPRIMER</code> pour confirmer <span class="req">*</span></span>
+      <input type="text" name="confirm_text" required
+             placeholder="SUPPRIMER"
+             autocomplete="off"
+             style="width:100%;">
+    </label>
+
+    <label style="display:flex; align-items:flex-start; gap:10px; margin-bottom:18px; background:#1a1f2e; padding:12px 14px; border-radius:8px; border:1px solid #ef4444;">
+      <input type="checkbox" name="confirm" required style="margin-top:4px; transform:scale(1.2);">
+      <span style="color:#fecaca; font-size:0.95em;">
+        Je comprends que cette action est <strong>irréversible</strong> et que toutes mes données
+        (profil, spectacles, photos, messages, notifications) seront définitivement effacées.
+      </span>
+    </label>
+
+    <div style="display:flex; gap:10px; margin-top:18px; flex-wrap:wrap;">
+      <button type="submit"
+              style="flex:1; min-width:220px; padding:12px; background:#ef4444; color:#fff; border:none; border-radius:8px; font-weight:700; font-size:1rem; cursor:pointer;"
+              onclick="return confirm('Êtes-vous absolument sûr(e) ? Cette action est irréversible.');">
+        🗑️ Supprimer définitivement mon compte
+      </button>
+      <a href="{{ url_for('profil_compte') }}" class="btn-secondary"
+         style="flex:1; min-width:180px; padding:12px; border-radius:8px; background:#23232a; color:var(--text); text-decoration:none; text-align:center; border:1px solid var(--border);">
+        Annuler
+      </a>
+    </div>
+  </form>
+
+  <div style="margin-top:18px; padding:14px; background:rgba(25,118,210,0.12); border:1px solid rgba(25,118,210,0.4); border-radius:8px; color:#bbdefb; font-size:0.9em;">
+    💡 <strong>Vous hésitez ?</strong> Vous pouvez aussi simplement
+    <a href="{{ url_for('logout') }}" style="color:#64b5f6;">vous déconnecter</a>
+    ou nous contacter à <a href="mailto:contact@spectacleanimation.fr" style="color:#64b5f6;">contact@spectacleanimation.fr</a>
+    si vous avez une question avant de supprimer votre compte.
+  </div>
+</div>
+{% endblock %}

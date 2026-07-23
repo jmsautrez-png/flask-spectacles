@@ -1379,6 +1379,144 @@ def notify_admin_show_deletion(reason, items, owner_info=None):
         return False
 
 
+def notify_admin_self_deletion(user_snapshot, shows_info, stats=None):
+    """Alerte e-mail dédiée à l'admin quand un utilisateur supprime lui-même
+    son compte via /mon-compte/supprimer (design distinct de la suppression admin).
+
+    - user_snapshot : dict avec username, email, raison_sociale, ville,
+      code_postal, region, is_organisateur, created_at (str formatée).
+    - shows_info : liste des fiches supprimées [{id, title, category, region}, ...].
+    - stats : dict optionnel {nb_shows, nb_messages, nb_conversations, nb_demandes}.
+
+    Doit être appelée DANS un contexte d'application. Ne lève jamais.
+    """
+    try:
+        if MailMessage is None:
+            return False
+        if not getattr(current_app, "mail", None):
+            return False
+        if not current_app.config.get("MAIL_USERNAME") or not current_app.config.get("MAIL_PASSWORD"):
+            return False
+        admin_email = current_app.config.get("MAIL_DEFAULT_SENDER") or current_app.config.get("MAIL_USERNAME")
+        if not admin_email:
+            return False
+
+        from markupsafe import escape
+
+        u = user_snapshot or {}
+        username = escape(u.get("username") or "?")
+        email = escape(u.get("email") or "—")
+        raison_sociale = escape(u.get("raison_sociale") or "—")
+        ville = escape(u.get("ville") or "—")
+        cp = escape(u.get("code_postal") or "")
+        region = escape(u.get("region") or "—")
+        is_orga = bool(u.get("is_organisateur"))
+        created_at = escape(u.get("created_at") or "—")
+
+        type_compte = "Organisateur" if is_orga else "Compagnie / Artiste"
+        localisation = f"{ville}" + (f" ({cp})" if cp else "") + f" — {region}"
+
+        stats = stats or {}
+        nb_shows = int(stats.get("nb_shows") or 0)
+        nb_messages = int(stats.get("nb_messages") or 0)
+        nb_conversations = int(stats.get("nb_conversations") or 0)
+        nb_demandes = int(stats.get("nb_demandes") or 0)
+
+        # Tableau des spectacles supprimés
+        shows_info = shows_info or []
+        rows = ""
+        for it in shows_info:
+            sid = escape(str(it.get("id") or ""))
+            titre = escape(it.get("title") or "(sans titre)")
+            cat = escape(it.get("category") or "")
+            reg = escape(it.get("region") or "")
+            rows += (
+                "<tr>"
+                f"<td style='padding:6px 10px;border:1px solid #eee;'>#{sid}</td>"
+                f"<td style='padding:6px 10px;border:1px solid #eee;'><strong>{titre}</strong></td>"
+                f"<td style='padding:6px 10px;border:1px solid #eee;'>{cat} · {reg}</td>"
+                "</tr>"
+            )
+        if rows:
+            shows_block = (
+                f"<p style='margin:14px 0 6px;'><strong>Spectacles supprimés ({nb_shows}) :</strong></p>"
+                "<table style='border-collapse:collapse;width:100%;font-size:14px;'>"
+                "<tr style='background:#fff3e0;'>"
+                "<th style='padding:6px 10px;border:1px solid #eee;text-align:left;'>ID</th>"
+                "<th style='padding:6px 10px;border:1px solid #eee;text-align:left;'>Titre</th>"
+                "<th style='padding:6px 10px;border:1px solid #eee;text-align:left;'>Catégorie · Région</th>"
+                "</tr>"
+                f"{rows}</table>"
+            )
+        else:
+            shows_block = (
+                "<p style='margin:14px 0 6px;color:#666;'>"
+                "Ce compte ne possédait <strong>aucun spectacle publié</strong>.</p>"
+            )
+
+        now_str = datetime.utcnow().strftime("%d/%m/%Y %H:%M UTC")
+        subject = f"👋 Auto-suppression : le compte « {u.get('username') or '?'} » a quitté la plateforme"
+
+        body_html = f"""<!DOCTYPE html>
+<html lang="fr"><head><meta charset="UTF-8"></head>
+<body style="font-family:Arial,sans-serif;color:#333;max-width:640px;margin:0 auto;background:#f4f6fa;padding:20px;">
+  <div style="background:#fff;border-radius:10px;overflow:hidden;box-shadow:0 2px 12px rgba(0,0,0,0.08);">
+    <div style="background:linear-gradient(135deg,#ef6c00,#f57c00);padding:22px;text-align:center;color:#fff;">
+      <h2 style="margin:0;font-size:1.3em;">👋 Un utilisateur a supprimé son compte</h2>
+      <p style="margin:6px 0 0 0;font-size:0.95em;opacity:0.95;">Action volontaire à l'initiative de l'utilisateur</p>
+    </div>
+    <div style="padding:22px 26px;">
+      <div style="background:#fff8e1;border-left:4px solid #ef6c00;padding:14px 16px;border-radius:6px;margin:0 0 16px 0;">
+        <p style="margin:0 0 6px 0;"><strong>Type de compte :</strong> {type_compte}</p>
+        <p style="margin:0 0 6px 0;"><strong>Nom d'utilisateur :</strong> {username}</p>
+        <p style="margin:0 0 6px 0;"><strong>Raison sociale :</strong> {raison_sociale}</p>
+        <p style="margin:0 0 6px 0;"><strong>Email :</strong> {email}</p>
+        <p style="margin:0 0 6px 0;"><strong>Localisation :</strong> {localisation}</p>
+        <p style="margin:0;"><strong>Inscrit le :</strong> {created_at}</p>
+      </div>
+
+      <table style="width:100%;border-collapse:collapse;margin:6px 0 10px 0;font-size:14px;">
+        <tr>
+          <td style="padding:8px 10px;background:#f5f5f5;border:1px solid #eee;text-align:center;width:25%;">
+            <div style="font-size:1.3em;font-weight:700;color:#ef6c00;">{nb_shows}</div>
+            <div style="color:#666;font-size:0.85em;">Spectacle{'s' if nb_shows > 1 else ''}</div>
+          </td>
+          <td style="padding:8px 10px;background:#f5f5f5;border:1px solid #eee;text-align:center;width:25%;">
+            <div style="font-size:1.3em;font-weight:700;color:#ef6c00;">{nb_conversations}</div>
+            <div style="color:#666;font-size:0.85em;">Conversation{'s' if nb_conversations > 1 else ''}</div>
+          </td>
+          <td style="padding:8px 10px;background:#f5f5f5;border:1px solid #eee;text-align:center;width:25%;">
+            <div style="font-size:1.3em;font-weight:700;color:#ef6c00;">{nb_messages}</div>
+            <div style="color:#666;font-size:0.85em;">Message{'s' if nb_messages > 1 else ''}</div>
+          </td>
+          <td style="padding:8px 10px;background:#f5f5f5;border:1px solid #eee;text-align:center;width:25%;">
+            <div style="font-size:1.3em;font-weight:700;color:#ef6c00;">{nb_demandes}</div>
+            <div style="color:#666;font-size:0.85em;">Demande{'s' if nb_demandes > 1 else ''}</div>
+          </td>
+        </tr>
+      </table>
+
+      {shows_block}
+
+      <p style="color:#666;font-size:12px;margin-top:20px;border-top:1px solid #eee;padding-top:12px;">
+        ⚠️ Cette suppression est <strong>définitive et volontaire</strong>. Les données du compte
+        ont été effacées ; les demandes d'animation éventuelles ont été anonymisées.<br>
+        Notification automatique — {now_str}
+      </p>
+    </div>
+  </div>
+</body></html>"""
+
+        msg = MailMessage(subject=subject, recipients=[admin_email])  # type: ignore[arg-type]
+        msg.html = body_html  # type: ignore[assignment]
+        current_app.mail.send(msg)  # type: ignore[attr-defined]
+        print(f"[NOTIF ADMIN] ✅ Alerte auto-suppression envoyée à {admin_email} ({u.get('username')})")
+        return True
+    except Exception as e:
+        print(f"[NOTIF ADMIN] ⚠️ Alerte auto-suppression non envoyée (non bloquant): {e}")
+        return False
+
+
 # -----------------------------------------------------
 # Routes
 # -----------------------------------------------------
@@ -1597,6 +1735,12 @@ def register_routes(app: Flask) -> None:
             </p>
         </div>
         <p>À très bientôt !</p>
+        <p style="font-size:0.85em; color:#555; text-align:center; margin:20px 0 10px 0; padding:12px 14px; background:#f0f0f0; border-radius:6px; line-height:1.5;">
+            🔒 <strong>RGPD :</strong> Vous pouvez modifier vos informations ou
+            <strong>supprimer définitivement votre compte à tout moment</strong> depuis votre
+            <a href="https://www.spectacleanimation.fr/profil" style="color: #6a1b9a; font-weight:bold;">espace personnel</a>
+            (rubrique « Mes informations »).
+        </p>
         <div class="footer">
             <p><strong>L'équipe Spectacle'ment VØtre</strong><br>
             contact@spectacleanimation.fr</p>
@@ -3658,12 +3802,13 @@ def register_routes(app: Flask) -> None:
     @login_required
     def profil_compte():
         """Permet a un artiste/cie de consulter et modifier ses donnees de compte
-        (raison sociale, email, telephone, site internet)."""
+        (nom d'utilisateur, raison sociale, email, telephone, site internet)."""
         user = current_user()
         if not user:
             return redirect(url_for("login"))
 
         if request.method == "POST":
+            new_username = (request.form.get("username") or "").strip()
             raison_sociale = (request.form.get("raison_sociale") or "").strip()
             email = (request.form.get("email") or "").strip()
             telephone = (request.form.get("telephone") or "").strip()
@@ -3672,6 +3817,26 @@ def register_routes(app: Flask) -> None:
             if not raison_sociale:
                 flash("La raison sociale est obligatoire.", "danger")
                 return redirect(url_for("profil_compte"))
+
+            # ── Validation du nouveau nom d'utilisateur ──
+            if new_username and new_username != user.username:
+                if len(new_username) < 3:
+                    flash("Le nom d'utilisateur doit contenir au moins 3 caractères.", "danger")
+                    return redirect(url_for("profil_compte"))
+                if len(new_username) > 80:
+                    flash("Le nom d'utilisateur ne peut pas dépasser 80 caractères.", "danger")
+                    return redirect(url_for("profil_compte"))
+                # Interdire les caractères vraiment problématiques (URL, HTML)
+                if any(c in new_username for c in ('<', '>', '/', '\\', '"', "'", '\x00')):
+                    flash("Le nom d'utilisateur contient des caractères non autorisés.", "danger")
+                    return redirect(url_for("profil_compte"))
+                # Vérifier l'unicité (autre utilisateur)
+                existing = User.query.filter(
+                    User.username == new_username, User.id != user.id
+                ).first()
+                if existing:
+                    flash("Ce nom d'utilisateur est déjà utilisé par un autre compte.", "danger")
+                    return redirect(url_for("profil_compte"))
 
             # Verifier l'unicite de l'email s'il a change
             if email and email != (user.email or ""):
@@ -3682,12 +3847,30 @@ def register_routes(app: Flask) -> None:
                     flash("Cette adresse email est deja utilisee par un autre compte.", "danger")
                     return redirect(url_for("profil_compte"))
 
+            # ── Application des modifications ──
+            _old_username = user.username
+            username_changed = bool(new_username) and new_username != user.username
+            if username_changed:
+                user.username = new_username
+
             user.raison_sociale = raison_sociale
             user.email = email or None
             user.telephone = telephone or None
             user.site_internet = site_internet or None
             db.session.commit()
-            flash("Vos informations ont ete mises a jour.", "success")
+
+            # Mettre à jour la session pour que la déconnexion ne se déclenche pas
+            if username_changed:
+                session["username"] = new_username
+                current_app.logger.info(
+                    f"[PROFIL] Changement de nom d'utilisateur : '{_old_username}' → '{new_username}' (id={user.id})"
+                )
+                flash(
+                    f"Vos informations ont été mises à jour. Votre nouveau nom d'utilisateur est « {new_username} ». Utilisez-le pour vous reconnecter à l'avenir.",
+                    "success",
+                )
+            else:
+                flash("Vos informations ont ete mises a jour.", "success")
             return redirect(url_for("company_dashboard"))
 
         return render_template("profil_compte.html", user=user)
@@ -3718,6 +3901,235 @@ def register_routes(app: Flask) -> None:
             flash("Localisation enregistree.", "success")
             return redirect(url_for("company_dashboard"))
         return render_template("profil_localisation.html", user=user)
+
+    @app.route("/mon-compte/supprimer", methods=["GET", "POST"], endpoint="delete_own_account")
+    @login_required
+    def delete_own_account():
+        """Permet à un utilisateur (compagnie ou organisateur) de supprimer
+        définitivement son propre compte après confirmation par mot de passe.
+
+        Sécurité :
+          - Vérification du mot de passe (empêche suppression accidentelle / CSRF)
+          - Case à cocher explicite « je comprends »
+          - Un admin ne peut pas se supprimer via cette route
+          - Suppression en cascade (mêmes tables que admin_delete_user)
+          - Nettoyage additionnel : anonymisation des DemandeAnimation et VisitorLog
+            (FK sans ON DELETE CASCADE ⇒ sinon échec Postgres)
+          - Suppression des fichiers photo S3 / locaux des spectacles
+          - Email de confirmation à l'utilisateur + alerte à l'admin
+        """
+        user = current_user()
+        if not user:
+            return redirect(url_for("login"))
+
+        # Un admin ne peut pas s'auto-supprimer via cette route publique
+        if user.is_admin:
+            flash("Un compte administrateur ne peut pas être supprimé depuis cette page.", "danger")
+            return redirect(url_for("profil_compte"))
+
+        # Statistiques affichées pour informer l'utilisateur
+        nb_shows = len(user.shows) if hasattr(user, "shows") else 0
+        try:
+            nb_messages = Message.query.filter_by(sender_id=user.id).count()
+        except Exception:
+            nb_messages = 0
+        try:
+            nb_conversations = Conversation.query.filter(
+                (Conversation.user1_id == user.id) | (Conversation.user2_id == user.id)
+            ).count()
+        except Exception:
+            nb_conversations = 0
+        try:
+            from models.models import DemandeAnimation
+            nb_demandes = DemandeAnimation.query.filter_by(user_id=user.id).count()
+        except Exception:
+            nb_demandes = 0
+
+        if request.method == "GET":
+            return render_template(
+                "delete_account.html",
+                user=user,
+                nb_shows=nb_shows,
+                nb_messages=nb_messages,
+                nb_conversations=nb_conversations,
+                nb_demandes=nb_demandes,
+            )
+
+        # ─── POST : traitement de la suppression ───
+        password = (request.form.get("password") or "").strip()
+        confirm_checked = request.form.get("confirm") == "on"
+        confirm_text = (request.form.get("confirm_text") or "").strip().upper()
+
+        if not password:
+            flash("Merci d'entrer votre mot de passe pour confirmer la suppression.", "danger")
+            return redirect(url_for("delete_own_account"))
+        if not user.check_password(password):
+            flash("Mot de passe incorrect. Suppression annulée.", "danger")
+            current_app.logger.warning(
+                f"[SELF-DELETE] Tentative de suppression avec mot de passe incorrect: {user.username} (id={user.id})"
+            )
+            return redirect(url_for("delete_own_account"))
+        if not confirm_checked:
+            flash("Vous devez cocher la case de confirmation avant de supprimer votre compte.", "danger")
+            return redirect(url_for("delete_own_account"))
+        if confirm_text != "SUPPRIMER":
+            flash("Merci de taper exactement SUPPRIMER (en majuscules) pour confirmer.", "danger")
+            return redirect(url_for("delete_own_account"))
+
+        username = user.username
+        user_email = user.email
+        user_id = user.id
+
+        # Snapshot complet du compte AVANT suppression (pour l'alerte admin)
+        try:
+            _created_str = user.created_at.strftime("%d/%m/%Y") if user.created_at else "—"
+        except Exception:
+            _created_str = "—"
+        user_snapshot = {
+            "username": username,
+            "email": user_email,
+            "raison_sociale": user.raison_sociale,
+            "ville": user.ville,
+            "code_postal": user.code_postal,
+            "region": user.region,
+            "is_organisateur": bool(getattr(user, "is_organisateur", False)),
+            "created_at": _created_str,
+        }
+        stats_snapshot = {
+            "nb_shows": nb_shows,
+            "nb_messages": nb_messages,
+            "nb_conversations": nb_conversations,
+            "nb_demandes": nb_demandes,
+        }
+
+        # Capture des fiches AVANT suppression pour l'alerte admin
+        deleted_shows_info = []
+        photo_files_to_delete = []
+        if hasattr(user, "shows"):
+            for show in user.shows:
+                deleted_shows_info.append({
+                    "id": show.id,
+                    "title": show.title,
+                    "raison_sociale": getattr(show, "raison_sociale", None),
+                    "category": getattr(show, "category", None),
+                    "region": getattr(show, "region", None),
+                })
+                for fname in [show.file_name, show.file_name2, show.file_name3]:
+                    if fname:
+                        photo_files_to_delete.append(fname)
+
+        try:
+            from models.models import DemandeAnimation as _DemandeAnimation
+
+            # 1) Suppression des spectacles et de leurs dépendances
+            if hasattr(user, "shows"):
+                for show in list(user.shows):
+                    ShowView.query.filter_by(show_id=show.id).delete()
+                    Review.query.filter_by(show_id=show.id).delete()
+                    for conv in Conversation.query.filter_by(show_id=show.id).all():
+                        Message.query.filter_by(conversation_id=conv.id).delete()
+                        db.session.delete(conv)
+                    db.session.delete(show)
+
+            # 2) Conversations où l'utilisateur est participant
+            for conv in Conversation.query.filter(
+                (Conversation.user1_id == user.id) | (Conversation.user2_id == user.id)
+            ).all():
+                Message.query.filter_by(conversation_id=conv.id).delete()
+                db.session.delete(conv)
+
+            # 3) Notifications, avis
+            Notification.query.filter_by(user_id=user.id).delete()
+            Review.query.filter_by(user_id=user.id).delete()
+
+            # 4) Anonymisation des FK optionnelles (pas de CASCADE en base)
+            _DemandeAnimation.query.filter_by(user_id=user.id).update({"user_id": None})
+            VisitorLog.query.filter_by(user_id=user.id).update({"user_id": None})
+
+            # 5) Suppression finale de l'utilisateur
+            db.session.delete(user)
+            db.session.commit()
+
+            current_app.logger.info(
+                f"[SELF-DELETE] Compte '{username}' (id={user_id}) supprimé à sa demande — {nb_shows} spectacle(s)"
+            )
+        except Exception as e:
+            db.session.rollback()
+            current_app.logger.error(f"[SELF-DELETE] Échec suppression '{username}' (id={user_id}): {e}")
+            flash(
+                "Une erreur est survenue lors de la suppression de votre compte. "
+                "Merci de contacter le support (contact@spectacleanimation.fr).",
+                "danger",
+            )
+            return redirect(url_for("delete_own_account"))
+
+        # 6) Nettoyage best-effort des fichiers photo (hors transaction)
+        for fname in photo_files_to_delete:
+            try:
+                delete_file_s3(fname)
+            except Exception as e:
+                current_app.logger.warning(f"[SELF-DELETE] delete_file_s3({fname}): {e}")
+            try:
+                p = Path(current_app.config["UPLOAD_FOLDER"]) / fname
+                if p.exists():
+                    p.unlink()
+            except Exception as e:
+                current_app.logger.warning(f"[SELF-DELETE] unlink local({fname}): {e}")
+
+        # 7) Email de confirmation à l'utilisateur
+        if user_email and MailMessage is not None and getattr(current_app, "mail", None) \
+                and current_app.config.get("MAIL_USERNAME") and current_app.config.get("MAIL_PASSWORD"):
+            try:
+                body_html = f"""<!DOCTYPE html>
+<html><head><meta charset=\"utf-8\"></head>
+<body style=\"font-family:Arial,sans-serif;background:#f4f6fa;margin:0;padding:20px;\">
+  <div style=\"max-width:600px;margin:0 auto;background:#fff;border-radius:10px;overflow:hidden;box-shadow:0 2px 12px rgba(0,0,0,0.08);\">
+    <div style=\"background:linear-gradient(135deg,#7c4dff,#536dfe);color:#fff;padding:24px;text-align:center;\">
+      <h2 style=\"margin:0;\">Spectacle'ment V&Oslash;tre</h2>
+    </div>
+    <div style=\"padding:28px;color:#333;line-height:1.6;\">
+      <p>Bonjour <strong>{html.escape(username)}</strong>,</p>
+      <p>Nous vous confirmons que votre compte sur <strong>Spectacle'ment V&Oslash;tre</strong> vient d'&ecirc;tre <strong>supprim&eacute; d&eacute;finitivement</strong> &agrave; votre demande.</p>
+      <p>L'ensemble de vos donn&eacute;es (profil, spectacles, messages, notifications&hellip;) ont &eacute;t&eacute; effac&eacute;es de nos serveurs.</p>
+      <div style=\"background:#e8f5e9;border-left:4px solid #2e7d32;padding:16px 18px;border-radius:6px;margin:20px 0;\">
+        <p style=\"margin:0;\"><strong>Vous changez d'avis&nbsp;?</strong></p>
+        <p style=\"margin:8px 0 0 0;\">L'inscription est toujours <strong>100&nbsp;% gratuite</strong>. Vous pouvez recr&eacute;er un compte quand vous le souhaitez&nbsp;:</p>
+        <p style=\"text-align:center;margin:16px 0 0 0;\">
+          <a href=\"https://www.spectacleanimation.fr/register\" style=\"display:inline-block;padding:12px 26px;background:#1b5e20;color:#fff;text-decoration:none;border-radius:6px;font-weight:700;\">Cr&eacute;er un nouveau compte</a>
+        </p>
+      </div>
+      <p>Merci pour votre passage sur notre plateforme, et bonne continuation dans vos projets&nbsp;!</p>
+      <p style=\"margin-top:24px;\">L'&eacute;quipe Spectacle'ment V&Oslash;tre<br>contact@spectacleanimation.fr</p>
+    </div>
+  </div>
+</body></html>"""
+                msg = MailMessage(  # type: ignore[misc]
+                    subject="Confirmation de suppression de votre compte Spectacle'ment VØtre",
+                    recipients=[user_email],
+                )
+                msg.html = body_html  # type: ignore[assignment]
+                current_app.mail.send(msg)  # type: ignore[attr-defined]
+                current_app.logger.info(f"[SELF-DELETE][MAIL] ✓ Confirmation envoyée à {user_email}")
+            except Exception as e:
+                current_app.logger.error(f"[SELF-DELETE][MAIL] ✗ Envoi confirmation impossible: {e}")
+
+        # 8) Notification admin (email dédié auto-suppression)
+        try:
+            notify_admin_self_deletion(
+                user_snapshot,
+                deleted_shows_info,
+                stats_snapshot,
+            )
+        except Exception as e:
+            current_app.logger.warning(f"[SELF-DELETE] notify_admin_self_deletion: {e}")
+
+        # 9) Déconnexion et redirection
+        session.pop("username", None)
+        flash(
+            "Votre compte a été supprimé définitivement. Merci d'avoir utilisé Spectacle'ment VØtre.",
+            "success",
+        )
+        return redirect(url_for("home"))
 
     @app.route("/change-password", methods=["GET", "POST"])
     @login_required
