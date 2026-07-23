@@ -83,7 +83,8 @@ SPECIALITES = {
         # Arts du geste
         "Mime",
         "Travail du masque / Commedia dell'arte",
-        # Conférence
+        # Engagé
+        "Théâtre engagé",
         "Conférence gesticulée",
         # Amateur
         "Théâtre amateur",
