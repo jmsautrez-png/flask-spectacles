@@ -4537,9 +4537,9 @@ def register_routes(app: Flask) -> None:
                     <td style="padding:32px 40px 8px;">
                         <p style="margin:0 0 18px 0; font-size:16px; color:#333; line-height:1.7;">Bonjour,</p>
                         <p style="margin:0 0 18px 0; font-size:16px; color:#333; line-height:1.7;"><strong>Votre spectacle a été repéré</strong>, et c'est avec grand plaisir que nous vous accueillons sur notre annuaire&nbsp;!</p>
-                        <p style="margin:0 0 18px 0; font-size:15px; color:#444; line-height:1.7;">Séduits par votre univers, nous avons souhaité vous consacrer une fiche sur Spectacle'ment V&Oslash;tre pour que les programmateurs &mdash; mairies, salles de spectacle, comités des fêtes… &mdash; puissent vous découvrir et vous solliciter <strong>directement, sans intermédiaire</strong>.</p>
-                        <p style="margin:0 0 18px 0; font-size:15px; color:#444; line-height:1.7;">Cette invitation est <strong>entièrement gratuite et sans engagement</strong>. Vous restez naturellement maître de votre présence&nbsp;: un simple mot suffit pour ajuster, compléter ou retirer votre fiche à tout moment.</p>
-                        <p style="margin:0 0 18px 0; font-size:15px; color:#444; line-height:1.7;">Nous vous souhaitons de <strong>belles rencontres et de beaux projets</strong> à travers cette vitrine.</p>
+                        <p style="margin:0 0 18px 0; font-size:15px; color:#444; line-height:1.7;">Séduits par votre univers, nous avons souhaité vous consacrer une fiche sur Spectacle'ment V&Oslash;tre pour que les programmateurs &mdash; mairies, salles de spectacle, comités des fêtes… &mdash; puissent vous découvrir et vous solliciter <strong>directement</strong>.</p>
+                        <p style="margin:0 0 18px 0; font-size:15px; color:#444; line-height:1.7;">Cette invitation est <strong>entièrement gratuite et sans engagement</strong>. Vous restez naturellement maître de votre présence&nbsp;: un simple mot <strong>par retour de ce mail</strong> suffit pour ajuster, compléter ou retirer votre fiche à tout moment.</p>
+                        <p style="margin:0 0 18px 0; font-size:15px; color:#444; line-height:1.7;">Nous vous souhaitons de <strong>belles rencontres et de beaux projets</strong> à travers cette vitrine, et serions <strong>heureux d'y contribuer</strong> en portant votre spectacle vers de <strong>nouvelles dates et de nouveaux programmateurs</strong>.</p>
                     </td>
                 </tr>
                 <tr>
@@ -4575,11 +4575,13 @@ def register_routes(app: Flask) -> None:
                         "Votre spectacle a été repéré, et c'est avec grand plaisir que nous vous accueillons sur notre annuaire !\n\n"
                         "Séduits par votre univers, nous avons souhaité vous consacrer une fiche sur Spectacle'ment VØtre "
                         "pour que les programmateurs — mairies, salles de spectacle, comités des fêtes… — puissent vous "
-                        "découvrir et vous solliciter directement, sans intermédiaire.\n\n"
+                        "découvrir et vous solliciter directement.\n\n"
                         "Cette invitation est entièrement gratuite et sans engagement. Vous restez naturellement "
-                        "maître de votre présence : un simple mot suffit pour ajuster, compléter ou retirer "
-                        "votre fiche à tout moment.\n\n"
-                        "Nous vous souhaitons de belles rencontres et de beaux projets à travers cette vitrine.\n\n"
+                        "maître de votre présence : un simple mot par retour de ce mail suffit pour ajuster, "
+                        "compléter ou retirer votre fiche à tout moment.\n\n"
+                        "Nous vous souhaitons de belles rencontres et de beaux projets à travers cette vitrine, "
+                        "et serions heureux d'y contribuer en portant votre spectacle vers de nouvelles dates "
+                        "et de nouveaux programmateurs.\n\n"
                         f"Compagnie / Artiste : {show.raison_sociale or 'Non renseignée'}\n"
                         f"Spectacle : {show.title}\n"
                         f"Lieu : {show.location}\n\n"
