@@ -4455,9 +4455,30 @@ def register_routes(app: Flask) -> None:
                 _show_labels = {c.strip().lower() for c in (show.labels or "").split(",") if c.strip()}
                 _edition_libre = "edition_libre" in _show_labels
 
-                if _edition_libre:
-                    # Fiche en édition libre : email volontairement minimaliste, sans mention
-                    # du statut, sans pub premium. Copie cachée à l'admin pour traçabilité.
+                # === Résolution du type de mail à envoyer ===
+                # L'admin peut forcer via <select name="mail_type"> dans le form :
+                #   "decouverte" → mail "on a repéré votre talent" (par défaut pour fiches sans compte)
+                #   "prestige"   → mail sobre et respectueux (artistes reconnus / Maestros)
+                #   "neutre"     → mail court factuel (comme "édition libre")
+                #   "" (vide)    → auto : edition_libre → neutre ; user_id → user_valide ; sinon → decouverte
+                _mail_type_raw = (request.form.get('mail_type') or '').strip().lower()
+                if _mail_type_raw not in ('decouverte', 'prestige', 'neutre'):
+                    _mail_type_raw = ''
+                if _edition_libre or _mail_type_raw == 'neutre':
+                    _tpl = 'neutre'
+                elif _mail_type_raw == 'prestige':
+                    _tpl = 'prestige'
+                elif _mail_type_raw == 'decouverte':
+                    _tpl = 'decouverte'
+                elif show.user_id:
+                    _tpl = 'user_valide'
+                else:
+                    _tpl = 'decouverte'
+                current_app.logger.info(f"[MAIL] Validation show #{show.id} → template='{_tpl}' (choix admin='{_mail_type_raw or 'auto'}')")
+
+                if _tpl == 'neutre':
+                    # Fiche en édition libre / choix "neutre" : email volontairement minimaliste,
+                    # sans mention du statut, sans pub premium. Copie cachée à l'admin pour traçabilité.
                     _username = (show.user.username if show.user else None) or show.raison_sociale or "Bonjour"
                     subject = "Votre fiche est en ligne sur Spectacle'ment VØtre"
                     body_html = f"""<!DOCTYPE html>
@@ -4493,8 +4514,93 @@ def register_routes(app: Flask) -> None:
                     flash("Annonce validée ✅", "success")
                     return redirect(url_for("admin_dashboard"))
 
+                if _tpl == 'prestige':
+                    # Mail Prestige : ton chaleureux et respectueux, sans bloc administratif ni CTA Premium.
+                    # Utilisé pour les artistes/compagnies déjà reconnus (tribute, artistes de notoriété…).
+                    subject = "Votre fiche est en ligne sur Spectacle'ment VØtre"
+                    body_html_prestige = f"""<!DOCTYPE html>
+<html lang="fr">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"></head>
+<body style="margin:0; padding:0; background:#fdf7ee; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#fdf7ee; padding:30px 0;">
+    <tr>
+        <td align="center">
+            <table role="presentation" width="620" cellpadding="0" cellspacing="0" style="background:#ffffff; border-radius:12px; box-shadow:0 4px 24px rgba(109,19,19,0.15); overflow:hidden; max-width:620px;">
+                <tr>
+                    <td style="background:linear-gradient(135deg,#6d1313 0%,#b8871c 100%); padding:36px 40px 26px; text-align:center;">
+                        <img src="https://spectacleanimation.fr/static/img/logo_spectaclement_votre.png" alt="Spectacle'ment VØtre" width="110" style="display:block; margin:0 auto 14px; max-width:110px; height:auto;">
+                        <h1 style="margin:0 0 6px 0; font-size:22px; color:#fff; font-weight:700; letter-spacing:0.5px;">Spectacle'ment V&Oslash;tre</h1>
+                        <p style="margin:0; font-size:12px; color:rgba(255,255,255,0.9); letter-spacing:2px; text-transform:uppercase;">Annuaire du spectacle vivant</p>
+                    </td>
+                </tr>
+                <tr>
+                    <td style="padding:32px 40px 8px;">
+                        <p style="margin:0 0 18px 0; font-size:16px; color:#333; line-height:1.7;">Bonjour,</p>
+                        <p style="margin:0 0 18px 0; font-size:16px; color:#333; line-height:1.7;"><strong>Votre spectacle a été repéré</strong>, et c'est avec grand plaisir que nous vous accueillons sur notre annuaire&nbsp;!</p>
+                        <p style="margin:0 0 18px 0; font-size:15px; color:#444; line-height:1.7;">Séduits par votre univers, nous avons souhaité vous consacrer une fiche sur Spectacle'ment V&Oslash;tre pour que les programmateurs &mdash; mairies, salles de spectacle, comités des fêtes… &mdash; puissent vous découvrir et vous solliciter <strong>directement, sans intermédiaire</strong>.</p>
+                        <p style="margin:0 0 18px 0; font-size:15px; color:#444; line-height:1.7;">Cette invitation est <strong>entièrement gratuite et sans engagement</strong>. Vous restez naturellement maître de votre présence&nbsp;: un simple mot suffit pour ajuster, compléter ou retirer votre fiche à tout moment.</p>
+                        <p style="margin:0 0 18px 0; font-size:15px; color:#444; line-height:1.7;">Nous vous souhaitons de <strong>belles rencontres et de beaux projets</strong> à travers cette vitrine.</p>
+                    </td>
+                </tr>
+                <tr>
+                    <td style="padding:0 40px;">
+                        <div style="background:linear-gradient(135deg,#fdf7ee 0%,#faeed3 100%); border-radius:10px; padding:24px; border-left:5px solid #b8871c;">
+                            <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+                                <tr><td style="padding:6px 0;"><span style="font-size:12px; color:#8a6d1a; text-transform:uppercase; letter-spacing:1px;">Compagnie / Artiste</span><br><span style="font-size:16px; color:#6d1313; font-weight:600;">{show.raison_sociale or 'Non renseign&eacute;e'}</span></td></tr>
+                                <tr><td style="padding:6px 0;"><span style="font-size:12px; color:#8a6d1a; text-transform:uppercase; letter-spacing:1px;">Spectacle</span><br><span style="font-size:16px; color:#6d1313; font-weight:600;">{show.title}</span></td></tr>
+                                <tr><td style="padding:6px 0;"><span style="font-size:12px; color:#8a6d1a; text-transform:uppercase; letter-spacing:1px;">Lieu</span><br><span style="font-size:15px; color:#333;">{show.location}</span></td></tr>
+                            </table>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td style="padding:30px 40px; text-align:center;">
+                        <a href="{show_url}" style="display:inline-block; background:#6d1313; color:#ffffff !important; text-decoration:none; padding:14px 40px; border-radius:8px; font-weight:700; font-size:15px; letter-spacing:0.3px; box-shadow:0 3px 10px rgba(109,19,19,0.3);">Voir votre fiche</a>
+                    </td>
+                </tr>
+                <tr>
+                    <td style="background:#fdf7ee; padding:26px 40px; text-align:center; border-top:1px solid #f0e0c8;">
+                        <p style="margin:0 0 8px 0; font-size:14px; color:#555; line-height:1.6;">Pour toute modification, retrait ou question, il vous suffit de répondre à ce message.</p>
+                        <p style="margin:0; font-size:13px; color:#6d1313;">Chaleureusement,<br><strong>L'équipe Spectacle'ment V&Oslash;tre</strong></p>
+                    </td>
+                </tr>
+            </table>
+        </td>
+    </tr>
+</table>
+</body>
+</html>"""
+                    body_text_prestige = (
+                        "Bonjour,\n\n"
+                        "Votre spectacle a été repéré, et c'est avec grand plaisir que nous vous accueillons sur notre annuaire !\n\n"
+                        "Séduits par votre univers, nous avons souhaité vous consacrer une fiche sur Spectacle'ment VØtre "
+                        "pour que les programmateurs — mairies, salles de spectacle, comités des fêtes… — puissent vous "
+                        "découvrir et vous solliciter directement, sans intermédiaire.\n\n"
+                        "Cette invitation est entièrement gratuite et sans engagement. Vous restez naturellement "
+                        "maître de votre présence : un simple mot suffit pour ajuster, compléter ou retirer "
+                        "votre fiche à tout moment.\n\n"
+                        "Nous vous souhaitons de belles rencontres et de beaux projets à travers cette vitrine.\n\n"
+                        f"Compagnie / Artiste : {show.raison_sociale or 'Non renseignée'}\n"
+                        f"Spectacle : {show.title}\n"
+                        f"Lieu : {show.location}\n\n"
+                        f"Voir votre fiche : {show_url}\n\n"
+                        "Pour toute modification, retrait ou question, il vous suffit de répondre à ce message.\n\n"
+                        "Chaleureusement,\n"
+                        "L'équipe Spectacle'ment VØtre"
+                    )
+                    msg = MailMessage(subject=subject, recipients=[to_addr])  # type: ignore[arg-type]
+                    admin_email = "contact@spectacleanimation.fr"
+                    if to_addr != admin_email:
+                        msg.bcc = [admin_email]  # type: ignore[assignment]
+                    msg.html = body_html_prestige  # type: ignore[assignment]
+                    msg.body = body_text_prestige  # type: ignore[assignment]
+                    current_app.mail.send(msg)  # type: ignore[attr-defined]
+                    current_app.logger.info(f"[MAIL] ✓ Email 'prestige' envoyé à {to_addr} (copie admin: {admin_email}) pour: {show.title}")
+                    flash("Annonce validée ✅", "success")
+                    return redirect(url_for("admin_dashboard"))
+
                 # Déterminer si c'est une carte créée par l'admin (pas de user_id) ou par l'utilisateur
-                if show.user_id:
+                if _tpl == 'user_valide':
                     # Carte créée par l'utilisateur lui-même → Email de validation classique
                     subject = "Votre spectacle est validé sur Spectacle'ment VØtre !"
                     abonnement_url = url_for('abonnement_compagnie', _external=True)
@@ -4709,12 +4815,12 @@ def register_routes(app: Flask) -> None:
                     msg.bcc = [admin_email]  # type: ignore[assignment]
                 
                 # Assigner le bon format selon le type de spectacle
-                if show.user_id:
+                if _tpl == 'user_valide':
                     # Spectacle créé par utilisateur : email HTML
                     msg.html = body_html  # type: ignore[assignment]
                     msg.body = f"Votre spectacle '{show.title}' a été validé et publié sur Spectacle'ment VØtre !\n\nConsultez votre annonce : {show_url}\n\nSpectaclement vôtre,\nL'équipe Spectacle'ment VØtre"  # type: ignore[assignment]
                 else:
-                    # Spectacle créé par admin : email HTML découverte
+                    # Spectacle créé par admin (ou découverte forcée) : email HTML découverte
                     msg.html = body_html_decouverte  # type: ignore[assignment]
                     msg.body = f"Félicitations ! Votre talent a retenu notre attention. Nous avons créé une fiche pour vous sur notre annuaire gratuit.\n\nConsultez votre annonce : {show_url}\n\nSpectaclement vôtre,\nL'équipe Spectacle'ment VØtre"  # type: ignore[assignment]
                 

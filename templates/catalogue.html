@@ -491,8 +491,15 @@
           </form>
 
           {% if not show.approved %}
-          <form action="{{ url_for('show_approve', show_id=show.id) }}" method="post">
+          <form action="{{ url_for('show_approve', show_id=show.id) }}" method="post" style="display:flex; flex-direction:column; gap:4px;">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+            <select name="mail_type" title="Type d'email à envoyer lors de la validation"
+                    style="padding:4px 6px; border-radius:4px; border:1px solid #ccc; font-size:0.8rem;">
+                <option value="">🤖 Mail auto</option>
+                <option value="decouverte">🌱 Découverte</option>
+                <option value="prestige">🎩 Prestige</option>
+                <option value="neutre">📝 Neutre</option>
+            </select>
             <button type="submit">✅ Valider</button>
           </form>
           {% endif %}

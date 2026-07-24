@@ -69,8 +69,15 @@
             </div>
 
             <div class="actions">
-                <form action="{{ url_for('show_approve', show_id=show.id) }}" method="post" style="flex:1; margin:0;">
+                <form action="{{ url_for('show_approve', show_id=show.id) }}" method="post" style="flex:1; margin:0; display:flex; flex-direction:column; gap:4px;">
                     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                    <select name="mail_type" title="Type d'email à envoyer à la compagnie lors de la validation"
+                            style="width:100%; padding:4px 6px; border-radius:4px; border:1px solid rgba(255,255,255,0.25); background:#1a1a1e; color:#fff; font-size:0.75rem;">
+                        <option value="">🤖 Mail auto</option>
+                        <option value="decouverte">🌱 Découverte (défaut admin)</option>
+                        <option value="prestige">🎩 Prestige (artiste reconnu)</option>
+                        <option value="neutre">📝 Neutre (court, factuel)</option>
+                    </select>
                     <button type="submit" style="width:100%; background:var(--ok); color:#fff;">Valider</button>
                 </form>
                 <a href="{{ url_for('show_edit', show_id=show.id) }}" style="flex:1; display:flex; align-items:center; justify-content:center;">Modifier</a>

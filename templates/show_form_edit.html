@@ -572,6 +572,18 @@
   </style>
   <div class="actions-box">
     {% if user and user.is_admin and request.args.get('updated') and not show.approved %}
+    <div style="display:flex; flex-direction:column; gap:8px; align-items:center; margin-bottom:6px;">
+      <label for="admin-mail-type" style="font-size:0.85rem; color:#ffca28; font-weight:600;">
+        📧 Email à envoyer à la compagnie lors de la validation :
+      </label>
+      <select id="admin-mail-type" name="mail_type"
+              style="padding:8px 12px; border-radius:6px; border:1px solid rgba(255,255,255,0.25); background:#1a1a1e; color:#fff; font-size:0.9rem; min-width:280px;">
+        <option value="">🤖 Mail auto (comportement par défaut)</option>
+        <option value="decouverte">🌱 Découverte — « votre talent a retenu notre attention »</option>
+        <option value="prestige">🎩 Prestige — « nous serions honorés de vous compter »</option>
+        <option value="neutre">📝 Neutre — court et factuel, sans pub</option>
+      </select>
+    </div>
     <button type="submit" class="btn-validate"
             formaction="{{ url_for('show_approve', show_id=show.id) }}" formnovalidate
             onclick="return confirm('Valider et publier ce spectacle ? (au moins 2 photos requises)');">👍 Valider le spectacle</button>
