@@ -7871,6 +7871,51 @@ def admin_cancel_deletion(user_id):
         current_app.logger.info(f"[ADMIN] Préavis annulé pour {user.username} par {current_user().username}")
     return redirect(url_for("admin_users"))
 
+
+@app.route("/admin/user/<int:user_id>/reset-password", methods=["POST"])
+@login_required
+@admin_required
+def admin_reset_user_password(user_id):
+    """Réinitialise le mot de passe d'un utilisateur et affiche le nouveau mdp à l'admin.
+
+    Utile quand un artiste a oublié son mot de passe ET que le mail de 
+    récupération ne peut pas lui être envoyé (email absent, obsolète, non reçu…).
+    Le nouveau mot de passe est affiché UNE SEULE FOIS à l'admin via flash,
+    qui le communique alors à l'utilisateur par le canal de son choix (téléphone, SMS…).
+    Aucun email n'est envoyé automatiquement.
+    """
+    user = User.query.get_or_404(user_id)
+
+    # Sécurité : ne jamais réinitialiser le mot de passe d'un autre admin
+    if user.is_admin and user.id != current_user().id:
+        flash("❌ Impossible de réinitialiser le mot de passe d'un autre administrateur.", "danger")
+        return redirect(url_for("admin_users"))
+
+    try:
+        new_pwd = _generate_password(12)
+        user.set_password(new_pwd)
+        db.session.commit()
+        current_app.logger.info(
+            f"[ADMIN] Mot de passe réinitialisé pour {user.username} (ID: {user_id}) par {current_user().username}"
+        )
+        # Flash spécial : le mot de passe en clair, à noter immédiatement.
+        # Le message est marqué safe pour permettre le formatage HTML (gras, code).
+        from markupsafe import Markup
+        flash(
+            Markup(
+                f"🔑 Nouveau mot de passe pour <strong>{user.username}</strong> :<br>"
+                f"<code style='font-size:1.4em;background:#fff3cd;color:#664d03;padding:6px 14px;border-radius:6px;font-weight:700;letter-spacing:1px;'>{new_pwd}</code><br>"
+                f"<small>⚠️ Notez-le tout de suite : ce message ne sera plus affiché. "
+                f"Communiquez-le à l'utilisateur par téléphone ou SMS (aucun email n'a été envoyé).</small>"
+            ),
+            "warning"
+        )
+    except Exception as e:
+        db.session.rollback()
+        current_app.logger.error(f"[ADMIN] Erreur reset mdp user {user_id}: {e}")
+        flash(f"❌ Erreur lors de la réinitialisation : {str(e)}", "danger")
+    return redirect(url_for("admin_users"))
+
 # === SUPPRESSION DE PHOTO INDIVIDUELLE ===
 @app.route("/admin/shows/<int:show_id>/delete-photo/<photo_field>", methods=["POST"])
 @login_required

@@ -99,6 +99,16 @@
                 <button type="submit" style="background:#dc3545; color:#fff; border:none; padding:6px 10px; border-radius:6px; cursor:pointer; font-size:0.8em; font-weight:600;">🗑️ Suppr. définitive</button>
               </form>
             {% else %}
+            <form method="post" action="{{ url_for('admin_reset_user_password', user_id=user.id) }}" style="display: inline; margin-right:4px;"
+                  onsubmit="return confirm('🔑 Générer un nouveau mot de passe pour « {{ user.username }} » ?\n\nLe nouveau mot de passe sera affiché à l\'écran une seule fois.\nAucun email ne sera envoyé : à vous de le communiquer à l\'utilisateur (téléphone, SMS…).\n\nContinuer ?');">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+              <button type="submit" style="background: #6f42c1; color: white; border: none; padding: 8px 14px; border-radius: 6px; cursor: pointer; font-size: 0.9em; font-weight: 600; transition: all 0.2s;"
+                      onmouseover="this.style.background='#59349e'"
+                      onmouseout="this.style.background='#6f42c1'"
+                      title="Générer un nouveau mot de passe (affiché à l'écran, non envoyé par mail)">
+                🔑 Réinit. MDP
+              </button>
+            </form>
             <form method="post" action="{{ url_for('admin_delete_user', user_id=user.id) }}" style="display: inline;"
                   onsubmit="return confirm('Démarrer un préavis de suppression de 7 jours pour « {{ user.username }} » ?\n\n• Si compte sans spectacle publié → email de préavis + suppression dans 7j\n• Si compte avec spectacle publié → suppression immédiate\n\nContinuer ?');">
               <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
