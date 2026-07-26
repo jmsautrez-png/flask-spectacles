@@ -4460,9 +4460,11 @@ def register_routes(app: Flask) -> None:
                 #   "decouverte" → mail "on a repéré votre talent" (par défaut pour fiches sans compte)
                 #   "prestige"   → mail sobre et respectueux (artistes reconnus / Maestros)
                 #   "neutre"     → mail court factuel (comme "édition libre")
-                #   "" (vide)    → auto : edition_libre → neutre ; user_id → user_valide ; sinon → decouverte
+                #   "evenement"  → mail spécifique événement annoncé (date en avant, pas de bloc premium)
+                #   "" (vide)    → auto : edition_libre → neutre ; is_event+user_id → evenement ;
+                #                        user_id → user_valide ; sinon → decouverte
                 _mail_type_raw = (request.form.get('mail_type') or '').strip().lower()
-                if _mail_type_raw not in ('decouverte', 'prestige', 'neutre'):
+                if _mail_type_raw not in ('decouverte', 'prestige', 'neutre', 'evenement'):
                     _mail_type_raw = ''
                 if _edition_libre or _mail_type_raw == 'neutre':
                     _tpl = 'neutre'
@@ -4470,6 +4472,10 @@ def register_routes(app: Flask) -> None:
                     _tpl = 'prestige'
                 elif _mail_type_raw == 'decouverte':
                     _tpl = 'decouverte'
+                elif _mail_type_raw == 'evenement':
+                    _tpl = 'evenement'
+                elif show.is_event and show.user_id:
+                    _tpl = 'evenement'
                 elif show.user_id:
                     _tpl = 'user_valide'
                 else:
@@ -4602,6 +4608,94 @@ def register_routes(app: Flask) -> None:
                     return redirect(url_for("admin_dashboard"))
 
                 # Déterminer si c'est une carte créée par l'admin (pas de user_id) ou par l'utilisateur
+                if _tpl == 'evenement':
+                    # Événement annoncé (is_event=True) créé par un utilisateur inscrit.
+                    # Email centré sur la date de l'événement, sans bloc premium URSSAF.
+                    _mois_fr = ['', 'janvier', 'février', 'mars', 'avril', 'mai', 'juin',
+                                'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre']
+                    if show.date:
+                        _date_evt_fr = f"{show.date.day} {_mois_fr[show.date.month]} {show.date.year}"
+                    else:
+                        _date_evt_fr = "Date à confirmer"
+                    _username_evt = (show.user.username if show.user else None) or show.raison_sociale or "Bonjour"
+
+                    subject = "📅 Votre événement est en ligne sur Spectacle'ment VØtre"
+                    body_html_evenement = f"""<!DOCTYPE html>
+<html lang="fr">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Événement publié</title></head>
+<body style="margin:0; padding:0; background:#f4f4f7; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f4f4f7; padding:30px 0;">
+    <tr>
+        <td align="center">
+            <table role="presentation" width="600" cellpadding="0" cellspacing="0" style="background:#ffffff; border-radius:14px; box-shadow:0 4px 20px rgba(0,0,0,0.08); overflow:hidden; max-width:600px;">
+                <tr>
+                    <td style="background:linear-gradient(135deg,#667eea 0%,#764ba2 100%); padding:32px 40px 24px; text-align:center;">
+                        <img src="https://www.spectacleanimation.fr/static/img/logo_spectaclement_votre.png" alt="Spectacle'ment VØtre" width="130" style="display:block; margin:0 auto 10px; max-width:130px; height:auto;">
+                        <h1 style="margin:0; font-size:22px; color:#fff; font-weight:700; letter-spacing:0.3px;">📅 Événement publié</h1>
+                    </td>
+                </tr>
+                <tr>
+                    <td style="padding:30px 40px 10px;">
+                        <p style="margin:0 0 14px 0; font-size:16px; color:#333; line-height:1.6;">Bonjour <strong>{_username_evt}</strong>,</p>
+                        <p style="margin:0 0 20px 0; font-size:16px; color:#333; line-height:1.6;">Votre événement <strong>« {show.title} »</strong> est maintenant en ligne sur Spectacle'ment V&Oslash;tre !</p>
+                    </td>
+                </tr>
+                <tr>
+                    <td style="padding:0 40px 10px;">
+                        <div style="background:linear-gradient(135deg,#fff3e0 0%,#ffe0b2 100%); border-radius:12px; padding:24px; text-align:center; border:2px solid #ff9800;">
+                            <p style="margin:0 0 8px 0; font-size:12px; color:#e65100; text-transform:uppercase; letter-spacing:2px; font-weight:700;">Date de votre événement</p>
+                            <p style="margin:0; font-size:26px; color:#bf360c; font-weight:800; letter-spacing:0.5px;">{_date_evt_fr}</p>
+                            <p style="margin:12px 0 0 0; font-size:14px; color:#5d4037;">📍 {show.location or 'Lieu à préciser'}</p>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td style="padding:24px 40px 8px; text-align:center;">
+                        <a href="{show_url}" style="display:inline-block; background:linear-gradient(135deg,#667eea 0%,#764ba2 100%); color:#ffffff !important; text-decoration:none; padding:14px 40px; border-radius:8px; font-weight:700; font-size:16px; letter-spacing:0.3px; box-shadow:0 4px 12px rgba(118,75,162,0.35);">👁️ Voir mon événement</a>
+                    </td>
+                </tr>
+                <tr>
+                    <td style="padding:20px 40px 10px;">
+                        <div style="background:#e3f2fd; border-left:4px solid #2196f3; border-radius:8px; padding:18px 20px;">
+                            <p style="margin:0 0 8px 0; font-size:14px; color:#1565c0; font-weight:700;">💡 Astuce visibilité</p>
+                            <p style="margin:0; font-size:14px; color:#0d47a1; line-height:1.6;">Pensez à <strong>partager le lien de votre événement</strong> à vos contacts et sur vos réseaux sociaux 3 à 4 semaines avant la date. C'est le meilleur moyen d'attirer du public !</p>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td style="padding:20px 40px 30px; text-align:center;">
+                        <p style="margin:0 0 6px 0; font-size:13px; color:#666;">Pour modifier ou retirer votre événement, répondez simplement à ce mail.</p>
+                        <p style="margin:0; font-size:14px; color:#764ba2; font-weight:600;">L'équipe Spectacle'ment V&Oslash;tre</p>
+                    </td>
+                </tr>
+            </table>
+        </td>
+    </tr>
+</table>
+</body>
+</html>"""
+                    body_text_evenement = (
+                        f"Bonjour {_username_evt},\n\n"
+                        f"Votre événement « {show.title} » est maintenant en ligne sur Spectacle'ment VØtre !\n\n"
+                        f"📅 Date de votre événement : {_date_evt_fr}\n"
+                        f"📍 Lieu : {show.location or 'Lieu à préciser'}\n\n"
+                        f"Voir mon événement : {show_url}\n\n"
+                        "💡 Astuce : partagez le lien de votre événement à vos contacts et sur vos réseaux "
+                        "sociaux 3 à 4 semaines avant la date pour attirer du public.\n\n"
+                        "Pour modifier ou retirer votre événement, répondez simplement à ce mail.\n\n"
+                        "L'équipe Spectacle'ment VØtre"
+                    )
+                    msg = MailMessage(subject=subject, recipients=[to_addr])  # type: ignore[arg-type]
+                    admin_email = "contact@spectacleanimation.fr"
+                    if to_addr != admin_email:
+                        msg.bcc = [admin_email]  # type: ignore[assignment]
+                    msg.html = body_html_evenement  # type: ignore[assignment]
+                    msg.body = body_text_evenement  # type: ignore[assignment]
+                    current_app.mail.send(msg)  # type: ignore[attr-defined]
+                    current_app.logger.info(f"[MAIL] ✓ Email 'evenement' envoyé à {to_addr} (copie admin: {admin_email}) pour: {show.title}")
+                    flash("Événement validé ✅", "success")
+                    return redirect(url_for("admin_dashboard"))
+
                 if _tpl == 'user_valide':
                     # Carte créée par l'utilisateur lui-même → Email de validation classique
                     subject = "Votre spectacle est validé sur Spectacle'ment VØtre !"
