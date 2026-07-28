@@ -46,8 +46,8 @@ SPECIALITES = {
         "Spectacle champêtre",
         "Spectacle Halloween",
         "Spectacle de Pirate",
-        "Spectacle Événementiel",
         "Spectacle de Cabaret",
+        "Numéro de Cabaret",
         # Cirque / Visuel
         "Cirque",
         "Cirque nouveau",
@@ -208,6 +208,7 @@ EVENEMENTS = {
         "Animation commerciale",
         "Inauguration / Événement officiel",
         "Journée portes ouvertes",
+        "Événementiel",
     ],
     "Culture et Festivals": [
         "Festival",
