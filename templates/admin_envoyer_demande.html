@@ -30,9 +30,6 @@
                             {% if demande.specialites_recherchees %}
                             <li><strong>Spécialités :</strong> {{ demande.specialites_recherchees }}</li>
                             {% endif %}
-                            {% if demande.evenements_contexte %}
-                            <li><strong>Événements :</strong> {{ demande.evenements_contexte }}</li>
-                            {% endif %}
                             {% if demande.lieux_souhaites %}
                             <li><strong>Lieux :</strong> {{ demande.lieux_souhaites }}</li>
                             {% endif %}
@@ -58,7 +55,6 @@
                                             <th>Compagnie / Spectacle</th>
                                             <th style="width:80px;" class="text-center">Score</th>
                                             <th style="width:100px;">Spécialités</th>
-                                            <th style="width:100px;">Événements</th>
                                             <th style="width:80px;">Lieux</th>
                                             <th style="width:80px;">Région</th>
                                             <th style="width:90px;">Distance</th>
@@ -82,7 +78,6 @@
                                                 {% endif %}
                                             </td>
                                             <td><small>{{ score.specialites }}%</small></td>
-                                            <td><small>{{ score.evenements }}%</small></td>
                                             <td><small>{{ score.lieux }}%</small></td>
                                             <td><small>{{ score.region }}%</small></td>
                                             <td><small>{% if score.distance_km_display is not none %}{% if score.distance_approx %}<span title="Distance approximative (centroïde du département)" style="color:#90caf9;">≈ {{ score.distance_km_display|round|int }} km</span>{% else %}{{ score.distance_km_display|round|int }} km{% endif %}{% else %}<span class="text-muted">—</span>{% endif %}</small></td>

@@ -131,7 +131,7 @@
         ⚠️ Veuillez cocher au moins un type de spectacle recherché.
       </div>
 
-      {{ accordion_checkboxes("lieux_souhaites", lieux_data, request.form.getlist("lieux_souhaites") or ((d.lieux_souhaites or '').split(',') if d else []), "🏛️", "Type d'espace mis à disposition", "#2e7d32", "Sélectionnez le ou les types d'espaces disponibles.", "#fff") }}
+      {{ accordion_checkboxes("lieux_souhaites", lieux_data, request.form.getlist("lieux_souhaites") or ((d.lieux_souhaites or '').split(',') if d else []), "🏛️", "Type d'espace mis à disposition", "#2e7d32", "Sélectionnez le ou les types d'espaces disponibles.", "#fff", open_by_default=True) }}
 
       <div class="grid-2" style="margin-top:16px;">
         <label>

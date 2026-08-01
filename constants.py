@@ -269,7 +269,7 @@ LIEU_SALLE_FETES = "Salle des fêtes non équipée"
 LIEU_TOUT_TERRAIN = "Tout terrain"
 
 LIEUX = {
-    "Où vous pouvez jouer": [
+    "Terrain de jeu proposé": [
         LIEU_TOUT_TERRAIN,
         LIEU_EXTERIEUR,
         LIEU_SALLE_EQUIPEE,

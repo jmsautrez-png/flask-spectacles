@@ -261,13 +261,11 @@ def compute_score(show, demande):
     Age range: incompatible → excluded (returns compatible=False); exact → +10; proche → +5.
     """
     show_specs = _csv_to_set(show.specialites)
-    show_events = _csv_to_set(show.evenements)
     # Lieux : normalisés vers les buckets simplifiés (compat. anciens libellés)
     show_lieux = {b.lower() for b in normalize_lieux_csv(show.lieux_intervention)}
     show_regions = _csv_to_set(show.regions_intervention)
 
     dem_specs = _csv_to_set(demande.specialites_recherchees)
-    dem_events = _csv_to_set(demande.evenements_contexte)
     dem_lieux = {b.lower() for b in normalize_lieux_csv(demande.lieux_souhaites)}
     dem_region = (demande.region or "").strip().lower()
 
@@ -306,17 +304,6 @@ def compute_score(show, demande):
         spec_ratio = match_ratio * _specificity(len(show_specs), _TOTAL_SPECS)
     else:
         spec_ratio = 1.0 if show_specs else 0.5
-
-    # -- Événements (non pondéré — conservé pour info/affichage uniquement) --
-    if dem_events:
-        inter = show_events & dem_events
-        if inter:
-            match_ratio = min(1.0, len(inter) / max(1, min(len(dem_events), len(show_events))))
-        else:
-            match_ratio = 0.0
-        event_ratio = match_ratio * _specificity(len(show_events), _TOTAL_EVENTS)
-    else:
-        event_ratio = 0.0
 
     # -- Lieux (20%) --
     # Option « Tout terrain » : un artiste qui la coche joue partout → score lieu
@@ -443,7 +430,6 @@ def compute_score(show, demande):
     return {
         "total": round(total, 1),
         "specialites": round(spec_ratio * 100, 1),
-        "evenements": round(event_ratio * 100, 1),
         "lieux": round(lieu_ratio * 100, 1),
         "region": round(region_ratio * 100, 1),
         "distance_km": round(distance, 1) if distance is not None else None,
@@ -455,7 +441,6 @@ def compute_score(show, demande):
         "age_bonus": age_bonus,
         "region_compatible": region_compatible,
         "matching_specs": show_specs & dem_specs,
-        "matching_events": show_events & dem_events,
         "matching_lieux": show_lieux & dem_lieux,
     }
 
