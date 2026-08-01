@@ -7689,20 +7689,29 @@ def _send_inactive_final_email(username: str, email: str) -> None:
         current_app.logger.warning(f"[INACTIVE-MAINT] Email final non envoyé à {email}: {e}")
 
 
-@app.route("/admin/inactive-users/maintenance", methods=["POST"])
+@app.route("/admin/inactive-users/maintenance", methods=["GET", "POST"])
 @login_required
 @admin_required
 def admin_run_inactive_users_maintenance():
-    """Exécute manuellement le cycle auto: préavis 7j puis suppression des comptes inactifs."""
+    """Exécute manuellement le cycle auto en mode court (par lots) pour éviter les timeouts web."""
     from models.models import ShowView, Review, Conversation, Message, Notification
+
+    if request.method == "GET":
+        flash("Cette action doit être lancée depuis le bouton admin (POST).", "warning")
+        return redirect(url_for("admin_users"))
 
     now = datetime.utcnow()
     inactivity_days = 7
     notice_days = 7
+    max_flag = 25
+    max_delete = 15
+    send_emails = False  # Évite les blocages SMTP pendant une requête web admin.
     flagged = 0
     deleted = 0
     restored = 0
     errors = 0
+    remaining_flag_candidates = 0
+    remaining_due_candidates = 0
 
     # 1) Poser un préavis sur les comptes inactifs jamais prévenus.
     try:
@@ -7711,7 +7720,7 @@ def admin_run_inactive_users_maintenance():
             User.is_admin.is_(False),
             User.pending_deletion_at.is_(None),
             User.created_at <= seuil_inscription,
-        ).all()
+        ).order_by(User.created_at.asc()).limit(max_flag).all()
 
         for u in candidates:
             nb_approved = sum(1 for s in u.shows if getattr(s, "approved", False)) if hasattr(u, "shows") else 0
@@ -7720,9 +7729,16 @@ def admin_run_inactive_users_maintenance():
             deadline = now + timedelta(days=notice_days)
             u.pending_deletion_at = deadline
             flagged += 1
-            _send_inactive_notice_email(u.username, u.email or "", deadline.strftime("%d/%m/%Y"))
+            if send_emails:
+                _send_inactive_notice_email(u.username, u.email or "", deadline.strftime("%d/%m/%Y"))
 
         db.session.commit()
+
+        remaining_flag_candidates = User.query.filter(
+            User.is_admin.is_(False),
+            User.pending_deletion_at.is_(None),
+            User.created_at <= seuil_inscription,
+        ).count()
     except Exception as e:
         db.session.rollback()
         current_app.logger.error(f"[INACTIVE-MAINT] Erreur phase préavis: {e}")
@@ -7734,7 +7750,7 @@ def admin_run_inactive_users_maintenance():
         User.pending_deletion_at.isnot(None),
         User.pending_deletion_at <= now,
         User.is_admin.is_(False),
-    ).all()
+    ).order_by(User.pending_deletion_at.asc()).limit(max_delete).all()
 
     for u in due_users:
         nb_approved = sum(1 for s in u.shows if getattr(s, "approved", False)) if hasattr(u, "shows") else 0
@@ -7786,7 +7802,8 @@ def admin_run_inactive_users_maintenance():
             db.session.commit()
 
             deleted += 1
-            _send_inactive_final_email(username, email or "")
+            if send_emails:
+                _send_inactive_final_email(username, email or "")
             notify_admin_show_deletion(
                 "Compte supprimé pour inactivité",
                 shows_info,
@@ -7797,14 +7814,23 @@ def admin_run_inactive_users_maintenance():
             errors += 1
             current_app.logger.error(f"[INACTIVE-MAINT] Erreur suppression {u.id}: {e}")
 
+    remaining_due_candidates = User.query.filter(
+        User.pending_deletion_at.isnot(None),
+        User.pending_deletion_at <= now,
+        User.is_admin.is_(False),
+    ).count()
+
     flash(
         f"🧹 Maintenance terminée : {flagged} préavis posés, {deleted} compte(s) supprimé(s), "
-        f"{restored} préavis annulé(s), {errors} erreur(s).",
+        f"{restored} préavis annulé(s), {errors} erreur(s). "
+        f"Reste à traiter : {remaining_flag_candidates} préavis et {remaining_due_candidates} suppressions.",
         "info" if errors else "success",
     )
     current_app.logger.info(
         f"[INACTIVE-MAINT] Run manuel par {current_user().username}: "
-        f"flagged={flagged}, deleted={deleted}, restored={restored}, errors={errors}"
+        f"flagged={flagged}, deleted={deleted}, restored={restored}, errors={errors}, "
+        f"remaining_flag={remaining_flag_candidates}, remaining_due={remaining_due_candidates}, "
+        f"send_emails={send_emails}, max_flag={max_flag}, max_delete={max_delete}"
     )
     return redirect(url_for("admin_users"))
 
