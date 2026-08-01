@@ -7635,6 +7635,180 @@ def admin_users():
     return render_template("admin_users.html", users=users)
 
 
+def _mail_ready() -> bool:
+    """Indique si l'envoi d'email est opérationnel."""
+    return bool(
+        MailMessage is not None
+        and getattr(current_app, "mail", None)
+        and current_app.config.get("MAIL_USERNAME")
+        and current_app.config.get("MAIL_PASSWORD")
+    )
+
+
+def _send_inactive_notice_email(username: str, email: str, deadline_str: str) -> None:
+    """Email de préavis (7 jours) pour compte inactif."""
+    if not email or not _mail_ready():
+        return
+    try:
+        msg = MailMessage(  # type: ignore[misc]
+            subject="⏳ Votre compte Spectacle'ment VØtre sera supprimé dans 7 jours",
+            recipients=[email],
+        )
+        msg.body = (
+            f"Bonjour {username},\n\n"
+            f"Aucun spectacle n'est publié sur votre compte. Sans publication, "
+            f"votre compte sera supprimé automatiquement le {deadline_str}.\n\n"
+            "Pour conserver votre compte : connectez-vous et publiez un spectacle.\n"
+            "https://www.spectacleanimation.fr/login\n\n"
+            "L'équipe Spectacle'ment VØtre"
+        )
+        current_app.mail.send(msg)  # type: ignore[attr-defined]
+    except Exception as e:
+        current_app.logger.warning(f"[INACTIVE-MAINT] Préavis email non envoyé à {email}: {e}")
+
+
+def _send_inactive_final_email(username: str, email: str) -> None:
+    """Email final après suppression automatique pour inactivité."""
+    if not email or not _mail_ready():
+        return
+    try:
+        msg = MailMessage(  # type: ignore[misc]
+            subject="Suppression de votre compte Spectacle'ment VØtre",
+            recipients=[email],
+        )
+        msg.body = (
+            f"Bonjour {username},\n\n"
+            "Votre compte Spectacle'ment VØtre a été supprimé pour inactivité, "
+            "conformément au préavis envoyé.\n\n"
+            "Vous pouvez recréer un compte gratuitement :\n"
+            "https://www.spectacleanimation.fr/register\n\n"
+            "L'équipe Spectacle'ment VØtre"
+        )
+        current_app.mail.send(msg)  # type: ignore[attr-defined]
+    except Exception as e:
+        current_app.logger.warning(f"[INACTIVE-MAINT] Email final non envoyé à {email}: {e}")
+
+
+@app.route("/admin/inactive-users/maintenance", methods=["POST"])
+@login_required
+@admin_required
+def admin_run_inactive_users_maintenance():
+    """Exécute manuellement le cycle auto: préavis 7j puis suppression des comptes inactifs."""
+    from models.models import ShowView, Review, Conversation, Message, Notification
+
+    now = datetime.utcnow()
+    inactivity_days = 7
+    notice_days = 7
+    flagged = 0
+    deleted = 0
+    restored = 0
+    errors = 0
+
+    # 1) Poser un préavis sur les comptes inactifs jamais prévenus.
+    try:
+        seuil_inscription = now - timedelta(days=inactivity_days)
+        candidates = User.query.filter(
+            User.is_admin.is_(False),
+            User.pending_deletion_at.is_(None),
+            User.created_at <= seuil_inscription,
+        ).all()
+
+        for u in candidates:
+            nb_approved = sum(1 for s in u.shows if getattr(s, "approved", False)) if hasattr(u, "shows") else 0
+            if nb_approved > 0:
+                continue
+            deadline = now + timedelta(days=notice_days)
+            u.pending_deletion_at = deadline
+            flagged += 1
+            _send_inactive_notice_email(u.username, u.email or "", deadline.strftime("%d/%m/%Y"))
+
+        db.session.commit()
+    except Exception as e:
+        db.session.rollback()
+        current_app.logger.error(f"[INACTIVE-MAINT] Erreur phase préavis: {e}")
+        flash(f"❌ Erreur pendant la phase préavis : {e}", "danger")
+        return redirect(url_for("admin_users"))
+
+    # 2) Supprimer les comptes en préavis expiré (ou annuler s'ils ont publié).
+    due_users = User.query.filter(
+        User.pending_deletion_at.isnot(None),
+        User.pending_deletion_at <= now,
+        User.is_admin.is_(False),
+    ).all()
+
+    for u in due_users:
+        nb_approved = sum(1 for s in u.shows if getattr(s, "approved", False)) if hasattr(u, "shows") else 0
+
+        if nb_approved > 0:
+            try:
+                u.pending_deletion_at = None
+                db.session.commit()
+                restored += 1
+            except Exception as e:
+                db.session.rollback()
+                errors += 1
+                current_app.logger.error(f"[INACTIVE-MAINT] Erreur annulation préavis {u.id}: {e}")
+            continue
+
+        username = u.username
+        email = u.email
+
+        shows_info = []
+        if hasattr(u, "shows"):
+            for s in u.shows:
+                shows_info.append({
+                    "id": s.id,
+                    "title": s.title,
+                    "raison_sociale": getattr(s, "raison_sociale", None),
+                    "category": getattr(s, "category", None),
+                    "region": getattr(s, "region", None),
+                })
+
+        try:
+            if hasattr(u, "shows"):
+                for show in list(u.shows):
+                    ShowView.query.filter_by(show_id=show.id).delete()
+                    Review.query.filter_by(show_id=show.id).delete()
+                    for conv in Conversation.query.filter_by(show_id=show.id).all():
+                        Message.query.filter_by(conversation_id=conv.id).delete()
+                        db.session.delete(conv)
+                    db.session.delete(show)
+
+            for conv in Conversation.query.filter(
+                (Conversation.user1_id == u.id) | (Conversation.user2_id == u.id)
+            ).all():
+                Message.query.filter_by(conversation_id=conv.id).delete()
+                db.session.delete(conv)
+
+            Notification.query.filter_by(user_id=u.id).delete()
+            Review.query.filter_by(user_id=u.id).delete()
+            db.session.delete(u)
+            db.session.commit()
+
+            deleted += 1
+            _send_inactive_final_email(username, email or "")
+            notify_admin_show_deletion(
+                "Compte supprimé pour inactivité",
+                shows_info,
+                {"username": username, "email": email},
+            )
+        except Exception as e:
+            db.session.rollback()
+            errors += 1
+            current_app.logger.error(f"[INACTIVE-MAINT] Erreur suppression {u.id}: {e}")
+
+    flash(
+        f"🧹 Maintenance terminée : {flagged} préavis posés, {deleted} compte(s) supprimé(s), "
+        f"{restored} préavis annulé(s), {errors} erreur(s).",
+        "info" if errors else "success",
+    )
+    current_app.logger.info(
+        f"[INACTIVE-MAINT] Run manuel par {current_user().username}: "
+        f"flagged={flagged}, deleted={deleted}, restored={restored}, errors={errors}"
+    )
+    return redirect(url_for("admin_users"))
+
+
 @app.route("/admin/recherche-compagnies-region", endpoint="admin_search_companies_region")
 @login_required
 @admin_required
