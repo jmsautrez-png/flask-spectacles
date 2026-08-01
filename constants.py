@@ -253,74 +253,129 @@ EVENEMENTS = {
 }
 
 # ═══════════════════════════════════════════════════════════════════
-# AXE 3 — TYPES DE LIEUX ("Où je peux jouer")
+# AXE 3 — TYPES DE LIEUX ("Où je peux jouer")  —  version simplifiée (5 choix)
 # Utilisé sur : carte spectacle (compagnie) + appel d'offre (mairie)
+# Objectif : ne garder que l'essentiel pour ne pas encombrer les formulaires.
+#   • Tout terrain                     → joue partout (matche tous les lieux)
+#   • Extérieur                        → plein air (place, parc, rue, cour…)
+#   • Salle équipée                    → scène + son & lumière fournis (théâtre, auditorium…)
+#   • Salle de classe ou équivalent    → petite salle (classe, réunion, séminaire, crèche…)
+#   • Salle des fêtes non équipée      → grande salle polyvalente sans matériel scénique
 # ═══════════════════════════════════════════════════════════════════
+LIEU_EXTERIEUR = "Extérieur"
+LIEU_SALLE_EQUIPEE = "Salle équipée"
+LIEU_SALLE_CLASSE = "Salle de classe ou équivalent"
+LIEU_SALLE_FETES = "Salle des fêtes non équipée"
+LIEU_TOUT_TERRAIN = "Tout terrain"
+
 LIEUX = {
-    "Salles municipales": [
-        "Salle des fêtes",
-        "Salle polyvalente",
-        "Salle communale",
-        "Salle des associations",
-        "Foyer rural",
-    ],
-    "Salles de spectacle et Culture": [
-        "Salle de spectacle équipée",
-        "Salle de spectacle non équipée",
-        "Théâtre",
-        "Café-théâtre",
-        "Cabaret",
-        "Centre culturel",
-        "Auditorium",
-        "Bibliothèque / Médiathèque",
-        "MJC / Centre social",
-        "Musée",
-        "Église",
-    ],
-    "Établissements scolaires": [
-        "École maternelle",
-        "École primaire",
-        "Collège",
-        "Lycée",
-        "Cour d'école",
-        "Préau d'école",
-        "Centre de loisirs / Périscolaire",
-        "Crèche / Halte-garderie",
-    ],
-    "Entreprises et Réceptions": [
-        "Salle de conférence",
-        "Salle de séminaire",
-        "Entreprise / Entrepôt",
-        "Hôtel (salle événementielle)",
-        "Restaurant (salle privée)",
-        "Café / Bar",
-        "Domaine / Château / Lieu de réception",
-        "Château ext/int",
-        "Écurie / Château / Maison de maître",
-        "Chapiteau / Tente événementielle",
-    ],
-    "Espaces extérieurs": [
-        "Parc / Jardin public",
-        "Place du village / Centre-ville",
-        "Rue piétonne / Animation de rue",
-        "Parvis / Esplanade",
-        "Marché couvert / Halles",
-        "Parking (événement extérieur)",
-        "Gymnase",
-        "Stade / Terrain de sport",
-    ],
-    "Espaces commerciaux": [
-        "Centre commercial / Galerie marchande",
-        "Parc des expositions",
-        "Site de foire / Salon",
-        "Camping / Base de loisirs",
-    ],
-    "Structures spécialisées": [
-        "EHPAD / Maison de retraite",
-        "Résidence seniors",
-        "Salle de réunion",
+    "Où vous pouvez jouer": [
+        LIEU_TOUT_TERRAIN,
+        LIEU_EXTERIEUR,
+        LIEU_SALLE_EQUIPEE,
+        LIEU_SALLE_CLASSE,
+        LIEU_SALLE_FETES,
     ],
 }
+
+# Conversion automatique des anciens libellés (avant simplification) vers les
+# 4 nouveaux buckets. Permet de ne PAS perdre les choix déjà saisis par les
+# artistes / organisateurs : la normalisation est appliquée au matching et à
+# l'affichage des formulaires. Clés en minuscules.
+_LIEUX_LEGACY_MAP = {
+    # → Extérieur
+    "cour d'école": LIEU_EXTERIEUR,
+    "parc / jardin public": LIEU_EXTERIEUR,
+    "place du village / centre-ville": LIEU_EXTERIEUR,
+    "rue piétonne / animation de rue": LIEU_EXTERIEUR,
+    "parvis / esplanade": LIEU_EXTERIEUR,
+    "parking (événement extérieur)": LIEU_EXTERIEUR,
+    "stade / terrain de sport": LIEU_EXTERIEUR,
+    "camping / base de loisirs": LIEU_EXTERIEUR,
+    # → Salle équipée (scène + son & lumière)
+    "salle de spectacle équipée": LIEU_SALLE_EQUIPEE,
+    "salle équipée": LIEU_SALLE_EQUIPEE,
+    "théâtre": LIEU_SALLE_EQUIPEE,
+    "café-théâtre": LIEU_SALLE_EQUIPEE,
+    "cabaret": LIEU_SALLE_EQUIPEE,
+    "centre culturel": LIEU_SALLE_EQUIPEE,
+    "auditorium": LIEU_SALLE_EQUIPEE,
+    # → Salle de classe ou équivalent (petites salles)
+    "école maternelle": LIEU_SALLE_CLASSE,
+    "école primaire": LIEU_SALLE_CLASSE,
+    "collège": LIEU_SALLE_CLASSE,
+    "lycée": LIEU_SALLE_CLASSE,
+    "préau d'école": LIEU_SALLE_CLASSE,
+    "centre de loisirs / périscolaire": LIEU_SALLE_CLASSE,
+    "crèche / halte-garderie": LIEU_SALLE_CLASSE,
+    "salle de conférence": LIEU_SALLE_CLASSE,
+    "salle de séminaire": LIEU_SALLE_CLASSE,
+    "salle de réunion": LIEU_SALLE_CLASSE,
+    "bibliothèque / médiathèque": LIEU_SALLE_CLASSE,
+    "mjc / centre social": LIEU_SALLE_CLASSE,
+    "musée": LIEU_SALLE_CLASSE,
+    # → Salle des fêtes non équipée (grandes salles polyvalentes sans matériel)
+    "salle des fêtes": LIEU_SALLE_FETES,
+    "salle polyvalente": LIEU_SALLE_FETES,
+    "salle communale": LIEU_SALLE_FETES,
+    "salle des associations": LIEU_SALLE_FETES,
+    "foyer rural": LIEU_SALLE_FETES,
+    "salle de spectacle non équipée": LIEU_SALLE_FETES,
+    "église": LIEU_SALLE_FETES,
+    "entreprise / entrepôt": LIEU_SALLE_FETES,
+    "hôtel (salle événementielle)": LIEU_SALLE_FETES,
+    "restaurant (salle privée)": LIEU_SALLE_FETES,
+    "café / bar": LIEU_SALLE_FETES,
+    "domaine / château / lieu de réception": LIEU_SALLE_FETES,
+    "château ext/int": LIEU_SALLE_FETES,
+    "écurie / château / maison de maître": LIEU_SALLE_FETES,
+    "chapiteau / tente événementielle": LIEU_SALLE_FETES,
+    "marché couvert / halles": LIEU_SALLE_FETES,
+    "gymnase": LIEU_SALLE_FETES,
+    "centre commercial / galerie marchande": LIEU_SALLE_FETES,
+    "parc des expositions": LIEU_SALLE_FETES,
+    "site de foire / salon": LIEU_SALLE_FETES,
+    "ehpad / maison de retraite": LIEU_SALLE_FETES,
+    "résidence seniors": LIEU_SALLE_FETES,
+    # ancien bucket intermédiaire → salle des fêtes non équipée
+    "salle simple / polyvalente": LIEU_SALLE_FETES,
+}
+
+# Libellés « nouveaux » (déjà normalisés) : lookup case-insensitive.
+_LIEUX_NEW_LOWER = {b.lower(): b for group in LIEUX.values() for b in group}
+
+
+def normalize_lieu(value):
+    """Convertit un libellé de lieu (ancien ou nouveau) vers l'un des 4 buckets.
+
+    Retourne None si la valeur est vide. Les valeurs inconnues retombent sur
+    « Salle des fêtes non équipée » (le cas couvert générique le plus fréquent).
+    """
+    if not value:
+        return None
+    v = value.strip().lower()
+    if not v:
+        return None
+    if v in _LIEUX_NEW_LOWER:
+        return _LIEUX_NEW_LOWER[v]
+    return _LIEUX_LEGACY_MAP.get(v, LIEU_SALLE_FETES)
+
+
+def normalize_lieux_list(values):
+    """Normalise une liste de libellés → liste de buckets uniques (ordre stable)."""
+    out = []
+    for val in values or []:
+        bucket = normalize_lieu(val)
+        if bucket and bucket not in out:
+            out.append(bucket)
+    return out
+
+
+def normalize_lieux_csv(csv_value):
+    """Normalise une chaîne CSV de lieux → liste de buckets uniques."""
+    if not csv_value:
+        return []
+    return normalize_lieux_list(csv_value.split(","))
 
 # ═══════════════════════════════════════════════════════════════════
 # RÉGIONS — pour le multi-sélection d'intervention

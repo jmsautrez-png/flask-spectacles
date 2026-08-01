@@ -6,6 +6,7 @@ from datetime import datetime
 from constants import (
     SPECIALITES, EVENEMENTS, LIEUX, REGIONS_FRANCE, REGIONS_VOISINES,
     PUBLIC_CIBLE_CODES_VALIDES, LABELS_QUALITE_NEUTRES,
+    normalize_lieux_csv, LIEU_TOUT_TERRAIN,
 )
 from utils.geo import distance_km, distance_km_approx, distance_score
 
@@ -247,11 +248,11 @@ def compute_score(show, demande):
     """Return a dict with per-axis scores and a total score (0-100).
 
     Axes:
-      - specialites  (weight 40)
-      - evenements   (weight 25)
+      - specialites  (weight 50)
+      - region       (weight 30)
       - lieux        (weight 20)
-      - region       (weight 15)
-      + age_range    bonus +0/+5/+10 (hors pondération principale)
+      + age_range / public cible   bonus +0/+5/+10 (hors pondération principale)
+      (L'axe « evenements » n'est plus pondéré : conservé seulement pour info.)
 
     Each axis yields a ratio [0..1] = (|intersection| / |demande tags|) × specificity.
     The specificity penalty penalises companies that check too many boxes:
@@ -261,12 +262,13 @@ def compute_score(show, demande):
     """
     show_specs = _csv_to_set(show.specialites)
     show_events = _csv_to_set(show.evenements)
-    show_lieux = _csv_to_set(show.lieux_intervention)
+    # Lieux : normalisés vers les buckets simplifiés (compat. anciens libellés)
+    show_lieux = {b.lower() for b in normalize_lieux_csv(show.lieux_intervention)}
     show_regions = _csv_to_set(show.regions_intervention)
 
     dem_specs = _csv_to_set(demande.specialites_recherchees)
     dem_events = _csv_to_set(demande.evenements_contexte)
-    dem_lieux = _csv_to_set(demande.lieux_souhaites)
+    dem_lieux = {b.lower() for b in normalize_lieux_csv(demande.lieux_souhaites)}
     dem_region = (demande.region or "").strip().lower()
 
     # -- Tranche d'âge (filtre dur + bonus hors pondération) --
@@ -285,7 +287,7 @@ def compute_score(show, demande):
         else:
             age_bonus = 0.0
 
-    # -- Spécialités (40%) --
+    # -- Spécialités (50%) --
     # Sémantique OR : organisateur cochant plusieurs catégories est ouvert à n'importe laquelle.
     # On normalise par min(dem, show) pour ne pas pénaliser un show spécialisé sur 1 seule
     # catégorie quand la demande en coche 10 (sinon ratio = 1/10 = 10%, faussement bas).
@@ -305,7 +307,7 @@ def compute_score(show, demande):
     else:
         spec_ratio = 1.0 if show_specs else 0.5
 
-    # -- Événements (25%) --
+    # -- Événements (non pondéré — conservé pour info/affichage uniquement) --
     if dem_events:
         inter = show_events & dem_events
         if inter:
@@ -317,17 +319,22 @@ def compute_score(show, demande):
         event_ratio = 0.0
 
     # -- Lieux (20%) --
-    if dem_lieux:
+    # Option « Tout terrain » : un artiste qui la coche joue partout → score lieu
+    # maximal quel que soit le lieu demandé. Sinon on récompense l'intersection
+    # directe (pas de pénalité de spécificité : cocher plusieurs lieux = flexible).
+    if LIEU_TOUT_TERRAIN.lower() in show_lieux:
+        lieu_ratio = 1.0
+    elif dem_lieux:
         inter = show_lieux & dem_lieux
         if inter:
-            match_ratio = min(1.0, len(inter) / max(1, min(len(dem_lieux), len(show_lieux))))
+            lieu_ratio = min(1.0, len(inter) / max(1, min(len(dem_lieux), len(show_lieux))))
         else:
-            match_ratio = 0.0
-        lieu_ratio = match_ratio * _specificity(len(show_lieux), _TOTAL_LIEUX)
+            lieu_ratio = 0.0
     else:
-        lieu_ratio = 0.0
+        # L'organisateur ne précise pas le lieu → on ne pénalise pas.
+        lieu_ratio = 1.0 if show_lieux else 0.5
 
-    # -- Région / Distance (15%) --
+    # -- Région / Distance (30%) --
     # Strategie hybride :
     # 1) Si on a les CP demandeur ET cie  -> score base sur la distance km (Haversine).
     # 2) Sinon, fallback sur la region native de la cie (User.region) avec regle stricte.
@@ -420,8 +427,10 @@ def compute_score(show, demande):
         if portee_nationale is False:
             region_compatible = False
 
-    # Score pondéré : spécialités 40 %, événements 25 %, lieux 20 %, région 15 %.
-    total = (spec_ratio * 40 + event_ratio * 25 + lieu_ratio * 20 + region_ratio * 15)
+    # Score pondéré : spécialités 50 %, région 30 %, lieux 20 %.
+    # L'axe « événements » a été retiré du score (simplification) : spécialité +
+    # public ciblé (filtre) + lieu + région suffisent pour un bon matching.
+    total = (spec_ratio * 50 + region_ratio * 30 + lieu_ratio * 20)
     # Bonus tranche d'âge (hors pondération principale, max +10)
     total = min(100.0, total + age_bonus)
     # Bonus labels qualité (admin) : +3 par label, plafonné à +6.

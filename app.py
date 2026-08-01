@@ -99,7 +99,7 @@ from utils.security import (
 )
 from utils.search import normalize_search_text, generate_search_patterns
 from utils.seo import SEO_CATEGORIES, optimize_title_seo, company_slug, company_id_from_slug
-from constants import SPECIALITES, EVENEMENTS, LIEUX, REGIONS_FRANCE, REGIONS_VOISINES, PUBLICS, PUBLIC_CIBLE_CATEGORIES, PUBLIC_CIBLE_ORGANISATEUR, PUBLIC_CIBLE_ADMIN, PUBLIC_CIBLE_INCOMPATIBLES, PUBLIC_CIBLE_CODES_VALIDES, LABELS_QUALITE, LABELS_QUALITE_CODES, LABELS_QUALITE_LABELS, LABELS_QUALITE_DESCRIPTIONS, MASQUER_COORDONNEES_DIRECTES
+from constants import SPECIALITES, EVENEMENTS, LIEUX, REGIONS_FRANCE, REGIONS_VOISINES, PUBLICS, PUBLIC_CIBLE_CATEGORIES, PUBLIC_CIBLE_ORGANISATEUR, PUBLIC_CIBLE_ADMIN, PUBLIC_CIBLE_INCOMPATIBLES, PUBLIC_CIBLE_CODES_VALIDES, LABELS_QUALITE, LABELS_QUALITE_CODES, LABELS_QUALITE_LABELS, LABELS_QUALITE_DESCRIPTIONS, MASQUER_COORDONNEES_DIRECTES, normalize_lieux_csv
 
 print("✓ Config, models et utils importés")
 
@@ -700,6 +700,12 @@ def create_app() -> Flask:
         db.create_all()
         _run_critical_migrations(app)
         _bootstrap_admin(app)
+
+    # Filtre Jinja2 : normalise une chaîne CSV de lieux (anciens libellés) vers
+    # les 3 buckets simplifiés, pour pré-cocher correctement les formulaires d'édition.
+    @app.template_filter('normalize_lieux')
+    def _normalize_lieux_filter(csv_value):
+        return normalize_lieux_csv(csv_value)
 
     # Filtre Jinja2 pour formater les âges
     @app.template_filter('format_age')
@@ -3141,7 +3147,8 @@ def register_routes(app: Flask) -> None:
 
             s.specialites = ",".join(spec_list) if spec_list else None
             s.category = spec_list[0] if spec_list else (s.category or "")
-            s.evenements = ",".join(evt_list) if evt_list else None
+            # NB : on ne réécrit plus s.evenements (axe retiré des formulaires) ;
+            # la valeur existante est préservée (encore utilisée par le SEO/catalogue).
             s.lieux_intervention = ",".join(lieux_list) if lieux_list else None
             s.regions_intervention = ",".join(reg_list) if reg_list else None
 
@@ -4339,7 +4346,8 @@ def register_routes(app: Flask) -> None:
 
             # Matching fields
             show.specialites = ",".join(request.form.getlist("specialites"))
-            show.evenements = ",".join(request.form.getlist("evenements"))
+            # NB : on ne réécrit plus show.evenements (axe retiré des formulaires) ;
+            # la valeur existante est préservée (encore utilisée par le SEO/catalogue).
             show.lieux_intervention = ",".join(request.form.getlist("lieux_intervention"))
             show.regions_intervention = ",".join(request.form.getlist("regions_intervention"))
             _pc_cats = request.form.getlist("public_categories")
