@@ -31,7 +31,36 @@ S3_BUCKET="votre-bucket"
 S3_KEY="AKIA..."
 S3_SECRET="votre-secret"
 S3_REGION="eu-west-1"
+
+# Option perf image (CloudFront recommandé)
+S3_CUSTOM_DOMAIN="dxxxxxxxxxxxx.cloudfront.net"
+S3_USE_PRESIGNED_URLS="False"
+IMAGE_CACHE_CONTROL="public, max-age=31536000, immutable"
 ```
+
+## ⚡ Chargement photo instantané (AWS)
+
+Pour obtenir un affichage quasi immédiat des photos, utiliser des URLs stables (CloudFront/S3) + cache long.
+
+Variables Render à définir sur le service web :
+
+- `S3_CUSTOM_DOMAIN` : domaine CloudFront (ex: `dxxxxxxxxxxxx.cloudfront.net`)
+- `S3_USE_PRESIGNED_URLS` : `False`
+- `IMAGE_CACHE_CONTROL` : `public, max-age=31536000, immutable`
+
+Comportement applicatif déjà en place :
+
+- URLs publiques stables via `S3_CUSTOM_DOMAIN` (ou fallback S3 public)
+- Cache-Control appliqué à l'upload des originaux et des thumbnails
+- Fallback automatique en URL signée si le mode public n'est pas activé
+
+Checklist AWS minimale :
+
+1. Créer une distribution CloudFront avec le bucket S3 en origin.
+2. Configurer l'accès privé du bucket via OAC/OAI (recommandé) ou policy publique contrôlée.
+3. Vérifier que `https://<S3_CUSTOM_DOMAIN>/thumb_<fichier>.webp` répond en 200.
+4. Déployer sur Render avec les variables ci-dessus.
+5. Purger le cache CloudFront si nécessaire après migration.
 
 ## 🏃 Lancer en Développement
 

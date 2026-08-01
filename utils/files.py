@@ -137,9 +137,13 @@ def upload_file_to_s3(file) -> str:
     s3_client = _s3_client()
     if s3_client and s3_bucket:
         try:
+            cache_control = current_app.config.get("IMAGE_CACHE_CONTROL", "public, max-age=31536000, immutable")
             s3_client.upload_fileobj(
                 file_to_upload, s3_bucket, unique_name,
-                ExtraArgs={"ContentType": content_type}
+                ExtraArgs={
+                    "ContentType": content_type,
+                    "CacheControl": cache_control,
+                }
             )
             current_app.logger.info(f"[S3] Fichier uploadé: {unique_name}")
             # Générer le thumbnail à l'upload (évite la génération à la volée)
@@ -205,9 +209,13 @@ def _generate_thumbnail_from_data(image_data, thumb_name, thumb_size=(400, 300),
         s3_bucket = current_app.config.get("S3_BUCKET")
         if s3_client and s3_bucket:
             try:
+                cache_control = current_app.config.get("IMAGE_CACHE_CONTROL", "public, max-age=31536000, immutable")
                 s3_client.upload_fileobj(
                     output, s3_bucket, thumb_name,
-                    ExtraArgs={"ContentType": "image/webp"}
+                    ExtraArgs={
+                        "ContentType": "image/webp",
+                        "CacheControl": cache_control,
+                    }
                 )
                 current_app.logger.info(f"[THUMB] Thumbnail S3: {thumb_name}")
                 return thumb_name
@@ -274,9 +282,13 @@ def generate_thumbnail(filename, thumb_size=(400, 300), quality=80):
 
         if s3_client and s3_bucket:
             try:
+                cache_control = current_app.config.get("IMAGE_CACHE_CONTROL", "public, max-age=31536000, immutable")
                 s3_client.upload_fileobj(
                     output, s3_bucket, thumb_name,
-                    ExtraArgs={"ContentType": "image/webp"}
+                    ExtraArgs={
+                        "ContentType": "image/webp",
+                        "CacheControl": cache_control,
+                    }
                 )
                 current_app.logger.info(f"[THUMB] Thumbnail S3: {thumb_name}")
                 return thumb_name
