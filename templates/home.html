@@ -1607,12 +1607,23 @@ details summary span {
 // Fonction pour initialiser les carousels des spectacles à la une
 (function() {
   var carousels = document.querySelectorAll('[data-carousel]');
-  var raf = window.requestAnimationFrame || function(cb) { return setTimeout(cb, 16); };
+  if (!carousels.length) return;
+
+  var visibilityObserver = null;
+  if ('IntersectionObserver' in window) {
+    visibilityObserver = new IntersectionObserver(function(entries) {
+      entries.forEach(function(entry) {
+        var carousel = entry.target;
+        carousel.dataset.inViewport = entry.isIntersecting ? '1' : '0';
+      });
+    }, { threshold: 0.2 });
+  }
 
   for (var c = 0; c < carousels.length; c++) {
     var carousel = carousels[c];
     if (carousel.dataset.initialized === 'true') continue;
     carousel.dataset.initialized = 'true';
+    carousel.dataset.inViewport = '1';
     
     var slidesContainer = carousel.querySelector('.carousel-slides');
     var allSlides = carousel.querySelectorAll('.carousel-slide');
@@ -1622,10 +1633,11 @@ details summary span {
     var totalSlides = allSlides.length;
     var currentSlide = 0;
     var isPaused = false;
-    var lastChangeTime = Date.now();
+    var autoPlayTimer = null;
     var INTERVAL = 6000;
 
     if (totalSlides <= 1) continue;
+    if (visibilityObserver) visibilityObserver.observe(carousel);
 
     function goToSlide(index) {
       if (index < 0) index = totalSlides - 1;
@@ -1637,16 +1649,28 @@ details summary span {
       for (var i = 0; i < indicators.length; i++) {
         indicators[i].classList.toggle('active', i === currentSlide);
       }
-      lastChangeTime = Date.now();
     }
 
     function nextSlide() { goToSlide(currentSlide + 1); }
     function prevSlide() { goToSlide(currentSlide - 1); }
 
-    function tick() {
-      if (!isPaused && document.body.contains(carousel)) {
-        if (Date.now() - lastChangeTime >= INTERVAL) nextSlide();
-        raf(tick);
+    function startAutoPlay() {
+      if (autoPlayTimer) return;
+      autoPlayTimer = window.setInterval(function() {
+        if (!document.body.contains(carousel)) {
+          stopAutoPlay();
+          return;
+        }
+        if (carousel.dataset.inViewport === '0') return;
+        if (isPaused) return;
+        nextSlide();
+      }, INTERVAL);
+    }
+
+    function stopAutoPlay() {
+      if (autoPlayTimer) {
+        window.clearInterval(autoPlayTimer);
+        autoPlayTimer = null;
       }
     }
 
@@ -1662,7 +1686,12 @@ details summary span {
       })(i);
     }
 
-    raf(tick);
+    carousel.addEventListener('mouseenter', function() { isPaused = true; });
+    carousel.addEventListener('mouseleave', function() { isPaused = false; });
+    carousel.addEventListener('touchstart', function() { isPaused = true; }, { passive: true });
+    carousel.addEventListener('touchend', function() { isPaused = false; }, { passive: true });
+
+    startAutoPlay();
   }
 })();
 </script>

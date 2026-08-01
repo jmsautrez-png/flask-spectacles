@@ -18,6 +18,7 @@ print("PYTHON EXE:", sys.executable)
 print("PYTHON VERSION:", sys.version)
 
 from sqlalchemy import or_
+from sqlalchemy.orm import joinedload, load_only
 from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Optional, Tuple
@@ -7241,7 +7242,15 @@ Accessibilité: {accessibilite}
         # GET : afficher le formulaire de sélection
         # Auto-matching basé sur les nouveaux champs
         from utils.matching import find_matching_shows
-        all_approved = Show.query.filter(Show.approved.is_(True)).all()
+        # Préchargement du propriétaire pour éviter les requêtes N+1 dans compute_score.
+        all_approved = (
+            Show.query
+            .options(
+                joinedload(Show.user).load_only(User.id, User.code_postal, User.region, User.departement)
+            )
+            .filter(Show.approved.is_(True))
+            .all()
+        )
         matched = find_matching_shows(demande, all_approved, min_score=10)
 
         # Pré-sélection automatique basée sur les critères de la demande
@@ -7487,12 +7496,13 @@ print(f"   Debug: {app.debug}")
 print("=" * 70)
 
 # === ROUTE EXPORT UTILISATEURS EXCEL ===
-import pandas as pd
 from flask import send_file
 @app.route("/admin/export-users-xlsx")
 @login_required
 @admin_required
 def export_users_xlsx():
+    import pandas as pd
+
     users = User.query.all()
     data = []
     for u in users:
@@ -7529,6 +7539,8 @@ def export_users_xlsx():
 @login_required
 @admin_required
 def export_shows_xlsx():
+    import pandas as pd
+
     shows = Show.query.order_by(Show.created_at.desc()).all()
     data = []
     for show in shows:
@@ -7562,6 +7574,8 @@ def export_shows_xlsx():
 def export_demandes_xlsx():
     """Archive toutes les demandes d'animation dans un fichier Excel téléchargeable
     (à l'identique de l'export utilisateurs / spectacles)."""
+    import pandas as pd
+
     from models.models import DemandeAnimation
     demandes = DemandeAnimation.query.order_by(DemandeAnimation.created_at.desc()).all()
     data = []

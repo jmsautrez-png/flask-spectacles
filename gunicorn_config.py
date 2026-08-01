@@ -5,9 +5,10 @@ import multiprocessing
 # Bind sur l'interface publique avec le port fourni par Render/Heroku
 bind = f"0.0.0.0:{os.environ.get('PORT', '10000')}"
 
-# Nombre de workers — limité à 2 pour rester sous 512MB RAM sur Render
-workers = int(os.environ.get('GUNICORN_WORKERS', 2))
-workers = min(workers, 2)
+# Nombre de workers — 1 par défaut sur petite instance pour limiter la RAM.
+# Peut être augmenté via GUNICORN_WORKERS si l'instance est dimensionnée.
+workers = int(os.environ.get('GUNICORN_WORKERS', 1))
+workers = max(1, min(workers, 2))
 
 # Type de worker
 worker_class = 'sync'
