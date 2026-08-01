@@ -29,6 +29,8 @@ from logging.handlers import RotatingFileHandler
 import unicodedata
 import re
 import socket
+import time
+import threading
 
 # Timeout global pour les connexions réseau (SMTP, etc.)
 # Évite les crashs worker gunicorn quand le serveur mail ne répond pas
@@ -218,6 +220,46 @@ def _user_is_edition_libre_only(user) -> bool:
         if "edition_libre" not in labels:
             return False
     return True
+
+
+# ---------------------------------------------------------------------------
+# Cache d'URLs S3 presigned STABLES → chargement instantané des images
+# ---------------------------------------------------------------------------
+# Une URL presigned régénérée à chaque affichage change de signature, donc le
+# navigateur re-télécharge l'image au lieu de la garder en cache. Ici on
+# réutilise la MÊME URL pendant plusieurs jours (cache partagé entre requêtes)
+# et on force un Cache-Control long via ResponseCacheControl. On reste 100% en
+# mode presigned (bucket privé) : impossible de casser l'affichage.
+_PRESIGNED_URL_CACHE = {}                 # clé S3 -> (url, expires_at_epoch)
+_PRESIGNED_URL_LOCK = threading.Lock()
+_PRESIGNED_TTL = 7 * 24 * 3600            # 7 jours = durée max d'une URL SigV4
+_PRESIGNED_REFRESH_BEFORE = 24 * 3600     # régénère quand il reste < 1 jour
+_PRESIGNED_CACHE_CONTROL = "public, max-age=31536000, immutable"
+
+
+def _cached_presigned_url(client, bucket, key):
+    """Renvoie une URL presigned STABLE (mise en cache) pour une clé S3.
+
+    La même URL est retournée à toutes les requêtes tant qu'elle reste valide,
+    ce qui permet la mise en cache navigateur (images instantanées). Les noms de
+    fichiers étant des UUID, chaque clé est immuable → Cache-Control immutable OK.
+    """
+    now = time.time()
+    cached = _PRESIGNED_URL_CACHE.get(key)
+    if cached and cached[1] - _PRESIGNED_REFRESH_BEFORE > now:
+        return cached[0]
+    url = client.generate_presigned_url(
+        'get_object',
+        Params={
+            'Bucket': bucket,
+            'Key': key,
+            'ResponseCacheControl': _PRESIGNED_CACHE_CONTROL,
+        },
+        ExpiresIn=_PRESIGNED_TTL,
+    )
+    with _PRESIGNED_URL_LOCK:
+        _PRESIGNED_URL_CACHE[key] = (url, now + _PRESIGNED_TTL)
+    return url
 
 
 def create_app() -> Flask:
@@ -788,11 +830,7 @@ def create_app() -> Flask:
             if client and bucket:
                 thumb_key = "thumb_" + filename.rsplit(".", 1)[0] + ".webp"
                 try:
-                    r = client.generate_presigned_url(
-                        'get_object',
-                        Params={'Bucket': bucket, 'Key': thumb_key},
-                        ExpiresIn=3600
-                    )
+                    r = _cached_presigned_url(client, bucket, thumb_key)
                     _cache[filename] = r
                     return r
                 except Exception:
@@ -809,11 +847,7 @@ def create_app() -> Flask:
             bucket = _state.get('bucket')
             if client and bucket:
                 try:
-                    return client.generate_presigned_url(
-                        'get_object',
-                        Params={'Bucket': bucket, 'Key': filename},
-                        ExpiresIn=3600
-                    )
+                    return _cached_presigned_url(client, bucket, filename)
                 except Exception:
                     pass
             return url_for('uploaded_file', filename=filename)
@@ -2796,12 +2830,8 @@ def register_routes(app: Flask) -> None:
             )
             # Vérifier que le fichier existe
             s3_client.head_object(Bucket=s3_bucket, Key=filename)
-            # Générer URL presigned (1h) — le navigateur télécharge directement depuis S3
-            presigned_url = s3_client.generate_presigned_url(
-                'get_object',
-                Params={'Bucket': s3_bucket, 'Key': filename},
-                ExpiresIn=3600
-            )
+            # URL presigned STABLE (cache partagé) → mise en cache navigateur
+            presigned_url = _cached_presigned_url(s3_client, s3_bucket, filename)
             return redirect(presigned_url)
             
         except botocore.exceptions.ClientError as e:
@@ -2850,11 +2880,7 @@ def register_routes(app: Flask) -> None:
                 s3_client = boto3.client("s3", region_name=s3_region,
                     aws_access_key_id=s3_key, aws_secret_access_key=s3_secret)
                 s3_client.head_object(Bucket=s3_bucket, Key=thumb_name)
-                presigned_url = s3_client.generate_presigned_url(
-                    'get_object',
-                    Params={'Bucket': s3_bucket, 'Key': thumb_name},
-                    ExpiresIn=3600
-                )
+                presigned_url = _cached_presigned_url(s3_client, s3_bucket, thumb_name)
                 return redirect(presigned_url)
             except Exception:
                 pass
