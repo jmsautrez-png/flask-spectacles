@@ -588,66 +588,6 @@ a.social-bandeau:hover {
 </div>
 {% endif %}
 
-<!-- JavaScript pour le diaporama de la page détail -->
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-  const carousel = document.querySelector('.detail-carousel');
-  if (!carousel) return;
-  
-  const slides = carousel.querySelectorAll('.carousel-slide');
-  const dots = carousel.querySelectorAll('.carousel-dot');
-  const prevBtn = carousel.querySelector('.carousel-prev');
-  const nextBtn = carousel.querySelector('.carousel-next');
-  const counter = carousel.querySelector('.current-photo');
-  
-  if (slides.length <= 1) return;
-  
-  let currentIndex = 0;
-  let autoPlayInterval;
-  
-  function showSlide(index) {
-    slides.forEach((slide, i) => {
-      slide.classList.toggle('active', i === index);
-    });
-    dots.forEach((dot, i) => {
-      dot.classList.toggle('active', i === index);
-      dot.style.background = i === index ? 'white' : 'transparent';
-    });
-    if (counter) counter.textContent = index + 1;
-    currentIndex = index;
-  }
-  
-  function nextSlide() {
-    showSlide((currentIndex + 1) % slides.length);
-  }
-  
-  function prevSlide() {
-    showSlide((currentIndex - 1 + slides.length) % slides.length);
-  }
-  
-  function startAutoPlay() {
-    stopAutoPlay();
-    autoPlayInterval = setInterval(nextSlide, 10000); // Toutes les 10 secondes
-  }
-  
-  function stopAutoPlay() {
-    if (autoPlayInterval) clearInterval(autoPlayInterval);
-  }
-  
-  // Navigation
-  if (nextBtn) nextBtn.addEventListener('click', function() { nextSlide(); startAutoPlay(); });
-  if (prevBtn) prevBtn.addEventListener('click', function() { prevSlide(); startAutoPlay(); });
-  
-  // Indicateurs
-  dots.forEach((dot, i) => {
-    dot.addEventListener('click', function() { showSlide(i); startAutoPlay(); });
-  });
-  
-  // Démarrer l'auto-play
-  startAutoPlay();
-});
-</script>
-
 <style>
 .detail-carousel { position: relative; width: 100%; height: 100%; }
 .detail-carousel .carousel-slides { position: relative; width: 100%; height: 100%; }

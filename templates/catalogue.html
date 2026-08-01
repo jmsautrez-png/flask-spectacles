@@ -644,8 +644,8 @@
             cardsContainer.innerHTML = newCards.innerHTML;
             cardsContainer.style.opacity = '1';
             // Réinitialiser les carousels après le chargement
-            if (typeof initCarousels === 'function') {
-              initCarousels();
+            if (window.initCarousels) {
+              window.initCarousels(cardsContainer);
             }
           }, 500);
         }
@@ -661,119 +661,12 @@
 })();
 </script>
 
-<!-- Script pour les carousels de photos sur les cartes -->
 <script>
-// Fonction globale pour initialiser les carousels
-function initCarousels() {
-  console.log('Initialisation des carousels...');
-  
-  var carousels = document.querySelectorAll('[data-carousel]');
-  console.log('Nombre de carousels trouvés:', carousels.length);
-  
-  carousels.forEach(function(carousel, carouselIndex) {
-    // Éviter de réinitialiser un carousel déjà initialisé
-    if (carousel.dataset.initialized === 'true') return;
-    carousel.dataset.initialized = 'true';
-    
-    var slidesContainer = carousel.querySelector('.carousel-slides');
-    var allSlides = carousel.querySelectorAll('.carousel-slide');
-    var indicators = carousel.querySelectorAll('.carousel-indicator');
-    var prevBtn = carousel.querySelector('.carousel-prev');
-    var nextBtn = carousel.querySelector('.carousel-next');
-    var totalSlides = allSlides.length;
-    var currentSlide = 0;
-    var isPaused = false;
-    var lastChangeTime = Date.now();
-    var INTERVAL = 8000; // 8 secondes
-
-    console.log('Carousel', carouselIndex, ':', totalSlides, 'slides');
-
-    // Ne pas initialiser si une seule slide
-    if (totalSlides <= 1) {
-      console.log('Carousel', carouselIndex, ': une seule slide, skip');
-      return;
-    }
-
-    function goToSlide(index) {
-      if (index < 0) {
-        index = totalSlides - 1;
-      } else if (index >= totalSlides) {
-        index = 0;
-      }
-      currentSlide = index;
-      if (slidesContainer) {
-        slidesContainer.style.transform = 'translateX(-' + (currentSlide * 100) + '%)';
-      }
-      
-      indicators.forEach(function(ind, i) {
-        if (i === currentSlide) {
-          ind.classList.add('active');
-        } else {
-          ind.classList.remove('active');
-        }
-      });
-      
-      lastChangeTime = Date.now();
-    }
-
-    function nextSlide() {
-      goToSlide(currentSlide + 1);
-    }
-
-    function prevSlide() {
-      goToSlide(currentSlide - 1);
-    }
-
-    // Boucle d'animation continue
-    function tick() {
-      if (!isPaused && document.body.contains(carousel)) {
-        var now = Date.now();
-        if (now - lastChangeTime >= INTERVAL) {
-          nextSlide();
-        }
-        requestAnimationFrame(tick);
-      }
-    }
-
-    if (prevBtn) {
-      prevBtn.addEventListener('click', function(e) {
-        e.preventDefault();
-        e.stopPropagation();
-        prevSlide();
-      });
-    }
-
-    if (nextBtn) {
-      nextBtn.addEventListener('click', function(e) {
-        e.preventDefault();
-        e.stopPropagation();
-        nextSlide();
-      });
-    }
-
-    indicators.forEach(function(indicator, i) {
-      indicator.addEventListener('click', function(e) {
-        e.preventDefault();
-        e.stopPropagation();
-        goToSlide(i);
-      });
-    });
-
-    carousel.addEventListener('mouseenter', function() {
-      isPaused = true;
-    });
-    carousel.addEventListener('mouseleave', function() {
-      isPaused = false;
-      lastChangeTime = Date.now();
-    });
-
-    requestAnimationFrame(tick);
-    console.log('Carousel', carouselIndex, ': démarré');
-  });
-}
-
-// Initialiser au chargement
-document.addEventListener('DOMContentLoaded', initCarousels);
+document.addEventListener('DOMContentLoaded', function() {
+  if (window.initCarousels) {
+    window.initCarousels(document);
+  }
+});
 </script>
 
 <script>
