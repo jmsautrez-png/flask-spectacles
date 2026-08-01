@@ -38,7 +38,6 @@ print("✓ Imports standards OK")
 
 import uuid
 import html
-from urllib.parse import quote
 import requests  # Pour l'API de géolocalisation
 
 # Import global de boto3 pour éviter NameError
@@ -773,22 +772,6 @@ def create_app() -> Flask:
                     _state['bucket'] = s3_bucket
                 _state['done'] = True
 
-        def _public_s3_url(key):
-            """Construit une URL publique stable (CDN/S3) pour maximiser le cache navigateur."""
-            custom_domain = (current_app.config.get("S3_CUSTOM_DOMAIN") or "").strip().rstrip("/")
-            if custom_domain:
-                if custom_domain.startswith("http://") or custom_domain.startswith("https://"):
-                    return f"{custom_domain}/{quote(key)}"
-                return f"https://{custom_domain}/{quote(key)}"
-
-            bucket = current_app.config.get("S3_BUCKET")
-            region = current_app.config.get("S3_REGION")
-            if bucket and region:
-                return f"https://{bucket}.s3.{region}.amazonaws.com/{quote(key)}"
-            if bucket:
-                return f"https://{bucket}.s3.amazonaws.com/{quote(key)}"
-            return None
-
         def thumbnail_url(filename):
             if not filename:
                 return ''
@@ -799,13 +782,6 @@ def create_app() -> Flask:
                 r = url_for('uploaded_file', filename=filename)
                 _cache[filename] = r
                 return r
-
-            # Chemin fiable: la route thumbnail_file gère local/S3/fallback automatiquement.
-            if not current_app.config.get("S3_USE_PRESIGNED_URLS", True):
-                r = url_for('thumbnail_file', filename=filename)
-                _cache[filename] = r
-                return r
-
             _ensure_s3()
             client = _state.get('client')
             bucket = _state.get('bucket')
@@ -815,7 +791,7 @@ def create_app() -> Flask:
                     r = client.generate_presigned_url(
                         'get_object',
                         Params={'Bucket': bucket, 'Key': thumb_key},
-                        ExpiresIn=int(current_app.config.get("S3_SIGNED_URL_TTL", 3600))
+                        ExpiresIn=3600
                     )
                     _cache[filename] = r
                     return r
@@ -828,10 +804,6 @@ def create_app() -> Flask:
         def original_url(filename):
             if not filename:
                 return ''
-
-            if not current_app.config.get("S3_USE_PRESIGNED_URLS", True):
-                return url_for('uploaded_file', filename=filename)
-
             _ensure_s3()
             client = _state.get('client')
             bucket = _state.get('bucket')
@@ -840,7 +812,7 @@ def create_app() -> Flask:
                     return client.generate_presigned_url(
                         'get_object',
                         Params={'Bucket': bucket, 'Key': filename},
-                        ExpiresIn=int(current_app.config.get("S3_SIGNED_URL_TTL", 3600))
+                        ExpiresIn=3600
                     )
                 except Exception:
                     pass
@@ -2887,7 +2859,7 @@ def register_routes(app: Flask) -> None:
             except Exception:
                 pass
 
-        # 4) Fallback : rediriger vers l'image originale
+        # 4) Fallback : rediriger vers l'image originale (aussi en presigned)
         return redirect(url_for('uploaded_file', filename=filename))
 
     @app.route("/show/<int:show_id>")

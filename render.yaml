@@ -35,14 +35,6 @@ services:
         sync: false  # Set manually in Render dashboard for security
       - key: S3_REGION
         value: eu-west-1
-      - key: S3_CUSTOM_DOMAIN
-        sync: false  # Ex: dxxxxxxxxxxxx.cloudfront.net (à définir dans Render)
-      - key: S3_USE_PRESIGNED_URLS
-        value: "False"  # Active les URLs publiques stables (perf cache)
-      - key: IMAGE_CACHE_CONTROL
-        value: "public, max-age=31536000, immutable"
-      - key: S3_SIGNED_URL_TTL
-        value: "3600"
 
   # === Cron : marquer en préavis 7j les comptes inactifs (sans spectacle publié) ===
   - type: cron

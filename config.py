@@ -77,15 +77,6 @@ class Config:
     S3_SECRET = os.environ.get("S3_SECRET")
     S3_REGION = os.environ.get("S3_REGION")
     S3_CUSTOM_DOMAIN = os.environ.get("S3_CUSTOM_DOMAIN")
-    # True = URLs signées (bucket privé), False = URLs directes CDN/S3 (recommandé perf)
-    S3_USE_PRESIGNED_URLS = os.environ.get("S3_USE_PRESIGNED_URLS", "True") == "True"
-    # Durée de validité des URLs signées (secondes)
-    S3_SIGNED_URL_TTL = int(os.environ.get("S3_SIGNED_URL_TTL", 3600))
-    # Cache navigateur/CDN des images (1 an + immutable)
-    IMAGE_CACHE_CONTROL = os.environ.get(
-        "IMAGE_CACHE_CONTROL",
-        "public, max-age=31536000, immutable",
-    )
 
     # Ajout de toutes les variables du .env pour accès via app.config
     # (si d'autres variables sont ajoutées dans .env, les ajouter ici)
