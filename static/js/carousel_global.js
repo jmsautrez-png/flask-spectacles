@@ -1,6 +1,8 @@
 (function () {
   var CAROUSEL_SELECTOR = '[data-carousel]';
-  var MAX_AUTOPLAY = 6;
+  // Toutes les cartes visibles à l'écran défilent : l'IntersectionObserver met
+  // déjà en pause celles hors du viewport, ce qui suffit pour la performance.
+  var MAX_AUTOPLAY = Infinity;
   var DEFAULT_INTERVAL_MS = 8000;
   var instances = [];
   var observer = null;
