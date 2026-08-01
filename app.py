@@ -99,7 +99,7 @@ from utils.security import (
 )
 from utils.search import normalize_search_text, generate_search_patterns
 from utils.seo import SEO_CATEGORIES, optimize_title_seo, company_slug, company_id_from_slug
-from constants import SPECIALITES, EVENEMENTS, LIEUX, REGIONS_FRANCE, REGIONS_VOISINES, PUBLICS, PUBLIC_CIBLE_CATEGORIES, PUBLIC_CIBLE_ORGANISATEUR, PUBLIC_CIBLE_ADMIN, PUBLIC_CIBLE_INCOMPATIBLES, PUBLIC_CIBLE_CODES_VALIDES, LABELS_QUALITE, LABELS_QUALITE_CODES, LABELS_QUALITE_LABELS, LABELS_QUALITE_DESCRIPTIONS, MASQUER_COORDONNEES_DIRECTES, normalize_lieux_csv
+from constants import SPECIALITES, EVENEMENTS, LIEUX, LIEUX_ORGANISATEUR, REGIONS_FRANCE, REGIONS_VOISINES, PUBLICS, PUBLIC_CIBLE_CATEGORIES, PUBLIC_CIBLE_ORGANISATEUR, PUBLIC_CIBLE_ADMIN, PUBLIC_CIBLE_INCOMPATIBLES, PUBLIC_CIBLE_CODES_VALIDES, LABELS_QUALITE, LABELS_QUALITE_CODES, LABELS_QUALITE_LABELS, LABELS_QUALITE_DESCRIPTIONS, MASQUER_COORDONNEES_DIRECTES, normalize_lieux_csv
 
 print("✓ Config, models et utils importés")
 
@@ -5113,7 +5113,7 @@ def register_routes(app: Flask) -> None:
                 flash(f"Champs manquants : {', '.join(champs_vides)}", "danger")
                 # Préserver les checkboxes cochées au re-rendu
                 return render_template("demande_animation.html", user=current_user(),
-                                       specialites_data=SPECIALITES, evenements_data=EVENEMENTS, lieux_data=LIEUX), 400
+                                       specialites_data=SPECIALITES, evenements_data=EVENEMENTS, lieux_data=LIEUX_ORGANISATEUR), 400
 
             # Envoi d'email si configuré
             if getattr(current_app, "mail", None) and current_app.config.get("MAIL_USERNAME") and current_app.config.get("MAIL_PASSWORD"):
@@ -5328,7 +5328,7 @@ Accessibilité: {accessibilite}
         ).order_by(Show.created_at.desc()).limit(8).all()
 
         return render_template("demande_animation.html", user=current_user(), spectacles_une=spectacles_une,
-                               specialites_data=SPECIALITES, evenements_data=EVENEMENTS, lieux_data=LIEUX)
+                               specialites_data=SPECIALITES, evenements_data=EVENEMENTS, lieux_data=LIEUX_ORGANISATEUR)
 
     @app.route("/informations-legales")
     def legal():
@@ -5973,7 +5973,7 @@ Accessibilité: {accessibilite}
             user=current_user(),
             specialites_data=SPECIALITES,
             evenements_data=EVENEMENTS,
-            lieux_data=LIEUX,
+            lieux_data=LIEUX_ORGANISATEUR,
             form_action=url_for("edit_ma_demande", demande_id=demande.id),
         )
 
@@ -6108,7 +6108,7 @@ Accessibilité: {accessibilite}
             flash("✅ Demande modifiée avec succès !", "success")
             return redirect(url_for("admin_demandes_animation"))
         return render_template("demande_animation.html", demande=demande, user=current_user(),
-                               specialites_data=SPECIALITES, evenements_data=EVENEMENTS, lieux_data=LIEUX)
+                               specialites_data=SPECIALITES, evenements_data=EVENEMENTS, lieux_data=LIEUX_ORGANISATEUR)
 
     @app.route("/admin/approve-demande/<int:demande_id>")
     @login_required
@@ -6328,7 +6328,7 @@ Accessibilité: {accessibilite}
                        genre_recherche, jauge, budget, contact_email]):
                 flash("Veuillez remplir tous les champs obligatoires.", "danger")
                 return render_template("admin_create_demande.html", user=current_user(),
-                                       specialites_data=SPECIALITES, evenements_data=EVENEMENTS, lieux_data=LIEUX), 400
+                                       specialites_data=SPECIALITES, evenements_data=EVENEMENTS, lieux_data=LIEUX_ORGANISATEUR), 400
 
             # Créer la demande
             demande = DemandeAnimation(
@@ -6478,7 +6478,7 @@ Accessibilité: {accessibilite}
             return redirect(url_for("demandes_animation"))
 
         return render_template("admin_create_demande.html", user=current_user(),
-                               specialites_data=SPECIALITES, evenements_data=EVENEMENTS, lieux_data=LIEUX)
+                               specialites_data=SPECIALITES, evenements_data=EVENEMENTS, lieux_data=LIEUX_ORGANISATEUR)
 
     @app.route("/admin/envoyer-demande/<int:demande_id>", methods=["GET", "POST"])
     @login_required
@@ -8833,6 +8833,7 @@ def admin_fix_encoding():
 def admin_analytics():
     """Dashboard analytics business."""
     from sqlalchemy import func
+    from models.models import DemandeAnimation
 
     u = current_user()
     today = datetime.utcnow().date()

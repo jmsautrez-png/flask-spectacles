@@ -278,6 +278,18 @@ LIEUX = {
     ],
 }
 
+# Version organisateur (côté demande) : SANS « Tout terrain ».
+# L'organisateur propose un espace précis à disposition — il ne « joue pas
+# partout ». « Tout terrain » reste réservé aux artistes (LIEUX ci-dessus).
+LIEUX_ORGANISATEUR = {
+    "Terrain de jeu proposé": [
+        LIEU_EXTERIEUR,
+        LIEU_SALLE_EQUIPEE,
+        LIEU_SALLE_CLASSE,
+        LIEU_SALLE_FETES,
+    ],
+}
+
 # Conversion automatique des anciens libellés (avant simplification) vers les
 # 4 nouveaux buckets. Permet de ne PAS perdre les choix déjà saisis par les
 # artistes / organisateurs : la normalisation est appliquée au matching et à
