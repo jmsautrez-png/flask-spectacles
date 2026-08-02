@@ -2046,7 +2046,7 @@ def register_routes(app: Flask) -> None:
                             sender=current_app.config.get("MAIL_DEFAULT_SENDER"),
                             recipients=[to_email]
                         )
-                        msg.body = f"Bonjour {user.username},\\n\\nVotre nouveau mot de passe : {new_pwd}\\n\\nCordialement"
+                        msg.body = f"Bonjour {user.username},\n\nVotre nouveau mot de passe : {new_pwd}\n\nCordialement"
                         current_app.mail.send(msg)
                         current_app.logger.info(f"Email envoyé à {to_email}")
                         email_sent = True
