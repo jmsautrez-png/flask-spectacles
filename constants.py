@@ -124,6 +124,7 @@ SPECIALITES = {
         "Folk",
         "Jazz",
         "Trio Jazz (Apéro / Cocktail)",
+        "Musique tzigane / Jazz manouche",
         "Soul",
         "R&B",
         "Rap",
@@ -132,6 +133,7 @@ SPECIALITES = {
         "Musique Classique",
         "Musique électronique",
         "Musique / chant traditionnel",
+        "Musique traditionnelle africaine",
         # Artistes solo
         "Musicien solo",
         "Accordéoniste",
