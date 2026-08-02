@@ -134,6 +134,7 @@ SPECIALITES = {
         "Musique électronique",
         "Musique / chant traditionnel",
         "Musique traditionnelle africaine",
+        "Musique du monde",
         # Artistes solo
         "Musicien solo",
         "Accordéoniste",
