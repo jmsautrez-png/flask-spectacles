@@ -99,7 +99,7 @@ from utils.security import (
 )
 from utils.search import normalize_search_text, generate_search_patterns
 from utils.seo import SEO_CATEGORIES, optimize_title_seo, company_slug, company_id_from_slug
-from constants import SPECIALITES, EVENEMENTS, LIEUX, LIEUX_ORGANISATEUR, REGIONS_FRANCE, REGIONS_VOISINES, PUBLICS, PUBLIC_CIBLE_CATEGORIES, PUBLIC_CIBLE_ORGANISATEUR, PUBLIC_CIBLE_ADMIN, PUBLIC_CIBLE_INCOMPATIBLES, PUBLIC_CIBLE_CODES_VALIDES, LABELS_QUALITE, LABELS_QUALITE_CODES, LABELS_QUALITE_LABELS, LABELS_QUALITE_DESCRIPTIONS, MASQUER_COORDONNEES_DIRECTES, normalize_lieux_csv
+from constants import SPECIALITES, EVENEMENTS, LIEUX, LIEUX_ORGANISATEUR, REGIONS_FRANCE, REGIONS_VOISINES, PUBLICS, PUBLIC_CIBLE_CATEGORIES, PUBLIC_CIBLE_ORGANISATEUR, PUBLIC_CIBLE_ADMIN, PUBLIC_CIBLE_INCOMPATIBLES, PUBLIC_CIBLE_CODES_VALIDES, LABELS_QUALITE, LABELS_QUALITE_CODES, LABELS_QUALITE_NEUTRES, LABELS_QUALITE_LABELS, LABELS_QUALITE_DESCRIPTIONS, MASQUER_COORDONNEES_DIRECTES, normalize_lieux_csv
 
 print("✓ Config, models et utils importés")
 
@@ -6746,8 +6746,17 @@ Accessibilité: {accessibilite}
                 return redirect(request.url)
             
             print(f"[DEBUG] Recherche des spectacles pour {len(categories)} catégories et {len(regions)} régions")
+            # Exclure les spectacles « hors sélection » (label neutre, ex. « édition
+            # libre ») : comme dans find_matching_shows(), les badges non vérifiés ne
+            # sont jamais sélectionnés dans le matching ni contactés par email.
+            _exclure_neutre = [
+                db.func.coalesce(Show.labels, "").ilike(f"%{_code}%")
+                for _code in LABELS_QUALITE_NEUTRES
+            ]
             # Récupérer tous les spectacles correspondants
             query = Show.query.filter(Show.approved.is_(True))
+            if _exclure_neutre:
+                query = query.filter(~or_(*_exclure_neutre))
             
             if categories:
                 # Recherche directe par valeur exacte (les valeurs viennent des checkboxes = mêmes que en DB)
@@ -6814,6 +6823,8 @@ Accessibilité: {accessibilite}
                             Show.lieux_intervention.ilike(f"%{cat}%"),
                         ])
                     additional_query = additional_query.filter(or_(*cat_filters))
+                if _exclure_neutre:
+                    additional_query = additional_query.filter(~or_(*_exclure_neutre))
                 additional_users = additional_query.distinct().all()
                 print(f"[DEBUG] {len(additional_users)} utilisateurs supplémentaires avec région + catégorie correspondantes")
             
