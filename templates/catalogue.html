@@ -364,7 +364,7 @@
   });
 </script>
 
-{% if specialites or evenements_selected or region or cie_region or age or q or dept %}
+{% if specialites or region or cie_region or age or q or dept %}
 <div style="display:flex; align-items:center; gap:8px; margin-bottom:16px; flex-wrap:wrap;">
   <a href="{{ url_for('catalogue') }}"
      style="display:inline-flex; align-items:center; gap:6px; padding:8px 14px; background:linear-gradient(135deg,#e74c3c,#c0392b); color:#fff; text-decoration:none; border-radius:20px; font-weight:600; font-size:0.85rem; box-shadow:0 2px 8px rgba(231,76,60,0.4); white-space:nowrap;">
@@ -372,7 +372,6 @@
   </a>
   <span style="color:rgba(255,255,255,0.7); font-size:0.85rem; display:flex; flex-wrap:wrap; gap:6px;">
     {% for s in specialites %}<strong style="color:#ffc107;">{{ s }}</strong>{% endfor %}
-    {% for e in evenements_selected %}<strong style="color:#ffaa44;">{{ e }}</strong>{% endfor %}
     {% if region %}<span>📍 {{ region }}</span>{% endif %}
     {% if cie_region %}<span>🎪 Cie basée en {{ cie_region }}</span>{% endif %}
     {% if dept %}<span>📌 Dpt {{ dept }} (≤ {{ dept_radius }} km)</span>{% endif %}
@@ -515,7 +514,7 @@
     <nav class="pagination" style="margin: 30px 0; text-align: center;">
       <div style="display: inline-flex; gap: 8px; align-items: center; flex-wrap: wrap; justify-content: center;">
         {% if pagination.has_prev %}
-           <a href="{{ url_for('catalogue', page=pagination.prev_num, q=q, specialite=specialites, evenement=evenements_selected, region=region, cie_region=cie_region, age=age, public_categories=public_cats_selected, public_sous_options=public_subs_selected, dept=dept, dept_radius=dept_radius) }}"
+           <a href="{{ url_for('catalogue', page=pagination.prev_num, q=q, specialite=specialites, region=region, cie_region=cie_region, age=age, public_categories=public_cats_selected, public_sous_options=public_subs_selected, dept=dept, dept_radius=dept_radius) }}"
              style="padding: 8px 12px; background: var(--primary); color: white; text-decoration: none; border-radius: 4px; font-weight: 600;">
             ← Précédent
           </a>
@@ -532,7 +531,7 @@
                 {{ p }}
               </span>
             {% else %}
-                <a href="{{ url_for('catalogue', page=p, q=q, specialite=specialites, evenement=evenements_selected, region=region, cie_region=cie_region, age=age, public_categories=public_cats_selected, public_sous_options=public_subs_selected, dept=dept, dept_radius=dept_radius) }}"
+                <a href="{{ url_for('catalogue', page=p, q=q, specialite=specialites, region=region, cie_region=cie_region, age=age, public_categories=public_cats_selected, public_sous_options=public_subs_selected, dept=dept, dept_radius=dept_radius) }}"
                   style="padding: 8px 12px; background: #f2f3f7; color: var(--text); text-decoration: none; border-radius: 4px; font-weight: 600;"{% if p == 1 %} rel="first"{% endif %}>
                 {{ p }}
               </a>
@@ -543,7 +542,7 @@
         {% endfor %}
 
         {% if pagination.has_next %}
-           <a href="{{ url_for('catalogue', page=pagination.next_num, q=q, specialite=specialites, evenement=evenements_selected, region=region, cie_region=cie_region, age=age, public_categories=public_cats_selected, public_sous_options=public_subs_selected, dept=dept, dept_radius=dept_radius) }}"
+           <a href="{{ url_for('catalogue', page=pagination.next_num, q=q, specialite=specialites, region=region, cie_region=cie_region, age=age, public_categories=public_cats_selected, public_sous_options=public_subs_selected, dept=dept, dept_radius=dept_radius) }}"
              rel="next"
              style="padding: 8px 12px; background: var(--primary); color: white; text-decoration: none; border-radius: 4px; font-weight: 600;">
             Suivant →
@@ -581,7 +580,6 @@
         {% if q %}<input type="hidden" name="q" value="{{ q }}">{% endif %}
 
         {{ accordion_checkboxes("specialite", specialites_data, specialites, "", "Type de spectacle", "#6a1b9a", "Filtrez le catalogue par spécialité artistique.", "#fff", 0, show_counter=False, show_tip=False, show_toggle_buttons=False, enable_solo=False) }}
-        {{ accordion_checkboxes("evenement", evenements_data, evenements_selected, "", "Contexte événement", "#e65100", "Filtrez par type d'événement recherché.", "#fff", 0, show_counter=False, show_tip=False, show_toggle_buttons=False) }}
 
         <button type="submit" style="width:100%; margin-top:8px; background:linear-gradient(135deg,#6d1313,#8b1e1e); color:#fff; border:none; padding:10px 16px; border-radius:8px; font-weight:700; font-size:0.95rem; cursor:pointer;">🔍 Filtrer les résultats</button>
       </form>
