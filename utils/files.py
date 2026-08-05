@@ -122,58 +122,58 @@ def delete_file_s3(key: str) -> None:
 
 def upload_file_to_s3(file) -> str:
     from pathlib import Path as _Path
+    from io import BytesIO as _BytesIO
     optimized_file = optimize_image_to_webp(file)
+    # upload_fileobj() FERME le flux passé : on garde une copie stable des octets
+    # optimisés pour (re)générer la miniature indépendamment de l'upload.
     if optimized_file:
-        file_to_upload = optimized_file
+        optimized_bytes = optimized_file.getvalue()
         ext = '.webp'
         content_type = 'image/webp'
     else:
-        file.seek(0)
-        file_to_upload = file
+        optimized_bytes = None
         ext = _Path(file.filename).suffix.lower()
         content_type = file.content_type or "application/octet-stream"
     unique_name = f"{uuid.uuid4().hex}{ext}"
+    thumb_name = "thumb_" + unique_name.rsplit(".", 1)[0] + ".webp"
     s3_bucket = current_app.config.get("S3_BUCKET")
     s3_client = _s3_client()
     if s3_client and s3_bucket:
         try:
-            s3_client.upload_fileobj(
-                file_to_upload, s3_bucket, unique_name,
-                ExtraArgs={"ContentType": content_type}
-            )
+            if optimized_bytes is not None:
+                s3_client.upload_fileobj(
+                    _BytesIO(optimized_bytes), s3_bucket, unique_name,
+                    ExtraArgs={"ContentType": content_type}
+                )
+            else:
+                file.seek(0)
+                s3_client.upload_fileobj(
+                    file, s3_bucket, unique_name,
+                    ExtraArgs={"ContentType": content_type}
+                )
             current_app.logger.info(f"[S3] Fichier uploadé: {unique_name}")
-            # Générer le thumbnail à l'upload (évite la génération à la volée)
-            if optimized_file:
+            # Générer le thumbnail depuis une copie fraîche (flux d'upload déjà fermé)
+            if optimized_bytes is not None:
                 try:
-                    optimized_file.seek(0)
-                    _generate_thumbnail_from_data(
-                        optimized_file,
-                        "thumb_" + unique_name.rsplit(".", 1)[0] + ".webp"
-                    )
+                    _generate_thumbnail_from_data(_BytesIO(optimized_bytes), thumb_name)
                 except Exception as e:
                     current_app.logger.warning(f"[THUMB] Erreur thumbnail upload: {e}")
             return unique_name
         except Exception as e:
             current_app.logger.error(f"[S3] Erreur, fallback local: {e}")
-            file_to_upload.seek(0)
-    file_to_upload.seek(0)
     save_path = _Path(current_app.config["UPLOAD_FOLDER"]) / unique_name
     try:
         save_path.parent.mkdir(parents=True, exist_ok=True)
-        if hasattr(file_to_upload, 'save'):
-            file_to_upload.save(save_path.as_posix())
-        else:
+        if optimized_bytes is not None:
             with open(save_path, 'wb') as f:
-                f.write(file_to_upload.getvalue())
+                f.write(optimized_bytes)
+        else:
+            file.seek(0)
+            file.save(save_path.as_posix())
         current_app.logger.info(f"[LOCAL] Fichier sauvegardé: {unique_name}")
-        # Générer le thumbnail à l'upload
-        if optimized_file:
+        if optimized_bytes is not None:
             try:
-                optimized_file.seek(0)
-                _generate_thumbnail_from_data(
-                    optimized_file,
-                    "thumb_" + unique_name.rsplit(".", 1)[0] + ".webp"
-                )
+                _generate_thumbnail_from_data(_BytesIO(optimized_bytes), thumb_name)
             except Exception as e:
                 current_app.logger.warning(f"[THUMB] Erreur thumbnail local: {e}")
         return unique_name
@@ -199,27 +199,26 @@ def _generate_thumbnail_from_data(image_data, thumb_name, thumb_size=(400, 300),
         output = BytesIO()
         img.save(output, "WEBP", quality=quality)
         img.close()
-        output.seek(0)
+        thumb_bytes = output.getvalue()  # copie stable (upload_fileobj ferme le flux)
 
         s3_client = _s3_client()
         s3_bucket = current_app.config.get("S3_BUCKET")
         if s3_client and s3_bucket:
             try:
                 s3_client.upload_fileobj(
-                    output, s3_bucket, thumb_name,
+                    BytesIO(thumb_bytes), s3_bucket, thumb_name,
                     ExtraArgs={"ContentType": "image/webp"}
                 )
                 current_app.logger.info(f"[THUMB] Thumbnail S3: {thumb_name}")
                 return thumb_name
             except Exception as e:
                 current_app.logger.warning(f"[THUMB] Erreur upload S3 thumbnail: {e}")
-                output.seek(0)
 
         thumb_dir = _Path(current_app.config.get("THUMBNAIL_FOLDER",
                           _Path(current_app.config["UPLOAD_FOLDER"]).parent / "thumbnails"))
         thumb_dir.mkdir(parents=True, exist_ok=True)
         with open(thumb_dir / thumb_name, 'wb') as f:
-            f.write(output.getvalue())
+            f.write(thumb_bytes)
         current_app.logger.info(f"[THUMB] Thumbnail local: {thumb_name}")
         return thumb_name
     except Exception as e:

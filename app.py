@@ -18,7 +18,7 @@ print("PYTHON EXE:", sys.executable)
 print("PYTHON VERSION:", sys.version)
 
 from sqlalchemy import or_
-from sqlalchemy.orm import joinedload, load_only
+from sqlalchemy.orm import joinedload, load_only, Session as SASession
 from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Optional, Tuple
@@ -80,7 +80,7 @@ print("✓ Flask importé")
 
 from config import Config
 from models import db
-from models.models import User, Show, PageVisit, VisitorLog, Review, Conversation, Message, ShowView, Notification
+from models.models import User, Show, PageVisit, VisitorLog, Review, Conversation, Message, ShowView, Notification, PresignedUrlCache
 from seo_cities import FRENCH_CITIES, get_city_by_slug, get_all_city_slugs, get_neighbor_cities, get_city_seo_data, get_category_seo_data
 
 # Imports refactorisés — utils/
@@ -237,17 +237,60 @@ _PRESIGNED_REFRESH_BEFORE = 24 * 3600     # régénère quand il reste < 1 jour
 _PRESIGNED_CACHE_CONTROL = "public, max-age=31536000, immutable"
 
 
+def _presigned_db_get(key):
+    """Lit une URL presigned persistée en base. Retourne (url, expires_at) ou None.
+    Session isolée + erreurs silencieuses : ne casse jamais l'affichage des images."""
+    try:
+        with SASession(db.engine) as s:
+            row = s.get(PresignedUrlCache, key)
+            if row:
+                return (row.url, row.expires_at)
+    except Exception:
+        pass
+    return None
+
+
+def _presigned_db_set(key, url, expires_at):
+    """Persiste une URL presigned en base (upsert) via une session isolée.
+    N'affecte pas la session de la requête en cours ; erreurs silencieuses."""
+    try:
+        with SASession(db.engine) as s:
+            row = s.get(PresignedUrlCache, key)
+            if row:
+                row.url = url
+                row.expires_at = expires_at
+            else:
+                s.add(PresignedUrlCache(s3_key=key, url=url, expires_at=expires_at))
+            s.commit()
+    except Exception:
+        pass
+
+
 def _cached_presigned_url(client, bucket, key):
-    """Renvoie une URL presigned STABLE (mise en cache) pour une clé S3.
+    """Renvoie une URL presigned STABLE (mise en cache mémoire + base) pour une clé S3.
 
     La même URL est retournée à toutes les requêtes tant qu'elle reste valide,
     ce qui permet la mise en cache navigateur (images instantanées). Les noms de
     fichiers étant des UUID, chaque clé est immuable → Cache-Control immutable OK.
+
+    Le cache base (L2) garde l'URL stable entre les redéploiements, le recyclage
+    des workers gunicorn (max_requests) et les différents workers ; sans lui,
+    l'URL changerait à chaque restart et le navigateur re-téléchargerait l'image.
     """
     now = time.time()
+    # L1 : cache mémoire (le plus rapide, propre à chaque worker)
     cached = _PRESIGNED_URL_CACHE.get(key)
     if cached and cached[1] - _PRESIGNED_REFRESH_BEFORE > now:
         return cached[0]
+
+    # L2 : cache base de données (survit aux redéploiements et au recyclage worker)
+    row = _presigned_db_get(key)
+    if row and row[1] - _PRESIGNED_REFRESH_BEFORE > now:
+        with _PRESIGNED_URL_LOCK:
+            _PRESIGNED_URL_CACHE[key] = row  # réchauffe le L1
+        return row[0]
+
+    # Génération d'une nouvelle URL (uniquement si aucune URL valide en cache)
     url = client.generate_presigned_url(
         'get_object',
         Params={
@@ -257,8 +300,10 @@ def _cached_presigned_url(client, bucket, key):
         },
         ExpiresIn=_PRESIGNED_TTL,
     )
+    expires_at = now + _PRESIGNED_TTL
     with _PRESIGNED_URL_LOCK:
-        _PRESIGNED_URL_CACHE[key] = (url, now + _PRESIGNED_TTL)
+        _PRESIGNED_URL_CACHE[key] = (url, expires_at)
+    _presigned_db_set(key, url, expires_at)
     return url
 
 

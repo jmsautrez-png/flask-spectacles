@@ -337,3 +337,19 @@ class VisitorLog(db.Model):
         db.Index('idx_visited_at_is_bot', 'visited_at', 'is_bot'),
         db.Index('idx_session_id_is_bot', 'session_id', 'is_bot'),
     )
+
+
+class PresignedUrlCache(db.Model):
+    """Cache PERSISTANT des URLs S3 presigned.
+
+    Sans persistance, l'URL presigned est régénérée (nouvelle signature) à chaque
+    redéploiement, recyclage de worker gunicorn (max_requests) ou entre workers,
+    ce qui change l'URL et casse le cache navigateur → les images se re-téléchargent.
+    En stockant l'URL en base, la MÊME URL est réutilisée entre tous les workers et
+    tous les déploiements tant qu'elle est valide → images réellement instantanées.
+    """
+    __tablename__ = "presigned_url_cache"
+
+    s3_key = db.Column(db.String(512), primary_key=True)  # clé S3 immuable (UUID)
+    url = db.Column(db.Text, nullable=False)
+    expires_at = db.Column(db.Float, nullable=False, index=True)  # epoch (time.time())
