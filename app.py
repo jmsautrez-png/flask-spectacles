@@ -201,25 +201,13 @@ def _validate_production_config(app: Flask) -> None:
 
 
 def _user_is_edition_libre_only(user) -> bool:
-    """Retourne True si la compagnie a au moins un spectacle approuvé
-    et si TOUS ses spectacles approuvés portent le label « edition_libre ».
-
-    Faux pour l'admin, les organisateurs, les visiteurs et toute compagnie
-    ayant au moins un spectacle validé qualitativement (autre label ou aucun).
+    """Verrou « édition libre » désactivé : les compagnies en accès libre
+    accèdent désormais aux appels d'offres comme les autres, et voient les
+    liens correspondants dans le menu. Retourne donc toujours False.
+    (Restaurer l'ancienne logique basée sur le label « edition_libre » pour
+    réactiver le blocage.)
     """
-    if not user or getattr(user, "is_admin", False) or getattr(user, "is_organisateur", False):
-        return False
-    shows_approved = Show.query.filter(
-        Show.user_id == user.id,
-        Show.approved.is_(True)
-    ).all()
-    if not shows_approved:
-        return False
-    for s in shows_approved:
-        labels = {c.strip().lower() for c in (s.labels or "").split(",") if c.strip()}
-        if "edition_libre" not in labels:
-            return False
-    return True
+    return False
 
 
 # ---------------------------------------------------------------------------
