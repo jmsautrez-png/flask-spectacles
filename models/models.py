@@ -49,6 +49,10 @@ class DemandeAnimation(db.Model):
     user = db.relationship("User", backref="demandes")
 
 
+# Comptes créés à partir de cette date (UTC) = soumis au nouveau modèle (1re année d'appels d'offres offerte, puis payant).
+MODELE_PAYANT_DEBUT = datetime(2026, 8, 6)
+
+
 class User(db.Model):
     __tablename__ = "users"
 
@@ -74,6 +78,10 @@ class User(db.Model):
 
     def check_password(self, password: str) -> bool:
         return check_password_hash(self.password_hash, password)
+
+    @property
+    def is_modele_payant(self) -> bool:
+        return self.created_at is not None and self.created_at >= MODELE_PAYANT_DEBUT
 
 
 class Show(db.Model):
