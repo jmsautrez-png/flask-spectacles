@@ -32,6 +32,7 @@ SPECIALITES = {
         "Père Noël",
         "Conteuse Conteur",
         "Conte théâtralisé",
+        "Spectacle tiré d'un livre jeunesse",
         "Spectacle burlesque",
         "Spectacle de Marionnettes",
         # Types de spectacle
