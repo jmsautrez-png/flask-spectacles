@@ -35,7 +35,10 @@ SPECIALITES = {
         "Spectacle burlesque",
         "Spectacle de Marionnettes",
         # Types de spectacle
-        "Spectacle d'animation enfant, adulte ou EHPAD",
+        "Spectacle d'animation enfant",
+        "Spectacle d'animation EHPAD",
+        "Spectacle d'animation adulte",
+        "Spectacle pour enfant",
         "Spectacle de Rue",
         "Parade de rue / Déambulation",
         "Spectacle en roulotte",
