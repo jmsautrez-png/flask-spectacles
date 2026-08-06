@@ -1161,7 +1161,9 @@ h2 {{ color: #1b2a4e; margin-top: 0; }}
         <h3>📋 {demande.genre_recherche} à {demande.lieu_ville}</h3>
         <div class="info-grid">
             <div class="info-item"><div class="info-label">📍 Lieu</div>{demande.lieu_ville}</div>
-            <div class="info-item"><div class="info-label">📅 Date(s)</div>{demande.dates_horaires}</div>
+            <div class="info-item"><div class="info-label">�️ Département</div>{demande.departement or 'Non précisé'}</div>
+            <div class="info-item"><div class="info-label">🌍 Région</div>{demande.region or 'Non précisée'}</div>
+            <div class="info-item"><div class="info-label">�📅 Date(s)</div>{demande.dates_horaires}</div>
             <div class="info-item"><div class="info-label">Type recherché</div>{demande.genre_recherche}</div>
             <div class="info-item"><div class="info-label">🎭 Spécialités</div>{demande.specialites_recherchees.replace(',', ', ') if demande.specialites_recherchees else 'Non précisées'}</div>
             <div class="info-item"><div class="info-label">👥 Jauge</div>{demande.jauge}</div>
@@ -3018,6 +3020,12 @@ def register_routes(app: Flask) -> None:
             user=current_user(),
             canonical_slug=canonical_slug,
         )
+
+    @app.route("/ma-selection")
+    def ma_selection():
+        # Page "sélection" (panier non marchand) : le contenu est géré côté
+        # navigateur via localStorage, aucune donnée serveur n'est requise ici.
+        return render_template("ma_selection.html", user=current_user())
 
     @app.route("/demande-devis/<int:show_id>", methods=["GET", "POST"])
     def demande_devis(show_id: int):
@@ -6979,7 +6987,15 @@ Accessibilité: {accessibilite}
                     {demande.lieu_ville}
                 </div>
                 <div class="info-item">
-                    <div class="info-label">📅 Date(s)</div>
+                    <div class="info-label">�️ Département</div>
+                    {demande.departement or 'Non précisé'}
+                </div>
+                <div class="info-item">
+                    <div class="info-label">🌍 Région</div>
+                    {demande.region or 'Non précisée'}
+                </div>
+                <div class="info-item">
+                    <div class="info-label">�📅 Date(s)</div>
                     {demande.dates_horaires}
                 </div>
                 <div class="info-item">
@@ -7100,7 +7116,15 @@ Accessibilité: {accessibilite}
                     {demande.lieu_ville}
                 </div>
                 <div class="info-item">
-                    <div class="info-label">📅 Date(s)</div>
+                    <div class="info-label">�️ Département</div>
+                    {demande.departement or 'Non précisé'}
+                </div>
+                <div class="info-item">
+                    <div class="info-label">🌍 Région</div>
+                    {demande.region or 'Non précisée'}
+                </div>
+                <div class="info-item">
+                    <div class="info-label">�📅 Date(s)</div>
                     {demande.dates_horaires}
                 </div>
                 <div class="info-item">
@@ -8147,6 +8171,8 @@ def admin_delete_user(user_id):
             current_app.logger.info(f"[ADMIN] Préavis 7j posé sur {username} (ID: {user_id}) par {current_user().username}")
             if user_email and getattr(current_app, "mail", None) and current_app.config.get("MAIL_USERNAME") and current_app.config.get("MAIL_PASSWORD"):
                 deadline_str = user.pending_deletion_at.strftime('%d/%m/%Y')
+                # Mention "1re année d'AO offerte" : uniquement pour les comptes soumis au nouveau modèle
+                phrase_ao_preavis = " et votre <strong>première année d'appels d'offres</strong>" if user.is_modele_payant else ""
                 body_html = f"""<!DOCTYPE html>
 <html><head><meta charset="utf-8"></head>
 <body style="font-family:Arial,sans-serif;background:#f4f6fa;margin:0;padding:20px;">
@@ -8170,7 +8196,7 @@ def admin_delete_user(user_id):
         <p style="margin:0 0 8px 0;font-size:14px;line-height:1.6;">Spectacle'ment VØtre fonctionne comme un <strong>annuaire national de référence</strong> : plus il y a de spectacles publiés, plus les <strong>mairies, écoles, CSE, agences et organisateurs</strong> prennent l'habitude d'y chercher leurs animations &mdash; et d'y déposer leurs <strong>appels d'offres</strong>.</p>
         <p style="margin:0 0 8px 0;font-size:14px;line-height:1.6;">📍 <strong>Au niveau local</strong>, votre département gagne en visibilité à mesure que des compagnies de la région s'y inscrivent : les acteurs culturels de chez vous tombent alors sur <strong>votre profil en priorité</strong>.</p>
         <p style="margin:0 0 8px 0;font-size:14px;line-height:1.6;">🇫🇷 <strong>Au niveau national</strong>, vous recevrez aussi des appels d'offres venant de <strong>toute la France</strong> &mdash; un complément précieux à votre démarche commerciale régionale, qui vous ouvre des dates et des territoires que vous n'auriez pas prospectés seul.</p>
-        <p style="margin:0 0 8px 0;font-size:14px;line-height:1.6;">C'est cette dynamique collective qui nous permet d'offrir la <strong>publication de vos spectacles</strong> et votre <strong>première année d'appels d'offres</strong>.</p>
+        <p style="margin:0 0 8px 0;font-size:14px;line-height:1.6;">C'est cette dynamique collective qui nous permet d'offrir la <strong>publication de vos spectacles</strong>{phrase_ao_preavis}.</p>
         <p style="margin:0;font-size:13px;color:#555;font-style:italic;line-height:1.6;">C'est en accompagnant les compagnies qui le souhaitent sur le volet administratif (URSSAF, DSN, contrats de cession…) que nous pérennisons ce modèle.</p>
       </div>
       <p style="font-size:0.9em;color:#666;">Si vous publiez un spectacle avant cette date, votre compte sera conservé automatiquement.</p>

@@ -261,6 +261,21 @@
       </div>
       {% endif %}
 
+      {% if not user or user.is_organisateur %}
+      <!-- Bouton Ma sélection : visiteurs et organisateurs -->
+      {% set _imgs = show.get_all_images() %}
+      <div style="margin-bottom:32px; text-align:center;">
+        <button type="button" class="btn-selection btn-selection--lg"
+                data-sel-id="{{ show.id }}"
+                data-sel-title="{{ show.title|e }}"
+                data-sel-cie="{{ (show.raison_sociale or '')|e }}"
+                data-sel-ville="{{ (show.location or '')|e }}"
+                data-sel-img="{{ thumbnail_url(_imgs[0]) if _imgs and _imgs|length > 0 else '' }}"
+                onclick="Selection.toggle(this)">➕ Ajouter à ma sélection</button>
+        <p style="margin:10px 0 0 0; color:var(--muted); font-size:0.85rem;">Regroupez plusieurs spectacles et contactez les compagnies en une seule fois.</p>
+      </div>
+      {% endif %}
+
       <!-- Compteur de vues & avis résumé -->
       <div style="display:flex; gap:20px; flex-wrap:wrap; margin-bottom:24px; font-size:0.9rem; color:var(--muted);">
         <span>👁️ {{ view_count }} vue{{ 's' if view_count != 1 }}</span>

@@ -479,6 +479,19 @@
           </div>
         </a>
 
+        {% if not user or user.is_organisateur %}
+        {% set _imgs = show.get_all_images() %}
+        <div style="padding:8px 12px 0 12px;">
+          <button type="button" class="btn-selection btn-selection--sm"
+                  data-sel-id="{{ show.id }}"
+                  data-sel-title="{{ show.title|e }}"
+                  data-sel-cie="{{ (show.raison_sociale or '')|e }}"
+                  data-sel-ville="{{ (show.location or '')|e }}"
+                  data-sel-img="{{ thumbnail_url(_imgs[0]) if _imgs and _imgs|length > 0 else '' }}"
+                  onclick="Selection.toggle(this)">➕ Sélectionner</button>
+        </div>
+        {% endif %}
+
         {% if user and user.is_admin %}
         <div class="actions">
           <a href="{{ url_for('show_edit', show_id=show.id) }}">Modifier</a>

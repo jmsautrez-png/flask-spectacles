@@ -1,0 +1,102 @@
+{% extends "base.html" %}
+{% block title %}Ma sélection - Spectacle'ment VØtre{% endblock %}
+
+{% block seo_block %}{% endblock %}
+{% block robots %}<meta name="robots" content="noindex,follow">{% endblock %}
+
+{% block content %}
+<div style="max-width:820px; margin:0 auto; color:#fff;">
+
+  <div style="text-align:center; margin-bottom:24px;">
+    <h1 style="font-size:2rem; margin:0 0 8px 0; text-shadow:0 2px 8px #16244766;">📋 Ma sélection</h1>
+    <p style="color:rgba(255,255,255,0.9); font-size:1rem; line-height:1.6; max-width:620px; margin:0 auto;">
+      Regroupez ici les spectacles qui vous intéressent pour les retrouver facilement. Votre sélection est enregistrée dans votre navigateur, sans création de compte.
+    </p>
+  </div>
+
+  <!-- Liste de la sélection (rendue côté navigateur) -->
+  <div id="selection-mount" aria-live="polite"></div>
+
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+(function () {
+  "use strict";
+  var CATALOGUE_URL = "{{ url_for('catalogue') }}";
+  var mount = document.getElementById("selection-mount");
+  if (!mount) return;
+
+  function esc(s) {
+    return String(s == null ? "" : s)
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;");
+  }
+
+  function render() {
+    var items = (window.Selection && window.Selection.list) ? window.Selection.list() : [];
+
+    if (!items.length) {
+      mount.innerHTML =
+        '<div class="selection-empty">' +
+          '<p style="font-size:1.1rem; margin-bottom:16px;">Votre sélection est vide pour le moment.</p>' +
+          '<a href="' + CATALOGUE_URL + '" class="btn-selection btn-selection--lg" style="text-decoration:none;">Parcourir le catalogue</a>' +
+        '</div>';
+      return;
+    }
+
+    var html = '<div class="selection-list">';
+    items.forEach(function (it) {
+      html +=
+        '<div class="selection-item" data-id="' + esc(it.id) + '">' +
+          '<a class="selection-item__link" href="/show/' + esc(it.id) + '">' +
+            (it.img
+              ? '<img class="selection-item__img" src="' + esc(it.img) + '" alt="">'
+              : '<div class="selection-item__img"></div>') +
+            '<div class="selection-item__body">' +
+              '<p class="selection-item__title">' + esc(it.title || "Spectacle") + '</p>' +
+              '<div class="selection-item__meta">' +
+                (it.cie ? esc(it.cie) : "") +
+                (it.cie && it.ville ? " • " : "") +
+                (it.ville ? esc(it.ville) : "") +
+              '</div>' +
+            '</div>' +
+          '</a>' +
+          '<button type="button" class="selection-item__remove" data-remove="' + esc(it.id) + '">Retirer</button>' +
+        '</div>';
+    });
+    html += '</div>';
+
+    html +=
+      '<div style="display:flex; gap:12px; flex-wrap:wrap; align-items:center; margin-top:8px;">' +
+        '<button type="button" id="sel-clear" class="selection-item__remove">Tout vider</button>' +
+        '<span style="color:var(--muted); font-size:0.9rem;">' +
+          items.length + ' spectacle' + (items.length > 1 ? "s" : "") +
+          ' sélectionné' + (items.length > 1 ? "s" : "") +
+        '</span>' +
+      '</div>';
+
+    mount.innerHTML = html;
+  }
+
+  mount.addEventListener("click", function (e) {
+    var rm = e.target.closest ? e.target.closest("[data-remove]") : null;
+    if (rm) {
+      window.Selection.remove(rm.getAttribute("data-remove"));
+      return;
+    }
+    if (e.target && e.target.id === "sel-clear") {
+      if (window.confirm("Vider toute votre sélection ?")) {
+        window.Selection.clear();
+      }
+    }
+  });
+
+  document.addEventListener("selection:changed", render);
+  render();
+})();
+</script>
+{% endblock %}

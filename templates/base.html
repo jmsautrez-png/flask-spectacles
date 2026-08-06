@@ -1170,6 +1170,15 @@
           {# Bouton Demande d'animation supprimé #}
         {% endif %}
 
+        {# ----- MA SÉLECTION (visiteurs et organisateurs) ----- #}
+        {% if not user or user.is_organisateur %}
+          <li>
+            <a href="{{ url_for('ma_selection') }}" style="{{ btn_glass }}">
+              📋 Ma sélection<span class="selection-badge" data-selection-badge style="display:none;">0</span>
+            </a>
+          </li>
+        {% endif %}
+
       </ul>
     </nav>
     
@@ -1509,6 +1518,7 @@ document.addEventListener('DOMContentLoaded', function() {
 </script>
 
 <script src="{{ url_for('static', filename='js/carousel_global.js') }}"></script>
+<script src="{{ url_for('static', filename='js/selection.js') }}"></script>
 
 {% block scripts %}{% endblock %}
 
