@@ -95,6 +95,7 @@ SPECIALITES = {
         "Théâtre participatif",
         # Musical
         "Comédie musicale",
+        "Comédie musicale pour enfant",
         # Jeunesse
         "Théâtre pour la famille",
         "Théâtre pour enfant",
