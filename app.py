@@ -5065,6 +5065,20 @@ def register_routes(app: Flask) -> None:
             db.session.rollback()
             return {"success": False, "message": str(e)}, 500
 
+    @app.route("/admin/ordre-affichage/reset", methods=["POST"])
+    @login_required
+    @admin_required
+    def reset_shows_order():
+        """Réinitialise l'ordre d'affichage : tous les spectacles reprennent l'ordre d'arrivée (plus récents en premier)."""
+        try:
+            updated = Show.query.update({Show.display_order: 0})
+            db.session.commit()
+            flash(f"Ordre réinitialisé : {updated} spectacle(s) remis dans l'ordre d'arrivée (les plus récents en premier).", "success")
+        except Exception as e:
+            db.session.rollback()
+            flash(f"Erreur lors de la réinitialisation : {e}", "danger")
+        return redirect(url_for("admin_ordre_affichage"))
+
     # ---------------------------
     # Pages diverses
     # ---------------------------
