@@ -1785,7 +1785,7 @@ def register_routes(app: Flask) -> None:
             </p>
         </div>
         <div style="background:#e8f5e9; border-left:4px solid #2e7d32; padding:18px 20px; border-radius:6px; margin:20px 0;">
-            <h3 style="margin:0 0 10px 0; color:#2e7d32; font-size:1.05em;">💚 Pourquoi c'est gratuit ?</h3>
+            <h3 style="margin:0 0 10px 0; color:#2e7d32; font-size:1.05em;">💚 Pourquoi c'est efficace ?</h3>
             <p style="margin:0 0 10px 0; font-size:14px; color:#333; line-height:1.6;">
                 Spectacle'ment VØtre fonctionne comme un <strong>annuaire national de référence</strong> : plus il y a de spectacles publiés, plus les <strong>mairies, écoles, CSE, agences et organisateurs</strong> prennent l'habitude d'y chercher leurs animations &mdash; et d'y déposer leurs <strong>appels d'offres</strong>.
             </p>
@@ -4775,6 +4775,17 @@ def register_routes(app: Flask) -> None:
                     subject = "Votre spectacle est validé sur Spectacle'ment VØtre !"
                     abonnement_url = url_for('abonnement_compagnie', _external=True)
                     submit_url = url_for('submit_show', _external=True)
+                    # Bloc "1re année d'appels d'offres offerte" : uniquement pour les comptes soumis au nouveau modèle
+                    if show.user is not None and show.user.is_modele_payant:
+                        bloc_ao_offert = """
+                            <div style="background:#fff8e1; border-left:4px solid #f57f17; padding:20px; margin:25px 0; border-radius:8px;">
+                                <p style="margin:0 0 8px 0; font-size:16px; color:#e65100; font-weight:bold;">🎁 Votre 1ère année d'appels d'offres offerte</p>
+                                <p style="margin:0; font-size:15px; color:#333; line-height:1.6;">
+                                    Dès aujourd'hui, vous bénéficiez d'<strong>une année gratuite</strong> pour consulter nos appels d'offres et répondre directement aux demandes des organisateurs. À l'issue de cette période, seul l'accès aux appels d'offres deviendra payant &mdash; la <strong>publication de vos spectacles reste gratuite</strong>.
+                                </p>
+                            </div>"""
+                    else:
+                        bloc_ao_offert = ""
                     body_html = f"""<!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -4831,7 +4842,7 @@ def register_routes(app: Flask) -> None:
                                     ✅ Votre déploiement sur la plateforme est <u>entièrement gratuit</u>.
                                 </p>
                             </div>
-                            
+                            {bloc_ao_offert}
                             <!-- Admin Services -->
                             <div style="background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%); border-radius: 12px; padding: 25px; margin: 25px 0;">
                                 <h3 style="color: #d63031; font-size: 18px; margin: 0 0 12px 0;">💼 Besoin d'aide administrative ?</h3>
@@ -8155,7 +8166,7 @@ def admin_delete_user(user_id):
         </p>
       </div>
       <div style="background:#f3e5f5;border-left:4px solid #6a1b9a;padding:16px 18px;border-radius:6px;margin:20px 0;">
-        <p style="margin:0 0 8px 0;"><strong>💚 Pourquoi c'est gratuit ?</strong></p>
+        <p style="margin:0 0 8px 0;"><strong>💚 Pourquoi c'est efficace ?</strong></p>
         <p style="margin:0 0 8px 0;font-size:14px;line-height:1.6;">Spectacle'ment VØtre fonctionne comme un <strong>annuaire national de référence</strong> : plus il y a de spectacles publiés, plus les <strong>mairies, écoles, CSE, agences et organisateurs</strong> prennent l'habitude d'y chercher leurs animations &mdash; et d'y déposer leurs <strong>appels d'offres</strong>.</p>
         <p style="margin:0 0 8px 0;font-size:14px;line-height:1.6;">📍 <strong>Au niveau local</strong>, votre département gagne en visibilité à mesure que des compagnies de la région s'y inscrivent : les acteurs culturels de chez vous tombent alors sur <strong>votre profil en priorité</strong>.</p>
         <p style="margin:0 0 8px 0;font-size:14px;line-height:1.6;">🇫🇷 <strong>Au niveau national</strong>, vous recevrez aussi des appels d'offres venant de <strong>toute la France</strong> &mdash; un complément précieux à votre démarche commerciale régionale, qui vous ouvre des dates et des territoires que vous n'auriez pas prospectés seul.</p>
