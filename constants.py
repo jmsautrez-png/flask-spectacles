@@ -46,6 +46,8 @@ SPECIALITES = {
         "Spectacle enfant avec des chansons",
         "Spectacle enfant avec de la danse",
         "Spectacle enfant avec du cirque",
+        "Spectacle enfant avec du clown",
+        "Spectacle enfant clownesque",
         "Spectacle enfant avec de l'épée",
         "Spectacle enfant avec interactivité",
         "Spectacle de Rue",
