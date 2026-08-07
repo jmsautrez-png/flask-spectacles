@@ -42,6 +42,7 @@ SPECIALITES = {
         "Spectacle pour adulte",
         "Spectacle adulte clownesque",
         "Spectacle pour enfant",
+        "Spectacle pour la petite enfance",
         "Spectacle enfant avec de la magie",
         "Spectacle enfant avec des chansons",
         "Spectacle enfant avec de la danse",
