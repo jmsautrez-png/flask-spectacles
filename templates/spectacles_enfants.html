@@ -1,13 +1,13 @@
 {% extends "base.html" %}
-{% block title %}Spectacles pour Enfants : Théâtre, Magie, Cirque | +200 Artistes - Spectacle'ment VØtre{% endblock %}
-{% block description %}Découvrez +200 spectacles pour enfants en France : théâtre jeune public, marionnettes, magie, cirque, clowns. Artistes professionnels pour écoles, mairies, CSE. Devis gratuit sous 3h.{% endblock %}
+{% block title %}Spectacles pour Enfants : Théâtre, Magie, Cirque | +600 Artistes - Spectacle'ment VØtre{% endblock %}
+{% block description %}Découvrez +600 spectacles pour enfants en France : théâtre jeune public, marionnettes, magie, cirque, clowns. Artistes professionnels pour écoles, mairies, CSE. Devis gratuit sous 3h.{% endblock %}
 {% block extra_head %}
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
   "@type": "CollectionPage",
   "name": "Spectacles pour Enfants",
-  "description": "Catalogue de spectacles pour enfants : théâtre jeune public, marionnettes, magie, cirque, clowns. Plus de 200 artistes professionnels.",
+  "description": "Catalogue de spectacles pour enfants : théâtre jeune public, marionnettes, magie, cirque, clowns. Plus de 600 artistes professionnels.",
   "url": "{{ url_for('spectacles_enfants', _external=True) }}",
   "isPartOf": { "@type": "WebSite", "name": "Spectacle'ment VØtre", "url": "{{ request.url_root }}" },
   "breadcrumb": {
@@ -23,7 +23,7 @@
 {% endblock %}
 {% block content %}
 
-<h1>Spectacles pour enfants - Plus de 200 artistes professionnels</h1>
+<h1>Spectacles pour enfants - Plus de 600 artistes professionnels</h1>
 
 <div style="max-width:900px; margin:0 auto 40px; padding:0 20px;">
   <p style="margin-bottom:16px; font-size:17px; line-height:1.7;">
