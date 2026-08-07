@@ -44,6 +44,7 @@ SPECIALITES = {
         "Spectacle pour enfant",
         "Spectacle enfant avec de la magie",
         "Spectacle enfant avec des chansons",
+        "Spectacle enfant avec de la danse",
         "Spectacle enfant avec du cirque",
         "Spectacle enfant avec de l'épée",
         "Spectacle enfant avec interactivité",
