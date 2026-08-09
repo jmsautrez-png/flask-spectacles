@@ -35,6 +35,7 @@ SPECIALITES = {
         "Spectacle tiré d'un livre jeunesse",
         "Spectacle burlesque",
         "Spectacle de Marionnettes",
+        "Spectacle de Marionnettes contemporaines",
         # Types de spectacle
         "Spectacle d'animation enfant",
         "Spectacle d'animation EHPAD",
