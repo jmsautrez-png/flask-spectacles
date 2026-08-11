@@ -53,6 +53,7 @@
                                         <tr>
                                             <th style="width:40px;"><input type="checkbox" id="select-all-matched" checked></th>
                                             <th>Compagnie / Spectacle</th>
+                                            <th style="width:130px;">Labels</th>
                                             <th style="width:80px;" class="text-center">Score</th>
                                             <th style="width:100px;">Spécialités</th>
                                             <th style="width:80px;">Lieux</th>
@@ -67,6 +68,26 @@
                                             <td>
                                                 <strong>{{ show.title }}</strong>
                                                 <br><small class="text-muted">{{ show.category or '' }} — {{ show.contact_email or (show.user.email if show.user else '—') }}</small>
+                                            </td>
+                                            <td>
+                                                {% if show.labels %}
+                                                <div style="display:flex; gap:4px; flex-wrap:wrap;">
+                                                    {% for code in show.labels.split(',') %}
+                                                        {% set _c = code.strip() %}
+                                                        {% set lbl = LABELS_QUALITE_LABELS.get(_c) %}
+                                                        {% set _desc = LABELS_QUALITE_DESCRIPTIONS.get(_c) %}
+                                                        {% if lbl %}
+                                                            {% if _c == 'edition_libre' %}
+                                                            <span{% if _desc %} title="{{ _desc }}"{% endif %} style="background:#eee; color:#777; border:1px solid #ccc; border-radius:8px; padding:1px 7px; font-size:0.7rem; font-weight:600; white-space:nowrap; cursor:help;">{{ lbl }}</span>
+                                                            {% else %}
+                                                            <span{% if _desc %} title="{{ _desc }}"{% endif %} style="background:linear-gradient(135deg,#6a1b9a 0%,#283593 100%); color:#fff; border-radius:8px; padding:1px 7px; font-size:0.7rem; font-weight:700; white-space:nowrap; cursor:help;">{{ lbl }}</span>
+                                                            {% endif %}
+                                                        {% endif %}
+                                                    {% endfor %}
+                                                </div>
+                                                {% else %}
+                                                <span class="text-muted">—</span>
+                                                {% endif %}
                                             </td>
                                             <td class="text-center">
                                                 {% if score.total >= 60 %}
