@@ -73,6 +73,37 @@ def _delete_user_cascade(user):
     db.session.delete(user)
 
 
+def _send_admin_recap(nb_deleted, lignes):
+    """Recap quotidien a l'admin (envoye meme si 0) pour confirmer que le cron a tourne."""
+    if MailMessage is None or not getattr(app, "mail", None):
+        return
+    if not app.config.get("MAIL_USERNAME") or not app.config.get("MAIL_PASSWORD"):
+        return
+    admin_email = app.config.get("MAIL_DEFAULT_SENDER") or app.config.get("MAIL_USERNAME")
+    if not admin_email:
+        return
+    now_str = datetime.utcnow().strftime("%d/%m/%Y %H:%M UTC")
+    items = "".join(f"<li>{l}</li>" for l in lignes) or "<li>Aucun compte supprime aujourd'hui.</li>"
+    body_html = (
+        "<div style='font-family:Arial,sans-serif;color:#333;max-width:640px;margin:0 auto;'>"
+        "<h2 style='color:#b71c1c;'>Cron nettoyage preavis depasses</h2>"
+        f"<p><strong>{nb_deleted}</strong> compte(s) supprime(s) definitivement.</p>"
+        f"<ul>{items}</ul>"
+        f"<p style='color:#999;font-size:12px;'>Execution automatique - {now_str}</p>"
+        "</div>"
+    )
+    try:
+        msg = MailMessage(
+            subject=f"[CRON] Nettoyage : {nb_deleted} compte(s) supprime(s)",
+            recipients=[admin_email],
+        )
+        msg.html = body_html
+        app.mail.send(msg)
+        print(f"  Recap admin envoye a {admin_email}")
+    except Exception as e:
+        print(f"  Recap admin non envoye: {e}")
+
+
 def main():
     now = datetime.utcnow()
     with app.app_context():
@@ -83,9 +114,11 @@ def main():
         ).all()
         if not candidats:
             print("Aucun compte à supprimer.")
+            _send_admin_recap(0, [])
             return
         print(f"{len(candidats)} compte(s) en préavis dépassé.")
         nb_deleted = 0
+        lignes = []
         for u in candidats:
             nb_approved = sum(1 for s in u.shows if getattr(s, 'approved', False)) if hasattr(u, 'shows') else 0
             if nb_approved > 0:
@@ -116,12 +149,14 @@ def main():
                     shows_info,
                     {"username": username, "email": email},
                 )
+                lignes.append(f"{username} ({email}) - {len(shows_info)} fiche(s)")
                 nb_deleted += 1
             except Exception as e:
                 db.session.rollback()
                 print(f"     ✗ Erreur: {e}")
         db.session.commit()
         print(f"\n✅ Terminé : {nb_deleted} compte(s) supprimé(s).")
+        _send_admin_recap(nb_deleted, lignes)
 
 
 if __name__ == "__main__":

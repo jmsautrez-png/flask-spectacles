@@ -69,6 +69,37 @@ def _send_notice_email(username, email, deadline_str):
         return False
 
 
+def _send_admin_recap(nb_marques, lignes):
+    """Recap quotidien a l'admin (envoye meme si 0) pour confirmer que le cron a tourne."""
+    if MailMessage is None or not getattr(app, "mail", None):
+        return
+    if not app.config.get("MAIL_USERNAME") or not app.config.get("MAIL_PASSWORD"):
+        return
+    admin_email = app.config.get("MAIL_DEFAULT_SENDER") or app.config.get("MAIL_USERNAME")
+    if not admin_email:
+        return
+    now_str = datetime.utcnow().strftime("%d/%m/%Y %H:%M UTC")
+    items = "".join(f"<li>{l}</li>" for l in lignes) or "<li>Aucun compte mis en preavis aujourd'hui.</li>"
+    body_html = (
+        "<div style='font-family:Arial,sans-serif;color:#333;max-width:640px;margin:0 auto;'>"
+        "<h2 style='color:#e65100;'>Cron marquage inactifs</h2>"
+        f"<p><strong>{nb_marques}</strong> compte(s) mis en preavis (suppression dans {N_NOTICE_DAYS} jours).</p>"
+        f"<ul>{items}</ul>"
+        f"<p style='color:#999;font-size:12px;'>Execution automatique - {now_str}</p>"
+        "</div>"
+    )
+    try:
+        msg = MailMessage(
+            subject=f"[CRON] Marquage inactifs : {nb_marques} compte(s) mis en preavis",
+            recipients=[admin_email],
+        )
+        msg.html = body_html
+        app.mail.send(msg)
+        print(f"  Recap admin envoye a {admin_email}")
+    except Exception as e:
+        print(f"  Recap admin non envoye: {e}")
+
+
 def main():
     now = datetime.utcnow()
     seuil_inscription = now - timedelta(days=N_INACTIVITY_DAYS)
@@ -82,9 +113,11 @@ def main():
 
         if not candidats:
             print("Aucun candidat \u00e0 marquer.")
+            _send_admin_recap(0, [])
             return
 
         nb_marques = 0
+        lignes = []
         for u in candidats:
             nb_approved = sum(1 for s in u.shows if getattr(s, 'approved', False)) if hasattr(u, 'shows') else 0
             if nb_approved > 0:
@@ -98,12 +131,14 @@ def main():
                 print(f"  \u23F3 Pr\u00e9avis pos\u00e9 sur {u.username} (id={u.id}, email={u.email}) \u2192 suppression le {deadline_str}")
                 if _send_notice_email(u.username, u.email, deadline_str):
                     print(f"     \u2713 Email pr\u00e9avis envoy\u00e9 \u00e0 {u.email}")
+                lignes.append(f"{u.username} (id={u.id}, {u.email}) - suppression le {deadline_str}")
                 nb_marques += 1
             except Exception as e:
                 db.session.rollback()
                 print(f"     \u2717 Erreur sur {u.username}: {e}")
 
         print(f"\n\u2705 Termin\u00e9 : {nb_marques} compte(s) mis en pr\u00e9avis.")
+        _send_admin_recap(nb_marques, lignes)
 
 
 if __name__ == "__main__":
