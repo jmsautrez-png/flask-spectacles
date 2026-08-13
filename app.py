@@ -1284,8 +1284,17 @@ def _send_recap_to_organisateur(demande, shows_contactes, admin_email_extra=None
 
     <h3 style="color:#8b1e1e;margin:18px 0 8px 0;font-size:1.05em;">🎭 Artistes contactés ({nb})</h3>
     <p style="font-size:0.9em;color:#555;margin:0 0 8px 0;">
-      Vous pouvez consulter leurs fiches dès maintenant. Les artistes intéressés vous recontacteront directement
-      par email ou via la messagerie de la plateforme.
+      Il s'agit de la <strong>sélection Spectacle'ment Vôtre</strong> : des compagnies triées et retenues
+      spécialement pour votre demande, la garantie de spectacles de qualité, professionnels et adaptés à votre
+      événement. Vous pouvez bien sûr consulter leurs fiches dès maintenant et contacter librement celles qui
+      vous intéressent. Les artistes intéressés vous recontacteront également directement par email ou via la
+      messagerie de la plateforme.
+    </p>
+    <p style="font-size:0.9em;color:#555;margin:10px 0 0 0;">
+      Vous recevrez peut-être d'autres propositions spontanées, en dehors de notre sélection. C'est normal—
+      et c'est précisément là notre rôle : <strong>filtrer et trier</strong> pour vous, afin de vous éviter un
+      trop-plein de choix qui rend la décision difficile. Nous ne retenons que les compagnies réellement
+      adaptées à votre demande, pour vous faire gagner du temps.
     </p>
     <ul style="list-style:none;padding-left:0;margin:10px 0;">
       {rows_html}
@@ -1295,6 +1304,15 @@ def _send_recap_to_organisateur(demande, shows_contactes, admin_email_extra=None
       💡 <strong>Astuce :</strong> n'hésitez pas à contacter directement les artistes qui vous intéressent
       pour échanger sur les détails (devis, disponibilités, options).
     </div>
+
+    <div style="background:#eef7ee;border-left:4px solid #4caf50;padding:12px 14px;border-radius:6px;margin-top:14px;font-size:0.9em;color:#2e5d2e;">
+      ✅ <strong>Vous avez choisi une compagnie ?</strong> Répondez simplement à cet email en nous indiquant
+      laquelle&nbsp;: nous retirerons aussitôt votre annonce afin de ne plus vous solliciter inutilement.
+    </div>
+
+    <p style="margin-top:20px;font-size:0.95em;color:#333;">
+      Merci de votre confiance&nbsp;! 🙏
+    </p>
 
     <p style="text-align:center;margin-top:22px;color:#888;font-size:0.85em;">
       Spectacle'ment Vôtre<br>
