@@ -127,6 +127,8 @@ class Show(db.Model):
 
     # ── Labels qualité (réservés à l'admin, jusqu'à 2) ──
     labels = db.Column(db.Text, nullable=True, index=True)    # "premium,coup_de_coeur"
+    # Niveau d'étoiles « Pro vérifié » (0–3), purement visuel — aucun impact sur le matching.
+    pro_verifie_niveau = db.Column(db.Integer, nullable=False, default=0, server_default="0")
 
     # ⬇⬇⬇ Association au propriétaire (compagnie)
     user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=True)

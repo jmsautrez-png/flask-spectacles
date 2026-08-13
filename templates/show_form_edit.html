@@ -327,6 +327,17 @@
       </label>
       {% endfor %}
     </div>
+    <div style="margin-top:14px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+      <label for="pro_verifie_niveau" style="color:#fff;font-weight:600;font-size:0.9rem;">🛡️ Niveau « Pro vérifié » <span style="font-weight:400;opacity:0.8;">(étoiles, visuel uniquement)</span></label>
+      {% set _niv = show.pro_verifie_niveau if (show and show.pro_verifie_niveau) else 0 %}
+      <select id="pro_verifie_niveau" name="pro_verifie_niveau" style="border-radius:8px;padding:6px 10px;border:1px solid rgba(255,255,255,0.3);background:#fff;color:#222;font-weight:600;">
+        <option value="0" {% if _niv == 0 %}selected{% endif %}>Aucune étoile</option>
+        <option value="1" {% if _niv == 1 %}selected{% endif %}>★☆☆ (1)</option>
+        <option value="2" {% if _niv == 2 %}selected{% endif %}>★★☆ (2)</option>
+        <option value="3" {% if _niv == 3 %}selected{% endif %}>★★★ (3)</option>
+      </select>
+      <span style="color:rgba(255,255,255,0.75);font-size:0.8rem;">Ne s'affiche que si « Pro vérifié » est coché.</span>
+    </div>
   </div>
   <script>
     (function() {

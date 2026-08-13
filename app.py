@@ -978,6 +978,7 @@ def _run_critical_migrations(app: Flask) -> None:
         ("shows", "public_categories", "TEXT", "TEXT", None),
         ("shows", "public_sous_options", "TEXT", "TEXT", None),
         ("shows", "labels", "TEXT", "TEXT", None),
+        ("shows", "pro_verifie_niveau", "INTEGER DEFAULT 0", "INTEGER DEFAULT 0", "0"),
         # ── demande_animation ──
         ("demande_animation", "is_private", "BOOLEAN DEFAULT FALSE", "BOOLEAN DEFAULT 0", "FALSE"),
         ("demande_animation", "approved", "BOOLEAN DEFAULT FALSE", "BOOLEAN DEFAULT 0", "FALSE"),
@@ -1801,7 +1802,7 @@ def register_routes(app: Flask) -> None:
         <div style="background:#fff8e1; border-left:4px solid #f57f17; padding:18px 20px; border-radius:6px; margin:20px 0;">
             <h3 style="margin:0 0 10px 0; color:#e65100; font-size:1.05em;">🎁 Votre 1ère année d'appels d'offres offerte</h3>
             <p style="margin:0; font-size:14px; color:#333; line-height:1.6;">
-                En tant que nouvel inscrit, vous bénéficiez d'<strong>1 année gratuite</strong> pour consulter les appels d'offres des mairies, écoles, CSE et organisateurs. À l'issue de cette période, seul l'accès aux appels d'offres deviendra <strong>payant</strong> &mdash; nous vous préviendrons avant la fin. Votre <strong>présence dans l'annuaire et la publication de vos spectacles restent gratuites</strong> : les organisateurs peuvent toujours vous trouver, vous contacter et vous faire des demandes de devis en direct, <strong>gratuitement</strong>.
+                En tant que nouvel inscrit, vous bénéficiez d'<strong>1 année gratuite</strong> pour consulter les appels d'offres des mairies, écoles, CSE et organisateurs. À l'issue de cette période, certaines annonces pourront passer en <strong>accès premium</strong> (modèle <strong>freemium</strong>), d'autres resteront en accès libre &mdash; nous vous préviendrons avant tout changement. Votre <strong>présence dans l'annuaire et la publication de vos spectacles restent gratuites</strong> : les organisateurs peuvent toujours vous trouver, vous contacter et vous faire des demandes de devis en direct, <strong>gratuitement</strong>.
             </p>
         </div>
         <div style="background:#e8f5e9; border-left:4px solid #2e7d32; padding:18px 20px; border-radius:6px; margin:20px 0;">
@@ -4457,6 +4458,13 @@ def register_routes(app: Flask) -> None:
             if current_user() and current_user().is_admin:
                 _labels = [l for l in request.form.getlist("labels") if l in LABELS_QUALITE_CODES][:2]
                 show.labels = ",".join(_labels) or None
+                # Niveau d'étoiles « Pro vérifié » (0–3), visuel uniquement : conservé
+                # seulement si le label « pro_verifie » est bien présent.
+                try:
+                    _niv = int(request.form.get("pro_verifie_niveau", 0) or 0)
+                except (TypeError, ValueError):
+                    _niv = 0
+                show.pro_verifie_niveau = _niv if ("pro_verifie" in _labels and 0 <= _niv <= 3) else 0
 
             db.session.commit()
             flash("Annonce mise à jour.", "success")
@@ -4807,7 +4815,7 @@ def register_routes(app: Flask) -> None:
                             <div style="background:#fff8e1; border-left:4px solid #f57f17; padding:20px; margin:25px 0; border-radius:8px;">
                                 <p style="margin:0 0 8px 0; font-size:16px; color:#e65100; font-weight:bold;">🎁 Votre 1ère année d'appels d'offres offerte</p>
                                 <p style="margin:0; font-size:15px; color:#333; line-height:1.6;">
-                                    Dès aujourd'hui, vous bénéficiez d'<strong>une année gratuite</strong> pour consulter nos appels d'offres et répondre directement aux demandes des organisateurs. À l'issue de cette période, seul l'accès aux appels d'offres deviendra payant &mdash; la <strong>publication de vos spectacles reste gratuite</strong>.
+                                    Dès aujourd'hui, vous bénéficiez d'<strong>une année gratuite</strong> pour consulter nos appels d'offres et répondre directement aux demandes des organisateurs. À l'issue de cette période, certaines annonces pourront passer en <strong>accès premium</strong> (modèle <strong>freemium</strong>), d'autres resteront en accès libre &mdash; la <strong>publication de vos spectacles reste gratuite</strong>.
                                 </p>
                             </div>"""
                     else:

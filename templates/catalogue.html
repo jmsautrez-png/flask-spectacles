@@ -437,7 +437,7 @@
                     {% if _c == 'edition_libre' %}
                       <span{% if _desc %} title="{{ _desc }}"{% endif %} style="background:rgba(255,255,255,0.06); color:#b0b0b0; border:1px solid rgba(255,255,255,0.18); border-radius:10px; padding:3px 10px; font-size:0.78rem; font-weight:600; white-space:nowrap; cursor:help;">{{ lbl }}</span>
                     {% else %}
-                      <span{% if _desc %} title="{{ _desc }}"{% endif %} style="background:linear-gradient(135deg,#6a1b9a 0%,#283593 100%); color:#fff; border-radius:10px; padding:3px 10px; font-size:0.78rem; font-weight:700; white-space:nowrap; cursor:help;">{{ lbl }}</span>
+                      <span{% if _desc %} title="{{ _desc }}"{% endif %} style="background:linear-gradient(135deg,#6a1b9a 0%,#283593 100%); color:#fff; border-radius:10px; padding:3px 10px; font-size:0.78rem; font-weight:700; white-space:nowrap; cursor:help;">{{ lbl }}{% if _c == 'pro_verifie' and show.pro_verifie_niveau %}<span style="font-size:0.72em;opacity:0.85;margin-left:5px;letter-spacing:1.5px;">{{ '★' * show.pro_verifie_niveau }}{{ '☆' * (3 - show.pro_verifie_niveau) }}</span>{% endif %}</span>
                     {% endif %}
                   {% endif %}
                 {% endfor %}
