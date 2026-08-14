@@ -3758,7 +3758,7 @@ def register_routes(app: Flask) -> None:
             show.labels = ",".join(codes)
             ajoutes += 1
         db.session.commit()
-        flash(f"Pro vérifié appliqué : {ajoutes} ajouté(s), {deja} déjà présent(s), {ignores} ignoré(s).", "success")
+        flash(f"Cie Pro appliqué : {ajoutes} ajouté(s), {deja} déjà présent(s), {ignores} ignoré(s).", "success")
         return redirect(url_for("admin_dashboard"))
     
     # Route de DEBUG pour voir tous les headers HTTP (TEMPORAIRE)
@@ -4458,7 +4458,7 @@ def register_routes(app: Flask) -> None:
             if current_user() and current_user().is_admin:
                 _labels = [l for l in request.form.getlist("labels") if l in LABELS_QUALITE_CODES][:2]
                 show.labels = ",".join(_labels) or None
-                # Niveau d'étoiles « Pro vérifié » (0–3), visuel uniquement : conservé
+                # Niveau d'étoiles « Cie Pro » (0–3), visuel uniquement : conservé
                 # seulement si le label « pro_verifie » est bien présent.
                 try:
                     _niv = int(request.form.get("pro_verifie_niveau", 0) or 0)
