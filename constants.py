@@ -645,5 +645,5 @@ LABELS_QUALITE_DESCRIPTIONS = {
     "pro_verifie":    "Compagnie professionnelle dont la qualité a été approuvée par Spectacle'ment Vôtre.",
     "coup_de_coeur":  "Le coup de cœur de l'équipe Spectacle'ment : un spectacle que nous avons particulièrement apprécié.",
     "jeune_public":   "Compagnie professionnelle spécialisée dans les spectacles pour le jeune public (crèches, écoles, familles).",
-    "edition_libre":  "Cette compagnie publie sa fiche en accès libre. Elle ne fait pas partie de la sélection Spectacle'ment.",
+    "edition_libre":  "Cette compagnie publie sa fiche en accès libre. Nos équipes n'ont pas encore eu l'occasion d'en apprécier le parcours.",
 }
