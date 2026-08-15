@@ -156,7 +156,7 @@
             {% set _c = code.strip() %}
             {% set lbl = LABELS_QUALITE_LABELS.get(_c) %}
             {% set _desc = LABELS_QUALITE_DESCRIPTIONS.get(_c) %}
-            {% if lbl %}<span class="badge {% if _c == 'edition_libre' %}badge-label-neutral{% else %}badge-label{% endif %}"{% if _desc %} title="{{ _desc }}"{% endif %}>{{ lbl }}{% if _c == 'pro_verifie' and show.pro_verifie_niveau %}<span style="font-size:0.72em;opacity:0.85;margin-left:5px;letter-spacing:1.5px;">{{ '★' * show.pro_verifie_niveau }}{{ '☆' * (3 - show.pro_verifie_niveau) }}</span>{% endif %}</span>{% endif %}
+            {% if lbl %}<span class="badge {% if _c == 'edition_libre' %}badge-label-neutral{% else %}badge-label{% endif %}"{% if _desc %} title="{{ _desc }}"{% endif %}>{{ lbl }}{% if _c == 'pro_verifie' and show.pro_verifie_niveau %}<span style="font-size:0.72em;margin-left:5px;letter-spacing:1.5px;"><span style="opacity:1;">{{ '★' * show.pro_verifie_niveau }}</span><span style="opacity:0.3;">{{ '☆' * (3 - show.pro_verifie_niveau) }}</span></span>{% endif %}</span>{% endif %}
           {% endfor %}
         {% endif %}
         {% if show.specialites %}
