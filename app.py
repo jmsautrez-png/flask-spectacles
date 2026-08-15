@@ -1763,90 +1763,202 @@ def register_routes(app: Flask) -> None:
                         try:
                             body_html = f"""
 <!DOCTYPE html>
-<html>
+<html lang="fr">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>Bienvenue sur Spectacle'ment VØtre</title>
     <style>
-        body {{ font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; }}
-        .logo {{ text-align: center; margin: 20px 0; }}
-        .logo img {{ max-width: 200px; height: auto; }}
-        .content {{ padding: 20px; background-color: #f9f9f9; border-radius: 8px; }}
-        h2 {{ color: #1b2a4e; }}
-        .highlight {{ background-color: #fff; padding: 15px; border-left: 4px solid #6a1b9a; margin: 15px 0; }}
-        ul {{ list-style: none; padding-left: 0; }}
-        ul li {{ padding: 5px 0; }}
-        ul li:before {{ content: "• "; color: #6a1b9a; font-weight: bold; }}
-        .footer {{ text-align: center; margin-top: 20px; color: #666; font-size: 0.9em; }}
-        .btn {{ display: inline-block; padding: 12px 24px; background-color: #6a1b9a; color: white; text-decoration: none; border-radius: 5px; margin: 10px 5px; }}
+        body {{ margin:0; padding:0; background-color:#eef0f4; -webkit-text-size-adjust:100%; -ms-text-size-adjust:100%; }}
+        table {{ border-collapse:collapse; mso-table-lspace:0pt; mso-table-rspace:0pt; }}
+        img {{ border:0; height:auto; line-height:100%; outline:none; text-decoration:none; -ms-interpolation-mode:bicubic; }}
+        a {{ text-decoration:none; }}
+        @media only screen and (max-width:600px) {{
+            .container {{ width:100% !important; border-radius:0 !important; }}
+            .px {{ padding-left:22px !important; padding-right:22px !important; }}
+            .btn-stack {{ display:block !important; width:100% !important; }}
+            .btn-stack a {{ display:block !important; }}
+            .hero-h1 {{ font-size:24px !important; }}
+        }}
     </style>
 </head>
-<body>
-    <div class="logo">
-        <img src="https://www.spectacleanimation.fr/static/img/logo_spectaclement_votre.png" alt="Spectacle'ment Vôtre">
-    </div>
-    <div class="content">
-        <h2>Bonjour {username},</h2>
-        <p><strong>Bienvenue sur Spectacle'ment VØtre !</strong></p>
-        <p>Votre compte a été créé avec succès. Vous pouvez maintenant vous connecter et :</p>
-        <ul>
-            <li>Publier vos spectacles et animations <strong>GRATUITEMENT toute l'année</strong></li>
-            <li>Annoncer vos événements sans limite de temps : <a href="https://www.spectacleanimation.fr/submit" style="color: #6a1b9a; font-weight: bold;">Publiez ici</a></li>
-            <li>Bénéficier d'une visibilité renforcée auprès de notre réseau d'acheteurs</li>
-            <li>Profiter de notre diffusion gratuite auprès de plus de 100 000 contacts professionnels</li>
-        </ul>
-        <p style="text-align: center;">
-            <a href="https://www.spectacleanimation.fr/submit" class="btn">👉 Publiez votre spectacle</a>
-            <a href="https://www.spectacleanimation.fr/login" class="btn">Se connecter</a>
-        </p>
-        <p><strong>Nom d'utilisateur :</strong> {username}</p>
-        <div style="background:#fff8e1; border-left:4px solid #f57f17; padding:18px 20px; border-radius:6px; margin:20px 0;">
-            <h3 style="margin:0 0 10px 0; color:#e65100; font-size:1.05em;">🎁 Votre 1ère année d'appels d'offres offerte</h3>
-            <p style="margin:0; font-size:14px; color:#333; line-height:1.6;">
-                En tant que nouvel inscrit, vous bénéficiez d'<strong>1 année gratuite</strong> pour consulter les appels d'offres des mairies, écoles, CSE et organisateurs. À l'issue de cette période, certaines annonces pourront passer en <strong>accès premium</strong> (modèle <strong>freemium</strong>), d'autres resteront en accès libre &mdash; nous vous préviendrons avant tout changement. Votre <strong>présence dans l'annuaire et la publication de vos spectacles restent gratuites</strong> : les organisateurs peuvent toujours vous trouver, vous contacter et vous faire des demandes de devis en direct, <strong>gratuitement</strong>.
-            </p>
-        </div>
-        <div style="background:#e8f5e9; border-left:4px solid #2e7d32; padding:18px 20px; border-radius:6px; margin:20px 0;">
-            <h3 style="margin:0 0 10px 0; color:#2e7d32; font-size:1.05em;">💚 Pourquoi c'est efficace ?</h3>
-            <p style="margin:0 0 10px 0; font-size:14px; color:#333; line-height:1.6;">
-                Spectacle'ment VØtre fonctionne comme un <strong>annuaire national de référence</strong> : plus il y a de spectacles publiés, plus les <strong>mairies, écoles, CSE, agences et organisateurs</strong> prennent l'habitude d'y chercher leurs animations &mdash; et d'y déposer leurs <strong>appels d'offres</strong>.
-            </p>
-            <p style="margin:0 0 10px 0; font-size:14px; color:#333; line-height:1.6;">
-                📍 <strong>Au niveau local</strong>, votre département gagne en visibilité à mesure que des compagnies de la région s'y inscrivent : les acteurs culturels de chez vous tombent alors sur <strong>votre profil en priorité</strong>.
-            </p>
-            <p style="margin:0 0 10px 0; font-size:14px; color:#333; line-height:1.6;">
-                🇫🇷 <strong>Au niveau national</strong>, vous recevrez aussi des appels d'offres venant de <strong>toute la France</strong> &mdash; un complément précieux à votre démarche commerciale régionale, qui vous ouvre des dates et des territoires que vous n'auriez pas prospectés seul.
-            </p>
-            <p style="margin:0 0 10px 0; font-size:14px; color:#333; line-height:1.6;">
-                C'est cette dynamique collective qui nous permet d'offrir la <strong>publication de vos spectacles</strong> et votre <strong>première année d'appels d'offres</strong>.
-            </p>
-            <p style="margin:0; font-size:13px; color:#555; line-height:1.6; font-style:italic;">
-                C'est en accompagnant les compagnies qui le souhaitent sur le volet administratif (URSSAF, DSN, contrats de cession…) que nous pérennisons ce modèle.
-            </p>
-        </div>
-        <div class="highlight">
-            <h3>💼 BESOIN D'AIDE POUR VOTRE ADMINISTRATION ?</h3>
-            <p>Spectacle'ment VØtre ne se limite pas à la visibilité ! Depuis plus de 30 ans, nous accompagnons les compagnies de spectacle vivant dans la gestion complexe de leur administration artistique et sociale :</p>
-            <ul>
-                <li>Gestion URSSAF, DSN, DUE, AEM</li>
-                <li>Fiches de salaire et contrats de cession</li>
-                <li>Administration complète de votre compagnie</li>
-            </ul>
-            <p style="text-align: center;">
-                <a href="https://spectacleanimation.fr/abonnement-compagnie" class="btn">Découvrez nos services</a>
-            </p>
-        </div>
-        <p>À très bientôt !</p>
-        <p style="font-size:0.85em; color:#555; text-align:center; margin:20px 0 10px 0; padding:12px 14px; background:#f0f0f0; border-radius:6px; line-height:1.5;">
-            🔒 <strong>RGPD :</strong> Vous pouvez modifier vos informations ou
-            <strong>supprimer définitivement votre compte à tout moment</strong> depuis votre
-            <a href="https://www.spectacleanimation.fr/profil" style="color: #6a1b9a; font-weight:bold;">espace personnel</a>
-            (rubrique « Mes informations »).
-        </p>
-        <div class="footer">
-            <p><strong>L'équipe Spectacle'ment VØtre</strong><br>
-            contact@spectacleanimation.fr</p>
-        </div>
-    </div>
+<body style="margin:0; padding:0; background-color:#eef0f4; font-family:'Segoe UI',Arial,Helvetica,sans-serif; color:#2d2d2d;">
+    <div style="display:none; max-height:0; overflow:hidden; mso-hide:all; opacity:0; color:#eef0f4;">Votre compte est créé — publiez vos spectacles gratuitement et profitez d'une 1ère année d'appels d'offres offerte.</div>
+
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#eef0f4;">
+        <tr>
+            <td align="center" style="padding:26px 12px;">
+
+                <table role="presentation" class="container" width="600" cellpadding="0" cellspacing="0" border="0" style="width:600px; max-width:600px; background-color:#ffffff; border-radius:16px; overflow:hidden;">
+
+                    <!-- Header -->
+                    <tr>
+                        <td bgcolor="#1b2a4e" style="background-color:#1b2a4e; background-image:linear-gradient(135deg,#1b2a4e 0%,#4a1d6e 55%,#6a1b9a 100%); padding:36px 30px 34px 30px; text-align:center;">
+                            <img src="https://www.spectacleanimation.fr/static/img/logo_spectaclement_votre.png" alt="Spectacle'ment VØtre" width="200" style="width:200px; max-width:200px; height:auto; display:inline-block;">
+                        </td>
+                    </tr>
+                    <tr><td style="height:5px; background-color:#f57f17; font-size:0; line-height:0;">&nbsp;</td></tr>
+
+                    <!-- Hero -->
+                    <tr>
+                        <td class="px" style="padding:34px 44px 6px 44px; text-align:center;">
+                            <h1 class="hero-h1" style="margin:0 0 8px 0; font-size:28px; line-height:1.25; color:#1b2a4e; font-weight:800;">Bonjour {username},</h1>
+                            <p style="margin:0; font-size:16px; font-weight:700; color:#6a1b9a;">Bienvenue sur Spectacle'ment VØtre !</p>
+                        </td>
+                    </tr>
+
+                    <!-- Intro -->
+                    <tr>
+                        <td class="px" style="padding:18px 44px 0 44px; font-size:15px; line-height:1.65; color:#3a3a3a; text-align:center;">
+                            <p style="margin:0;">Votre compte a été créé avec succès. Vous pouvez maintenant vous connecter et&nbsp;:</p>
+                        </td>
+                    </tr>
+
+                    <!-- Feature list -->
+                    <tr>
+                        <td class="px" style="padding:20px 44px 4px 44px;">
+                            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+                                <tr>
+                                    <td width="34" valign="top" style="padding:7px 0; font-size:20px; line-height:1.4;">🎭</td>
+                                    <td valign="top" style="padding:7px 0; font-size:15px; line-height:1.5; color:#3a3a3a;">Publier vos spectacles et animations <strong>GRATUITEMENT toute l'année</strong></td>
+                                </tr>
+                                <tr>
+                                    <td width="34" valign="top" style="padding:7px 0; font-size:20px; line-height:1.4;">📣</td>
+                                    <td valign="top" style="padding:7px 0; font-size:15px; line-height:1.5; color:#3a3a3a;">Annoncer vos événements sans limite de temps : <a href="https://www.spectacleanimation.fr/submit" style="color:#6a1b9a; font-weight:700;">Publiez ici</a></td>
+                                </tr>
+                                <tr>
+                                    <td width="34" valign="top" style="padding:7px 0; font-size:20px; line-height:1.4;">⭐</td>
+                                    <td valign="top" style="padding:7px 0; font-size:15px; line-height:1.5; color:#3a3a3a;">Bénéficier d'une visibilité renforcée auprès de notre réseau d'acheteurs</td>
+                                </tr>
+                                <tr>
+                                    <td width="34" valign="top" style="padding:7px 0; font-size:20px; line-height:1.4;">📡</td>
+                                    <td valign="top" style="padding:7px 0; font-size:15px; line-height:1.5; color:#3a3a3a;">Profiter de notre diffusion gratuite auprès de plus de 100 000 contacts professionnels</td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+
+                    <!-- CTA -->
+                    <tr>
+                        <td class="px" style="padding:24px 44px 8px 44px; text-align:center;">
+                            <table role="presentation" cellpadding="0" cellspacing="0" border="0" align="center" style="margin:0 auto;">
+                                <tr>
+                                    <td class="btn-stack" style="padding:6px;">
+                                        <a href="https://www.spectacleanimation.fr/submit" style="display:inline-block; background-color:#6a1b9a; color:#ffffff; font-size:15px; font-weight:700; line-height:1; padding:15px 30px; border-radius:8px;">👉 Publiez votre spectacle</a>
+                                    </td>
+                                    <td class="btn-stack" style="padding:6px;">
+                                        <a href="https://www.spectacleanimation.fr/login" style="display:inline-block; background-color:#ffffff; color:#6a1b9a; font-size:15px; font-weight:700; line-height:1; padding:13px 28px; border-radius:8px; border:2px solid #6a1b9a;">Se connecter</a>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+
+                    <!-- Username chip -->
+                    <tr>
+                        <td class="px" style="padding:10px 44px 4px 44px; text-align:center;">
+                            <table role="presentation" cellpadding="0" cellspacing="0" border="0" align="center" style="margin:0 auto;">
+                                <tr>
+                                    <td style="background-color:#f3eef8; border:1px solid #e2d6ef; border-radius:8px; padding:10px 18px; font-size:14px; color:#4a4a4a;">
+                                        <strong style="color:#6a1b9a;">Nom d'utilisateur :</strong> {username}
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+
+                    <!-- Amber card -->
+                    <tr>
+                        <td class="px" style="padding:22px 44px 0 44px;">
+                            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#fff8e1; border-radius:10px;">
+                                <tr>
+                                    <td width="6" bgcolor="#f57f17" style="background-color:#f57f17; font-size:0; line-height:0;">&nbsp;</td>
+                                    <td style="padding:18px 22px;">
+                                        <p style="margin:0 0 10px 0; color:#e65100; font-size:16px; font-weight:700;">🎁 Votre 1ère année d'appels d'offres offerte</p>
+                                        <p style="margin:0; font-size:14px; color:#4a4a4a; line-height:1.65;">En tant que nouvel inscrit, vous bénéficiez d'<strong>1 année gratuite</strong> pour consulter les appels d'offres des mairies, écoles, CSE et organisateurs. À l'issue de cette période, certaines annonces pourront passer en <strong>accès premium</strong> (modèle <strong>freemium</strong>), d'autres resteront en accès libre &mdash; nous vous préviendrons avant tout changement. Votre <strong>présence dans l'annuaire et la publication de vos spectacles restent gratuites</strong> : les organisateurs peuvent toujours vous trouver, vous contacter et vous faire des demandes de devis en direct, <strong>gratuitement</strong>.</p>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+
+                    <!-- Green card -->
+                    <tr>
+                        <td class="px" style="padding:16px 44px 0 44px;">
+                            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#e8f5e9; border-radius:10px;">
+                                <tr>
+                                    <td width="6" bgcolor="#2e7d32" style="background-color:#2e7d32; font-size:0; line-height:0;">&nbsp;</td>
+                                    <td style="padding:18px 22px;">
+                                        <p style="margin:0 0 10px 0; color:#2e7d32; font-size:16px; font-weight:700;">💚 Pourquoi c'est efficace ?</p>
+                                        <p style="margin:0 0 10px 0; font-size:14px; color:#4a4a4a; line-height:1.65;">Spectacle'ment VØtre fonctionne comme un <strong>annuaire national de référence</strong> : plus il y a de spectacles publiés, plus les <strong>mairies, écoles, CSE, agences et organisateurs</strong> prennent l'habitude d'y chercher leurs animations &mdash; et d'y déposer leurs <strong>appels d'offres</strong>.</p>
+                                        <p style="margin:0 0 10px 0; font-size:14px; color:#4a4a4a; line-height:1.65;">📍 <strong>Au niveau local</strong>, votre département gagne en visibilité à mesure que des compagnies de la région s'y inscrivent : les acteurs culturels de chez vous tombent alors sur <strong>votre profil en priorité</strong>.</p>
+                                        <p style="margin:0 0 10px 0; font-size:14px; color:#4a4a4a; line-height:1.65;">🇫🇷 <strong>Au niveau national</strong>, vous recevrez aussi des appels d'offres venant de <strong>toute la France</strong> &mdash; un complément précieux à votre démarche commerciale régionale, qui vous ouvre des dates et des territoires que vous n'auriez pas prospectés seul.</p>
+                                        <p style="margin:0 0 10px 0; font-size:14px; color:#4a4a4a; line-height:1.65;">C'est cette dynamique collective qui nous permet d'offrir la <strong>publication de vos spectacles</strong> et votre <strong>première année d'appels d'offres</strong>.</p>
+                                        <p style="margin:0; font-size:13px; color:#607060; line-height:1.65; font-style:italic;">C'est en accompagnant les compagnies qui le souhaitent sur le volet administratif (URSSAF, DSN, contrats de cession…) que nous pérennisons ce modèle.</p>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+
+                    <!-- Admin card -->
+                    <tr>
+                        <td class="px" style="padding:16px 44px 0 44px;">
+                            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#faf7fd; border:1px solid #ece2f6; border-radius:10px;">
+                                <tr>
+                                    <td style="padding:20px 24px;">
+                                        <p style="margin:0 0 10px 0; color:#6a1b9a; font-size:16px; font-weight:700;">💼 Besoin d'aide pour votre administration ?</p>
+                                        <p style="margin:0 0 12px 0; font-size:14px; color:#4a4a4a; line-height:1.65;">Spectacle'ment VØtre ne se limite pas à la visibilité ! Depuis plus de 30 ans, nous accompagnons les compagnies de spectacle vivant dans la gestion complexe de leur administration artistique et sociale :</p>
+                                        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+                                            <tr><td width="26" valign="top" style="padding:3px 0; font-size:15px; color:#6a1b9a;">✔</td><td style="padding:3px 0; font-size:14px; color:#4a4a4a; line-height:1.5;">Gestion URSSAF, DSN, DUE, AEM</td></tr>
+                                            <tr><td width="26" valign="top" style="padding:3px 0; font-size:15px; color:#6a1b9a;">✔</td><td style="padding:3px 0; font-size:14px; color:#4a4a4a; line-height:1.5;">Fiches de salaire et contrats de cession</td></tr>
+                                            <tr><td width="26" valign="top" style="padding:3px 0; font-size:15px; color:#6a1b9a;">✔</td><td style="padding:3px 0; font-size:14px; color:#4a4a4a; line-height:1.5;">Administration complète de votre compagnie</td></tr>
+                                        </table>
+                                        <p style="margin:16px 0 2px 0; text-align:center;">
+                                            <a href="https://spectacleanimation.fr/abonnement-compagnie" style="display:inline-block; background-color:#6a1b9a; color:#ffffff; font-size:14px; font-weight:700; line-height:1; padding:13px 26px; border-radius:8px;">Découvrez nos services</a>
+                                        </p>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+
+                    <!-- Closing -->
+                    <tr>
+                        <td class="px" style="padding:24px 44px 0 44px; font-size:15px; line-height:1.6; color:#3a3a3a; text-align:center;">
+                            <p style="margin:0;">À très bientôt ! 🎪</p>
+                        </td>
+                    </tr>
+
+                    <!-- RGPD -->
+                    <tr>
+                        <td class="px" style="padding:18px 44px 26px 44px;">
+                            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#f3f4f7; border-radius:8px;">
+                                <tr>
+                                    <td style="padding:14px 18px; font-size:12.5px; color:#5a5a5a; line-height:1.55; text-align:center;">
+                                        🔒 <strong>RGPD :</strong> Vous pouvez modifier vos informations ou <strong>supprimer définitivement votre compte à tout moment</strong> depuis votre <a href="https://www.spectacleanimation.fr/profil" style="color:#6a1b9a; font-weight:700;">espace personnel</a> (rubrique « Mes informations »).
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+
+                    <!-- Footer -->
+                    <tr>
+                        <td bgcolor="#1b2a4e" style="background-color:#1b2a4e; padding:24px 30px; text-align:center;">
+                            <p style="margin:0 0 4px 0; font-size:15px; font-weight:700; color:#ffffff;">L'équipe Spectacle'ment VØtre</p>
+                            <p style="margin:0; font-size:13px;"><a href="mailto:contact@spectacleanimation.fr" style="color:#c9b6e4; font-weight:600;">contact@spectacleanimation.fr</a></p>
+                        </td>
+                    </tr>
+
+                </table>
+
+                <p style="margin:16px auto 0 auto; font-size:11px; color:#9aa0ab; max-width:600px; text-align:center; line-height:1.5;">© Spectacle'ment VØtre — Vous recevez cet email car un compte a été créé avec cette adresse.</p>
+
+            </td>
+        </tr>
+    </table>
 </body>
 </html>
 """
