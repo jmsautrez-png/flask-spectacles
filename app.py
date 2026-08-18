@@ -983,6 +983,7 @@ def _run_critical_migrations(app: Flask) -> None:
         ("demande_animation", "is_private", "BOOLEAN DEFAULT FALSE", "BOOLEAN DEFAULT 0", "FALSE"),
         ("demande_animation", "approved", "BOOLEAN DEFAULT FALSE", "BOOLEAN DEFAULT 0", "FALSE"),
         ("demande_animation", "portee_nationale", "BOOLEAN DEFAULT TRUE", "BOOLEAN DEFAULT 1", "TRUE"),
+        ("demande_animation", "civilite", "VARCHAR(10)", "VARCHAR(10)", None),
         ("demande_animation", "specialites_recherchees", "TEXT", "TEXT", None),
         ("demande_animation", "evenements_contexte", "TEXT", "TEXT", None),
         ("demande_animation", "lieux_souhaites", "TEXT", "TEXT", None),
@@ -1262,6 +1263,10 @@ def _send_recap_to_organisateur(demande, shows_contactes, admin_email_extra=None
         intitule = (demande.intitule or demande.genre_recherche or "Votre demande d'animation")
         lieu = demande.lieu_ville or ""
         dates = demande.dates_horaires or ""
+        _civ = (demande.civilite or "").strip()
+        nom_affiche = (demande.nom or "").strip().title()
+        if _civ:
+            nom_affiche = f"{_civ} {nom_affiche}".strip()
 
         body_html = f"""<!DOCTYPE html>
 <html>
@@ -1274,7 +1279,7 @@ def _send_recap_to_organisateur(demande, shows_contactes, admin_email_extra=None
     <h2 style="margin:0;font-size:1.25em;">✅ Votre demande a été transmise</h2>
   </div>
   <div style="background:#fff;padding:22px;border-radius:0 0 10px 10px;border:1px solid #eee;border-top:none;">
-    <p>Bonjour {demande.nom or ''},</p>
+    <p>Bonjour {nom_affiche},</p>
     <p>Bonne nouvelle&nbsp;! Votre appel d'offre a été <strong>transmis à {nb} artiste{'s' if nb > 1 else ''}</strong> correspondant à vos critères.</p>
 
     <div style="background:#fdf6e3;border-left:4px solid #ffc107;padding:12px 14px;border-radius:6px;margin:16px 0;font-size:0.92em;">
@@ -1283,27 +1288,36 @@ def _send_recap_to_organisateur(demande, shows_contactes, admin_email_extra=None
       📍 {lieu}{(' — ' + dates) if dates else ''}
     </div>
 
-    <h3 style="color:#8b1e1e;margin:18px 0 8px 0;font-size:1.05em;">🎭 Artistes contactés ({nb})</h3>
+    <h3 style="color:#8b1e1e;margin:18px 0 8px 0;font-size:1.05em;">Artistes contactés ({nb})</h3>
     <p style="font-size:0.9em;color:#555;margin:0 0 8px 0;">
-      Il s'agit de la <strong>sélection Spectacle'ment Vôtre</strong> : des compagnies triées et retenues
-      spécialement pour votre demande, la garantie de spectacles de qualité, professionnels et adaptés à votre
-      événement. Vous pouvez bien sûr consulter leurs fiches dès maintenant et contacter librement celles qui
-      vous intéressent. Les artistes intéressés vous recontacteront également directement par email ou via la
-      messagerie de la plateforme.
+      Nous avons le plaisir de vous présenter la <strong>sélection Spectacle'ment Vôtre</strong> : les
+      compagnies de notre catalogue qui nous paraissent les mieux adaptées à votre demande. Notre rôle est
+      précisément de <strong>trier et de filtrer</strong> pour vous — vous éviter un trop-plein de choix et
+      une boîte mail encombrée de messages. C'est justement ce travail de sélection qui fait toute l'utilité
+      de notre plateforme.
     </p>
     <p style="font-size:0.9em;color:#555;margin:10px 0 0 0;">
-      Vous recevrez peut-être d'autres propositions spontanées, en dehors de notre sélection. C'est normal—
-      et c'est précisément là notre rôle : <strong>filtrer et trier</strong> pour vous, afin de vous éviter un
-      trop-plein de choix qui rend la décision difficile. Nous ne retenons que les compagnies réellement
-      adaptées à votre demande, pour vous faire gagner du temps.
+      N'hésitez pas à échanger avec un membre de notre équipe, <strong>par téléphone ou par email</strong> :
+      cela nous permettra de mieux cerner votre demande et d'affiner encore notre sélection.
     </p>
     <ul style="list-style:none;padding-left:0;margin:10px 0;">
       {rows_html}
     </ul>
 
+    <div style="background:#fdf6e3;border-left:4px solid #ffc107;padding:12px 14px;border-radius:6px;margin-top:18px;font-size:0.9em;color:#555;">
+      <strong>Comment ça se passe ?</strong>
+      <ul style="margin:8px 0 0 0;padding-left:18px;">
+        <li style="margin:4px 0;">Vous recevez aujourd'hui notre <strong>première sélection</strong>, triée et filtrée par nos soins.</li>
+        <li style="margin:4px 0;">Pendant <strong>3 jours</strong>, votre demande reste privée : seules les compagnies que nous avons retenues sont contactées.</li>
+        <li style="margin:4px 0;">Passé ces 3 jours, votre annonce est <strong>déployée pendant 7 jours</strong> sur la plateforme. Vous recevrez alors d'autres propositions spontanées, en plus de notre sélection — mais celles-ci <strong>ne sont pas filtrées par nos services</strong> et ne portent pas forcément notre <strong>badge qualité</strong>.</li>
+        <li style="margin:4px 0;">Au-delà de ces 7 jours, <strong>votre annonce n'est plus active</strong>, afin de vous éviter une surcharge de courriels intempestifs.</li>
+      </ul>
+    </div>
+
     <div style="background:#f5f5f5;padding:12px 14px;border-radius:6px;margin-top:18px;font-size:0.88em;color:#555;">
       💡 <strong>Astuce :</strong> n'hésitez pas à contacter directement les artistes qui vous intéressent
-      pour échanger sur les détails (devis, disponibilités, options).
+      pour échanger sur les détails (devis, disponibilités, options). Il est aussi préférable d'<strong>ouvrir un compte</strong>
+      sur la plateforme : cela vous permet de gérer vos annonces bien plus facilement (rectification, duplication, historique, extinction).
     </div>
 
     <div style="background:#eef7ee;border-left:4px solid #4caf50;padding:12px 14px;border-radius:6px;margin-top:14px;font-size:0.9em;color:#2e5d2e;">
@@ -1312,7 +1326,11 @@ def _send_recap_to_organisateur(demande, shows_contactes, admin_email_extra=None
     </div>
 
     <p style="margin-top:20px;font-size:0.95em;color:#333;">
-      Merci de votre confiance&nbsp;! 🙏
+      Nous vous souhaitons une <strong>belle réussite pour vos festivités</strong>, en espérant y avoir contribué.
+    </p>
+    <p style="margin-top:14px;font-size:0.95em;color:#333;">
+      Bien à vous,<br>
+      <strong>Jean</strong>
     </p>
 
     <p style="text-align:center;margin-top:22px;color:#888;font-size:0.85em;">
@@ -5379,6 +5397,7 @@ Accessibilité: {accessibilite}
                 region=region,
                 departement=departement or None,
                 nom=nom,
+                civilite=request.form.get("civilite", "").strip() or None,
                 dates_horaires=dates_horaires,
                 date_debut=date_debut or None,
                 date_fin=date_fin or None,
@@ -6133,6 +6152,7 @@ Accessibilité: {accessibilite}
             demande.telephone = request.form.get("telephone", demande.telephone)
             demande.lieu_ville = fix_mojibake(request.form.get("lieu_ville", demande.lieu_ville))
             demande.nom = request.form.get("nom", demande.nom)
+            demande.civilite = request.form.get("civilite", demande.civilite) or None
             demande.date_debut = request.form.get("date_debut", demande.date_debut) or None
             demande.date_fin = request.form.get("date_fin", demande.date_fin) or None
             _new_debut = request.form.get("date_debut", "").strip()
@@ -6207,6 +6227,7 @@ Accessibilité: {accessibilite}
             region=src.region,
             departement=src.departement,
             nom=src.nom,
+            civilite=src.civilite,
             dates_horaires=src.dates_horaires,
             date_debut=src.date_debut,
             date_fin=src.date_fin,
@@ -6274,6 +6295,7 @@ Accessibilité: {accessibilite}
             demande.telephone = request.form.get("telephone", demande.telephone)
             demande.lieu_ville = request.form.get("lieu_ville", demande.lieu_ville)
             demande.nom = request.form.get("nom", demande.nom)
+            demande.civilite = request.form.get("civilite", demande.civilite) or None
             demande.date_debut = request.form.get("date_debut", demande.date_debut) or None
             demande.date_fin = request.form.get("date_fin", demande.date_fin) or None
             # Auto-reconstruire dates_horaires si les dates sont renseignées
@@ -6550,6 +6572,7 @@ Accessibilité: {accessibilite}
                 region=region,
                 departement=departement or None,
                 nom=nom,
+                civilite=request.form.get("civilite", "").strip() or None,
                 dates_horaires=dates_horaires,
                 date_debut=date_debut or None,
                 date_fin=date_fin or None,

@@ -69,10 +69,18 @@
         </label>
 
         <label>
-          <span class="label-text">Nom / Prénom (contact principal) <span class="req">*</span></span>
-          <input type="text" id="nom" name="nom" required autocomplete="name"
-                 placeholder="Votre nom"
-                 value="{{ (request.form.get('nom','') or (d.nom if d else '') or (user.username if user and user.is_organisateur else '')) or '' }}">
+          <span class="label-text">Civilité & Nom / Prénom (contact principal) <span class="req">*</span></span>
+          <div style="display:flex; gap:8px;">
+            {% set _civ = request.form.get('civilite','') or (d.civilite if d else '') %}
+            <select id="civilite" name="civilite" required style="flex:0 0 90px;">
+              <option value="" {{ 'selected' if not _civ else '' }}>—</option>
+              <option value="M." {{ 'selected' if _civ == 'M.' else '' }}>M.</option>
+              <option value="Mme" {{ 'selected' if _civ == 'Mme' else '' }}>Mme</option>
+            </select>
+            <input type="text" id="nom" name="nom" required autocomplete="name" style="flex:1;"
+                   placeholder="Votre nom"
+                   value="{{ (request.form.get('nom','') or (d.nom if d else '') or (user.username if user and user.is_organisateur else '')) or '' }}">
+          </div>
         </label>
       </div>
 

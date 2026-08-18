@@ -134,7 +134,14 @@
                             <div class="col-md-6">
                                 <div class="modern-input-group">
                                     <label class="modern-label">Nom du contact *</label>
-                                    <input type="text" class="modern-input" id="nom" name="nom" required>
+                                    <div style="display:flex; gap:8px;">
+                                        <select class="modern-input" id="civilite" name="civilite" style="flex:0 0 90px;">
+                                            <option value="">—</option>
+                                            <option value="M.">M.</option>
+                                            <option value="Mme">Mme</option>
+                                        </select>
+                                        <input type="text" class="modern-input" id="nom" name="nom" required style="flex:1;">
+                                    </div>
                                 </div>
                             </div>
                             <div class="col-md-6">

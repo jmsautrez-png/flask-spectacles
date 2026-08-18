@@ -13,6 +13,7 @@ class DemandeAnimation(db.Model):
     telephone = db.Column(db.String(50), nullable=False)
     lieu_ville = db.Column(db.String(200), nullable=False)
     nom = db.Column(db.String(150), nullable=False)
+    civilite = db.Column(db.String(10), nullable=True)  # "M." ou "Mme" (facultatif)
     dates_horaires = db.Column(db.String(200), nullable=False)
     date_debut = db.Column(db.String(20), nullable=True)   # Date de début (YYYY-MM-DD)
     date_fin = db.Column(db.String(20), nullable=True)     # Date de fin (YYYY-MM-DD, pour événements multi-jours)
