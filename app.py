@@ -992,6 +992,7 @@ def _run_critical_migrations(app: Flask) -> None:
         ("demande_animation", "public_categories", "TEXT", "TEXT", None),
         ("demande_animation", "public_sous_options", "TEXT", "TEXT", None),
         ("demande_animation", "user_id", "INTEGER", "INTEGER", None),
+        ("demande_animation", "desactivee_at", "TIMESTAMP", "DATETIME", None),
         # ── users ──
         ("users", "pending_deletion_at", "TIMESTAMP", "DATETIME", None),
         ("users", "is_organisateur", "BOOLEAN DEFAULT FALSE", "BOOLEAN DEFAULT 0", "FALSE"),

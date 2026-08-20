@@ -166,6 +166,12 @@
           <p style="margin:0.3rem 0;"><span style="display:inline-block; padding:3px 10px; border-radius:6px; font-size:0.82rem; font-weight:600; {% if demande.portee_nationale %}background:#e3f2fd; color:#1565c0; border:1px solid #90caf9;{% else %}background:#fff3e0; color:#e65100; border:1px solid #ffcc80;{% endif %}">{% if demande.portee_nationale %}🇫🇷 Accepte propositions de toute la France{% else %}📍 Accepte propositions régionales uniquement{% endif %}</span></p>
           {% endif %}
           <div style="background:#e8f5e9; padding:8px; border-radius:8px; margin:0.4rem 0; border:1px solid #4caf50;">
+            {% if demande.is_desactivee and not (user and user.is_admin) %}
+            <div style="background:#ffebee; border:1px solid #e57373; border-radius:8px; padding:10px; margin:0.2rem 0; text-align:center;">
+              <p style="margin:0.2rem 0; color:#c62828; font-weight:700; font-size:0.95rem;">⏹️ Annonce désactivée</p>
+              <p style="margin:0.2rem 0; color:#666; font-size:0.82em;">Coordonnées masquées (annonce de plus de 7 jours)</p>
+            </div>
+            {% else %}
             <p style="margin:0.2rem 0;"><strong>👤 Contact :</strong> {{ demande.nom }}</p>
             <p style="margin:0.2rem 0;"><strong>📞 Téléphone :</strong> {{ demande.telephone }}</p>
             <p style="margin:0.2rem 0;"><strong>✉️ Email :</strong> <span style="word-break:break-all;font-weight:600;color:#0d47a1;">{{ demande.contact_email }}</span></p>
@@ -173,6 +179,7 @@
               <a href="mailto:{{ demande.contact_email }}" style="background:#1976d2;color:#fff;padding:4px 12px;border-radius:6px;text-decoration:none;font-weight:600;font-size:0.85rem;">✉️ Répondre</a>
               <button type="button" onclick="copierEmail(this, '{{ demande.contact_email|e }}')" style="background:#fff;color:#1976d2;border:1px solid #1976d2;padding:4px 12px;border-radius:6px;font-weight:600;font-size:0.85rem;cursor:pointer;">📋 Copier l'email</button>
             </div>
+            {% endif %}
           </div>
           <p style="margin:0.2rem 0;"><strong>📍 Lieu/Ville :</strong> {% if user and user.is_admin %}{{ demande.lieu_ville }}{% else %}<a href="{{ url_for('register') }}" style="color:#7c4dff; font-style:italic; text-decoration:underline;">[Lieu masqué]</a>{% endif %}</p>
           <div style="margin:0.4rem 0;">

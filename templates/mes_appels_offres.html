@@ -128,15 +128,24 @@
 
           <!-- Contact -->
           <div style="background:linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%); padding:8px; border-radius:8px; margin:0.5rem 0; border:1px solid #4caf50;">
+            {% if demande.is_desactivee and not (user and user.is_admin) %}
+            <div style="background:#ffebee; border:1px solid #e57373; border-radius:8px; padding:10px; margin:0.2rem 0; text-align:center;">
+              <p style="margin:0.2rem 0; color:#c62828; font-weight:700; font-size:0.95rem;">⏹️ Annonce désactivée</p>
+              <p style="margin:0.2rem 0; color:#666; font-size:0.82em;">Coordonnées masquées (annonce de plus de 7 jours)</p>
+            </div>
+            {% else %}
             <p style="margin:0.2rem 0;"><strong>👤</strong> {{ demande.nom }}</p>
             <p style="margin:0.2rem 0;"><strong>📞</strong> <a href="tel:{{ demande.telephone }}" style="color:#1976d2;">{{ demande.telephone }}</a></p>
             <p style="margin:0.2rem 0;"><strong>✉️</strong> <a href="mailto:{{ demande.contact_email }}" style="color:#1976d2;">{{ demande.contact_email }}</a></p>
+            {% endif %}
           </div>
 
+          {% if not demande.is_desactivee or (user and user.is_admin) %}
           <a href="mailto:{{ demande.contact_email }}?subject=Réponse à votre appel d'offre {{ demande.genre_recherche }}&body=Bonjour {{ demande.nom }},%0D%0A%0D%0AJe suis intéressé par votre appel d'offre pour {{ demande.genre_recherche }} à {{ demande.lieu_ville }}.%0D%0A%0D%0A" 
              style="display:block; text-align:center; background:linear-gradient(135deg, #1976d2, #0d47a1); color:#fff; padding:8px; border-radius:8px; text-decoration:none; font-weight:700; font-size:0.9rem; margin:0.4rem 0;">
             📧 Répondre
           </a>
+          {% endif %}
 
           {% if user and user.is_admin %}
           <div style="display:flex; gap:4px; margin-top:0.3rem;">

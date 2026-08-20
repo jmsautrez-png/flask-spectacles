@@ -49,6 +49,20 @@ class DemandeAnimation(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=True, index=True)
     user = db.relationship("User", backref="demandes")
 
+    # Renseigné par `deactivate_old_demandes.py` (cron) une fois la désactivation actée en base ; sert de source de vérité.
+    desactivee_at = db.Column(db.DateTime, nullable=True, index=True)
+
+    # Au-delà de ce délai, les coordonnées (nom/email/téléphone) sont masquées côté public (l'admin voit toujours tout).
+    DESACTIVATION_JOURS = 7
+
+    @property
+    def is_desactivee(self) -> bool:
+        if self.desactivee_at is not None:
+            return True
+        if not self.created_at:
+            return False
+        return (datetime.utcnow() - self.created_at).days >= self.DESACTIVATION_JOURS
+
 
 # Comptes créés à partir de cette date (UTC) = soumis au nouveau modèle (1re année d'appels d'offres offerte, puis payant).
 MODELE_PAYANT_DEBUT = datetime(2026, 8, 6)
