@@ -53,7 +53,7 @@ class DemandeAnimation(db.Model):
     desactivee_at = db.Column(db.DateTime, nullable=True, index=True)
 
     # Au-delà de ce délai, les coordonnées (nom/email/téléphone) sont masquées côté public (l'admin voit toujours tout).
-    DESACTIVATION_JOURS = 7
+    DESACTIVATION_JOURS = 10
 
     @property
     def is_desactivee(self) -> bool:

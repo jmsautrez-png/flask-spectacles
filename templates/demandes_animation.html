@@ -169,7 +169,7 @@
             {% if demande.is_desactivee and not (user and user.is_admin) %}
             <div style="background:#ffebee; border:1px solid #e57373; border-radius:8px; padding:10px; margin:0.2rem 0; text-align:center;">
               <p style="margin:0.2rem 0; color:#c62828; font-weight:700; font-size:0.95rem;">⏹️ Annonce désactivée</p>
-              <p style="margin:0.2rem 0; color:#666; font-size:0.82em;">Coordonnées masquées (annonce de plus de 7 jours)</p>
+              <p style="margin:0.2rem 0; color:#666; font-size:0.82em;">Coordonnées masquées (annonce de plus de 10 jours)</p>
             </div>
             {% else %}
             <p style="margin:0.2rem 0;"><strong>👤 Contact :</strong> {{ demande.nom }}</p>

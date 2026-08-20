@@ -1310,8 +1310,8 @@ def _send_recap_to_organisateur(demande, shows_contactes, admin_email_extra=None
       <ul style="margin:8px 0 0 0;padding-left:18px;">
         <li style="margin:4px 0;">Vous recevez aujourd'hui notre <strong>première sélection</strong>, triée et filtrée par nos soins.</li>
         <li style="margin:4px 0;">Pendant <strong>3 jours</strong>, votre demande reste privée : seules les compagnies que nous avons retenues sont contactées.</li>
-        <li style="margin:4px 0;">Passé ces 3 jours, votre annonce est <strong>déployée pendant 7 jours</strong> sur la plateforme. Vous recevrez alors d'autres propositions spontanées, en plus de notre sélection — mais celles-ci <strong>ne sont pas filtrées par nos services</strong> et ne portent pas forcément notre <strong>badge qualité</strong>.</li>
-        <li style="margin:4px 0;">Au-delà de ces 7 jours, <strong>votre annonce n'est plus active</strong>, afin de vous éviter une surcharge de courriels intempestifs.</li>
+        <li style="margin:4px 0;">Passé ces 3 jours, votre annonce est <strong>déployée pendant 10 jours</strong> sur la plateforme. Vous recevrez alors d'autres propositions spontanées, en plus de notre sélection — mais celles-ci <strong>ne sont pas filtrées par nos services</strong> et ne portent pas forcément notre <strong>badge qualité</strong>.</li>
+        <li style="margin:4px 0;">Au-delà de ces 10 jours, <strong>votre annonce n'est plus active</strong>, afin de vous éviter une surcharge de courriels intempestifs.</li>
       </ul>
     </div>
 
