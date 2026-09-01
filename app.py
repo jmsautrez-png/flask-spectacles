@@ -3626,12 +3626,15 @@ def register_routes(app: Flask) -> None:
         - Affichage des VISITEURS UNIQUES par jour (COUNT DISTINCT session_id)
         """
         from sqlalchemy import func, desc, text
-        from sqlalchemy.exc import ProgrammingError
+        from sqlalchemy.exc import ProgrammingError, SQLAlchemyError
         from datetime import timedelta
-        
-        # Période sélectionnée (par défaut: 7 derniers jours)
+
+        # Whitelist des périodes autorisées (protection contre period=99999 → OOM)
+        allowed_periods = ("today", "1", "7", "30", "90")
         period = request.args.get("period", "7", type=str)
-        
+        if period not in allowed_periods:
+            period = "7"
+
         # Calculer la date limite selon la période
         if period == "today":
             # Depuis minuit aujourd'hui (00:00:00)
@@ -3705,36 +3708,53 @@ def register_routes(app: Flask) -> None:
             order_by('date').all()
         
         # Derniers visiteurs uniques (groupés par session) - HUMAINS UNIQUEMENT
-        # Sous-requête optimisée : GROUP BY uniquement sur session_id (plus performant)
-        # Limite à 100 pour un rendu plus rapide
-        subq = db.session.query(
-            VisitorLog.session_id,
-            func.min(VisitorLog.id).label('min_id'),
-            func.min(VisitorLog.visited_at).label('first_visit'),
-            func.max(VisitorLog.visited_at).label('last_visit'),
-            func.count(VisitorLog.id).label('page_count')
-        ).filter(
-            VisitorLog.visited_at >= date_limit,
-            VisitorLog.is_bot == False
-        ).group_by(VisitorLog.session_id).\
-            order_by(desc(func.min(VisitorLog.visited_at))).\
-            limit(100).subquery()
-        
-        # Récupération des détails en joignant sur l'ID minimal de chaque session
-        recent_visitors = db.session.query(
-            subq.c.session_id,
-            subq.c.first_visit,
-            subq.c.last_visit,
-            subq.c.page_count,
-            VisitorLog.city,
-            VisitorLog.region,
-            VisitorLog.country,
-            VisitorLog.isp,
-            VisitorLog.ip_anonymized,
-            VisitorLog.user_agent,
-            VisitorLog.user_id,
-            VisitorLog.is_bot
-        ).join(VisitorLog, VisitorLog.id == subq.c.min_id).all()
+        # IMPORTANT: on plafonne la fenêtre à 7 jours même si period=30/90.
+        # Le GROUP BY session_id sur toute la table filtrée (potentiellement des
+        # centaines de milliers de lignes si clean_visitor_logs.py n'a pas tourné
+        # récemment) faisait crasher le worker gunicorn en OOM sur period=90.
+        # Les "derniers 100 visiteurs" sont forcément dans les derniers jours de
+        # toute façon → la restriction n'a pas d'impact visuel réel.
+        recent_window_days = min(days, 7)
+        recent_date_limit = datetime.utcnow() - timedelta(days=recent_window_days)
+
+        recent_visitors = []
+        try:
+            subq = db.session.query(
+                VisitorLog.session_id,
+                func.min(VisitorLog.id).label('min_id'),
+                func.min(VisitorLog.visited_at).label('first_visit'),
+                func.max(VisitorLog.visited_at).label('last_visit'),
+                func.count(VisitorLog.id).label('page_count')
+            ).filter(
+                VisitorLog.visited_at >= recent_date_limit,
+                VisitorLog.is_bot == False,
+                VisitorLog.session_id.isnot(None)
+            ).group_by(VisitorLog.session_id).\
+                order_by(desc(func.min(VisitorLog.visited_at))).\
+                limit(100).subquery()
+
+            # Récupération des détails en joignant sur l'ID minimal de chaque session
+            recent_visitors = db.session.query(
+                subq.c.session_id,
+                subq.c.first_visit,
+                subq.c.last_visit,
+                subq.c.page_count,
+                VisitorLog.city,
+                VisitorLog.region,
+                VisitorLog.country,
+                VisitorLog.isp,
+                VisitorLog.ip_anonymized,
+                VisitorLog.user_agent,
+                VisitorLog.user_id,
+                VisitorLog.is_bot
+            ).join(VisitorLog, VisitorLog.id == subq.c.min_id).all()
+        except SQLAlchemyError as e:
+            # Fallback silencieux : la page continue à afficher les stats agrégées
+            db.session.rollback()
+            current_app.logger.error(
+                f"[admin_statistics] recent_visitors query failed (period={period}): {e}"
+            )
+            recent_visitors = []
         
         # Maximum de visiteurs uniques sur un jour (pour la barre de progression)
         max_visitors_per_day = max([day.visits for day in visits_by_day]) if visits_by_day else 1

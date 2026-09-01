@@ -74,6 +74,23 @@ services:
       - key: MAIL_PASSWORD
         sync: false
 
+  # === Cron : purger les logs visiteurs > 30 jours (RGPD + éviter OOM sur /admin/statistiques) ===
+  # NOTE: doit être créé aussi manuellement dans le dashboard Render — la déclaration YAML
+  # seule ne suffit pas toujours à provisionner le cron.
+  - type: cron
+    name: clean-visitor-logs
+    env: python
+    schedule: "0 4 * * *"  # tous les jours à 04h00 UTC
+    buildCommand: "pip install -r requirements.txt"
+    startCommand: "python clean_visitor_logs.py"
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: flask-spectacles-db
+          property: connectionString
+      - key: SECRET_KEY
+        sync: false
+
 databases:
   - name: flask-spectacles-db
     databaseName: flask_spectacles
