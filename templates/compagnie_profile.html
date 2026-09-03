@@ -37,7 +37,7 @@
     "areaServed": {{ cie.region | tojson }}
     {%- endif %}
     {%- if _first_show and _first_show.file_name %},
-    "image": {{ url_for('static', filename='uploads/' + _first_show.file_name, _external=True) | tojson }}
+    "image": {{ original_url(_first_show.file_name) | tojson }}
     {%- endif %}
     ,
     "description": {{ ('Compagnie ' + cie_name + ' — ' + (nb_shows|string) + ' spectacle' + ('s' if nb_shows > 1 else '') + ' au catalogue.') | tojson }}
