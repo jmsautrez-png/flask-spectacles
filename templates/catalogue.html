@@ -587,14 +587,16 @@
         <span class="btn-evenement-wrapper"><a href="{{ url_for('evenements') }}" class="btn-evenement">📅 Événements annoncés</a></span>
       </div>
 
-      <form action="{{ url_for('catalogue') }}" method="get">
+      {# Bouton flottant : reste visible même quand les accordéons sont déployés #}
+      <button type="submit" form="catalogue-filter-form"
+              style="position:fixed; bottom:24px; right:24px; z-index:1200; background:linear-gradient(135deg,#6d1313,#8b1e1e); color:#fff; border:none; padding:14px 26px; border-radius:999px; font-weight:700; font-size:1rem; cursor:pointer; box-shadow:0 6px 18px rgba(0,0,0,0.5);">🔍 Filtrer les résultats</button>
+
+      <form id="catalogue-filter-form" action="{{ url_for('catalogue') }}" method="get">
         {% if region %}<input type="hidden" name="region" value="{{ region }}">{% endif %}
         {% if age %}<input type="hidden" name="age" value="{{ age }}">{% endif %}
         {% if q %}<input type="hidden" name="q" value="{{ q }}">{% endif %}
 
         {{ accordion_checkboxes("specialite", specialites_data, specialites, "", "Type de spectacle", "#6a1b9a", "Filtrez le catalogue par spécialité artistique.", "#fff", 0, show_counter=False, show_tip=False, show_toggle_buttons=False, enable_solo=False) }}
-
-        <button type="submit" style="width:100%; margin-top:8px; background:linear-gradient(135deg,#6d1313,#8b1e1e); color:#fff; border:none; padding:10px 16px; border-radius:8px; font-weight:700; font-size:0.95rem; cursor:pointer;">🔍 Filtrer les résultats</button>
       </form>
     </section>
   </aside>
