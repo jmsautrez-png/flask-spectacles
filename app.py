@@ -2066,6 +2066,24 @@ def register_routes(app: Flask) -> None:
                 user.set_password(password)
                 db.session.add(user)
                 db.session.commit()
+
+                # Notification admin d'une nouvelle inscription organisateur
+                if getattr(current_app, "mail", None) and current_app.config.get("MAIL_USERNAME") and current_app.config.get("MAIL_PASSWORD"):
+                    try:
+                        to_addr = current_app.config.get("MAIL_DEFAULT_SENDER") or current_app.config.get("MAIL_USERNAME")
+                        body = (
+                            f"Nouvelle inscription ORGANISATEUR (demandeur d'animation) :\n\n"
+                            f"Nom d'utilisateur : {username}\n"
+                            f"Email : {email}\n"
+                            f"Type de compte : Organisateur / demandeur\n"
+                        )
+                        msg = MailMessage(subject="Nouvelle inscription organisateur", recipients=[to_addr])  # type: ignore[arg-type]
+                        msg.body = body  # type: ignore[assignment]
+                        current_app.mail.send(msg)  # type: ignore[attr-defined]
+                        current_app.logger.info(f"[MAIL] ✓ Email envoyé à l'admin pour inscription organisateur de {username}")
+                    except Exception as e:
+                        current_app.logger.error(f"[MAIL] ✗ Envoi impossible (inscription organisateur admin): {e}")
+
                 session["username"] = username
                 flash("✅ Bienvenue ! Votre compte demandeur a été créé.", "success")
                 return redirect(url_for("mes_demandes"))
@@ -2149,6 +2167,28 @@ def register_routes(app: Flask) -> None:
                 # Lier la demande au nouveau compte
                 demande.user_id = new_user.id
                 db.session.commit()
+
+                # Notification admin d'une nouvelle inscription organisateur (via proposition post-demande)
+                if getattr(current_app, "mail", None) and current_app.config.get("MAIL_USERNAME") and current_app.config.get("MAIL_PASSWORD"):
+                    try:
+                        to_addr = current_app.config.get("MAIL_DEFAULT_SENDER") or current_app.config.get("MAIL_USERNAME")
+                        body = (
+                            f"Nouvelle inscription ORGANISATEUR (via demande d'animation) :\n\n"
+                            f"Nom d'utilisateur : {username}\n"
+                            f"Email : {email or '(non fourni)'}\n"
+                            f"Téléphone : {demande.telephone or '(non fourni)'}\n"
+                            f"Structure : {demande.structure or '(non fournie)'}\n"
+                            f"Ville : {demande.lieu_ville or ''} ({demande.code_postal or ''})\n"
+                            f"Région : {demande.region or ''}\n"
+                            f"Demande liée : #{demande.id} - {demande.intitule or ''}\n"
+                        )
+                        msg = MailMessage(subject="Nouvelle inscription organisateur (via demande)", recipients=[to_addr])  # type: ignore[arg-type]
+                        msg.body = body  # type: ignore[assignment]
+                        current_app.mail.send(msg)  # type: ignore[attr-defined]
+                        current_app.logger.info(f"[MAIL] ✓ Email envoyé à l'admin pour inscription organisateur (proposition) de {username}")
+                    except Exception as e:
+                        current_app.logger.error(f"[MAIL] ✗ Envoi impossible (inscription organisateur proposition admin): {e}")
+
                 # Nettoyer la session et connecter automatiquement
                 session.pop("pending_demande_id", None)
                 session["username"] = new_user.username
@@ -7969,9 +8009,38 @@ def admin_delete_bots():
 @login_required
 @admin_required
 def admin_users():
-    """Affiche la liste de tous les utilisateurs pour gestion admin."""
-    users = User.query.order_by(User.created_at.desc()).all()
-    return render_template("admin_users.html", users=users)
+    """Affiche la liste des utilisateurs avec filtre par type (onglets)."""
+    tab = (request.args.get("type") or "all").lower()
+    if tab not in ("all", "compagnies", "organisateurs", "admins"):
+        tab = "all"
+
+    base = User.query
+    count_all = base.count()
+    count_admins = base.filter(User.is_admin.is_(True)).count()
+    count_organisateurs = base.filter(
+        User.is_admin.is_(False), User.is_organisateur.is_(True)
+    ).count()
+    count_compagnies = count_all - count_admins - count_organisateurs
+
+    if tab == "admins":
+        users_q = base.filter(User.is_admin.is_(True))
+    elif tab == "organisateurs":
+        users_q = base.filter(User.is_admin.is_(False), User.is_organisateur.is_(True))
+    elif tab == "compagnies":
+        users_q = base.filter(User.is_admin.is_(False), User.is_organisateur.is_(False))
+    else:
+        users_q = base
+
+    users = users_q.order_by(User.created_at.desc()).all()
+    return render_template(
+        "admin_users.html",
+        users=users,
+        current_tab=tab,
+        count_all=count_all,
+        count_compagnies=count_compagnies,
+        count_organisateurs=count_organisateurs,
+        count_admins=count_admins,
+    )
 
 
 def _mail_ready() -> bool:

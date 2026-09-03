@@ -10,9 +10,33 @@
     <a href="{{ url_for('admin_dashboard') }}" class="btn" style="background:#6c757d; color:#fff; padding:10px 18px; border-radius:8px; text-decoration:none; display:inline-block;">← Retour au dashboard</a>
   </div>
 
+  {# Onglets de filtrage par type de compte #}
+  {% set tabs = [
+    ('all',           '👥 Tous',            count_all,           '#0d6efd'),
+    ('compagnies',    '🎭 Compagnies',      count_compagnies,    '#43a047'),
+    ('organisateurs', '📅 Organisateurs',   count_organisateurs, '#ff9800'),
+    ('admins',        '👑 Admins',          count_admins,        '#ffc107')
+  ] %}
+  <div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:20px; border-bottom:1px solid rgba(255,255,255,0.1); padding-bottom:12px;">
+    {% for key, label, nb, color in tabs %}
+      {% set active = (current_tab == key) %}
+      <a href="{{ url_for('admin_users', type=key) }}"
+         style="text-decoration:none; padding:10px 18px; border-radius:8px 8px 0 0;
+                background: {% if active %}{{ color }}{% else %}rgba(255,255,255,0.05){% endif %};
+                color: {% if active %}#fff{% else %}#ccc{% endif %};
+                font-weight: {% if active %}700{% else %}500{% endif %};
+                border: 1px solid {% if active %}{{ color }}{% else %}rgba(255,255,255,0.08){% endif %};
+                border-bottom:none;">
+        {{ label }}
+        <span style="display:inline-block; background:rgba(0,0,0,0.25); color:#fff; padding:2px 9px; border-radius:10px; font-size:0.8em; margin-left:6px;">{{ nb }}</span>
+      </a>
+    {% endfor %}
+  </div>
+
   <div style="background: rgba(255,255,255,0.05); border-radius: 12px; padding: 24px; margin-bottom: 24px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px;">
     <p style="color: #fff; margin: 0;">
-      <strong>{{ users|length }}</strong> utilisateur{{ 's' if users|length > 1 else '' }} inscrit{{ 's' if users|length > 1 else '' }}
+      <strong>{{ users|length }}</strong> utilisateur{{ 's' if users|length > 1 else '' }} affiché{{ 's' if users|length > 1 else '' }}
+      {% if current_tab != 'all' %}<span style="color:#aaa;"> (sur {{ count_all }} au total)</span>{% endif %}
     </p>
     <div style="display:flex; gap:10px; flex-wrap:wrap;">
       <form method="post" action="{{ url_for('admin_run_inactive_users_maintenance') }}"
