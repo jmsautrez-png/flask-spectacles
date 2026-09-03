@@ -27,6 +27,7 @@ d'environnement DATABASE_URL AVANT le lancement (recuperable dans le
 dashboard Render, base flask-spectacles-db).
 """
 import argparse
+import time
 from datetime import datetime, timedelta
 
 from app import app, db, notify_admin_show_deletion
@@ -111,6 +112,10 @@ def main():
                         help="Ne pas envoyer d'email aux utilisateurs supprimes.")
     parser.add_argument("--exclude-organisateurs", action="store_true",
                         help="Exclure les comptes is_organisateur=True (mairies, ecoles, CSE...).")
+    parser.add_argument("--batch", type=int, default=None,
+                        help="Nombre max de comptes a traiter par execution. Relancez la commande pour traiter le lot suivant.")
+    parser.add_argument("--sleep", type=float, default=0.0,
+                        help="Delai en secondes entre chaque suppression (defaut : 0). Utile pour espacer les envois SMTP.")
     args = parser.parse_args()
 
     seuil = datetime.utcnow() - timedelta(days=args.days)
@@ -154,13 +159,23 @@ def main():
             print("Rien a supprimer.")
             return
 
+        # Applique le batch : ne traite que les N premiers, les autres attendront le prochain run
+        total_candidats = len(a_supprimer)
+        if args.batch and args.batch > 0:
+            a_traiter = a_supprimer[:args.batch]
+            restants = total_candidats - len(a_traiter)
+        else:
+            a_traiter = a_supprimer
+            restants = 0
+
         print()
         print("=" * 100)
-        print("SUPPRESSION EN COURS...")
+        print(f"SUPPRESSION EN COURS ({len(a_traiter)} compte(s) ce run"
+              + (f", {restants} restant(s) apres)" if restants > 0 else ")"))
         print("=" * 100)
         nb_deleted = 0
         recap = []
-        for u in a_supprimer:
+        for u in a_traiter:
             username = u.username
             email = u.email
             uid = u.id
@@ -199,13 +214,18 @@ def main():
 
                 recap.append(f"{username} ({email}) - {len(shows_info)} fiche(s)")
                 nb_deleted += 1
+
+                if args.sleep > 0:
+                    time.sleep(args.sleep)
             except Exception as e:
                 db.session.rollback()
                 print(f"  [ERR] {username} (id={uid}) : {e}")
 
         print()
         print("=" * 100)
-        print(f"TERMINE : {nb_deleted}/{len(a_supprimer)} compte(s) supprime(s).")
+        print(f"TERMINE : {nb_deleted}/{len(a_traiter)} compte(s) supprime(s) sur ce run.")
+        if restants > 0:
+            print(f"          {restants} compte(s) restant(s) : relancez la meme commande pour traiter le lot suivant.")
         print("=" * 100)
 
 
