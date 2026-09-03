@@ -1,4 +1,4 @@
-﻿# Import optionnel de Flask-Mail
+# Import optionnel de Flask-Mail
 try:
     from flask_mail import Mail, Message as MailMessage
 except ImportError:
@@ -1255,8 +1255,8 @@ def _send_recap_to_organisateur(demande, shows_contactes, admin_email_extra=None
             rows_html += (
                 f'<li style="margin:8px 0;">'
                 f'<a href="{show_url}" style="color:#8b1e1e;font-weight:700;text-decoration:none;">'
-                f'🎭 {escape(s.title)}</a>{cie_html}<br>'
-                f'<a href="{show_url}" style="color:#8b1e1e;font-size:0.85em;text-decoration:none;">▶ Voir la fiche</a>'
+                f'{escape(s.title)}</a>{cie_html}<br>'
+                f'<a href="{show_url}" style="color:#8b1e1e;font-size:0.85em;text-decoration:none;">Voir la fiche</a>'
                 f'</li>'
             )
 
@@ -1277,16 +1277,16 @@ def _send_recap_to_organisateur(demande, shows_contactes, admin_email_extra=None
     <span style="font-family:Georgia,'Times New Roman',serif;font-size:1.4em;font-weight:700;color:#8b1e1e;letter-spacing:0.5px;">Spectacle'ment Vôtre</span>
   </div>
   <div style="background:linear-gradient(135deg,#1a0a0a 0%,#3d1a1a 50%,#1a0a0a 100%);color:#ffc107;padding:18px 22px;border-radius:10px 10px 0 0;text-align:center;">
-    <h2 style="margin:0;font-size:1.25em;">✅ Votre demande a été transmise</h2>
+    <h2 style="margin:0;font-size:1.25em;">Votre demande a été transmise</h2>
   </div>
   <div style="background:#fff;padding:22px;border-radius:0 0 10px 10px;border:1px solid #eee;border-top:none;">
     <p>Bonjour {nom_affiche},</p>
     <p>Bonne nouvelle&nbsp;! Votre appel d'offre a été <strong>transmis à {nb} artiste{'s' if nb > 1 else ''}</strong> correspondant à vos critères.</p>
 
     <div style="background:#fdf6e3;border-left:4px solid #ffc107;padding:12px 14px;border-radius:6px;margin:16px 0;font-size:0.92em;">
-      <strong>📋 Récap de votre demande :</strong><br>
-      🎯 {intitule}<br>
-      📍 {lieu}{(' — ' + dates) if dates else ''}
+      <strong>Récap de votre demande :</strong><br>
+      {intitule}<br>
+      {lieu}{(' — ' + dates) if dates else ''}
     </div>
 
     <h3 style="color:#8b1e1e;margin:18px 0 8px 0;font-size:1.05em;">Artistes contactés ({nb})</h3>
@@ -1316,13 +1316,13 @@ def _send_recap_to_organisateur(demande, shows_contactes, admin_email_extra=None
     </div>
 
     <div style="background:#f5f5f5;padding:12px 14px;border-radius:6px;margin-top:18px;font-size:0.88em;color:#555;">
-      💡 <strong>Astuce :</strong> n'hésitez pas à contacter directement les artistes qui vous intéressent
+      <strong>Astuce :</strong> n'hésitez pas à contacter directement les artistes qui vous intéressent
       pour échanger sur les détails (devis, disponibilités, options). Il est aussi préférable d'<strong>ouvrir un compte</strong>
       sur la plateforme : cela vous permet de gérer vos annonces bien plus facilement (rectification, duplication, historique, extinction).
     </div>
 
     <div style="background:#eef7ee;border-left:4px solid #4caf50;padding:12px 14px;border-radius:6px;margin-top:14px;font-size:0.9em;color:#2e5d2e;">
-      ✅ <strong>Vous avez choisi une compagnie ?</strong> Répondez simplement à cet email en nous indiquant
+      <strong>Vous avez choisi une compagnie ?</strong> Répondez simplement à cet email en nous indiquant
       laquelle&nbsp;: nous retirerons aussitôt votre annonce afin de ne plus vous solliciter inutilement.
     </div>
 
@@ -1345,7 +1345,7 @@ def _send_recap_to_organisateur(demande, shows_contactes, admin_email_extra=None
 
         admin_email = current_app.config.get("MAIL_USERNAME", "contact@spectacleanimation.fr")
         msg = MailMessage(
-            subject=f"✅ Votre demande a été transmise à {nb} artiste{'s' if nb > 1 else ''}",
+            subject=f"Votre demande a été transmise à {nb} artiste{'s' if nb > 1 else ''}",
             recipients=[demande.contact_email],
         )
         msg.html = body_html
@@ -1462,18 +1462,18 @@ def notify_admin_show_deletion(reason, items, owner_info=None):
                 "<p style='margin:0 0 4px;color:#666;'>"
                 "Ce compte ne possédait <strong>aucune fiche publiée</strong>.</p>"
             )
-            subject = f"🗑️ {reason_safe} (compte sans fiche)"
+            subject = f"{reason_safe} (compte sans fiche)"
         else:
             fiches_block = (
                 f"<p style='margin:0 0 4px;'><strong>Fiche(s) supprimée(s) ({nb}) :</strong></p>"
                 f"{table_block}"
             )
-            subject = f"🗑️ {reason_safe} ({nb} fiche{'s' if nb != 1 else ''})"
+            subject = f"{reason_safe} ({nb} fiche{'s' if nb != 1 else ''})"
         body_html = f"""<!DOCTYPE html>
 <html lang="fr"><head><meta charset="UTF-8"></head>
 <body style="font-family:Arial,sans-serif;color:#333;max-width:640px;margin:0 auto;">
   <div style="background:linear-gradient(135deg,#b71c1c,#e53935);padding:20px;text-align:center;border-radius:8px 8px 0 0;">
-    <h2 style="color:#fff;margin:0;">🗑️ Suppression sur Spectacle'ment VØtre</h2>
+    <h2 style="color:#fff;margin:0;">Suppression sur Spectacle'ment VØtre</h2>
   </div>
   <div style="background:#f9f9f9;padding:24px;border-radius:0 0 8px 8px;border:1px solid #e0e0e0;">
     <p style="margin:0 0 12px;"><strong>Motif :</strong> {reason_safe}</p>
@@ -1569,14 +1569,14 @@ def notify_admin_self_deletion(user_snapshot, shows_info, stats=None):
             )
 
         now_str = datetime.utcnow().strftime("%d/%m/%Y %H:%M UTC")
-        subject = f"👋 Auto-suppression : le compte « {u.get('username') or '?'} » a quitté la plateforme"
+        subject = f"Auto-suppression : le compte « {u.get('username') or '?'} » a quitté la plateforme"
 
         body_html = f"""<!DOCTYPE html>
 <html lang="fr"><head><meta charset="UTF-8"></head>
 <body style="font-family:Arial,sans-serif;color:#333;max-width:640px;margin:0 auto;background:#f4f6fa;padding:20px;">
   <div style="background:#fff;border-radius:10px;overflow:hidden;box-shadow:0 2px 12px rgba(0,0,0,0.08);">
     <div style="background:linear-gradient(135deg,#ef6c00,#f57c00);padding:22px;text-align:center;color:#fff;">
-      <h2 style="margin:0;font-size:1.3em;">👋 Un utilisateur a supprimé son compte</h2>
+      <h2 style="margin:0;font-size:1.3em;">Un utilisateur a supprimé son compte</h2>
       <p style="margin:6px 0 0 0;font-size:0.95em;opacity:0.95;">Action volontaire à l'initiative de l'utilisateur</p>
     </div>
     <div style="padding:22px 26px;">
@@ -1613,7 +1613,7 @@ def notify_admin_self_deletion(user_snapshot, shows_info, stats=None):
       {shows_block}
 
       <p style="color:#666;font-size:12px;margin-top:20px;border-top:1px solid #eee;padding-top:12px;">
-        ⚠️ Cette suppression est <strong>définitive et volontaire</strong>. Les données du compte
+        Cette suppression est <strong>définitive et volontaire</strong>. Les données du compte
         ont été effacées ; les demandes d'animation éventuelles ont été anonymisées.<br>
         Notification automatique — {now_str}
       </p>
@@ -1839,19 +1839,19 @@ def register_routes(app: Flask) -> None:
                         <td class="px" style="padding:20px 44px 4px 44px;">
                             <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
                                 <tr>
-                                    <td width="34" valign="top" style="padding:7px 0; font-size:20px; line-height:1.4;">🎭</td>
+                                    <td width="34" valign="top" style="padding:7px 0; font-size:20px; line-height:1.4;"></td>
                                     <td valign="top" style="padding:7px 0; font-size:15px; line-height:1.5; color:#3a3a3a;">Publier vos spectacles et animations <strong>GRATUITEMENT toute l'année</strong></td>
                                 </tr>
                                 <tr>
-                                    <td width="34" valign="top" style="padding:7px 0; font-size:20px; line-height:1.4;">📣</td>
+                                    <td width="34" valign="top" style="padding:7px 0; font-size:20px; line-height:1.4;"></td>
                                     <td valign="top" style="padding:7px 0; font-size:15px; line-height:1.5; color:#3a3a3a;">Annoncer vos événements sans limite de temps : <a href="https://www.spectacleanimation.fr/submit" style="color:#6a1b9a; font-weight:700;">Publiez ici</a></td>
                                 </tr>
                                 <tr>
-                                    <td width="34" valign="top" style="padding:7px 0; font-size:20px; line-height:1.4;">⭐</td>
+                                    <td width="34" valign="top" style="padding:7px 0; font-size:20px; line-height:1.4;"></td>
                                     <td valign="top" style="padding:7px 0; font-size:15px; line-height:1.5; color:#3a3a3a;">Bénéficier d'une visibilité renforcée auprès de notre réseau d'acheteurs</td>
                                 </tr>
                                 <tr>
-                                    <td width="34" valign="top" style="padding:7px 0; font-size:20px; line-height:1.4;">📡</td>
+                                    <td width="34" valign="top" style="padding:7px 0; font-size:20px; line-height:1.4;"></td>
                                     <td valign="top" style="padding:7px 0; font-size:15px; line-height:1.5; color:#3a3a3a;">Profiter de notre diffusion gratuite auprès de plus de 100 000 contacts professionnels</td>
                                 </tr>
                             </table>
@@ -1864,7 +1864,7 @@ def register_routes(app: Flask) -> None:
                             <table role="presentation" cellpadding="0" cellspacing="0" border="0" align="center" style="margin:0 auto;">
                                 <tr>
                                     <td class="btn-stack" style="padding:6px;">
-                                        <a href="https://www.spectacleanimation.fr/submit" style="display:inline-block; background-color:#6a1b9a; color:#ffffff; font-size:15px; font-weight:700; line-height:1; padding:15px 30px; border-radius:8px;">👉 Publiez votre spectacle</a>
+                                        <a href="https://www.spectacleanimation.fr/submit" style="display:inline-block; background-color:#6a1b9a; color:#ffffff; font-size:15px; font-weight:700; line-height:1; padding:15px 30px; border-radius:8px;">Publiez votre spectacle</a>
                                     </td>
                                     <td class="btn-stack" style="padding:6px;">
                                         <a href="https://www.spectacleanimation.fr/login" style="display:inline-block; background-color:#ffffff; color:#6a1b9a; font-size:15px; font-weight:700; line-height:1; padding:13px 28px; border-radius:8px; border:2px solid #6a1b9a;">Se connecter</a>
@@ -1894,7 +1894,7 @@ def register_routes(app: Flask) -> None:
                                 <tr>
                                     <td width="6" bgcolor="#f57f17" style="background-color:#f57f17; font-size:0; line-height:0;">&nbsp;</td>
                                     <td style="padding:18px 22px;">
-                                        <p style="margin:0 0 10px 0; color:#e65100; font-size:16px; font-weight:700;">🎁 Votre 1ère année d'appels d'offres offerte</p>
+                                        <p style="margin:0 0 10px 0; color:#e65100; font-size:16px; font-weight:700;">Votre 1ère année d'appels d'offres offerte</p>
                                         <p style="margin:0; font-size:14px; color:#4a4a4a; line-height:1.65;">En tant que nouvel inscrit, vous bénéficiez d'<strong>1 année gratuite</strong> pour consulter les appels d'offres des mairies, écoles, CSE et organisateurs. À l'issue de cette période, certaines annonces pourront passer en <strong>accès premium</strong> (modèle <strong>freemium</strong>), d'autres resteront en accès libre &mdash; nous vous préviendrons avant tout changement. Votre <strong>présence dans l'annuaire et la publication de vos spectacles restent gratuites</strong> : les organisateurs peuvent toujours vous trouver, vous contacter et vous faire des demandes de devis en direct, <strong>gratuitement</strong>.</p>
                                     </td>
                                 </tr>
@@ -1909,10 +1909,10 @@ def register_routes(app: Flask) -> None:
                                 <tr>
                                     <td width="6" bgcolor="#2e7d32" style="background-color:#2e7d32; font-size:0; line-height:0;">&nbsp;</td>
                                     <td style="padding:18px 22px;">
-                                        <p style="margin:0 0 10px 0; color:#2e7d32; font-size:16px; font-weight:700;">💚 Pourquoi c'est efficace ?</p>
+                                        <p style="margin:0 0 10px 0; color:#2e7d32; font-size:16px; font-weight:700;">Pourquoi c'est efficace ?</p>
                                         <p style="margin:0 0 10px 0; font-size:14px; color:#4a4a4a; line-height:1.65;">Spectacle'ment VØtre fonctionne comme un <strong>annuaire national de référence</strong> : plus il y a de spectacles publiés, plus les <strong>mairies, écoles, CSE, agences et organisateurs</strong> prennent l'habitude d'y chercher leurs animations &mdash; et d'y déposer leurs <strong>appels d'offres</strong>.</p>
-                                        <p style="margin:0 0 10px 0; font-size:14px; color:#4a4a4a; line-height:1.65;">📍 <strong>Au niveau local</strong>, votre département gagne en visibilité à mesure que des compagnies de la région s'y inscrivent : les acteurs culturels de chez vous tombent alors sur <strong>votre profil en priorité</strong>.</p>
-                                        <p style="margin:0 0 10px 0; font-size:14px; color:#4a4a4a; line-height:1.65;">🇫🇷 <strong>Au niveau national</strong>, vous recevrez aussi des appels d'offres venant de <strong>toute la France</strong> &mdash; un complément précieux à votre démarche commerciale régionale, qui vous ouvre des dates et des territoires que vous n'auriez pas prospectés seul.</p>
+                                        <p style="margin:0 0 10px 0; font-size:14px; color:#4a4a4a; line-height:1.65;"><strong>Au niveau local</strong>, votre département gagne en visibilité à mesure que des compagnies de la région s'y inscrivent : les acteurs culturels de chez vous tombent alors sur <strong>votre profil en priorité</strong>.</p>
+                                        <p style="margin:0 0 10px 0; font-size:14px; color:#4a4a4a; line-height:1.65;"><strong>Au niveau national</strong>, vous recevrez aussi des appels d'offres venant de <strong>toute la France</strong> &mdash; un complément précieux à votre démarche commerciale régionale, qui vous ouvre des dates et des territoires que vous n'auriez pas prospectés seul.</p>
                                         <p style="margin:0 0 10px 0; font-size:14px; color:#4a4a4a; line-height:1.65;">C'est cette dynamique collective qui nous permet d'offrir la <strong>publication de vos spectacles</strong> et votre <strong>première année d'appels d'offres</strong>.</p>
                                         <p style="margin:0; font-size:13px; color:#607060; line-height:1.65; font-style:italic;">C'est en accompagnant les compagnies qui le souhaitent sur le volet administratif (URSSAF, DSN, contrats de cession…) que nous pérennisons ce modèle.</p>
                                     </td>
@@ -1927,12 +1927,12 @@ def register_routes(app: Flask) -> None:
                             <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#faf7fd; border:1px solid #ece2f6; border-radius:10px;">
                                 <tr>
                                     <td style="padding:20px 24px;">
-                                        <p style="margin:0 0 10px 0; color:#6a1b9a; font-size:16px; font-weight:700;">💼 Besoin d'aide pour votre administration ?</p>
+                                        <p style="margin:0 0 10px 0; color:#6a1b9a; font-size:16px; font-weight:700;">Besoin d'aide pour votre administration ?</p>
                                         <p style="margin:0 0 12px 0; font-size:14px; color:#4a4a4a; line-height:1.65;">Spectacle'ment VØtre ne se limite pas à la visibilité ! Depuis plus de 30 ans, nous accompagnons les compagnies de spectacle vivant dans la gestion complexe de leur administration artistique et sociale :</p>
                                         <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
-                                            <tr><td width="26" valign="top" style="padding:3px 0; font-size:15px; color:#6a1b9a;">✔</td><td style="padding:3px 0; font-size:14px; color:#4a4a4a; line-height:1.5;">Gestion URSSAF, DSN, DUE, AEM</td></tr>
-                                            <tr><td width="26" valign="top" style="padding:3px 0; font-size:15px; color:#6a1b9a;">✔</td><td style="padding:3px 0; font-size:14px; color:#4a4a4a; line-height:1.5;">Fiches de salaire et contrats de cession</td></tr>
-                                            <tr><td width="26" valign="top" style="padding:3px 0; font-size:15px; color:#6a1b9a;">✔</td><td style="padding:3px 0; font-size:14px; color:#4a4a4a; line-height:1.5;">Administration complète de votre compagnie</td></tr>
+                                            <tr><td width="26" valign="top" style="padding:3px 0; font-size:15px; color:#6a1b9a;"></td><td style="padding:3px 0; font-size:14px; color:#4a4a4a; line-height:1.5;">Gestion URSSAF, DSN, DUE, AEM</td></tr>
+                                            <tr><td width="26" valign="top" style="padding:3px 0; font-size:15px; color:#6a1b9a;"></td><td style="padding:3px 0; font-size:14px; color:#4a4a4a; line-height:1.5;">Fiches de salaire et contrats de cession</td></tr>
+                                            <tr><td width="26" valign="top" style="padding:3px 0; font-size:15px; color:#6a1b9a;"></td><td style="padding:3px 0; font-size:14px; color:#4a4a4a; line-height:1.5;">Administration complète de votre compagnie</td></tr>
                                         </table>
                                         <p style="margin:16px 0 2px 0; text-align:center;">
                                             <a href="https://spectacleanimation.fr/abonnement-compagnie" style="display:inline-block; background-color:#6a1b9a; color:#ffffff; font-size:14px; font-weight:700; line-height:1; padding:13px 26px; border-radius:8px;">Découvrez nos services</a>
@@ -1946,7 +1946,7 @@ def register_routes(app: Flask) -> None:
                     <!-- Closing -->
                     <tr>
                         <td class="px" style="padding:24px 44px 0 44px; font-size:15px; line-height:1.6; color:#3a3a3a; text-align:center;">
-                            <p style="margin:0;">À très bientôt ! 🎪</p>
+                            <p style="margin:0;">À très bientôt ! </p>
                         </td>
                     </tr>
 
@@ -1956,7 +1956,7 @@ def register_routes(app: Flask) -> None:
                             <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#f3f4f7; border-radius:8px;">
                                 <tr>
                                     <td style="padding:14px 18px; font-size:12.5px; color:#5a5a5a; line-height:1.55; text-align:center;">
-                                        🔒 <strong>RGPD :</strong> Vous pouvez modifier vos informations ou <strong>supprimer définitivement votre compte à tout moment</strong> depuis votre <a href="https://www.spectacleanimation.fr/profil" style="color:#6a1b9a; font-weight:700;">espace personnel</a> (rubrique « Mes informations »).
+                                        <strong>RGPD :</strong> Vous pouvez modifier vos informations ou <strong>supprimer définitivement votre compte à tout moment</strong> depuis votre <a href="https://www.spectacleanimation.fr/profil" style="color:#6a1b9a; font-weight:700;">espace personnel</a> (rubrique « Mes informations »).
                                     </td>
                                 </tr>
                             </table>
@@ -2958,19 +2958,19 @@ def register_routes(app: Flask) -> None:
                     type_annonce = "📅 ÉVÉNEMENT" if is_event else "CATALOGUE"
                     body = (
                         f"Nouvelle annonce à valider [{type_annonce}]\n\n"
-                        f"👤 Compagnie: {raison_sociale}\n"
-                        f"📌 Titre: {title}\n"
-                        f"📍 Lieu: {location}\n"
-                        f"🎪 Catégorie: {category}\n"
-                        f"🎭 Spécialités: {', '.join(specialites_list) if specialites_list else 'Aucune'}\n"
-                        f"📋 Type: {type_annonce}\n"
-                        + (f"📅 Date: {date_val}\n\n" if date_val else "")
+                        f"Compagnie: {raison_sociale}\n"
+                        f"Titre: {title}\n"
+                        f"Lieu: {location}\n"
+                        f"Catégorie: {category}\n"
+                        f"Spécialités: {', '.join(specialites_list) if specialites_list else 'Aucune'}\n"
+                        f"Type: {type_annonce}\n"
+                        + (f"Date: {date_val}\n\n" if date_val else "")
                         + f"Date de création de la fiche : {show.created_at.strftime('%d/%m/%Y %H:%M')}\n\n"
-                        + f"📧 Email: {contact_email}\n"
-                        + f"📱 Téléphone: {contact_phone}\n"
-                        + "\n\n✅ Rappel : Le déploiement sur Spectacle'ment Vôtre est entièrement gratuit.\n"
-                        + "📢 Nous sélectionnons des artistes d'excellence pour offrir aux programmateurs des spectacles professionnels de qualité.\n\n"
-                        + "💼 Service d'administration disponible pour les compagnies (gestion URSSAF, DSN, contrats, etc.).\n"
+                        + f"Email: {contact_email}\n"
+                        + f"Téléphone: {contact_phone}\n"
+                        + "\n\nRappel : Le déploiement sur Spectacle'ment Vôtre est entièrement gratuit.\n"
+                        + "Nous sélectionnons des artistes d'excellence pour offrir aux programmateurs des spectacles professionnels de qualité.\n\n"
+                        + "Service d'administration disponible pour les compagnies (gestion URSSAF, DSN, contrats, etc.).\n"
                         + "\nCordialement,\nL'équipe Spectacle'ment VØtre"
                     )
                     msg = MailMessage(subject="Nouvelle annonce à valider", recipients=[to_addr])  # type: ignore[arg-type]
@@ -3205,17 +3205,17 @@ def register_routes(app: Flask) -> None:
 <head><meta charset="UTF-8"><title>Demande de devis</title></head>
 <body style="font-family:Arial,sans-serif; color:#333; max-width:600px; margin:0 auto;">
   <div style="background:linear-gradient(135deg,#1b5e20,#2e7d32); padding:20px; text-align:center; border-radius:8px 8px 0 0;">
-    <h2 style="color:#fff; margin:0;">🎭 Nouvelle demande de devis</h2>
+    <h2 style="color:#fff; margin:0;">Nouvelle demande de devis</h2>
     <p style="color:rgba(255,255,255,0.85); margin:8px 0 0 0;">Via Spectacle'ment VØtre</p>
   </div>
   <div style="background:#f9f9f9; padding:24px; border-radius:0 0 8px 8px; border:1px solid #e0e0e0;">
 
     <div style="background:#e8f5e9; padding:14px; border-radius:8px; margin-bottom:16px; border-left:4px solid #2e7d32;">
-      <p style="margin:0; font-weight:700; color:#1b5e20; font-size:1.05rem;">🎭 {show.title}</p>
+      <p style="margin:0; font-weight:700; color:#1b5e20; font-size:1.05rem;">{show.title}</p>
       <p style="margin:4px 0 0 0; color:#555; font-size:0.9rem;">{show.raison_sociale or ''} — {show.category or ''} — {show.region or ''}</p>
     </div>
 
-    <h3 style="color:#1b5e20; border-bottom:2px solid #e0e0e0; padding-bottom:8px;">👤 Coordonnées du demandeur</h3>
+    <h3 style="color:#1b5e20; border-bottom:2px solid #e0e0e0; padding-bottom:8px;">Coordonnées du demandeur</h3>
     <table style="width:100%; border-collapse:collapse;">
       <tr><td style="padding:6px 0; color:#666; width:120px;">Nom</td><td style="padding:6px 0; font-weight:600;">{nom}</td></tr>
       <tr><td style="padding:6px 0; color:#666;">Structure</td><td style="padding:6px 0;">{structure or '—'}</td></tr>
@@ -3223,20 +3223,20 @@ def register_routes(app: Flask) -> None:
       <tr><td style="padding:6px 0; color:#666;">Téléphone</td><td style="padding:6px 0;">{telephone or '—'}</td></tr>
     </table>
 
-    <h3 style="color:#1b5e20; border-bottom:2px solid #e0e0e0; padding-bottom:8px; margin-top:20px;">📅 Événement</h3>
+    <h3 style="color:#1b5e20; border-bottom:2px solid #e0e0e0; padding-bottom:8px; margin-top:20px;">Événement</h3>
     <table style="width:100%; border-collapse:collapse;">
       <tr><td style="padding:6px 0; color:#666; width:120px;">Date</td><td style="padding:6px 0;">{date_manifestation or '—'}</td></tr>
       <tr><td style="padding:6px 0; color:#666;">Type de lieu</td><td style="padding:6px 0;">{type_lieu or '—'}</td></tr>
       <tr><td style="padding:6px 0; color:#666;">Budget</td><td style="padding:6px 0; font-weight:700; color:#2e7d32;">{budget or '—'}</td></tr>
     </table>
 
-    <h3 style="color:#1b5e20; border-bottom:2px solid #e0e0e0; padding-bottom:8px; margin-top:20px;">💬 Message</h3>
+    <h3 style="color:#1b5e20; border-bottom:2px solid #e0e0e0; padding-bottom:8px; margin-top:20px;">Message</h3>
     <div style="background:#fff; padding:14px; border-radius:6px; border:1px solid #e0e0e0; white-space:pre-wrap;">{message}</div>
 
     <div style="margin-top:20px; text-align:center;">
       <a href="mailto:{email}?subject=Réponse à votre demande de devis — {show.title}"
          style="display:inline-block; padding:12px 28px; background:#1b5e20; color:#fff; text-decoration:none; border-radius:8px; font-weight:700;">
-        ✉️ Répondre au demandeur
+        Répondre au demandeur
       </a>
     </div>
 
@@ -3264,7 +3264,7 @@ def register_routes(app: Flask) -> None:
 <html lang="fr"><head><meta charset="UTF-8"></head>
 <body style="font-family:Arial,sans-serif; color:#333; max-width:600px; margin:0 auto;">
   <div style="background:linear-gradient(135deg,#1b5e20,#2e7d32); padding:20px; text-align:center; border-radius:8px 8px 0 0;">
-    <h2 style="color:#fff; margin:0;">✅ Demande bien reçue !</h2>
+    <h2 style="color:#fff; margin:0;">Demande bien reçue !</h2>
   </div>
   <div style="background:#f9f9f9; padding:24px; border-radius:0 0 8px 8px; border:1px solid #e0e0e0;">
     <p>Bonjour <strong>{nom}</strong>,</p>
@@ -3976,20 +3976,20 @@ def register_routes(app: Flask) -> None:
             </style>
         </head>
         <body>
-            <h1>🔍 Diagnostic Détection IP Visiteurs</h1>
-            
+            <h1>Diagnostic Détection IP Visiteurs</h1>
+
             <div class="box">
-                <h2>📊 Résultat de la Détection</h2>
+                <h2>Résultat de la Détection</h2>
                 <p class="highlight"><strong>Méthode utilisée :</strong> {detection_method}</p>
                 <p class="highlight"><strong>IP détectée (brute) :</strong> {detected_ip}</p>
                 <p class="highlight"><strong>IP anonymisée (stockée) :</strong> {ip_anonymized}</p>
                 <p class="{'success' if is_public else 'error'}">
-                    {'✅ IP PUBLIQUE détectée - CORRECT !' if is_public else '❌ IP PRIVÉE - PROBLÈME : header X-Forwarded-For manquant ou invalide'}
+                    {'IP PUBLIQUE détectée - CORRECT !' if is_public else 'IP PRIVÉE - PROBLÈME : header X-Forwarded-For manquant ou invalide'}
                 </p>
             </div>
-            
+
             <div class="box">
-                <h2>🌐 Headers IP Spécifiques</h2>
+                <h2>Headers IP Spécifiques</h2>
                 <table>
                     <tr>
                         <th>Header</th>
@@ -3999,39 +3999,39 @@ def register_routes(app: Flask) -> None:
                     <tr>
                         <td>X-Forwarded-For</td>
                         <td>{forwarded_for or '<span class="error">NON PRÉSENT</span>'}</td>
-                        <td>{'✅ Utilisé' if detection_method == 'X-Forwarded-For' else '⚪'}</td>
+                        <td>{'Utilisé' if detection_method == 'X-Forwarded-For' else ''}</td>
                     </tr>
                     <tr>
                         <td>X-Real-IP</td>
                         <td>{real_ip or '<span class="error">NON PRÉSENT</span>'}</td>
-                        <td>{'✅ Utilisé' if detection_method == 'X-Real-IP' else '⚪'}</td>
+                        <td>{'Utilisé' if detection_method == 'X-Real-IP' else ''}</td>
                     </tr>
                     <tr>
                         <td>CF-Connecting-IP</td>
                         <td>{cf_ip or '<span class="error">NON PRÉSENT</span>'}</td>
-                        <td>{'✅ Utilisé' if detection_method == 'CF-Connecting-IP' else '⚪'}</td>
+                        <td>{'Utilisé' if detection_method == 'CF-Connecting-IP' else ''}</td>
                     </tr>
                     <tr>
                         <td>request.remote_addr</td>
                         <td>{request.remote_addr}</td>
-                        <td>{'✅ Utilisé (fallback)' if detection_method.startswith('request.remote_addr') else '⚪'}</td>
+                        <td>{'Utilisé (fallback)' if detection_method.startswith('request.remote_addr') else ''}</td>
                     </tr>
                 </table>
             </div>
-            
+
             <div class="box">
-                <h2>📋 Tous les Headers HTTP Reçus</h2>
+                <h2>Tous les Headers HTTP Reçus</h2>
                 <table>
                     <tr><th>Nom</th><th>Valeur</th></tr>
                     {''.join(f'<tr><td>{k}</td><td>{v}</td></tr>' for k, v in sorted(all_headers.items()))}
                 </table>
             </div>
-            
+
             <div class="box">
-                <h2>💡 Analyse et Recommandations</h2>
-                {'<p class="success">✅ Le système fonctionne correctement. Les vraies IPs publiques sont détectées.</p>' if is_public else 
-                 '<p class="error">❌ PROBLÈME : Render ne transmet pas les IPs publiques dans les headers.</p>' +
-                 '<p class="warning">⚠️  Solutions possibles :</p>' +
+                <h2>Analyse et Recommandations</h2>
+                {'<p class="success">Le système fonctionne correctement. Les vraies IPs publiques sont détectées.</p>' if is_public else
+                 '<p class="error">PROBLÈME : Render ne transmet pas les IPs publiques dans les headers.</p>' +
+                 '<p class="warning">Solutions possibles :</p>' +
                  '<ul>' +
                  '<li>1. Vérifier configuration Render (proxy headers)</li>' +
                  '<li>2. Contacter support Render</li>' +
@@ -4039,7 +4039,7 @@ def register_routes(app: Flask) -> None:
                  '<li>4. Accepter que seules les IPs de Render soient visibles (limitation plateforme)</li>' +
                  '</ul>'}
             </div>
-            
+
             <p style="margin-top: 40px;">
                 <a href="/admin/statistiques">← Retour aux statistiques</a>
             </p>
@@ -4878,7 +4878,7 @@ def register_routes(app: Flask) -> None:
                         _date_evt_fr = "Date à confirmer"
                     _username_evt = (show.user.username if show.user else None) or show.raison_sociale or "Bonjour"
 
-                    subject = "📅 Votre événement est en ligne sur Spectacle'ment VØtre"
+                    subject = "Votre événement est en ligne sur Spectacle'ment VØtre"
                     body_html_evenement = f"""<!DOCTYPE html>
 <html lang="fr">
 <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Événement publié</title></head>
@@ -4890,7 +4890,7 @@ def register_routes(app: Flask) -> None:
                 <tr>
                     <td style="background:linear-gradient(135deg,#667eea 0%,#764ba2 100%); padding:32px 40px 24px; text-align:center;">
                         <img src="https://www.spectacleanimation.fr/static/img/logo_spectaclement_votre.png" alt="Spectacle'ment VØtre" width="130" style="display:block; margin:0 auto 10px; max-width:130px; height:auto;">
-                        <h1 style="margin:0; font-size:22px; color:#fff; font-weight:700; letter-spacing:0.3px;">📅 Événement publié</h1>
+                        <h1 style="margin:0; font-size:22px; color:#fff; font-weight:700; letter-spacing:0.3px;">Événement publié</h1>
                     </td>
                 </tr>
                 <tr>
@@ -4904,19 +4904,19 @@ def register_routes(app: Flask) -> None:
                         <div style="background:linear-gradient(135deg,#fff3e0 0%,#ffe0b2 100%); border-radius:12px; padding:24px; text-align:center; border:2px solid #ff9800;">
                             <p style="margin:0 0 8px 0; font-size:12px; color:#e65100; text-transform:uppercase; letter-spacing:2px; font-weight:700;">Date de votre événement</p>
                             <p style="margin:0; font-size:26px; color:#bf360c; font-weight:800; letter-spacing:0.5px;">{_date_evt_fr}</p>
-                            <p style="margin:12px 0 0 0; font-size:14px; color:#5d4037;">📍 {show.location or 'Lieu à préciser'}</p>
+                            <p style="margin:12px 0 0 0; font-size:14px; color:#5d4037;">{show.location or 'Lieu à préciser'}</p>
                         </div>
                     </td>
                 </tr>
                 <tr>
                     <td style="padding:24px 40px 8px; text-align:center;">
-                        <a href="{show_url}" style="display:inline-block; background:linear-gradient(135deg,#667eea 0%,#764ba2 100%); color:#ffffff !important; text-decoration:none; padding:14px 40px; border-radius:8px; font-weight:700; font-size:16px; letter-spacing:0.3px; box-shadow:0 4px 12px rgba(118,75,162,0.35);">👁️ Voir mon événement</a>
+                        <a href="{show_url}" style="display:inline-block; background:linear-gradient(135deg,#667eea 0%,#764ba2 100%); color:#ffffff !important; text-decoration:none; padding:14px 40px; border-radius:8px; font-weight:700; font-size:16px; letter-spacing:0.3px; box-shadow:0 4px 12px rgba(118,75,162,0.35);">Voir mon événement</a>
                     </td>
                 </tr>
                 <tr>
                     <td style="padding:20px 40px 10px;">
                         <div style="background:#e3f2fd; border-left:4px solid #2196f3; border-radius:8px; padding:18px 20px;">
-                            <p style="margin:0 0 8px 0; font-size:14px; color:#1565c0; font-weight:700;">💡 Astuce visibilité</p>
+                            <p style="margin:0 0 8px 0; font-size:14px; color:#1565c0; font-weight:700;">Astuce visibilité</p>
                             <p style="margin:0; font-size:14px; color:#0d47a1; line-height:1.6;">Pensez à <strong>partager le lien de votre événement</strong> à vos contacts et sur vos réseaux sociaux 3 à 4 semaines avant la date. C'est le meilleur moyen d'attirer du public !</p>
                         </div>
                     </td>
@@ -4936,10 +4936,10 @@ def register_routes(app: Flask) -> None:
                     body_text_evenement = (
                         f"Bonjour {_username_evt},\n\n"
                         f"Votre événement « {show.title} » est maintenant en ligne sur Spectacle'ment VØtre !\n\n"
-                        f"📅 Date de votre événement : {_date_evt_fr}\n"
-                        f"📍 Lieu : {show.location or 'Lieu à préciser'}\n\n"
+                        f"Date de votre événement : {_date_evt_fr}\n"
+                        f"Lieu : {show.location or 'Lieu à préciser'}\n\n"
                         f"Voir mon événement : {show_url}\n\n"
-                        "💡 Astuce : partagez le lien de votre événement à vos contacts et sur vos réseaux "
+                        "Astuce : partagez le lien de votre événement à vos contacts et sur vos réseaux "
                         "sociaux 3 à 4 semaines avant la date pour attirer du public.\n\n"
                         "Pour modifier ou retirer votre événement, répondez simplement à ce mail.\n\n"
                         "L'équipe Spectacle'ment VØtre"
@@ -4989,17 +4989,17 @@ def register_routes(app: Flask) -> None:
                             <img src="https://www.spectacleanimation.fr/static/img/logo_spectaclement_votre.png" alt="Spectacle'ment VØtre" style="max-width: 280px; height: auto;">
                         </td>
                     </tr>
-                    
+
                     <!-- Main Content -->
                     <tr>
                         <td style="padding: 20px 40px;">
                             <h1 style="color: #667eea; font-size: 28px; margin: 0 0 20px 0; text-align: center;">
-                                ✅ Félicitations !
+                                Félicitations !
                             </h1>
                             <p style="font-size: 16px; color: #333; line-height: 1.6; margin: 0 0 20px 0;">
                                 Votre spectacle vient d'être <strong>validé et publié</strong> sur Spectacle'ment VØtre.
                             </p>
-                            
+
                             <!-- Spectacle Info Card -->
                             <div style="background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%); border-radius: 12px; padding: 25px; margin: 25px 0;">
                                 <h2 style="color: #764ba2; font-size: 20px; margin: 0 0 15px 0;">{show.title}</h2>
@@ -5010,27 +5010,27 @@ def register_routes(app: Flask) -> None:
                                     <div><strong>Publié le :</strong><br>{show.created_at.strftime('%d/%m/%Y %H:%M') if show.created_at else 'N/A'}</div>
                                 </div>
                             </div>
-                            
+
                             <!-- View Button -->
                             <div style="text-align: center; margin: 30px 0;">
                                 <a href="{show_url}" style="display: inline-block; background-color: #667eea; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: #ffffff !important; text-decoration: none; padding: 14px 40px; border-radius: 30px; font-weight: bold; font-size: 16px; box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);">
-                                    <span style="color:#ffffff;">👁️ Voir mon annonce</span>
+                                    <span style="color:#ffffff;">Voir mon annonce</span>
                                 </a>
                             </div>
-                            
+
                             <!-- Info Section -->
                             <div style="background: #f8f9fa; border-left: 4px solid #667eea; padding: 20px; margin: 25px 0; border-radius: 8px;">
                                 <p style="margin: 0 0 12px 0; font-size: 15px; color: #333; line-height: 1.6;">
-                                    <strong>📢 Spectacle'ment VØtre</strong> est un annuaire gratuit qui sélectionne des artistes d'excellence pour offrir aux programmateurs (écoles, mairies, CSE, centres culturels) des spectacles professionnels de qualité.
+                                    <strong>Spectacle'ment VØtre</strong> est un annuaire gratuit qui sélectionne des artistes d'excellence pour offrir aux programmateurs (écoles, mairies, CSE, centres culturels) des spectacles professionnels de qualité.
                                 </p>
                                 <p style="margin: 0; font-size: 15px; color: #28a745; font-weight: bold;">
-                                    ✅ Votre déploiement sur la plateforme est <u>entièrement gratuit</u>.
+                                    Votre déploiement sur la plateforme est <u>entièrement gratuit</u>.
                                 </p>
                             </div>
                             {bloc_ao_offert}
                             <!-- Admin Services -->
                             <div style="background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%); border-radius: 12px; padding: 25px; margin: 25px 0;">
-                                <h3 style="color: #d63031; font-size: 18px; margin: 0 0 12px 0;">💼 Besoin d'aide administrative ?</h3>
+                                <h3 style="color: #d63031; font-size: 18px; margin: 0 0 12px 0;">Besoin d'aide administrative ?</h3>
                                 <p style="font-size: 14px; color: #333; line-height: 1.6; margin: 0 0 15px 0;">
                                     Spectacle'ment VØtre propose également un service d'administration pour les compagnies (gestion URSSAF, DSN, DUE, fiches de salaire, contrats).
                                 </p>
@@ -5038,16 +5038,16 @@ def register_routes(app: Flask) -> None:
                                     Découvrir l'offre premium
                                 </a>
                             </div>
-                            
+
                             <!-- Event Publishing Reminder -->
                             <div style="background: #e3f2fd; border-radius: 8px; padding: 20px; margin: 25px 0; border: 2px solid #2196F3;">
                                 <p style="margin: 0; font-size: 15px; color: #1976D2; line-height: 1.6; text-align: center;">
-                                    📅 <strong>Astuce :</strong> <a href="{submit_url}" style="color: #1565C0; font-weight: bold; text-decoration: none;">Annoncez vos événements GRATUITEMENT</a> toute l'année sur notre plateforme !
+                                    <strong>Astuce :</strong> <a href="{submit_url}" style="color: #1565C0; font-weight: bold; text-decoration: none;">Annoncez vos événements GRATUITEMENT</a> toute l'année sur notre plateforme !
                                 </p>
                             </div>
                         </td>
                     </tr>
-                    
+
                     <!-- Footer -->
                     <tr>
                         <td style="background: #f8f9fa; padding: 30px 40px; text-align: center; border-top: 3px solid #667eea;">
@@ -5462,7 +5462,7 @@ Accessibilité: {accessibilite}
                         <tr>
                             <td style="padding:0 40px 25px;">
                                 <div style="background:#e3f2fd; border:1px solid #90caf9; border-radius:8px; padding:16px 20px; text-align:center;">
-                                    <p style="margin:0 0 10px 0; font-size:14px; color:#1565c0; font-weight:700;">👁️ Retrouvez votre demande à tout moment</p>
+                                    <p style="margin:0 0 10px 0; font-size:14px; color:#1565c0; font-weight:700;">Retrouvez votre demande à tout moment</p>
                                     <p style="margin:0 0 14px 0; font-size:13px; color:#1976d2;">Connectez-vous pour consulter, modifier ou dupliquer votre demande.</p>
                                     <a href="{_apercu_url}" style="display:inline-block; background:#1976d2; color:#fff; padding:10px 22px; border-radius:6px; text-decoration:none; font-weight:700; font-size:14px; margin:0 4px 6px 0;">Voir ma demande</a>
                                     <a href="{_mes_url}" style="display:inline-block; background:#fff; color:#1976d2; border:1px solid #1976d2; padding:9px 22px; border-radius:6px; text-decoration:none; font-weight:700; font-size:14px;">Mes demandes</a>
@@ -5478,9 +5478,9 @@ Accessibilité: {accessibilite}
                         <tr>
                             <td style="padding:0 40px 25px;">
                                 <div style="background:#fff3e0; border:1px dashed #ff9800; border-radius:8px; padding:16px 20px; text-align:center;">
-                                    <p style="margin:0 0 10px 0; font-size:14px; color:#e65100; font-weight:700;">💡 Créez un compte pour suivre votre demande</p>
+                                    <p style="margin:0 0 10px 0; font-size:14px; color:#e65100; font-weight:700;">Créez un compte pour suivre votre demande</p>
                                     <p style="margin:0 0 14px 0; font-size:13px; color:#f57c00;">Un compte gratuit vous permet de consulter, modifier ou dupliquer vos demandes à tout moment.</p>
-                                    <a href="{_inscr_url}" style="display:inline-block; background:#e65100; color:#fff; padding:10px 22px; border-radius:6px; text-decoration:none; font-weight:700; font-size:14px;">➕ Créer mon compte gratuit</a>
+                                    <a href="{_inscr_url}" style="display:inline-block; background:#e65100; color:#fff; padding:10px 22px; border-radius:6px; text-decoration:none; font-weight:700; font-size:14px;">Créer mon compte gratuit</a>
                                 </div>
                             </td>
                         </tr>"""
@@ -5551,7 +5551,7 @@ Accessibilité: {accessibilite}
 </body>
 </html>"""
                     msg_conf = MailMessage(
-                        subject=f"⏳ Votre demande d'animation est en attente de validation",
+                        subject=f"Votre demande d'animation est en attente de validation",
                         recipients=[contact_email]
                     )
                     msg_conf.html = confirmation_html
@@ -6036,14 +6036,14 @@ Accessibilité: {accessibilite}
             popup_html = (
                 f"<div style='min-width:220px'>"
                 f"<div style='font-weight:700;font-size:1rem;margin-bottom:4px;'>{html.escape(title)}</div>"
-                f"<div style='margin-bottom:4px;'>📍 {html.escape(ville)}</div>"
+                f"<div style='margin-bottom:4px;'>{html.escape(ville)}</div>"
             )
             if demande.region:
-                popup_html += f"<div style='margin-bottom:4px;'>🗺️ {html.escape(demande.region)}</div>"
+                popup_html += f"<div style='margin-bottom:4px;'>{html.escape(demande.region)}</div>"
             if demande.budget:
-                popup_html += f"<div style='margin-bottom:4px;'>💶 {html.escape(str(demande.budget))}</div>"
+                popup_html += f"<div style='margin-bottom:4px;'>{html.escape(str(demande.budget))}</div>"
             if demande.jauge:
-                popup_html += f"<div style='margin-bottom:4px;'>👥 {html.escape(str(demande.jauge))} personnes</div>"
+                popup_html += f"<div style='margin-bottom:4px;'>{html.escape(str(demande.jauge))} personnes</div>"
             popup_html += (
                 f"<div style='margin-top:8px;'><a href='{url_for('demandes_animation', categorie=categorie, region=region)}' style='display:inline-block;background:#1976d2;color:#fff;text-decoration:none;padding:6px 10px;border-radius:8px;font-weight:600;'>Voir la liste</a></div>"
                 f"</div>"
@@ -6406,27 +6406,27 @@ Accessibilité: {accessibilite}
     </div>
     <div class="content">
         <div class="success-box">
-            <h3>✅ Votre appel d'offre est maintenant en ligne !</h3>
+            <h3>Votre appel d'offre est maintenant en ligne !</h3>
         </div>
-        
+
         <h2>Félicitations !</h2>
         <p>Bonjour,</p>
         <p>Votre appel d'offre <strong>"{demande.intitule or demande.genre_recherche}"</strong> a été validé et est maintenant visible sur notre site.</p>
-        
+
         <div class="info-box">
-            <p><strong>📋 Votre demande :</strong></p>
+            <p><strong>Votre demande :</strong></p>
             <p><strong>Genre recherché :</strong> {demande.genre_recherche}<br>
             <strong>Spécialités :</strong> {demande.specialites_recherchees.replace(',', ', ') if demande.specialites_recherchees else 'Non précisées'}<br>
             <strong>Lieu :</strong> {demande.lieu_ville}<br>
             <strong>Date(s) :</strong> {demande.dates_horaires}</p>
         </div>
-        
+
         <p style="text-align: center;">
-            <a href="https://www.spectacleanimation.fr/demandes-animation" class="btn" style="display:inline-block;padding:14px 28px;background:#1b5e20;color:white;text-decoration:none;border-radius:8px;font-weight:700;font-size:1rem;">👉 Voir mon appel d'offre publié</a>
+            <a href="https://www.spectacleanimation.fr/demandes-animation" class="btn" style="display:inline-block;padding:14px 28px;background:#1b5e20;color:white;text-decoration:none;border-radius:8px;font-weight:700;font-size:1rem;">Voir mon appel d'offre publié</a>
         </p>
-        
+
         <p>Les compagnies de spectacle correspondant à votre recherche vont pouvoir consulter votre demande et vous contacter directement à l'adresse <strong>{demande.contact_email}</strong>.</p>
-        
+
         <div class="footer">
             <p><strong>L'équipe Spectacle'ment Vôtre</strong><br>
             contact@spectacleanimation.fr</p>
@@ -6436,7 +6436,7 @@ Accessibilité: {accessibilite}
 </html>
 """
             msg = MailMessage(
-                subject=f"✅ Votre appel d'offre est en ligne - {demande.genre_recherche} à {demande.lieu_ville}",
+                subject=f"Votre appel d'offre est en ligne - {demande.genre_recherche} à {demande.lieu_ville}",
                 recipients=[demande.contact_email]
             )
             msg.html = body_html
@@ -6648,52 +6648,52 @@ Accessibilité: {accessibilite}
     </div>
     <div class="content">
         <div class="create-notice">
-            ✅ NOUVEL APPEL D'OFFRE CRÉÉ
+            NOUVEL APPEL D'OFFRE CRÉÉ
         </div>
         <p style="font-size:0.95em; color:#444; margin:0 0 16px 0;"><strong>Appel d'offre créé :</strong> {demande.intitule or demande.genre_recherche}</p>
-        
+
         <div class="info-box">
-            <p><strong>📋 Informations de l'appel d'offre :</strong></p>
+            <p><strong>Informations de l'appel d'offre :</strong></p>
             <div class="info-grid">
                 <div class="info-item">
-                    <strong>🏢 Structure :</strong> {demande.structure}
+                    <strong>Structure :</strong> {demande.structure}
                 </div>
                 <div class="info-item">
-                    <strong>👤 Contact :</strong> {demande.nom}
+                    <strong>Contact :</strong> {demande.nom}
                 </div>
                 <div class="info-item">
-                    <strong>📍 Lieu :</strong> {demande.lieu_ville}
+                    <strong>Lieu :</strong> {demande.lieu_ville}
                 </div>
                 <div class="info-item">
-                    <strong>📅 Date(s) :</strong> {demande.dates_horaires}
+                    <strong>Date(s) :</strong> {demande.dates_horaires}
                 </div>
                 <div class="info-item">
-                    <strong>🎭 Genre :</strong> {demande.genre_recherche}
+                    <strong>Genre :</strong> {demande.genre_recherche}
                 </div>
                 <div class="info-item">
-                    <strong>👥 Jauge :</strong> {demande.jauge}
+                    <strong>Jauge :</strong> {demande.jauge}
                 </div>
                 <div class="info-item">
-                    <strong>💰 Budget :</strong> {demande.budget}
+                    <strong>Budget :</strong> {demande.budget}
                 </div>
                 <div class="info-item">
-                    <strong>👶 Public :</strong> {_format_age_label(demande.age_range)}
+                    <strong>Public :</strong> {_format_age_label(demande.age_range)}
                 </div>
             </div>
-            <p><strong>🏢 Type d'espace :</strong> {demande.type_espace}</p>
-            <p><strong>📋 Intitulé :</strong> {demande.intitule or 'Non précisé'}</p>
-            <p><strong>♿ Accessibilité :</strong> {demande.accessibilite or 'Non précisée'}</p>
-            <p><strong>📝 Contraintes :</strong> {demande.contraintes or 'Aucune'}</p>
-            <p><strong>📧 Email :</strong> {demande.contact_email}</p>
-            <p><strong>📞 Téléphone :</strong> {demande.telephone}</p>
+            <p><strong>Type d'espace :</strong> {demande.type_espace}</p>
+            <p><strong>Intitulé :</strong> {demande.intitule or 'Non précisé'}</p>
+            <p><strong>Accessibilité :</strong> {demande.accessibilite or 'Non précisée'}</p>
+            <p><strong>Contraintes :</strong> {demande.contraintes or 'Aucune'}</p>
+            <p><strong>Email :</strong> {demande.contact_email}</p>
+            <p><strong>Téléphone :</strong> {demande.telephone}</p>
         </div>
-        
+
         <div class="status-box">
-            <p><strong>🔒 Statut :</strong> {'🔒 BROUILLON PRIVÉ (non publié)' if is_private else '📢 PUBLIC'}</p>
-            <p><strong>✅ Validation :</strong> {'✅ APPROUVÉ (publié immédiatement)' if publish_immediately else '⏳ EN ATTENTE (nécessite validation)'}</p>
-            <p><strong>📧 Emails compagnies :</strong> {'✅ OUI (redirection vers sélection)' if send_emails else '❌ NON'}</p>
+            <p><strong>Statut :</strong> {'BROUILLON PRIVÉ (non publié)' if is_private else 'PUBLIC'}</p>
+            <p><strong>Validation :</strong> {'APPROUVÉ (publié immédiatement)' if publish_immediately else 'EN ATTENTE (nécessite validation)'}</p>
+            <p><strong>Emails compagnies :</strong> {'OUI (redirection vers sélection)' if send_emails else 'NON'}</p>
         </div>
-        
+
         <div class="footer">
             <p><strong>L'équipe Spectacle'ment Vôtre</strong><br>
             Notification automatique de création</p>
@@ -6704,7 +6704,7 @@ Accessibilité: {accessibilite}
 """
                     status_text = "Brouillon privé" if is_private else ("Publié" if publish_immediately else "En attente")
                     msg = MailMessage(
-                        subject=f"✅ Nouvel appel d'offre créé ({status_text}) : {demande.genre_recherche} à {demande.lieu_ville}",
+                        subject=f"Nouvel appel d'offre créé ({status_text}) : {demande.genre_recherche} à {demande.lieu_ville}",
                         recipients=[admin_email]
                     )
                     msg.html = body_html
@@ -6861,29 +6861,29 @@ Accessibilité: {accessibilite}
                         # Erreurs éventuelles
                         err_html = ""
                         if errors_detail:
-                            err_html = '<div style="background:#fff3cd;padding:10px;border-radius:6px;margin:12px 0;"><strong>⚠️ Erreurs :</strong><ul style="margin:4px 0;">'
+                            err_html = '<div style="background:#fff3cd;padding:10px;border-radius:6px;margin:12px 0;"><strong>Erreurs :</strong><ul style="margin:4px 0;">'
                             for ed in errors_detail[:10]:
                                 err_html += f"<li>{ed}</li>"
                             err_html += "</ul></div>"
 
                         admin_body = f"""<!DOCTYPE html><html><head><meta charset="UTF-8"></head><body style="font-family:Arial,sans-serif;max-width:650px;margin:0 auto;color:#333;">
 <div style="text-align:center;margin:16px 0;"><img src="https://www.spectacleanimation.fr/static/img/logo_spectaclement_votre.png" alt="Logo" style="max-width:180px;"></div>
-<div style="background:#1b2a4e;color:#fff;padding:14px 20px;border-radius:8px 8px 0 0;text-align:center;font-weight:700;font-size:1.1em;">📋 COPIE ADMIN — Auto-matching envoyé à {success_count} compagnie(s)</div>
+<div style="background:#1b2a4e;color:#fff;padding:14px 20px;border-radius:8px 8px 0 0;text-align:center;font-weight:700;font-size:1.1em;">COPIE ADMIN — Auto-matching envoyé à {success_count} compagnie(s)</div>
 <div style="background:#f9f9f9;padding:18px;border-radius:0 0 8px 8px;">
-<h3 style="margin:0 0 10px 0;color:#6a1b9a;">🎭 {demande.genre_recherche} à {demande.lieu_ville}</h3>
+<h3 style="margin:0 0 10px 0;color:#6a1b9a;">{demande.genre_recherche} à {demande.lieu_ville}</h3>
 <table style="width:100%;font-size:0.9em;margin:8px 0;" cellpadding="0" cellspacing="0">
-<tr><td style="padding:3px 0;"><strong>📝 Intitulé :</strong></td><td>{demande.intitule or 'Non précisé'}</td></tr>
-<tr><td style="padding:3px 0;"><strong>📅 Dates :</strong></td><td>{demande.dates_horaires}</td></tr>
-<tr><td style="padding:3px 0;"><strong>🏢 Structure :</strong></td><td>{demande.structure}</td></tr>
-<tr><td style="padding:3px 0;"><strong>👤 Contact :</strong></td><td>{demande.nom} — {demande.telephone}</td></tr>
-<tr><td style="padding:3px 0;"><strong>✉️ Email :</strong></td><td>{demande.contact_email}</td></tr>
-<tr><td style="padding:3px 0;"><strong>👥 Jauge :</strong></td><td>{demande.jauge}</td></tr>
-<tr><td style="padding:3px 0;"><strong>💰 Budget :</strong></td><td>{demande.budget}</td></tr>
-<tr><td style="padding:3px 0;"><strong>👶 Public :</strong></td><td>{_format_age_label(demande.age_range)}</td></tr>
-<tr><td style="padding:3px 0;"><strong>🏛️ Espace :</strong></td><td>{demande.type_espace}</td></tr>
-<tr><td style="padding:3px 0;"><strong>📍 Région :</strong></td><td>{demande.region or '—'}</td></tr>
+<tr><td style="padding:3px 0;"><strong>Intitulé :</strong></td><td>{demande.intitule or 'Non précisé'}</td></tr>
+<tr><td style="padding:3px 0;"><strong>Dates :</strong></td><td>{demande.dates_horaires}</td></tr>
+<tr><td style="padding:3px 0;"><strong>Structure :</strong></td><td>{demande.structure}</td></tr>
+<tr><td style="padding:3px 0;"><strong>Contact :</strong></td><td>{demande.nom} — {demande.telephone}</td></tr>
+<tr><td style="padding:3px 0;"><strong>Email :</strong></td><td>{demande.contact_email}</td></tr>
+<tr><td style="padding:3px 0;"><strong>Jauge :</strong></td><td>{demande.jauge}</td></tr>
+<tr><td style="padding:3px 0;"><strong>Budget :</strong></td><td>{demande.budget}</td></tr>
+<tr><td style="padding:3px 0;"><strong>Public :</strong></td><td>{_format_age_label(demande.age_range)}</td></tr>
+<tr><td style="padding:3px 0;"><strong>Espace :</strong></td><td>{demande.type_espace}</td></tr>
+<tr><td style="padding:3px 0;"><strong>Région :</strong></td><td>{demande.region or '—'}</td></tr>
 </table>
-<h4 style="margin:16px 0 8px 0;color:#1b2a4e;">✅ {success_count} compagnie(s) contactée(s) :</h4>
+<h4 style="margin:16px 0 8px 0;color:#1b2a4e;">{success_count} compagnie(s) contactée(s) :</h4>
 <table style="width:100%;border-collapse:collapse;font-size:0.85em;background:#fff;border-radius:6px;">
 <tr style="background:#e8eaf6;"><th style="padding:8px 10px;text-align:left;">Spectacle</th><th style="padding:8px 10px;text-align:left;">Catégorie</th><th style="padding:8px 10px;text-align:left;">Email</th><th style="padding:8px 10px;text-align:left;">Fiche</th></tr>
 {cie_rows}
@@ -7160,24 +7160,24 @@ Accessibilité: {accessibilite}
         <h2>Nouvelle Opportunité à {demande.lieu_ville}</h2>
         <p>Bonjour,</p>
         <p>Bonne nouvelle ! Nous avons reçu une demande d'animation pour <strong>{demande.genre_recherche}</strong> qui correspond parfaitement à votre profil :</p>
-        
+
         <div class="opportunity-box">
-            <h3>📋 {demande.genre_recherche} à {demande.lieu_ville}</h3>
+            <h3>{demande.genre_recherche} à {demande.lieu_ville}</h3>
             <div class="info-grid">
                 <div class="info-item">
-                    <div class="info-label">📍 Lieu</div>
+                    <div class="info-label">Lieu</div>
                     {demande.lieu_ville}
                 </div>
                 <div class="info-item">
-                    <div class="info-label">�️ Département</div>
+                    <div class="info-label">�Département</div>
                     {demande.departement or 'Non précisé'}
                 </div>
                 <div class="info-item">
-                    <div class="info-label">🌍 Région</div>
+                    <div class="info-label">Région</div>
                     {demande.region or 'Non précisée'}
                 </div>
                 <div class="info-item">
-                    <div class="info-label">�📅 Date(s)</div>
+                    <div class="info-label">�Date(s)</div>
                     {demande.dates_horaires}
                 </div>
                 <div class="info-item">
@@ -7185,60 +7185,60 @@ Accessibilité: {accessibilite}
                     {demande.genre_recherche}
                 </div>
                 <div class="info-item">
-                    <div class="info-label">🎭 Spécialités</div>
+                    <div class="info-label">Spécialités</div>
                     {demande.specialites_recherchees.replace(',', ', ') if demande.specialites_recherchees else 'Non précisées'}
                 </div>
                 <div class="info-item">
-                    <div class="info-label">👥 Jauge</div>
+                    <div class="info-label">Jauge</div>
                     {demande.jauge}
                 </div>
                 <div class="info-item">
-                    <div class="info-label">💰 Budget</div>
+                    <div class="info-label">Budget</div>
                     {demande.budget} €
                 </div>
                 <div class="info-item">
-                    <div class="info-label">👶 Public</div>
+                    <div class="info-label">Public</div>
                     {_format_age_label(demande.age_range)}
                 </div>
             </div>
-            <p><strong>🏢 Type d'espace :</strong> {demande.type_espace}</p>
-            <p style="color: #333;"><strong>📝 Intitulé de la mission :</strong> {demande.intitule or 'Non précisé'}</p>
-            <p><strong>♿ Accessibilité :</strong> {demande.accessibilite or 'Non précisée'}</p>
+            <p><strong>Type d'espace :</strong> {demande.type_espace}</p>
+            <p style="color: #333;"><strong>Intitulé de la mission :</strong> {demande.intitule or 'Non précisé'}</p>
+            <p><strong>Accessibilité :</strong> {demande.accessibilite or 'Non précisée'}</p>
         </div>
-        
+
         <div class="contact-box">
-            <h3>📞 Coordonnées du demandeur</h3>
+            <h3>Coordonnées du demandeur</h3>
             <p><strong>Structure :</strong> {demande.structure}<br>
             <strong>Contact :</strong> {demande.nom}<br>
             <strong>Email :</strong> <a href="mailto:{demande.contact_email}" style="color: #1b5e20;">{demande.contact_email}</a><br>
             <strong>Téléphone :</strong> {demande.telephone}</p>
             <p style="text-align: center;">
-                <a href="mailto:{demande.contact_email}" class="btn">✉️ Contacter le demandeur</a>
+                <a href="mailto:{demande.contact_email}" class="btn">Contacter le demandeur</a>
             </p>
             <p style="text-align: center; margin-top: 8px;">
-                <a href="https://www.spectacleanimation.fr/demandes-animation" style="display:inline-block;padding:10px 24px;background:#1b5e20;color:white;text-decoration:none;border-radius:5px;font-weight:bold;">👁️ Voir l'appel d'offre</a>
+                <a href="https://www.spectacleanimation.fr/demandes-animation" style="display:inline-block;padding:10px 24px;background:#1b5e20;color:white;text-decoration:none;border-radius:5px;font-weight:bold;">Voir l'appel d'offre</a>
             </p>
         </div>
-        
+
         <div class="show-info">
-            <p><strong>✨ Votre spectacle concerné :</strong><br>
+            <p><strong>Votre spectacle concerné :</strong><br>
             {show.title} - {show.category}</p>
         </div>
-        
+
         <div style="background-color: #e3f2fd; padding: 15px; border-radius: 8px; margin: 15px 0; text-align: center;">
             <p><strong>Vous aussi, annoncez vos événements GRATUITEMENT !</strong><br>
             Publiez vos spectacles toute l'année sans limite de temps.<br>
-            <a href="https://www.spectacleanimation.fr/submit" style="color: #1b5e20; font-weight: bold;">👉 Publier un spectacle</a></p>
+            <a href="https://www.spectacleanimation.fr/submit" style="color: #1b5e20; font-weight: bold;">Publier un spectacle</a></p>
         </div>
-        
+
         <div style="background: linear-gradient(135deg, #d32f2f 0%, #c62828 100%); color: white; padding: 20px; border-radius: 8px; margin: 15px 0; box-shadow: 0 4px 12px rgba(211,47,47,0.3);">
-            <p style="margin: 0 0 10px 0; font-size: 1.1em;"><strong>💼 SPECTACLE'MENT VÔTRE VOUS ACCOMPAGNE</strong></p>
+            <p style="margin: 0 0 10px 0; font-size: 1.1em;"><strong>SPECTACLE'MENT VÔTRE VOUS ACCOMPAGNE</strong></p>
             <p style="margin: 0 0 15px 0; font-size: 0.95em;">Gestion administrative complète de votre compagnie : URSSAF, DSN, DUE, AEM, fiches de salaire, contrats de cession, déclarations sociales...</p>
             <p style="text-align: center; margin: 0;">
-                <a href="https://spectacleanimation.fr/abonnement-compagnie" style="display: inline-block; background-color: white; color: #d32f2f; padding: 12px 28px; border-radius: 25px; text-decoration: none; font-weight: bold; box-shadow: 0 2px 8px rgba(0,0,0,0.2);">📋 Découvrir nos services</a>
+                <a href="https://spectacleanimation.fr/abonnement-compagnie" style="display: inline-block; background-color: white; color: #d32f2f; padding: 12px 28px; border-radius: 25px; text-decoration: none; font-weight: bold; box-shadow: 0 2px 8px rgba(0,0,0,0.2);">Découvrir nos services</a>
             </p>
         </div>
-        
+
         <div class="footer">
             <p><strong>L'équipe Spectacle'ment VØtre</strong><br>
             contact@spectacleanimation.fr</p>
@@ -7289,24 +7289,24 @@ Accessibilité: {accessibilite}
         <h2>Nouvelle Opportunité à {demande.lieu_ville}</h2>
         <p>Bonjour,</p>
         <p>Nous avons reçu une demande d'animation pour <strong>{demande.genre_recherche}</strong> dans votre région qui pourrait vous intéresser :</p>
-        
+
         <div class="opportunity-box">
-            <h3>📋 {demande.genre_recherche} à {demande.lieu_ville}</h3>
+            <h3>{demande.genre_recherche} à {demande.lieu_ville}</h3>
             <div class="info-grid">
                 <div class="info-item">
-                    <div class="info-label">📍 Lieu</div>
+                    <div class="info-label">Lieu</div>
                     {demande.lieu_ville}
                 </div>
                 <div class="info-item">
-                    <div class="info-label">�️ Département</div>
+                    <div class="info-label">�Département</div>
                     {demande.departement or 'Non précisé'}
                 </div>
                 <div class="info-item">
-                    <div class="info-label">🌍 Région</div>
+                    <div class="info-label">Région</div>
                     {demande.region or 'Non précisée'}
                 </div>
                 <div class="info-item">
-                    <div class="info-label">�📅 Date(s)</div>
+                    <div class="info-label">�Date(s)</div>
                     {demande.dates_horaires}
                 </div>
                 <div class="info-item">
@@ -7314,55 +7314,55 @@ Accessibilité: {accessibilite}
                     {demande.genre_recherche}
                 </div>
                 <div class="info-item">
-                    <div class="info-label">🎭 Spécialités</div>
+                    <div class="info-label">Spécialités</div>
                     {demande.specialites_recherchees.replace(',', ', ') if demande.specialites_recherchees else 'Non précisées'}
                 </div>
                 <div class="info-item">
-                    <div class="info-label">👥 Jauge</div>
+                    <div class="info-label">Jauge</div>
                     {demande.jauge}
                 </div>
                 <div class="info-item">
-                    <div class="info-label">💰 Budget</div>
+                    <div class="info-label">Budget</div>
                     {demande.budget} €
                 </div>
                 <div class="info-item">
-                    <div class="info-label">👶 Public</div>
+                    <div class="info-label">Public</div>
                     {_format_age_label(demande.age_range)}
                 </div>
             </div>
-            <p><strong>🏢 Type d'espace :</strong> {demande.type_espace}</p>
-            <p style="color: #333;"><strong>📝 Intitulé de la mission :</strong> {demande.intitule or 'Non précisé'}</p>
-            <p><strong>♿ Accessibilité :</strong> {demande.accessibilite or 'Non précisée'}</p>
+            <p><strong>Type d'espace :</strong> {demande.type_espace}</p>
+            <p style="color: #333;"><strong>Intitulé de la mission :</strong> {demande.intitule or 'Non précisé'}</p>
+            <p><strong>Accessibilité :</strong> {demande.accessibilite or 'Non précisée'}</p>
         </div>
-        
+
         <div class="contact-box">
-            <h3>📞 Coordonnées du demandeur</h3>
+            <h3>Coordonnées du demandeur</h3>
             <p><strong>Structure :</strong> {demande.structure}<br>
             <strong>Contact :</strong> {demande.nom}<br>
             <strong>Email :</strong> <a href="mailto:{demande.contact_email}" style="color: #1b2a4e;">{demande.contact_email}</a><br>
             <strong>Téléphone :</strong> {demande.telephone}</p>
             <p style="text-align: center;">
-                <a href="mailto:{demande.contact_email}" class="btn">✉️ Contacter le demandeur</a>
+                <a href="mailto:{demande.contact_email}" class="btn">Contacter le demandeur</a>
             </p>
             <p style="text-align: center; margin-top: 8px;">
-                <a href="https://www.spectacleanimation.fr/demandes-animation" style="display:inline-block;padding:10px 24px;background:#1b5e20;color:white;text-decoration:none;border-radius:5px;font-weight:bold;">👁️ Voir l'appel d'offre</a>
+                <a href="https://www.spectacleanimation.fr/demandes-animation" style="display:inline-block;padding:10px 24px;background:#1b5e20;color:white;text-decoration:none;border-radius:5px;font-weight:bold;">Voir l'appel d'offre</a>
             </p>
         </div>
-        
+
         <div style="background-color: #e3f2fd; padding: 15px; border-radius: 8px; margin: 15px 0; text-align: center;">
             <p><strong>Vous aussi, annoncez vos événements GRATUITEMENT !</strong><br>
             Publiez vos spectacles toute l'année sans limite de temps.<br>
-            <a href="https://www.spectacleanimation.fr/submit" style="color: #1b2a4e; font-weight: bold;">👉 Publier un spectacle</a></p>
+            <a href="https://www.spectacleanimation.fr/submit" style="color: #1b2a4e; font-weight: bold;">Publier un spectacle</a></p>
         </div>
-        
+
         <div style="background: linear-gradient(135deg, #d32f2f 0%, #c62828 100%); color: white; padding: 20px; border-radius: 8px; margin: 15px 0; box-shadow: 0 4px 12px rgba(211,47,47,0.3);">
-            <p style="margin: 0 0 10px 0; font-size: 1.1em;"><strong>💼 SPECTACLE'MENT VÔTRE VOUS ACCOMPAGNE</strong></p>
+            <p style="margin: 0 0 10px 0; font-size: 1.1em;"><strong>SPECTACLE'MENT VÔTRE VOUS ACCOMPAGNE</strong></p>
             <p style="margin: 0 0 15px 0; font-size: 0.95em;">Gestion administrative complète de votre compagnie : URSSAF, DSN, DUE, AEM, fiches de salaire, contrats de cession, déclarations sociales...</p>
             <p style="text-align: center; margin: 0;">
-                <a href="https://spectacleanimation.fr/abonnement-compagnie" style="display: inline-block; background-color: white; color: #d32f2f; padding: 12px 28px; border-radius: 25px; text-decoration: none; font-weight: bold; box-shadow: 0 2px 8px rgba(0,0,0,0.2);">📋 Découvrir nos services</a>
+                <a href="https://spectacleanimation.fr/abonnement-compagnie" style="display: inline-block; background-color: white; color: #d32f2f; padding: 12px 28px; border-radius: 25px; text-decoration: none; font-weight: bold; box-shadow: 0 2px 8px rgba(0,0,0,0.2);">Découvrir nos services</a>
             </p>
         </div>
-        
+
         <div class="footer">
             <p><strong>L'équipe Spectacle'ment VØtre</strong><br>
             contact@spectacleanimation.fr</p>
@@ -7465,19 +7465,19 @@ Accessibilité: {accessibilite}
     </div>
     <div class="content">
         <div class="admin-notice">
-            📋 COPIE ADMIN - Appel d'offre envoyé à {success_count} compagnie(s)
+            COPIE ADMIN - Appel d'offre envoyé à {success_count} compagnie(s)
         </div>
         <p style="font-size:0.95em; color:#444; margin:0 0 16px 0;"><strong>Appel d'offre :</strong> {demande.intitule or 'Demande d\'animation'}</p>
-        
+
         <div class="opportunity-box">
-            <h3>📋 {demande.genre_recherche} à {demande.lieu_ville}</h3>
+            <h3>{demande.genre_recherche} à {demande.lieu_ville}</h3>
             <div class="info-grid">
                 <div class="info-item">
-                    <div class="info-label">📍 Lieu</div>
+                    <div class="info-label">Lieu</div>
                     {demande.lieu_ville}
                 </div>
                 <div class="info-item">
-                    <div class="info-label">📅 Date(s)</div>
+                    <div class="info-label">Date(s)</div>
                     {demande.dates_horaires}
                 </div>
                 <div class="info-item">
@@ -7485,32 +7485,32 @@ Accessibilité: {accessibilite}
                     {demande.genre_recherche}
                 </div>
                 <div class="info-item">
-                    <div class="info-label">🎭 Spécialités</div>
+                    <div class="info-label">Spécialités</div>
                     {demande.specialites_recherchees.replace(',', ', ') if demande.specialites_recherchees else 'Non précisées'}
                 </div>
                 <div class="info-item">
-                    <div class="info-label">👥 Jauge</div>
+                    <div class="info-label">Jauge</div>
                     {demande.jauge}
                 </div>
                 <div class="info-item">
-                    <div class="info-label">💰 Budget</div>
+                    <div class="info-label">Budget</div>
                     {demande.budget} €
                 </div>
                 <div class="info-item">
-                    <div class="info-label">👶 Public</div>
+                    <div class="info-label">Public</div>
                     {_format_age_label(demande.age_range)}
                 </div>
             </div>
-            <p><strong>🏢 Type d'espace :</strong> {demande.type_espace}</p>
-            <p style="color: #333;"><strong>📝 Intitulé de la mission :</strong> {demande.intitule or 'Non précisé'}</p>
-            <p><strong>♿ Accessibilité :</strong> {demande.accessibilite or 'Non précisée'}</p>
+            <p><strong>Type d'espace :</strong> {demande.type_espace}</p>
+            <p style="color: #333;"><strong>Intitulé de la mission :</strong> {demande.intitule or 'Non précisé'}</p>
+            <p><strong>Accessibilité :</strong> {demande.accessibilite or 'Non précisée'}</p>
         </div>
-        
+
         <p><strong>Structure :</strong> {demande.structure}<br>
         <strong>Contact :</strong> {demande.nom}<br>
         <strong>Email :</strong> {demande.contact_email}<br>
         <strong>Téléphone :</strong> {demande.telephone}</p>
-        
+
         <div class="footer">
             <p><strong>L'équipe Spectacle'ment Vôtre</strong></p>
         </div>
@@ -7980,7 +7980,7 @@ def _send_inactive_notice_email(username: str, email: str, deadline_str: str) ->
         return
     try:
         msg = MailMessage(  # type: ignore[misc]
-            subject="⏳ Votre compte Spectacle'ment VØtre sera supprimé dans 7 jours",
+            subject="Votre compte Spectacle'ment VØtre sera supprimé dans 7 jours",
             recipients=[email],
         )
         msg.body = (
@@ -8360,24 +8360,24 @@ def admin_delete_user(user_id):
 <body style="font-family:Arial,sans-serif;background:#f4f6fa;margin:0;padding:20px;">
   <div style="max-width:600px;margin:0 auto;background:#fff;border-radius:10px;overflow:hidden;box-shadow:0 2px 12px rgba(0,0,0,0.08);">
     <div style="background:linear-gradient(135deg,#ff9800,#f57c00);color:#fff;padding:24px;text-align:center;">
-      <h2 style="margin:0;">⏳ Préavis de suppression</h2>
+      <h2 style="margin:0;">Préavis de suppression</h2>
     </div>
     <div style="padding:28px;color:#333;line-height:1.6;">
       <p>Bonjour <strong>{username}</strong>,</p>
       <p>Nous avons remarqué qu'<strong>aucun spectacle n'a encore été publié</strong> sur votre compte Spectacle'ment VØtre.</p>
       <p>Sans publication de votre part, votre compte sera <strong>automatiquement supprimé le {deadline_str}</strong> (dans 7 jours).</p>
       <div style="background:#e8f5e9;border-left:4px solid #2e7d32;padding:16px 18px;border-radius:6px;margin:20px 0;">
-        <p style="margin:0;"><strong>✅ Comment conserver votre compte ?</strong></p>
+        <p style="margin:0;"><strong>Comment conserver votre compte ?</strong></p>
         <p style="margin:8px 0 0 0;">Connectez-vous et publiez votre premier spectacle. C'est <strong>gratuit</strong> et cela prend quelques minutes.</p>
         <p style="text-align:center;margin:16px 0 0 0;">
-          <a href="https://www.spectacleanimation.fr/login" style="display:inline-block;padding:12px 26px;background:#1b5e20;color:#fff;text-decoration:none;border-radius:6px;font-weight:700;">👉 Me connecter et publier</a>
+          <a href="https://www.spectacleanimation.fr/login" style="display:inline-block;padding:12px 26px;background:#1b5e20;color:#fff;text-decoration:none;border-radius:6px;font-weight:700;">Me connecter et publier</a>
         </p>
       </div>
       <div style="background:#f3e5f5;border-left:4px solid #6a1b9a;padding:16px 18px;border-radius:6px;margin:20px 0;">
-        <p style="margin:0 0 8px 0;"><strong>💚 Pourquoi c'est efficace ?</strong></p>
+        <p style="margin:0 0 8px 0;"><strong>Pourquoi c'est efficace ?</strong></p>
         <p style="margin:0 0 8px 0;font-size:14px;line-height:1.6;">Spectacle'ment VØtre fonctionne comme un <strong>annuaire national de référence</strong> : plus il y a de spectacles publiés, plus les <strong>mairies, écoles, CSE, agences et organisateurs</strong> prennent l'habitude d'y chercher leurs animations &mdash; et d'y déposer leurs <strong>appels d'offres</strong>.</p>
-        <p style="margin:0 0 8px 0;font-size:14px;line-height:1.6;">📍 <strong>Au niveau local</strong>, votre département gagne en visibilité à mesure que des compagnies de la région s'y inscrivent : les acteurs culturels de chez vous tombent alors sur <strong>votre profil en priorité</strong>.</p>
-        <p style="margin:0 0 8px 0;font-size:14px;line-height:1.6;">🇫🇷 <strong>Au niveau national</strong>, vous recevrez aussi des appels d'offres venant de <strong>toute la France</strong> &mdash; un complément précieux à votre démarche commerciale régionale, qui vous ouvre des dates et des territoires que vous n'auriez pas prospectés seul.</p>
+        <p style="margin:0 0 8px 0;font-size:14px;line-height:1.6;"><strong>Au niveau local</strong>, votre département gagne en visibilité à mesure que des compagnies de la région s'y inscrivent : les acteurs culturels de chez vous tombent alors sur <strong>votre profil en priorité</strong>.</p>
+        <p style="margin:0 0 8px 0;font-size:14px;line-height:1.6;"><strong>Au niveau national</strong>, vous recevrez aussi des appels d'offres venant de <strong>toute la France</strong> &mdash; un complément précieux à votre démarche commerciale régionale, qui vous ouvre des dates et des territoires que vous n'auriez pas prospectés seul.</p>
         <p style="margin:0 0 8px 0;font-size:14px;line-height:1.6;">C'est cette dynamique collective qui nous permet d'offrir la <strong>publication de vos spectacles</strong>{phrase_ao_preavis}.</p>
         <p style="margin:0;font-size:13px;color:#555;font-style:italic;line-height:1.6;">C'est en accompagnant les compagnies qui le souhaitent sur le volet administratif (URSSAF, DSN, contrats de cession…) que nous pérennisons ce modèle.</p>
       </div>
@@ -8387,7 +8387,7 @@ def admin_delete_user(user_id):
   </div>
 </body></html>"""
                 try:
-                    msg = MailMessage(subject="⏳ Votre compte Spectacle'ment VØtre sera supprimé dans 7 jours", recipients=[user_email])  # type: ignore[arg-type]
+                    msg = MailMessage(subject="Votre compte Spectacle'ment VØtre sera supprimé dans 7 jours", recipients=[user_email])  # type: ignore[arg-type]
                     msg.html = body_html  # type: ignore[assignment]
                     current_app.mail.send(msg)  # type: ignore[attr-defined]
                     current_app.logger.info(f"[MAIL] ✓ Préavis 7j envoyé à {user_email}")
@@ -8458,10 +8458,10 @@ def admin_delete_user(user_id):
       <p>Nous vous informons que votre compte sur <strong>Spectacle'ment VØtre</strong> a été <strong>supprimé pour inactivité</strong>.</p>
       <p>Aucun spectacle n'avait été publié sur votre compte. Pour conserver une plateforme à jour pour les organisateurs (mairies, écoles, CSE…), nous faisons régulièrement le ménage des comptes restés sans spectacle approuvé.</p>
       <div style="background:#e8f5e9;border-left:4px solid #2e7d32;padding:16px 18px;border-radius:6px;margin:20px 0;">
-        <p style="margin:0;"><strong>💡 Vous souhaitez revenir ?</strong></p>
+        <p style="margin:0;"><strong>Vous souhaitez revenir ?</strong></p>
         <p style="margin:8px 0 0 0;">L'inscription est toujours <strong>100 % gratuite</strong>. Vous pouvez recréer un compte et publier votre premier spectacle en quelques minutes :</p>
         <p style="text-align:center;margin:16px 0 0 0;">
-          <a href="https://www.spectacleanimation.fr/register" style="display:inline-block;padding:12px 26px;background:#1b5e20;color:#fff;text-decoration:none;border-radius:6px;font-weight:700;">👉 Créer un nouveau compte</a>
+          <a href="https://www.spectacleanimation.fr/register" style="display:inline-block;padding:12px 26px;background:#1b5e20;color:#fff;text-decoration:none;border-radius:6px;font-weight:700;">Créer un nouveau compte</a>
         </p>
       </div>
       <p>Merci de l'intérêt que vous avez porté à notre plateforme.</p>
