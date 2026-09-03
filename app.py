@@ -6417,20 +6417,53 @@ Accessibilité: {accessibilite}
     @login_required
     @admin_required
     def approve_demande_animation(demande_id):
-        """Approuver et publier un appel d'offre, puis envoyer un email à l'auteur"""
+        """Approuver et publier un appel d'offre.
+
+        Param query `notify` :
+          - 'auteur' (defaut) : envoie l'email de confirmation à l'auteur + BCC admin
+          - 'admin'           : envoie une notif uniquement à l'admin (auteur non contacte)
+        """
         from models.models import DemandeAnimation
         demande = DemandeAnimation.query.get_or_404(demande_id)
-        
+        notify = (request.args.get("notify") or "auteur").lower()
+        if notify not in ("auteur", "admin"):
+            notify = "auteur"
+
         # Vérifier si déjà approuvé
         if demande.approved:
             flash("⚠️ Cette demande est déjà publiée.", "warning")
             return redirect(url_for("admin_demandes_animation"))
-        
+
         # Approuver la demande
         demande.approved = True
         db.session.commit()
-        
-        # Envoyer un email à l'auteur
+
+        admin_email = "contact@spectacleanimation.fr"
+
+        # Notification admin seule (aucun email à l'auteur)
+        if notify == "admin":
+            try:
+                body_admin = (
+                    f"Demande #{demande.id} approuvée (mode silencieux, auteur non notifié).\n\n"
+                    f"Intitulé   : {demande.intitule or demande.genre_recherche}\n"
+                    f"Structure : {demande.structure or '-'}\n"
+                    f"Contact   : {demande.nom or '-'} <{demande.contact_email or '-'}>\n"
+                    f"Lieu      : {demande.lieu_ville or '-'} ({demande.code_postal or '-'})\n"
+                    f"Date(s)   : {demande.dates_horaires or '-'}\n"
+                )
+                msg = MailMessage(  # type: ignore[misc]
+                    subject=f"[Silencieux] Demande approuvée #{demande.id} - {demande.lieu_ville or ''}",
+                    recipients=[admin_email],
+                )
+                msg.body = body_admin  # type: ignore[assignment]
+                current_app.mail.send(msg)  # type: ignore[attr-defined]
+                flash("✅ Demande approuvée (auteur NON notifié, notif admin envoyée).", "success")
+            except Exception as e:
+                current_app.logger.error(f"[MAIL] ✗ Notif admin (silencieux) : {e}")
+                flash("✅ Demande approuvée. ⚠️ Échec envoi notif admin.", "warning")
+            return redirect(url_for("admin_demandes_animation"))
+
+        # Sinon (notify == 'auteur') : email de confirmation à l'auteur
         try:
             body_html = f"""
 <!DOCTYPE html>
@@ -6492,7 +6525,6 @@ Accessibilité: {accessibilite}
             msg.html = body_html
             
             # Ajouter l'admin en copie cachée pour suivi
-            admin_email = "contact@spectacleanimation.fr"
             if demande.contact_email != admin_email:  # Éviter duplication
                 msg.bcc = [admin_email]
             
