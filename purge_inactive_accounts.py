@@ -32,7 +32,7 @@ from datetime import datetime, timedelta
 
 from app import app, db, notify_admin_show_deletion
 from models.models import (
-    User, DemandeAnimation, PageVisit, VisitorLog,
+    User, DemandeAnimation, VisitorLog,
     ShowView, Review, Conversation, Message, Notification,
 )
 
@@ -192,7 +192,6 @@ def main():
             try:
                 # Detache les FK nullables non gerees par la cascade principale
                 DemandeAnimation.query.filter_by(user_id=uid).update({"user_id": None})
-                PageVisit.query.filter_by(user_id=uid).update({"user_id": None})
                 VisitorLog.query.filter_by(user_id=uid).update({"user_id": None})
 
                 _delete_user_cascade(u)
