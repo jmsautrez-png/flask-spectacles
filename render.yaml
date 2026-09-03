@@ -36,44 +36,6 @@ services:
       - key: S3_REGION
         value: eu-west-1
 
-  # === Cron : marquer en préavis 7j les comptes inactifs (sans spectacle publié) ===
-  - type: cron
-    name: auto-flag-inactive-users
-    env: python
-    schedule: "0 3 * * *"  # tous les jours à 03h00 UTC
-    buildCommand: "pip install -r requirements.txt"
-    startCommand: "python auto_flag_inactive_users.py"
-    envVars:
-      - key: DATABASE_URL
-        fromDatabase:
-          name: flask-spectacles-db
-          property: connectionString
-      - key: SECRET_KEY
-        sync: false
-      - key: MAIL_USERNAME
-        sync: false
-      - key: MAIL_PASSWORD
-        sync: false
-
-  # === Cron : supprimer définitivement les comptes en préavis dépassé ===
-  - type: cron
-    name: cleanup-pending-deletions
-    env: python
-    schedule: "30 3 * * *"  # tous les jours à 03h30 UTC (après le flag)
-    buildCommand: "pip install -r requirements.txt"
-    startCommand: "python cleanup_pending_deletions.py"
-    envVars:
-      - key: DATABASE_URL
-        fromDatabase:
-          name: flask-spectacles-db
-          property: connectionString
-      - key: SECRET_KEY
-        sync: false
-      - key: MAIL_USERNAME
-        sync: false
-      - key: MAIL_PASSWORD
-        sync: false
-
   # === Cron : purger les logs visiteurs > 30 jours (RGPD + éviter OOM sur /admin/statistiques) ===
   # NOTE: doit être créé aussi manuellement dans le dashboard Render — la déclaration YAML
   # seule ne suffit pas toujours à provisionner le cron.
