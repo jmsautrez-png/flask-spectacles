@@ -1054,10 +1054,17 @@ def _bootstrap_admin(app: Flask) -> None:
 
 def register_error_handlers(app: Flask) -> None:
     """Enregistre les gestionnaires d'erreurs personnalisés pour l'application"""
+    from werkzeug.exceptions import HTTPException
+
     @app.errorhandler(404)
     def page_not_found(e):
         return render_template("404.html", user=current_user()), 404
-    
+
+    @app.errorhandler(405)
+    def method_not_allowed(e):
+        # Reponse minimale pour eviter d'envoyer la page 500 de 68 Ko aux bots qui POSTent sur /
+        return "Method Not Allowed", 405
+
     @app.errorhandler(500)
     def internal_server_error(e):
         # Rollback en cas d'erreur pour libérer la transaction PostgreSQL
@@ -1102,6 +1109,9 @@ def register_error_handlers(app: Flask) -> None:
     
     @app.errorhandler(Exception)
     def handle_exception(e):
+        # Laisser les erreurs HTTP (404, 405, 413...) suivre leurs handlers dedies plutot que de tout renvoyer en 500
+        if isinstance(e, HTTPException):
+            return e
         # Rollback global pour toute exception non gérée
         try:
             db.session.rollback()
