@@ -161,6 +161,38 @@ def _csv_to_set(value):
     return {v.strip().lower() for v in value.split(",") if v.strip()}
 
 
+# Hiérarchie des spécialités : une fiche taggée avec une variante précise
+# (ex. « Spectacle enfant avec de la magie ») couvre aussi son parent générique
+# (« Spectacle pour enfant ») du point de vue du matching. Rattrapage automatique
+# des fiches taggées uniquement en variante : elles remontent sur les demandes
+# génériques sans que la compagnie ait à modifier sa fiche.
+# Clés/valeurs en minuscules pour matcher la sortie de `_csv_to_set`.
+_SPEC_PARENTS = {
+    "spectacle enfant avec de la magie":     "spectacle pour enfant",
+    "spectacle enfant avec des chansons":    "spectacle pour enfant",
+    "spectacle enfant avec de la danse":     "spectacle pour enfant",
+    "spectacle enfant avec du cirque":       "spectacle pour enfant",
+    "spectacle enfant clownesque":           "spectacle pour enfant",
+    "spectacle enfant avec de l'épée":       "spectacle pour enfant",
+    "spectacle enfant avec interactivité":   "spectacle pour enfant",
+    "spectacle pour enfant avec des ombres": "spectacle pour enfant",
+    "spectacle de rue pour enfant":          "spectacle pour enfant",
+}
+
+
+def _expand_with_parents(specs):
+    """Ajoute les catégories parentes aux spécialités d'une fiche (sens fiche→demande uniquement).
+
+    Ne modifie pas l'ensemble d'entrée. Retourne un NOUVEL ensemble étendu.
+    Utilisé UNIQUEMENT côté fiche : une demande précise n'est jamais élargie
+    à un générique (pour ne pas noyer la mairie de fiches non pertinentes).
+    """
+    if not specs:
+        return specs
+    parents = {_SPEC_PARENTS[s] for s in specs if s in _SPEC_PARENTS}
+    return specs | parents if parents else specs
+
+
 # Échelle « dès X ans » : sous-option → âge plancher (en années).
 # Sert au matching hiérarchique côté DEMANDE : une demande « dès X ans »
 # accepte tous les spectacles dont l'âge plancher est ≥ X.
@@ -263,6 +295,9 @@ def compute_score(show, demande):
     Age range: incompatible → excluded (returns compatible=False); exact → +10; proche → +5.
     """
     show_specs = _csv_to_set(show.specialites)
+    # Élargit une fiche « variante précise » à son parent générique
+    # (ex. « avec magie » → couvre aussi « Spectacle pour enfant »).
+    show_specs = _expand_with_parents(show_specs)
     # Lieux : normalisés vers les buckets simplifiés (compat. anciens libellés)
     show_lieux = {b.lower() for b in normalize_lieux_csv(show.lieux_intervention)}
     show_regions = _csv_to_set(show.regions_intervention)

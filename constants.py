@@ -17,19 +17,17 @@ MASQUER_COORDONNEES_DIRECTES = True
 SPECIALITES = {
     "Spectacle et Animation": [
         # Magie / Illusion
-        "Magie et Magicien",
         "Prestidigitateur",
         "Mentaliste",
         "Close-up",
         # Humour / Personnages
-        "Clown",
         "Clown suiveur",
         "Humoriste et Imitateur",
         "Sosie",
         "Ventriloque",
         "Mascotte",
         # Jeunesse / Famille
-        "Père Noël",
+        "Passage du Père Noël",
         "Conteuse Conteur",
         "Conte théâtralisé",
         "Spectacle tiré d'un livre jeunesse",
@@ -51,7 +49,9 @@ SPECIALITES = {
         "Spectacle enfant clownesque",
         "Spectacle enfant avec de l'épée",
         "Spectacle enfant avec interactivité",
+        "Spectacle pour enfant avec des ombres",
         "Spectacle de Rue",
+        "Spectacle de rue pour enfant",
         "Parade de rue / Déambulation",
         "Spectacle en roulotte",
         "Spectacle Médiéval",

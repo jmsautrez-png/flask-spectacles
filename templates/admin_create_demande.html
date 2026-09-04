@@ -300,7 +300,18 @@
                             <span class="section-icon">🎯</span>
                             Critères de matching
                         </h2>
-                        {{ accordion_checkboxes("specialites_recherchees", specialites_data, [], "🎭", "Spécialités recherchées", "#e91e63", "Quel type de spectacle cherchez-vous ?", "#000", 10, True, True, True, False) }}
+                        {{ accordion_checkboxes(
+                            "specialites_recherchees",
+                            specialites_data,
+                            [],
+                            "🎭",
+                            "Spécialités recherchées",
+                            "#e91e63",
+                            "Quel type de spectacle cherchez-vous ? (3 maximum)",
+                            "#000",
+                            3, True, True, True, False, False,
+                            item_hints={"Spectacle pour enfant": "Cochez uniquement si la mairie n'a aucune préférence de thème — sinon précisez ci-dessous (magie, cirque, ombres, épée…)."}
+                        ) }}
                         {{ accordion_checkboxes("lieux_souhaites", lieux_data, [], "📍", "Type de lieu", "#2196f3", "Dans quel type de lieu ?", "#000") }}
                     </div>
 

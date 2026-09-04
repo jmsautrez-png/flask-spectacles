@@ -5,7 +5,12 @@
      {{ accordion_checkboxes("specialites", specialites_data, current_values, "🎭", "Spécialités artistiques") }}
    ═══════════════════════════════════════════════════════════════════ #}
 
-{% macro accordion_checkboxes(field_name, categories_dict, current_values, icon, title, color="#6a1b9a", description="", text_color="#000", max_checked=0, show_counter=True, show_tip=True, show_toggle_buttons=True, enable_solo=True, open_by_default=False) %}
+{% macro accordion_checkboxes(field_name, categories_dict, current_values, icon, title, color="#6a1b9a", description="", text_color="#000", max_checked=0, show_counter=True, show_tip=True, show_toggle_buttons=True, enable_solo=True, open_by_default=False, item_hints={}) %}
+<style>
+  .matching-cb-hint { display: none; }
+  .matching-cb-label.has-hint:hover + .matching-cb-hint,
+  .matching-cb-label.has-hint:focus-within + .matching-cb-hint { display: block; }
+</style>
 <div class="matching-accordion-section" style="margin:18px 0;" data-field="{{ field_name }}"{% if max_checked > 0 %} data-max="{{ max_checked }}"{% endif %} data-solo-enabled="{{ '1' if enable_solo else '0' }}">
   <h3 style="color:{{ color }}; margin:0 0 6px 0; font-size:1.05rem; display:flex; align-items:center; gap:8px;">
     {% if icon %}{{ icon }} {% endif %}{{ title }}
@@ -39,13 +44,17 @@
     </summary>
     <div style="padding:8px 14px; display:grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap:4px;">
       {% for item in items %}
-      <label style="display:flex; align-items:center; padding:5px 8px; border-radius:5px; cursor:pointer; transition:background 0.15s;" class="matching-cb-label" onmouseover="this.style.background='rgba(128,128,128,0.1)'" onmouseout="this.style.background='transparent'">
+      {% set has_hint = item_hints and item in item_hints %}
+      <label style="display:flex; align-items:center; padding:5px 8px; border-radius:5px; cursor:pointer; transition:background 0.15s;" class="matching-cb-label{% if has_hint %} has-hint{% endif %}"{% if has_hint %} title="{{ item_hints[item] }}"{% endif %} onmouseover="this.style.background='rgba(128,128,128,0.1)'" onmouseout="this.style.background='transparent'">
         <input type="checkbox" name="{{ field_name }}" value="{{ item }}"
           {% if item in current_values %}checked{% endif %}
           onchange="checkMatchingLimit('{{ field_name }}', this); updateMatchingCounts('{{ field_name }}', {{ categories_dict | length }})"
           style="margin-right:8px; width:16px; height:16px; cursor:pointer; accent-color:{{ color }};">
         <span style="font-size:0.9rem; color:{{ text_color }};">{{ item }}</span>
       </label>
+      {% if has_hint %}
+      <div class="matching-cb-hint" style="grid-column:1/-1; margin:-2px 0 6px 32px; font-size:0.78rem; color:{{ text_color }}; opacity:0.9; font-style:italic; line-height:1.35;">💡 {{ item_hints[item] }}</div>
+      {% endif %}
       {% endfor %}
     </div>
   </details>
