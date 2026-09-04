@@ -105,6 +105,9 @@
             <span style="background: rgba(25,135,84,0.3); color: #4caf50; padding: 4px 12px; border-radius: 12px; font-size: 0.85em; font-weight: 600;">
               {{ user.shows|length if user.shows else 0 }}
             </span>
+            {% if not user.is_admin and user.bloque_appels_offres %}
+              <br><span style="background:rgba(198,40,40,0.3); color:#ff8a80; padding:3px 8px; border-radius:8px; font-size:0.72em; font-weight:700; margin-top:4px; display:inline-block;" title="Appels d'offres bloqués par l'admin">🔒 AO bloqués</span>
+            {% endif %}
           </td>
           <td style="padding: 12px; text-align: center;">
             {% if user.is_admin %}
@@ -197,6 +200,31 @@
                 </div>
               </div>
             </form>
+
+            {# ── Verrou : accès aux appels d'offres (utile pour les compagnies « Édition libre ») ── #}
+            <div style="background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); border-radius:10px; padding:14px 16px; margin-bottom:14px; display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:12px;">
+              <div style="min-width:260px;">
+                <div style="font-weight:700; color:#ffc107; margin-bottom:4px;">📢 Accès aux appels d'offres</div>
+                {% if user.bloque_appels_offres %}
+                  <div style="color:#ff8a80; font-size:0.9em;">
+                    🔒 <strong>Bloqué</strong> — cette compagnie ne peut pas consulter les appels d'offres.
+                  </div>
+                {% else %}
+                  <div style="color:#a5d6a7; font-size:0.9em;">
+                    🔓 <strong>Autorisé</strong> — accès normal aux appels d'offres.
+                  </div>
+                {% endif %}
+              </div>
+              <form method="post" action="{{ url_for('admin_toggle_bloque_appels_offres', user_id=user.id) }}"
+                    onsubmit="return confirm({% if user.bloque_appels_offres %}'Réautoriser l\'accès aux appels d\'offres pour « {{ user.username }} » ?'{% else %}'Bloquer l\'accès aux appels d\'offres pour « {{ user.username }} » ?'{% endif %});">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                {% if user.bloque_appels_offres %}
+                  <button type="submit" style="background:#43a047; color:#fff; border:none; padding:10px 16px; border-radius:6px; cursor:pointer; font-weight:700;">🔓 Réautoriser</button>
+                {% else %}
+                  <button type="submit" style="background:#c62828; color:#fff; border:none; padding:10px 16px; border-radius:6px; cursor:pointer; font-weight:700;">🔒 Bloquer</button>
+                {% endif %}
+              </form>
+            </div>
             {% endif %}
             <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap:14px;">
               <div><strong style="color:#ffc107;">Département :</strong> {{ user.departement or '-' }}</div>

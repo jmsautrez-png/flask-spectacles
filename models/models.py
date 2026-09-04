@@ -87,6 +87,9 @@ class User(db.Model):
     site_internet = db.Column(db.String(255), nullable=True)  # Site web de l'utilisateur
     pending_deletion_at = db.Column(db.DateTime, nullable=True, index=True)  # Date prévue de suppression (préavis 7j inactivité)
     is_organisateur = db.Column(db.Boolean, default=False, index=True)  # True = compte demandeur (mairie, école…), False = compagnie/artiste
+    # Verrou admin : True = la compagnie ne peut pas consulter les appels d'offres
+    # (utilisé notamment pour certaines fiches « Édition libre »). L'admin coche/décoche depuis /admin/users.
+    bloque_appels_offres = db.Column(db.Boolean, default=False, nullable=False, server_default="false", index=True)
 
     def set_password(self, password: str):
         self.password_hash = generate_password_hash(password)

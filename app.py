@@ -210,6 +210,17 @@ def _user_is_edition_libre_only(user) -> bool:
     return False
 
 
+def _user_offres_bloquees(user) -> bool:
+    """Vrai si l'admin a explicitement bloqué l'accès aux appels d'offres pour
+    ce compte (interrupteur sur /admin/users). Utilisé pour verrouiller
+    certaines compagnies « Édition libre » au cas par cas.
+    Les admins et les non-connectés ne sont jamais bloqués ici.
+    """
+    if not user or getattr(user, "is_admin", False):
+        return False
+    return bool(getattr(user, "bloque_appels_offres", False))
+
+
 # ---------------------------------------------------------------------------
 # Cache d'URLs S3 presigned STABLES → chargement instantané des images
 # ---------------------------------------------------------------------------
@@ -996,6 +1007,7 @@ def _run_critical_migrations(app: Flask) -> None:
         # ── users ──
         ("users", "pending_deletion_at", "TIMESTAMP", "DATETIME", None),
         ("users", "is_organisateur", "BOOLEAN DEFAULT FALSE", "BOOLEAN DEFAULT 0", "FALSE"),
+        ("users", "bloque_appels_offres", "BOOLEAN DEFAULT FALSE", "BOOLEAN DEFAULT 0", "FALSE"),
     ]
 
     is_pg = 'postgresql' in str(db.engine.url)
@@ -5981,11 +5993,11 @@ Accessibilité: {accessibilite}
         # Base de la requête - Filtrer les demandes privées ET non approuvées sur la page publique
         user = current_user()
 
-        # Blocage des comptes en édition libre stricte (fiches non validées qualitativement)
-        if _user_is_edition_libre_only(user):
+        # Verrou admin : compte explicitement bloqué pour les appels d'offres
+        if _user_offres_bloquees(user):
             flash(
-                "Votre compte est en « édition libre » : l'accès aux appels d'offres "
-                "est réservé aux compagnies vérifiées.",
+                "L'accès aux appels d'offres n'est pas activé sur votre compte. "
+                "Contactez-nous pour en savoir plus.",
                 "warning",
             )
             return redirect(url_for("abonnement_compagnie"))
@@ -6038,11 +6050,11 @@ Accessibilité: {accessibilite}
         categorie = request.args.get('categorie', '').strip()
         region = request.args.get('region', '').strip()
 
-        # Blocage des comptes en édition libre stricte
-        if _user_is_edition_libre_only(user):
+        # Verrou admin : compte explicitement bloqué pour les appels d'offres
+        if _user_offres_bloquees(user):
             flash(
-                "Votre compte est en « édition libre » : l'accès aux appels d'offres "
-                "est réservé aux compagnies vérifiées.",
+                "L'accès aux appels d'offres n'est pas activé sur votre compte. "
+                "Contactez-nous pour en savoir plus.",
                 "warning",
             )
             return redirect(url_for("abonnement_compagnie"))
@@ -6140,11 +6152,11 @@ Accessibilité: {accessibilite}
             flash("Vous devez avoir un spectacle approuvé pour accéder aux appels d'offre.", "warning")
             return redirect(url_for("company_dashboard"))
 
-        # Blocage des comptes en édition libre stricte (toutes leurs fiches sont neutres)
-        if _user_is_edition_libre_only(user):
+        # Verrou admin : compte explicitement bloqué pour les appels d'offres
+        if _user_offres_bloquees(user):
             flash(
-                "Votre compte est en « édition libre » : l'accès aux appels d'offres "
-                "est réservé aux compagnies vérifiées.",
+                "L'accès aux appels d'offres n'est pas activé sur votre compte. "
+                "Contactez-nous pour en savoir plus.",
                 "warning",
             )
             return redirect(url_for("abonnement_compagnie"))
@@ -8358,6 +8370,35 @@ def admin_update_user_localisation(user_id):
         db.session.rollback()
         flash(f"Erreur : {e}", "danger")
         current_app.logger.error(f"[ADMIN] Erreur maj localisation user {user_id}: {e}")
+    next_url = request.form.get("next") or request.referrer
+    if next_url and next_url.startswith("/"):
+        return redirect(next_url)
+    return redirect(url_for("admin_users"))
+
+@app.route("/admin/users/<int:user_id>/toggle-offres", methods=["POST"])
+@login_required
+@admin_required
+def admin_toggle_bloque_appels_offres(user_id):
+    """Bascule le verrou d'accès aux appels d'offres pour une compagnie."""
+    user = User.query.get_or_404(user_id)
+    if user.is_admin:
+        flash("Impossible de bloquer un administrateur.", "warning")
+        return redirect(request.referrer or url_for("admin_users"))
+    try:
+        user.bloque_appels_offres = not bool(user.bloque_appels_offres)
+        db.session.commit()
+        if user.bloque_appels_offres:
+            flash(f"🔒 Accès aux appels d'offres bloqué pour « {user.username} ».", "warning")
+        else:
+            flash(f"🔓 Accès aux appels d'offres autorisé pour « {user.username} ».", "success")
+        current_app.logger.info(
+            f"[ADMIN] bloque_appels_offres={user.bloque_appels_offres} pour user {user_id} "
+            f"par {current_user().username}"
+        )
+    except Exception as e:
+        db.session.rollback()
+        flash(f"Erreur : {e}", "danger")
+        current_app.logger.error(f"[ADMIN] Erreur toggle bloque_appels_offres user {user_id}: {e}")
     next_url = request.form.get("next") or request.referrer
     if next_url and next_url.startswith("/"):
         return redirect(next_url)
