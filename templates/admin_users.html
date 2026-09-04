@@ -202,26 +202,38 @@
             </form>
 
             {# ── Verrou : accès aux appels d'offres (utile pour les compagnies « Édition libre ») ── #}
-            <div style="background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); border-radius:10px; padding:14px 16px; margin-bottom:14px; display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:12px;">
-              <div style="min-width:260px;">
-                <div style="font-weight:700; color:#ffc107; margin-bottom:4px;">📢 Accès aux appels d'offres</div>
-                {% if user.bloque_appels_offres %}
-                  <div style="color:#ff8a80; font-size:0.9em;">
+            {% set _ao_bloque = user.bloque_appels_offres %}
+            <div style="background: {% if _ao_bloque %}rgba(198,40,40,0.18){% else %}rgba(67,160,71,0.14){% endif %};
+                        border:2px solid {% if _ao_bloque %}#c62828{% else %}#43a047{% endif %};
+                        border-radius:10px; padding:14px 18px; margin-bottom:14px;
+                        display:flex; flex-wrap:wrap; align-items:center; gap:16px;
+                        max-width:720px;">
+              <div style="flex:1 1 260px; min-width:220px;">
+                <div style="font-weight:700; color:#ffc107; margin-bottom:6px; font-size:1.05em;">
+                  📢 Accès aux appels d'offres
+                </div>
+                {% if _ao_bloque %}
+                  <div style="color:#ff8a80; font-size:0.95em;">
                     🔒 <strong>Bloqué</strong> — cette compagnie ne peut pas consulter les appels d'offres.
                   </div>
                 {% else %}
-                  <div style="color:#a5d6a7; font-size:0.9em;">
+                  <div style="color:#a5d6a7; font-size:0.95em;">
                     🔓 <strong>Autorisé</strong> — accès normal aux appels d'offres.
                   </div>
                 {% endif %}
               </div>
               <form method="post" action="{{ url_for('admin_toggle_bloque_appels_offres', user_id=user.id) }}"
-                    onsubmit="return confirm({% if user.bloque_appels_offres %}'Réautoriser l\'accès aux appels d\'offres pour « {{ user.username }} » ?'{% else %}'Bloquer l\'accès aux appels d\'offres pour « {{ user.username }} » ?'{% endif %});">
+                    style="flex:0 0 auto;"
+                    onsubmit="return confirm({% if _ao_bloque %}'Réautoriser l\'accès aux appels d\'offres pour « {{ user.username }} » ?'{% else %}'Bloquer l\'accès aux appels d\'offres pour « {{ user.username }} » ?'{% endif %});">
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-                {% if user.bloque_appels_offres %}
-                  <button type="submit" style="background:#43a047; color:#fff; border:none; padding:10px 16px; border-radius:6px; cursor:pointer; font-weight:700;">🔓 Réautoriser</button>
+                {% if _ao_bloque %}
+                  <button type="submit" style="background:#43a047; color:#fff; border:none; padding:12px 22px; border-radius:8px; cursor:pointer; font-weight:700; font-size:1em; box-shadow:0 2px 6px rgba(0,0,0,0.3); white-space:nowrap;">
+                    🔓 Réautoriser l'accès
+                  </button>
                 {% else %}
-                  <button type="submit" style="background:#c62828; color:#fff; border:none; padding:10px 16px; border-radius:6px; cursor:pointer; font-weight:700;">🔒 Bloquer</button>
+                  <button type="submit" style="background:#c62828; color:#fff; border:none; padding:12px 22px; border-radius:8px; cursor:pointer; font-weight:700; font-size:1em; box-shadow:0 2px 6px rgba(0,0,0,0.3); white-space:nowrap;">
+                    🔒 Bloquer l'accès
+                  </button>
                 {% endif %}
               </form>
             </div>
