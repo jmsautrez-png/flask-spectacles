@@ -99,7 +99,7 @@
     {% if all_images|length > 0 or show.is_pdf() %}
       <div class="media" style="aspect-ratio:16/9; max-height:450px; position:relative;">
         {% if show.is_featured %}
-          <span class="featured-detail-badge" data-tooltip="Spectacle vu et extrêmement recommandé par notre équipe">⭐ À la une</span>
+          <span class="featured-detail-badge" data-tooltip="Artiste de talent — unanimité de notre équipe qui a vu le spectacle et le recommande vivement.">⭐ À la une</span>
         {% endif %}
         {% if all_images|length > 0 %}
           <!-- Diaporama des photos -->
@@ -379,6 +379,11 @@ a.btn-demande:hover {
 }
 
 /* Badge "À la une" sur la photo principale de la page détail */
+@property --featured-angle {
+  syntax: '<angle>';
+  initial-value: 0deg;
+  inherits: false;
+}
 .featured-detail-badge {
   position: absolute;
   top: 14px;
@@ -387,7 +392,6 @@ a.btn-demande:hover {
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  background: #ffc107;
   color: #1a1a1a;
   font-size: 0.72rem;
   padding: 4px 10px;
@@ -395,16 +399,22 @@ a.btn-demande:hover {
   font-weight: 700;
   letter-spacing: 0.3px;
   text-transform: uppercase;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.3);
-  opacity: 0.8;
-  transition: opacity 0.25s ease, transform 0.25s ease, box-shadow 0.25s ease;
   cursor: help;
+  border: 2px solid transparent;
+  background:
+    linear-gradient(#ffc107, #ffc107) padding-box,
+    conic-gradient(from var(--featured-angle), #ffc107, #fff59d, #ff9800, #ffeb3b, #ffc107) border-box;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.35);
+  animation: featured-spin 3s linear infinite;
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+@keyframes featured-spin {
+  to { --featured-angle: 360deg; }
 }
 .show-detail-article:hover .featured-detail-badge,
 .featured-detail-badge:hover {
-  opacity: 1;
   transform: scale(1.05);
-  box-shadow: 0 3px 12px rgba(255,193,7,0.6);
+  box-shadow: 0 3px 14px rgba(255,193,7,0.65);
 }
 .featured-detail-badge::after {
   content: attr(data-tooltip);
