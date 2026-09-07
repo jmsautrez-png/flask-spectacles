@@ -98,6 +98,9 @@
     {% set all_images = show.get_all_images() %}
     {% if all_images|length > 0 or show.is_pdf() %}
       <div class="media" style="aspect-ratio:16/9; max-height:450px; position:relative;">
+        {% if show.is_featured %}
+          <span class="featured-detail-badge" data-tooltip="Spectacle vu et extrêmement recommandé par notre équipe">⭐ À la une</span>
+        {% endif %}
         {% if all_images|length > 0 %}
           <!-- Diaporama des photos -->
           <div class="detail-carousel" data-carousel>
@@ -348,13 +351,13 @@
       <a class="social-bandeau youtube" href="{% if show.lien_youtube %}{{ show.lien_youtube }}{% else %}#{% endif %}" title="Notre chaîne YouTube" target="_blank" {% if not show.lien_youtube %}style="opacity:0.4;pointer-events:none;"{% endif %}>
         <i class="fa fa-youtube"></i> <span>YouTube</span>
       </a>
-      <a class="social-bandeau facebook" href="https://www.facebook.com/profile.php?id=61570711294378" title="Notre page Facebook" target="_blank">
+      <a class="social-bandeau facebook" href="https://www.facebook.com/profile.php?id=61593804186322" title="Notre page Facebook" target="_blank">
         <i class="fa fa-facebook"></i> <span>Facebook</span>
       </a>
       <a class="social-bandeau twitter" href="#" title="Artémisia sur Twitter" target="_blank">
         <i class="fa fa-twitter"></i> <span>Twitter</span>
       </a>
-      <a class="social-bandeau instagram" href="https://www.instagram.com/spectaclement_votre/" title="Instagram Spectacl'ement Vôtre" target="_blank">
+      <a class="social-bandeau instagram" href="https://www.instagram.com/spectaclement.votre/" title="Instagram Spectacl'ement Vôtre" target="_blank">
         <i class="fa fa-instagram"></i> <span>Instagram</span>
       </a>
       <a class="btn-demande" href="{{ url_for('demande_animation') }}" style="display:flex; align-items:center; gap:8px; padding:10px 22px; border-radius:8px; background:linear-gradient(90deg,#43a047 60%,#388e3c 100%); color:#fff; font-weight:700; font-size:1.08em; text-decoration:none; box-shadow:0 2px 8px rgba(0,0,0,0.08); transition:box-shadow 0.2s,transform 0.2s;">
@@ -373,6 +376,73 @@ a.btn-demande:hover {
   box-shadow: 0 4px 16px rgba(67,160,71,0.18);
   transform: translateY(-2px) scale(1.03);
   background: linear-gradient(90deg,#388e3c 60%,#43a047 100%);
+}
+
+/* Badge "À la une" sur la photo principale de la page détail */
+.featured-detail-badge {
+  position: absolute;
+  top: 14px;
+  left: 14px;
+  z-index: 20;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: #ffc107;
+  color: #1a1a1a;
+  font-size: 0.72rem;
+  padding: 4px 10px;
+  border-radius: 14px;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+  text-transform: uppercase;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.3);
+  opacity: 0.8;
+  transition: opacity 0.25s ease, transform 0.25s ease, box-shadow 0.25s ease;
+  cursor: help;
+}
+.show-detail-article:hover .featured-detail-badge,
+.featured-detail-badge:hover {
+  opacity: 1;
+  transform: scale(1.05);
+  box-shadow: 0 3px 12px rgba(255,193,7,0.6);
+}
+.featured-detail-badge::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  background: rgba(0,0,0,0.92);
+  color: #fff;
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  letter-spacing: 0;
+  text-transform: none;
+  white-space: normal;
+  width: max-content;
+  max-width: 260px;
+  line-height: 1.4;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease;
+  z-index: 30;
+  box-shadow: 0 4px 14px rgba(0,0,0,0.5);
+}
+.featured-detail-badge:hover::after {
+  opacity: 1;
+}
+@media (max-width: 600px) {
+  .featured-detail-badge {
+    top: 10px;
+    left: 10px;
+    font-size: 0.62rem;
+    padding: 3px 8px;
+  }
+  .featured-detail-badge::after {
+    max-width: 200px;
+    font-size: 0.72rem;
+  }
 }
 .badge {
   display: inline-flex;

@@ -350,6 +350,61 @@
 .card-img-fade.loaded {
   opacity: 1;
 }
+
+/* Badge "À la une" sur la photo de la carte */
+.featured-card-badge {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  z-index: 6;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  background: #ffc107;
+  color: #1a1a1a;
+  font-size: 0.62rem;
+  padding: 2px 7px;
+  border-radius: 10px;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+  text-transform: uppercase;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+  opacity: 0.78;
+  transition: opacity 0.25s ease, transform 0.25s ease, box-shadow 0.25s ease;
+  cursor: help;
+}
+.card:hover .featured-card-badge {
+  opacity: 1;
+  transform: scale(1.06);
+  box-shadow: 0 2px 10px rgba(255,193,7,0.55);
+}
+/* Tooltip au survol du badge */
+.featured-card-badge::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  background: rgba(0,0,0,0.92);
+  color: #fff;
+  padding: 6px 10px;
+  border-radius: 6px;
+  font-size: 0.72rem;
+  font-weight: 500;
+  letter-spacing: 0;
+  text-transform: none;
+  white-space: normal;
+  width: max-content;
+  max-width: 220px;
+  line-height: 1.35;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease;
+  z-index: 20;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.45);
+}
+.featured-card-badge:hover::after {
+  opacity: 1;
+}
 </style>
 <script>
   window.imgLoaded = function(img) {
@@ -394,6 +449,9 @@
       <article class="card" style="border:2px solid #222;border-radius:16px;box-shadow:0 2px 12px #0008;padding:0 0 8px 0;transition:box-shadow .2s;color:#fff;">
         <a href="{{ url_for('show_detail', show_id=show.id) }}" class="media-link">
           <div class="media img-skeleton">
+            {% if show.is_featured %}
+              <span class="featured-card-badge" data-tooltip="Spectacle vu et extrêmement recommandé par notre équipe">⭐ À la une</span>
+            {% endif %}
             {% set images = show.get_all_images() %}
             {% if images|length > 1 %}
               <!-- Diaporama avec plusieurs photos -->
