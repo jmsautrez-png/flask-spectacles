@@ -39,6 +39,15 @@
     {%- if _first_show and _first_show.file_name %},
     "image": {{ original_url(_first_show.file_name) | tojson }}
     {%- endif %}
+    {%- if cie_review_count and cie_review_count > 0 %},
+    "aggregateRating": {
+      "@type": "AggregateRating",
+      "ratingValue": "{{ cie_avg_rating }}",
+      "reviewCount": "{{ cie_review_count }}",
+      "bestRating": "5",
+      "worstRating": "1"
+    }
+    {%- endif %}
     ,
     "description": {{ ('Compagnie ' + cie_name + ' — ' + (nb_shows|string) + ' spectacle' + ('s' if nb_shows > 1 else '') + ' au catalogue.') | tojson }}
   }

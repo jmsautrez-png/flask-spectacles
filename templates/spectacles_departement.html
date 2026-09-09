@@ -1,0 +1,167 @@
+{% extends "base.html" %}
+{% set dept_name = dept.name %}
+{% set dept_code = dept.code %}
+{% set dept_region = dept.region %}
+
+{% block title %}Spectacles et animations dans le {{ dept_name }} ({{ dept_code }}) — Compagnies professionnelles | Spectacle'ment VØtre{% endblock %}
+{% block description %}Trouvez un spectacle ou une animation dans le département {{ dept_name }} ({{ dept_code }}) en {{ dept_region }}. Compagnies professionnelles pour écoles, mairies, entreprises, associations et anniversaires. Devis gratuit et rapide.{% endblock %}
+
+{% block og_title %}Spectacles dans le {{ dept_name }} ({{ dept_code }}){% endblock %}
+{% block og_description %}Compagnies et artistes professionnels du département {{ dept_name }} pour vos événements en {{ dept_region }}.{% endblock %}
+
+{% block extra_head %}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Service",
+  "name": "Spectacles et animations {{ dept_name }} ({{ dept_code }})",
+  "serviceType": "Réservation de spectacles et animations événementielles",
+  "areaServed": {
+    "@type": "AdministrativeArea",
+    "name": "{{ dept_name }}",
+    "identifier": "{{ dept_code }}",
+    "containedInPlace": {"@type": "AdministrativeArea", "name": "{{ dept_region }}"}
+  },
+  "url": "{{ url_for('spectacles_departement', slug=dept.slug, _external=True) }}",
+  "provider": {
+    "@type": "Organization",
+    "name": "Spectacle'ment VØtre",
+    "url": "{{ url_for('home', _external=True) }}"
+  }
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {"@type": "ListItem", "position": 1, "name": "Accueil", "item": "{{ url_for('home', _external=True) }}"},
+    {"@type": "ListItem", "position": 2, "name": "Catalogue", "item": "{{ url_for('catalogue', _external=True) }}"},
+    {"@type": "ListItem", "position": 3, "name": "{{ dept_region }}", "item": "{{ url_for('catalogue', _external=True) }}"},
+    {"@type": "ListItem", "position": 4, "name": "{{ dept_name }} ({{ dept_code }})", "item": "{{ url_for('spectacles_departement', slug=dept.slug, _external=True) }}"}
+  ]
+}
+</script>
+{% if shows %}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "CollectionPage",
+  "name": "Spectacles dans le {{ dept_name }} ({{ dept_code }})",
+  "url": "{{ url_for('spectacles_departement', slug=dept.slug, _external=True) }}",
+  "mainEntity": {
+    "@type": "ItemList",
+    "numberOfItems": {{ shows|length }},
+    "itemListElement": [
+      {%- for s in shows[:20] %}
+      {"@type": "ListItem", "position": {{ loop.index }}, "url": "{{ show_url(s, _external=True) }}", "name": {{ s.title|tojson }}}{% if not loop.last %},{% endif %}
+      {%- endfor %}
+    ]
+  }
+}
+</script>
+{% endif %}
+{% endblock %}
+
+{% block content %}
+
+<h1>Spectacles et animations dans le {{ dept_name }} ({{ dept_code }})</h1>
+
+<div style="max-width:900px; margin:0 auto 40px; padding:0 20px;">
+  <p style="margin-bottom:16px; font-size:17px; line-height:1.7;">
+    Vous cherchez un <strong>spectacle</strong> ou une <strong>animation professionnelle</strong> dans
+    le département <strong>{{ dept_name }} ({{ dept_code }})</strong>, en région <strong>{{ dept_region }}</strong> ?
+    Notre plateforme regroupe des <strong>compagnies et artistes locaux</strong> pour tous les événements :
+    écoles, mairies, comités des fêtes, associations, entreprises, anniversaires, arbres de Noël.
+    Recevez plusieurs propositions gratuitement en quelques heures.
+  </p>
+
+  <h2 style="font-size:20px; margin:24px 0 12px; color:var(--primary); font-weight:600;">
+    Événements couverts dans le {{ dept_name }}
+  </h2>
+  <ul style="line-height:1.9; margin-bottom:24px; padding-left:0; list-style:none;">
+    <li style="padding-left:24px; position:relative; margin-bottom:8px;"><span style="position:absolute; left:0; color:var(--primary); font-weight:bold;">•</span> <strong>Écoles et centres de loisirs</strong> : spectacles jeune public, ateliers pédagogiques, intervention en classe.</li>
+    <li style="padding-left:24px; position:relative; margin-bottom:8px;"><span style="position:absolute; left:0; color:var(--primary); font-weight:bold;">•</span> <strong>Mairies et collectivités</strong> : fête municipale, 14 juillet, fête du village, marché de Noël, inauguration.</li>
+    <li style="padding-left:24px; position:relative; margin-bottom:8px;"><span style="position:absolute; left:0; color:var(--primary); font-weight:bold;">•</span> <strong>Entreprises et CSE</strong> : arbre de Noël, team building, séminaire, animation commerciale.</li>
+    <li style="padding-left:24px; position:relative; margin-bottom:8px;"><span style="position:absolute; left:0; color:var(--primary); font-weight:bold;">•</span> <strong>Associations et comités des fêtes</strong> : kermesse, loto, vide-grenier, gala, repas dansant.</li>
+    <li style="padding-left:24px; position:relative; margin-bottom:8px;"><span style="position:absolute; left:0; color:var(--primary); font-weight:bold;">•</span> <strong>Anniversaires et événements privés</strong> : magicien, clown, sculpteur de ballons, Père Noël.</li>
+  </ul>
+
+  <h2 style="font-size:20px; margin:24px 0 12px; color:var(--primary); font-weight:600;">
+    Pourquoi choisir un artiste du {{ dept_name }} ?
+  </h2>
+  <p style="font-size:15px; color:#666; margin-bottom:20px; line-height:1.7;">
+    Réserver un artiste <strong>proche géographiquement</strong> permet de réduire les frais de déplacement,
+    de faciliter la logistique (repérage, matériel, timing) et de soutenir l'économie culturelle locale.
+    Les artistes du {{ dept_name }} connaissent les salles, les publics et les usages locaux du {{ dept_region }}.
+  </p>
+</div>
+
+{% if shows %}
+<h2 style="text-align:center; margin:30px 0 20px;">{{ shows|length }} spectacle{{ 's' if shows|length > 1 else '' }} disponible{{ 's' if shows|length > 1 else '' }} dans le {{ dept_name }}</h2>
+<div class="cards">
+  {% for show in shows %}
+  <article class="card">
+    <a href="{{ url_for('demande_animation') }}" class="media-link">
+      <div class="media">
+        {% if show.has_image() %}
+          <img src="{{ thumbnail_url(show.file_name) }}" alt="{{ show.title }}" loading="lazy">
+        {% elif show.is_pdf() %}
+          <a class="pdf-thumb" href="{{ url_for('uploaded_file', filename=show.file_name) }}" target="_blank">PDF</a>
+        {% else %}
+          <div class="placeholder">Aucun fichier</div>
+        {% endif %}
+      </div>
+    </a>
+    <a href="{{ show_url(show) }}" class="content-link">
+      <div class="content">
+        {% if show.raison_sociale %}<p class="meta" style="font-weight:600; margin-bottom:8px; color:var(--primary);">{{ show.raison_sociale|title }}</p>{% endif %}
+        <h3>{{ show.title }}</h3>
+        <p class="meta">
+          {% if show.category %}{{ show.category|title }}{% endif %}
+          {% if show.location %} • {{ show.location }}{% endif %}
+        </p>
+        {% if show.description %}<p class="desc">{{ show.description|striptags }}</p>{% endif %}
+      </div>
+    </a>
+  </article>
+  {% endfor %}
+</div>
+{% else %}
+<div style="padding:24px; background:#f8f9fa; border-radius:8px; text-align:center; max-width:700px; margin:0 auto;">
+  <p style="margin:0; font-size:16px;">Aucun spectacle référencé pour le moment dans le {{ dept_name }}.</p>
+  <p style="margin:12px 0 0 0;"><a href="{{ url_for('demande_animation') }}" style="color:var(--primary); font-weight:600;">Postez une demande gratuite</a> et recevez plusieurs propositions d'artistes couvrant le département {{ dept_name }} ou la région {{ dept_region }}.</p>
+</div>
+{% endif %}
+
+<div style="text-align:center; margin:40px auto; max-width:700px;">
+  <a href="{{ url_for('demande_animation') }}" style="display:inline-block; padding:14px 28px; background:linear-gradient(135deg,#0a1833,#1e3a8a); color:#fff; text-decoration:none; border-radius:8px; font-weight:600; font-size:16px;">Demander un devis dans le {{ dept_name }}</a>
+</div>
+
+{% if cies %}
+<section style="max-width:900px; margin:60px auto 40px; padding:0 20px;">
+  <h2 style="font-size:22px; margin-bottom:20px; color:var(--primary);">Compagnies actives dans le {{ dept_name }}</h2>
+  <ul style="display:grid; grid-template-columns:repeat(auto-fill,minmax(280px,1fr)); gap:12px; padding:0; list-style:none;">
+    {% for c in cies %}
+    <li>
+      <a href="{{ url_for('compagnie_profile', slug=company_slug(c)) }}" style="display:block; padding:12px 16px; background:#f8f9fa; border-radius:8px; text-decoration:none; color:var(--primary); font-weight:600;">
+        {{ c.raison_sociale or c.username }}{% if c.ville %} <span style="font-weight:400; color:#666;">— {{ c.ville }}</span>{% endif %}
+      </a>
+    </li>
+    {% endfor %}
+  </ul>
+</section>
+{% endif %}
+
+<section style="max-width:900px; margin:40px auto; padding:0 20px;">
+  <h2 style="font-size:20px; margin-bottom:16px; color:var(--primary);">Voir aussi en {{ dept_region }}</h2>
+  <p style="font-size:15px; line-height:1.8;">
+    <a href="{{ url_for('catalogue') }}" style="color:var(--primary);">Parcourir tout le catalogue</a> •
+    <a href="{{ url_for('spectacles_fete_municipale') }}" style="color:var(--primary);">Spectacles fête municipale</a> •
+    <a href="{{ url_for('spectacles_associations') }}" style="color:var(--primary);">Spectacles pour associations</a> •
+    <a href="{{ url_for('spectacles_noel') }}" style="color:var(--primary);">Spectacles de Noël</a> •
+    <a href="{{ url_for('animations_anniversaire') }}" style="color:var(--primary);">Animations anniversaire</a>
+  </p>
+</section>
+
+{% endblock %}

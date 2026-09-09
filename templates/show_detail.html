@@ -24,6 +24,7 @@
 {# Hide SEO block on detail pages #}
 {% endblock %}
 
+{% block extra_head %}
 {# Schema.org Event enrichi pour les rich snippets Google - optimisé SEO #}
 <script type="application/ld+json">
 {
@@ -74,7 +75,25 @@
   {% if all_imgs|length > 0 %}"image": [
     {% for img in all_imgs %}"{{ url_for('uploaded_file', filename=img, _external=True) }}"{% if not loop.last %},{% endif %}{% endfor %}
   ],{% endif %}
-  
+
+  {# Avis & note moyenne pour les rich snippets étoiles Google #}
+  {% if review_count and review_count > 0 %}"aggregateRating": {
+    "@type": "AggregateRating",
+    "ratingValue": "{{ avg_rating }}",
+    "reviewCount": "{{ review_count }}",
+    "bestRating": "5",
+    "worstRating": "1"
+  },
+  "review": [
+    {% for r in reviews %}{
+      "@type": "Review",
+      "reviewRating": {"@type": "Rating", "ratingValue": "{{ r.rating }}", "bestRating": "5"},
+      "author": {"@type": "Person", "name": {{ r.author_name|tojson }}}
+      {%- if r.comment %},"reviewBody": {{ (r.comment|striptags)[:400]|tojson }}{% endif %}
+      {%- if r.created_at %},"datePublished": "{{ r.created_at.strftime('%Y-%m-%d') }}"{% endif %}
+    }{% if not loop.last %},{% endif %}{% endfor %}
+  ],{% endif %}
+
   {# Offre de réservation #}
   "offers": {
     "@type": "Offer",
@@ -89,6 +108,7 @@
   "url": "{{ url_for('show_detail_seo', slug=show_slug(show), _external=True) }}"
 }
 </script>
+{% endblock %}
 
 {% block content %}
 

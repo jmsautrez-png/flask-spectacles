@@ -86,8 +86,9 @@
   <!-- Perf: preconnect vers les CDN les plus utilisés -->
   <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
   <link rel="dns-prefetch" href="https://cdn.jsdelivr.net">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+  <!-- Perf: preload du logo (LCP probable dans le header) -->
+  <link rel="preload" as="image" href="{{ url_for('static', filename='img/logo_spectaclement_votre.png') }}" fetchpriority="high">
 
   <!-- Anti-flash blanc -->
   <style>body{background:#0f0f12;color:#f5f6f8;}

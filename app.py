@@ -82,6 +82,7 @@ from config import Config
 from models import db
 from models.models import User, Show, PageVisit, VisitorLog, Review, Conversation, Message, ShowView, Notification, PresignedUrlCache
 from seo_cities import FRENCH_CITIES, get_city_by_slug, get_all_city_slugs, get_neighbor_cities, get_city_seo_data, get_category_seo_data
+from seo_departments import FRENCH_DEPARTMENTS, get_department_by_slug, get_all_department_slugs
 
 # Imports refactorisés — utils/
 from utils.files import (
@@ -706,6 +707,10 @@ def create_app() -> Flask:
         
         # Permissions-Policy (anciennement Feature-Policy)
         response.headers['Permissions-Policy'] = 'geolocation=(), microphone=(), camera=()'
+
+        # HSTS: force HTTPS pendant 1 an sur tous les sous-domaines (uniquement en prod HTTPS)
+        if request.is_secure or request.headers.get('X-Forwarded-Proto') == 'https':
+            response.headers['Strict-Transport-Security'] = 'max-age=31536000; includeSubDomains'
         
         # Cache HTTP pour les images uploadées (1 jour)
         if request.path.startswith('/uploads/'):
@@ -2710,6 +2715,17 @@ def register_routes(app: Flask) -> None:
                 })
         except Exception:
             pass  # Si la fonction n'est pas encore disponible, on ignore
+
+        # Pages SEO département (96 départements métropolitains)
+        try:
+            for dept_slug in get_all_department_slugs():
+                pages.append({
+                    'loc': url_for('spectacles_departement', slug=dept_slug, _external=True),
+                    'changefreq': 'weekly',
+                    'priority': '0.8'
+                })
+        except Exception:
+            pass
         
         # Pages catalogue
         pages.append({
@@ -3279,12 +3295,26 @@ def register_routes(app: Flask) -> None:
         if slug != canonical_slug:
             return redirect(url_for("compagnie_profile", slug=canonical_slug), code=301)
 
+        # Agrégation des avis sur tous les spectacles de la compagnie (JSON-LD AggregateRating)
+        show_ids = [s.id for s in shows]
+        cie_reviews = (
+            Review.query.filter(Review.show_id.in_(show_ids), Review.approved.is_(True)).all()
+            if show_ids else []
+        )
+        cie_review_count = len(cie_reviews)
+        cie_avg_rating = (
+            round(sum(r.rating for r in cie_reviews) / cie_review_count, 1)
+            if cie_review_count > 0 else 0
+        )
+
         return render_template(
             "compagnie_profile.html",
             cie=cie,
             shows=shows,
             user=current_user(),
             canonical_slug=canonical_slug,
+            cie_avg_rating=cie_avg_rating,
+            cie_review_count=cie_review_count,
         )
 
     @app.route("/ma-selection")
@@ -5845,6 +5875,44 @@ Accessibilité: {accessibilite}
             )
         ).order_by(Show.display_order.asc(), Show.created_at.desc()).limit(24).all()
         return render_template("spectacles_associations.html", shows=shows, user=current_user())
+
+    # ─── 🗺️ Pages SEO département (96 départements métropolitains) ───
+    @app.route("/spectacles-departement/<slug>")
+    def spectacles_departement(slug):
+        dept = get_department_by_slug(slug)
+        if not dept:
+            abort(404)
+        code = dept["code"]
+        name = dept["name"]
+        region = dept["region"]
+        # Match sur le champ departement (ex: "Ille-et-Vilaine (35)") OU sur la région
+        like_code = f"%({code})%"
+        like_name = f"%{name}%"
+        like_region = f"%{region}%"
+        shows = Show.query.filter(
+            Show.approved.is_(True),
+            or_(
+                Show.departement.ilike(like_code),
+                Show.departement.ilike(like_name),
+                Show.region.ilike(like_region),
+            )
+        ).order_by(Show.display_order.asc(), Show.created_at.desc()).limit(30).all()
+        # Compagnies actives dans le département (fallback: dans la région)
+        cies = User.query.filter(
+            User.is_admin.is_(False),
+            or_(
+                User.departement.ilike(like_code),
+                User.departement.ilike(like_name),
+                User.region.ilike(like_region),
+            )
+        ).limit(12).all() if hasattr(User, "region") else []
+        return render_template(
+            "spectacles_departement.html",
+            dept=dept,
+            shows=shows,
+            cies=cies,
+            user=current_user(),
+        )
 
     @app.route("/animations-entreprises")
     def animations_entreprises():
