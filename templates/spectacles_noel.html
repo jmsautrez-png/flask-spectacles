@@ -18,6 +18,62 @@
   }
 }
 </script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "Quand faut-il réserver un spectacle de Noël ?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Idéalement dès septembre ou octobre. Les meilleures compagnies sont sollicitées très tôt pour la période de novembre à décembre. Réserver en avance vous garantit le choix de l'artiste, la date souhaitée et souvent un tarif plus avantageux."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Combien coûte un spectacle de Noël ?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Le tarif d'un spectacle de Noël varie généralement entre 350 € et 2 500 € selon la durée, le nombre d'artistes, le type de prestation (conte, magie, cirque, chorale), le lieu et la période. Pour un arbre de Noël CSE avec animation et distribution de cadeaux, comptez entre 800 € et 1 500 €. Pour une école, entre 350 € et 800 €."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Quels types de spectacles de Noël proposez-vous ?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Contes musicaux de Noël, spectacles de magie et illusion, Père Noël en visite, chorales de Noël, crèches vivantes, marionnettes féeriques, cirque adapté à Noël, fanfares lumineuses, déambulations avec échassiers lumineux, ateliers créatifs. Toutes nos prestations sont assurées par des artistes professionnels."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Combien de temps dure un spectacle de Noël ?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "La plupart des spectacles de Noël durent entre 40 minutes et 1 heure. Les animations déambulatoires (fanfares, échassiers) peuvent durer 1 h 30 à 2 h avec pauses. Les formules complètes arbre de Noël (spectacle + distribution + goûter) s'étalent sur 2 à 3 heures."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Peut-on avoir un Père Noël en plus du spectacle ?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Oui, la plupart de nos artistes proposent le Père Noël en option, ou en prestation seule. Vous pouvez également réserver un Père Noël à domicile pour une visite personnalisée. La distribution de cadeaux par le Père Noël est un incontournable des arbres de Noël pour enfants."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Où interviennent vos artistes de Noël ?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Nos compagnies partenaires interviennent dans toute la France : écoles maternelles et primaires, mairies, comités d'entreprise (CSE), marchés de Noël, centres commerciaux, EHPAD, salles des fêtes, associations, arbres de Noël privés. Chaque artiste indique sa zone géographique de déplacement."
+      }
+    }
+  ]
+}
+</script>
 {% endblock %}
 {% block content %}
 
@@ -65,7 +121,7 @@
       </div>
     </a>
 
-    <a href="{{ url_for('show_detail', show_id=show.id) }}" class="content-link">
+    <a href="{{ show_url(show) }}" class="content-link">
       <div class="content">
         {% if show.raison_sociale %}<p class="meta" style="font-weight:600; margin-bottom:8px; color:var(--primary);">{{ show.raison_sociale|title }}</p>{% endif %}
         <h3>{{ show.title }}</h3>
@@ -87,5 +143,49 @@
   <p style="margin:12px 0 0 0;">N'hésitez pas à <a href="{{ url_for('demande_animation') }}" style="color:var(--primary); font-weight:600;">nous contacter</a> pour vos besoins spécifiques ou consultez nos <a href="{{ url_for('home') }}" style="color:var(--primary); font-weight:600;">autres spectacles</a>.</p>
 </div>
 {% endif %}
+
+<section class="faq-section" style="max-width:900px; margin:60px auto 40px; padding:0 20px;">
+  <h2 style="font-size:26px; margin-bottom:24px; color:var(--primary);">Questions fréquentes sur les spectacles de Noël</h2>
+
+  <details style="margin-bottom:14px; padding:14px 18px; background:#f8f9fa; border-radius:8px; border-left:4px solid var(--primary);">
+    <summary style="font-weight:600; cursor:pointer; font-size:17px;">Quand faut-il réserver un spectacle de Noël ?</summary>
+    <p style="margin:12px 0 0 0; line-height:1.7;">Idéalement dès septembre ou octobre. Les meilleures compagnies sont sollicitées très tôt pour la période de novembre à décembre. Réserver en avance vous garantit le choix de l'artiste, la date souhaitée et souvent un tarif plus avantageux.</p>
+  </details>
+
+  <details style="margin-bottom:14px; padding:14px 18px; background:#f8f9fa; border-radius:8px; border-left:4px solid var(--primary);">
+    <summary style="font-weight:600; cursor:pointer; font-size:17px;">Combien coûte un spectacle de Noël ?</summary>
+    <p style="margin:12px 0 0 0; line-height:1.7;">Le tarif d'un spectacle de Noël varie généralement entre <strong>350 € et 2 500 €</strong> selon la durée, le nombre d'artistes, le type de prestation, le lieu et la période. Pour un arbre de Noël CSE avec animation et distribution de cadeaux, comptez entre 800 € et 1 500 €. Pour une école, entre 350 € et 800 €.</p>
+  </details>
+
+  <details style="margin-bottom:14px; padding:14px 18px; background:#f8f9fa; border-radius:8px; border-left:4px solid var(--primary);">
+    <summary style="font-weight:600; cursor:pointer; font-size:17px;">Quels types de spectacles de Noël proposez-vous ?</summary>
+    <p style="margin:12px 0 0 0; line-height:1.7;">Contes musicaux de Noël, spectacles de magie et illusion, Père Noël en visite, chorales de Noël, crèches vivantes, marionnettes féeriques, cirque adapté à Noël, fanfares lumineuses, déambulations avec échassiers lumineux, ateliers créatifs. Toutes nos prestations sont assurées par des artistes professionnels.</p>
+  </details>
+
+  <details style="margin-bottom:14px; padding:14px 18px; background:#f8f9fa; border-radius:8px; border-left:4px solid var(--primary);">
+    <summary style="font-weight:600; cursor:pointer; font-size:17px;">Combien de temps dure un spectacle de Noël ?</summary>
+    <p style="margin:12px 0 0 0; line-height:1.7;">La plupart des spectacles de Noël durent entre 40 minutes et 1 heure. Les animations déambulatoires (fanfares, échassiers) peuvent durer 1 h 30 à 2 h avec pauses. Les formules complètes arbre de Noël (spectacle + distribution + goûter) s'étalent sur 2 à 3 heures.</p>
+  </details>
+
+  <details style="margin-bottom:14px; padding:14px 18px; background:#f8f9fa; border-radius:8px; border-left:4px solid var(--primary);">
+    <summary style="font-weight:600; cursor:pointer; font-size:17px;">Peut-on avoir un Père Noël en plus du spectacle ?</summary>
+    <p style="margin:12px 0 0 0; line-height:1.7;">Oui, la plupart de nos artistes proposent le Père Noël en option, ou en prestation seule. Vous pouvez également réserver un <a href="{{ url_for('pere_noel_a_domicile') }}" style="color:var(--primary); font-weight:600;">Père Noël à domicile</a> pour une visite personnalisée. La distribution de cadeaux par le Père Noël est un incontournable des arbres de Noël pour enfants.</p>
+  </details>
+
+  <details style="margin-bottom:14px; padding:14px 18px; background:#f8f9fa; border-radius:8px; border-left:4px solid var(--primary);">
+    <summary style="font-weight:600; cursor:pointer; font-size:17px;">Où interviennent vos artistes de Noël ?</summary>
+    <p style="margin:12px 0 0 0; line-height:1.7;">Nos compagnies partenaires interviennent dans toute la France : écoles maternelles et primaires, mairies, comités d'entreprise (CSE), marchés de Noël, centres commerciaux, EHPAD, salles des fêtes, associations, arbres de Noël privés. Chaque artiste indique sa zone géographique de déplacement.</p>
+  </details>
+</section>
+
+<section style="max-width:900px; margin:40px auto; padding:24px; background:linear-gradient(135deg, #b71c1c 0%, #d32f2f 100%); border-radius:12px; color:#fff; text-align:center;">
+  <h2 style="color:#fff; margin-bottom:12px; font-size:22px;">Vous cherchez un spectacle de Noël pour un contexte précis ?</h2>
+  <p style="margin-bottom:20px; opacity:0.95;">Nous avons des sélections dédiées avec conseils, tarifs indicatifs et artistes pré-sélectionnés :</p>
+  <div style="display:flex; gap:12px; flex-wrap:wrap; justify-content:center;">
+    <a href="{{ url_for('spectacles_noel_ecole') }}" style="background:#fff; color:#b71c1c; padding:12px 22px; border-radius:8px; text-decoration:none; font-weight:600;">Spectacle de Noël école →</a>
+    <a href="{{ url_for('spectacles_noel_entreprise') }}" style="background:#fff; color:#b71c1c; padding:12px 22px; border-radius:8px; text-decoration:none; font-weight:600;">Spectacle Noël entreprise / CSE →</a>
+    <a href="{{ url_for('pere_noel_a_domicile') }}" style="background:#fff; color:#b71c1c; padding:12px 22px; border-radius:8px; text-decoration:none; font-weight:600;">Père Noël à domicile →</a>
+  </div>
+</section>
 
 {% endblock %}

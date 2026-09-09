@@ -15,7 +15,62 @@
       {"@type": "ListItem", "position": 2, "name": "Catalogue", "item": "{{ url_for('catalogue', _external=True) }}"},
       {"@type": "ListItem", "position": 3, "name": "Clowns", "item": "{{ url_for('clowns', _external=True) }}"}
     ]
+  },
+  "offers": {
+    "@type": "AggregateOffer",
+    "priceCurrency": "EUR",
+    "lowPrice": "180",
+    "highPrice": "1500",
+    "offerCount": "30"
   }
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "Combien coûte un clown pour un anniversaire d'enfant ?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Le tarif d'un clown pour un anniversaire d'enfant à domicile se situe entre 180 € et 400 € pour une prestation d'1 h à 1 h 30. Le tarif dépend du programme (spectacle seul, avec sculpture de ballons, avec maquillage), de la durée et de la distance de déplacement."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Le clown fait-il peur aux tout-petits ?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Les clowns professionnels adaptés aux tout-petits (2-4 ans) portent un maquillage doux, aux couleurs pastel, sans nez rouge trop marqué, et privilégient une gestuelle lente et rassurante. Précisez toujours l'âge du public au moment de la réservation pour choisir l'artiste adapté."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Quels types de spectacles de clown proposez-vous ?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Clowns pour anniversaires, clowns de scène, clowns burlesques, duos de clowns, clowns musiciens, clowns échassiers, clowns déambulatoires pour festivals et fêtes de rue, clowns pour EHPAD et hôpitaux, clowns bilingues."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Le clown propose-t-il des animations en plus du spectacle ?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Oui, la plupart des clowns complètent leur spectacle par une ou plusieurs animations : sculpture sur ballons, maquillage enfants, jeux collectifs, initiation à la jonglerie, atelier cirque. Ces options sont à préciser au devis."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Où le clown peut-il intervenir ?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "À domicile pour les anniversaires, dans les écoles, crèches, mairies, centres commerciaux, EHPAD, hôpitaux, festivals, arbres de Noël CSE, mariages. Le clown adapte son spectacle à la configuration du lieu (intérieur ou extérieur, grande scène ou salon)."
+      }
+    }
+  ]
 }
 </script>
 {% endblock %}
@@ -85,7 +140,7 @@
       </div>
     </a>
 
-    <a href="{{ url_for('show_detail', show_id=show.id) }}" class="content-link">
+    <a href="{{ show_url(show) }}" class="content-link">
       <div class="content">
         {% if show.raison_sociale %}<p class="meta" style="font-weight:600; margin-bottom:8px; color:var(--primary);">{{ show.raison_sociale|title }}</p>{% endif %}
         <h3>{{ show.title }}</h3>
@@ -108,5 +163,34 @@
 </div>
 
 {% endif %}
+
+<section class="faq-section" style="max-width:900px; margin:60px auto 40px; padding:0 20px;">
+  <h2 style="font-size:26px; margin-bottom:24px; color:var(--primary);">Questions fréquentes sur les spectacles de clown</h2>
+
+  <details style="margin-bottom:14px; padding:14px 18px; background:#f8f9fa; border-radius:8px; border-left:4px solid var(--primary);">
+    <summary style="font-weight:600; cursor:pointer; font-size:17px;">Combien coûte un clown pour un anniversaire d'enfant ?</summary>
+    <p style="margin:12px 0 0 0; line-height:1.7;">Le tarif d'un clown pour un anniversaire d'enfant à domicile se situe entre <strong>180 € et 400 €</strong> pour une prestation d'1 h à 1 h 30. Le tarif dépend du programme (spectacle seul, avec sculpture de ballons, avec maquillage), de la durée et de la distance de déplacement.</p>
+  </details>
+
+  <details style="margin-bottom:14px; padding:14px 18px; background:#f8f9fa; border-radius:8px; border-left:4px solid var(--primary);">
+    <summary style="font-weight:600; cursor:pointer; font-size:17px;">Le clown fait-il peur aux tout-petits ?</summary>
+    <p style="margin:12px 0 0 0; line-height:1.7;">Les clowns professionnels adaptés aux tout-petits (2-4 ans) portent un maquillage doux, aux couleurs pastel, sans nez rouge trop marqué, et privilégient une gestuelle lente et rassurante. Précisez toujours l'âge du public au moment de la réservation pour choisir l'artiste adapté.</p>
+  </details>
+
+  <details style="margin-bottom:14px; padding:14px 18px; background:#f8f9fa; border-radius:8px; border-left:4px solid var(--primary);">
+    <summary style="font-weight:600; cursor:pointer; font-size:17px;">Quels types de spectacles de clown proposez-vous ?</summary>
+    <p style="margin:12px 0 0 0; line-height:1.7;">Clowns pour anniversaires, clowns de scène, clowns burlesques, duos de clowns, clowns musiciens, clowns échassiers, clowns déambulatoires pour festivals et fêtes de rue, clowns pour EHPAD et hôpitaux, clowns bilingues.</p>
+  </details>
+
+  <details style="margin-bottom:14px; padding:14px 18px; background:#f8f9fa; border-radius:8px; border-left:4px solid var(--primary);">
+    <summary style="font-weight:600; cursor:pointer; font-size:17px;">Le clown propose-t-il des animations en plus du spectacle ?</summary>
+    <p style="margin:12px 0 0 0; line-height:1.7;">Oui, la plupart des clowns complètent leur spectacle par une ou plusieurs animations : <strong>sculpture sur ballons, maquillage enfants, jeux collectifs, initiation à la jonglerie, atelier cirque</strong>. Ces options sont à préciser au devis.</p>
+  </details>
+
+  <details style="margin-bottom:14px; padding:14px 18px; background:#f8f9fa; border-radius:8px; border-left:4px solid var(--primary);">
+    <summary style="font-weight:600; cursor:pointer; font-size:17px;">Où le clown peut-il intervenir ?</summary>
+    <p style="margin:12px 0 0 0; line-height:1.7;"><strong>À domicile</strong> pour les anniversaires, dans les <strong>écoles, crèches, mairies, centres commerciaux, EHPAD, hôpitaux, festivals, arbres de Noël CSE, mariages</strong>. Le clown adapte son spectacle à la configuration du lieu (intérieur ou extérieur, grande scène ou salon).</p>
+  </details>
+</section>
 
 {% endblock %}

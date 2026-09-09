@@ -85,7 +85,7 @@
       </div>
     </a>
 
-    <a href="{{ url_for('show_detail', show_id=show.id) }}" class="content-link">
+    <a href="{{ show_url(show) }}" class="content-link">
       <div class="content">
         {% if show.raison_sociale %}<p class="meta" style="font-weight:600; margin-bottom:8px; color:var(--primary);">{{ show.raison_sociale|title }}</p>{% endif %}
         <h3>{{ show.title }}</h3>

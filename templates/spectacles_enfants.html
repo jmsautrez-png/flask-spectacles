@@ -20,6 +20,54 @@
   }
 }
 </script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "Quel spectacle choisir selon l'âge des enfants ?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Pour les 2-4 ans, privilégiez les contes courts, marionnettes et éveil sensoriel (20-30 min). Pour les 5-7 ans, magie interactive, clowns, contes féeriques (30-40 min). Pour les 8-12 ans, magie de scène, cirque, théâtre, spectacles scientifiques (45-60 min)."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Combien coûte un spectacle pour enfants ?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Le tarif d'un spectacle pour enfants varie entre 300 € et 1 500 € selon la durée, la jauge (nombre d'enfants), le type de prestation, la distance de déplacement et la période. Un spectacle scolaire moyen coûte 400 à 700 €, un anniversaire à domicile 150 à 350 €."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Les artistes se déplacent-ils dans mon école, ma mairie ou chez moi ?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Oui. Les compagnies se déplacent dans les écoles maternelles et primaires, crèches, mairies, MJC, médiathèques, salles des fêtes, EHPAD, et à domicile pour les anniversaires. Chaque artiste précise sa zone géographique."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Quels types de spectacles pour enfants proposez-vous ?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Théâtre jeune public, contes musicaux, marionnettes, magie, cirque, clowns, spectacles scientifiques, ateliers créatifs, spectacles interactifs, ombres chinoises, ventriloquie, mime, spectacles avec animaux. Toutes les compagnies référencées sont des professionnels du spectacle."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Combien de temps à l'avance faut-il réserver ?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Nous recommandons de réserver 4 à 8 semaines à l'avance. Pour les périodes de forte demande (Noël, fin d'année scolaire, kermesses de juin), anticipez de 2 à 4 mois."
+      }
+    }
+  ]
+}
+</script>
 {% endblock %}
 {% block content %}
 
@@ -87,7 +135,7 @@
       </div>
     </a>
 
-    <a href="{{ url_for('show_detail', show_id=show.id) }}" class="content-link">
+    <a href="{{ show_url(show) }}" class="content-link">
       <div class="content">
         {% if show.raison_sociale %}<p class="meta" style="font-weight:600; margin-bottom:8px; color:var(--primary);">{{ show.raison_sociale|title }}</p>{% endif %}
         <h3>{{ show.title }}</h3>
@@ -110,5 +158,34 @@
 </div>
 
 {% endif %}
+
+<section class="faq-section" style="max-width:900px; margin:60px auto 40px; padding:0 20px;">
+  <h2 style="font-size:26px; margin-bottom:24px; color:var(--primary);">Questions fréquentes sur les spectacles pour enfants</h2>
+
+  <details style="margin-bottom:14px; padding:14px 18px; background:#f8f9fa; border-radius:8px; border-left:4px solid var(--primary);">
+    <summary style="font-weight:600; cursor:pointer; font-size:17px;">Quel spectacle choisir selon l'âge des enfants ?</summary>
+    <p style="margin:12px 0 0 0; line-height:1.7;">Pour les <strong>2-4 ans</strong>, privilégiez les contes courts, marionnettes et éveil sensoriel (20-30 min). Pour les <strong>5-7 ans</strong>, magie interactive, clowns, contes féeriques (30-40 min). Pour les <strong>8-12 ans</strong>, magie de scène, cirque, théâtre, spectacles scientifiques (45-60 min).</p>
+  </details>
+
+  <details style="margin-bottom:14px; padding:14px 18px; background:#f8f9fa; border-radius:8px; border-left:4px solid var(--primary);">
+    <summary style="font-weight:600; cursor:pointer; font-size:17px;">Combien coûte un spectacle pour enfants ?</summary>
+    <p style="margin:12px 0 0 0; line-height:1.7;">Le tarif varie entre <strong>300 € et 1 500 €</strong> selon la durée, la jauge, le type de prestation, la distance et la période. Un spectacle scolaire moyen coûte 400 à 700 €, un anniversaire à domicile 150 à 350 €.</p>
+  </details>
+
+  <details style="margin-bottom:14px; padding:14px 18px; background:#f8f9fa; border-radius:8px; border-left:4px solid var(--primary);">
+    <summary style="font-weight:600; cursor:pointer; font-size:17px;">Les artistes se déplacent-ils dans mon école, ma mairie ou chez moi ?</summary>
+    <p style="margin:12px 0 0 0; line-height:1.7;">Oui. Les compagnies se déplacent dans les écoles maternelles et primaires, crèches, mairies, MJC, médiathèques, salles des fêtes, EHPAD, et à domicile pour les anniversaires. Chaque artiste précise sa zone géographique.</p>
+  </details>
+
+  <details style="margin-bottom:14px; padding:14px 18px; background:#f8f9fa; border-radius:8px; border-left:4px solid var(--primary);">
+    <summary style="font-weight:600; cursor:pointer; font-size:17px;">Quels types de spectacles pour enfants proposez-vous ?</summary>
+    <p style="margin:12px 0 0 0; line-height:1.7;">Théâtre jeune public, contes musicaux, marionnettes, magie, cirque, clowns, spectacles scientifiques, ateliers créatifs, spectacles interactifs, ombres chinoises, ventriloquie, mime, spectacles avec animaux. Toutes les compagnies référencées sont des professionnels du spectacle.</p>
+  </details>
+
+  <details style="margin-bottom:14px; padding:14px 18px; background:#f8f9fa; border-radius:8px; border-left:4px solid var(--primary);">
+    <summary style="font-weight:600; cursor:pointer; font-size:17px;">Combien de temps à l'avance faut-il réserver ?</summary>
+    <p style="margin:12px 0 0 0; line-height:1.7;">Nous recommandons de réserver <strong>4 à 8 semaines à l'avance</strong>. Pour les périodes de forte demande (Noël, fin d'année scolaire, kermesses de juin), anticipez de 2 à 4 mois.</p>
+  </details>
+</section>
 
 {% endblock %}

@@ -40,6 +40,39 @@ def company_id_from_slug(slug: str):
         return None
 
 
+def show_slug(show) -> str:
+    """Génère un slug SEO stable pour un spectacle (Show).
+
+    Format : ``<titre-slugifie>-<id>``. L'ID final garantit l'unicité
+    même si deux spectacles portent le même nom.
+    Ex : « France is Beautiful » (id=565) → ``france-is-beautiful-565``.
+    """
+    if show is None:
+        return ""
+    base = getattr(show, "title", None) or "spectacle"
+    base = str(base).lower()
+    base = normalize("NFKD", base).encode("ascii", "ignore").decode("ascii")
+    base = re.sub(r"[^a-z0-9]+", "-", base).strip("-")
+    base = base[:80].strip("-") or "spectacle"
+    return f"{base}-{show.id}"
+
+
+def show_id_from_slug(slug: str):
+    """Extrait l'ID numérique de fin d'un slug de spectacle.
+
+    Retourne l'entier ou None si le format ne matche pas.
+    """
+    if not slug or not isinstance(slug, str):
+        return None
+    parts = slug.rsplit("-", 1)
+    if len(parts) != 2 or not parts[1].isdigit():
+        return None
+    try:
+        return int(parts[1])
+    except (ValueError, TypeError):
+        return None
+
+
 SEO_CATEGORIES = {
     "marionnette": "marionnette",
     "magie": "magie",

@@ -9,7 +9,81 @@
   "name": "Spectacle de Noël pour entreprise / arbre de Noël CSE",
   "serviceType": "Animation événementielle d'entreprise",
   "areaServed": "France",
-  "url": "{{ url_for('spectacles_noel_entreprise', _external=True) }}"
+  "url": "{{ url_for('spectacles_noel_entreprise', _external=True) }}",
+  "offers": {
+    "@type": "AggregateOffer",
+    "priceCurrency": "EUR",
+    "lowPrice": "800",
+    "highPrice": "4000",
+    "offerCount": "40"
+  }
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {"@type": "ListItem", "position": 1, "name": "Accueil", "item": "{{ url_for('home', _external=True) }}"},
+    {"@type": "ListItem", "position": 2, "name": "Spectacles de Noël", "item": "{{ url_for('spectacles_noel', _external=True) }}"},
+    {"@type": "ListItem", "position": 3, "name": "Spectacle Noël entreprise", "item": "{{ url_for('spectacles_noel_entreprise', _external=True) }}"}
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "Combien coûte un spectacle d'arbre de Noël pour CSE ?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Le budget d'un arbre de Noël CSE se situe généralement entre 1 500 € et 4 000 € hors lieu et restauration. Détail : 800 à 1 500 € pour un grand spectacle de magie d'une heure, 200 à 400 € pour la visite du Père Noël, 250 à 600 € pour une animation goûter (sculpteur de ballons, maquillage)."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Quand réserver un spectacle de Noël pour son entreprise ?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Dès septembre, idéalement. Les samedis de décembre (notamment les 7, 14 et 21) sont saturés. Les meilleures compagnies refusent souvent des dates dès la mi-octobre. Anticiper garantit le choix de l'artiste et un tarif optimal."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Quelles formules pour l'arbre de Noël du CSE ?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Les formules les plus demandées : grand spectacle de magie de 45 à 60 min, visite du Père Noël avec distribution nominative des cadeaux, animations goûter (ballons, maquillage, mascotte), spectacle musical / conté, déambulation extérieure (fanfare lumineuse, échassiers de Noël, parade féerique)."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Pour combien de personnes proposez-vous des prestations ?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "De 50 à plus de 500 personnes. Petit cocktail, arbre de Noël moyen (100-200 enfants) ou grand événement d'entreprise, nos artistes adaptent leur prestation à votre jauge et à votre lieu (salle des fêtes, théâtre, hôtel, siège social)."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Les artistes ont-ils une licence et une assurance ?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Oui. Toutes les compagnies référencées sont des professionnels du spectacle avec licence d'entrepreneur du spectacle (obligatoire en France pour les organisations professionnelles), assurance responsabilité civile professionnelle et matériel scénique adapté."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Dans quelles villes intervenez-vous ?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Partout en France : Paris, Lyon, Marseille, Toulouse, Bordeaux, Lille, Nantes, Strasbourg, Montpellier, Nice, Rennes, Grenoble, ainsi que dans toutes les villes moyennes et zones rurales. Chaque compagnie affiche sa zone géographique de déplacement."
+      }
+    }
+  ]
 }
 </script>
 {% endblock %}
@@ -83,7 +157,7 @@
         {% endif %}
       </div>
     </a>
-    <a href="{{ url_for('show_detail', show_id=show.id) }}" class="content-link">
+    <a href="{{ show_url(show) }}" class="content-link">
       <div class="content">
         {% if show.raison_sociale %}<p class="meta" style="font-weight:600; margin-bottom:8px; color:var(--primary);">{{ show.raison_sociale|title }}</p>{% endif %}
         <h3>{{ show.title }}</h3>
@@ -107,5 +181,49 @@
 <div style="text-align:center; margin:40px auto; max-width:700px;">
   <a href="{{ url_for('demande_animation') }}" style="display:inline-block; padding:14px 28px; background:linear-gradient(135deg,#1976d2,#42a5f5); color:#fff; text-decoration:none; border-radius:8px; font-weight:600; font-size:16px;">🎄 Demander un devis arbre de Noël CSE</a>
 </div>
+
+<section class="faq-section" style="max-width:900px; margin:60px auto 40px; padding:0 20px;">
+  <h2 style="font-size:26px; margin-bottom:24px; color:var(--primary);">Questions fréquentes : arbre de Noël CSE et spectacle entreprise</h2>
+
+  <details style="margin-bottom:14px; padding:14px 18px; background:#f8f9fa; border-radius:8px; border-left:4px solid var(--primary);">
+    <summary style="font-weight:600; cursor:pointer; font-size:17px;">Combien coûte un spectacle d'arbre de Noël pour CSE ?</summary>
+    <p style="margin:12px 0 0 0; line-height:1.7;">Le budget d'un arbre de Noël CSE se situe généralement entre <strong>1 500 € et 4 000 €</strong> hors lieu et restauration. Détail : 800 à 1 500 € pour un grand spectacle de magie d'une heure, 200 à 400 € pour la visite du Père Noël, 250 à 600 € pour une animation goûter (sculpteur de ballons, maquillage).</p>
+  </details>
+
+  <details style="margin-bottom:14px; padding:14px 18px; background:#f8f9fa; border-radius:8px; border-left:4px solid var(--primary);">
+    <summary style="font-weight:600; cursor:pointer; font-size:17px;">Quand réserver un spectacle de Noël pour son entreprise ?</summary>
+    <p style="margin:12px 0 0 0; line-height:1.7;"><strong>Dès septembre</strong>, idéalement. Les samedis de décembre (notamment les 7, 14 et 21) sont saturés. Les meilleures compagnies refusent souvent des dates dès la mi-octobre. Anticiper garantit le choix de l'artiste et un tarif optimal.</p>
+  </details>
+
+  <details style="margin-bottom:14px; padding:14px 18px; background:#f8f9fa; border-radius:8px; border-left:4px solid var(--primary);">
+    <summary style="font-weight:600; cursor:pointer; font-size:17px;">Quelles formules pour l'arbre de Noël du CSE ?</summary>
+    <p style="margin:12px 0 0 0; line-height:1.7;">Les formules les plus demandées : grand spectacle de magie de 45 à 60 min, visite du Père Noël avec distribution nominative des cadeaux, animations goûter (ballons, maquillage, mascotte), spectacle musical ou conté, déambulation extérieure (fanfare lumineuse, échassiers de Noël, parade féerique).</p>
+  </details>
+
+  <details style="margin-bottom:14px; padding:14px 18px; background:#f8f9fa; border-radius:8px; border-left:4px solid var(--primary);">
+    <summary style="font-weight:600; cursor:pointer; font-size:17px;">Pour combien de personnes proposez-vous des prestations ?</summary>
+    <p style="margin:12px 0 0 0; line-height:1.7;">De <strong>50 à plus de 500 personnes</strong>. Petit cocktail, arbre de Noël moyen (100-200 enfants) ou grand événement d'entreprise, nos artistes adaptent leur prestation à votre jauge et à votre lieu (salle des fêtes, théâtre, hôtel, siège social).</p>
+  </details>
+
+  <details style="margin-bottom:14px; padding:14px 18px; background:#f8f9fa; border-radius:8px; border-left:4px solid var(--primary);">
+    <summary style="font-weight:600; cursor:pointer; font-size:17px;">Les artistes ont-ils une licence et une assurance ?</summary>
+    <p style="margin:12px 0 0 0; line-height:1.7;">Oui. Toutes les compagnies référencées sont des professionnels du spectacle avec <strong>licence d'entrepreneur du spectacle</strong>, <strong>assurance responsabilité civile professionnelle</strong> et matériel scénique adapté.</p>
+  </details>
+
+  <details style="margin-bottom:14px; padding:14px 18px; background:#f8f9fa; border-radius:8px; border-left:4px solid var(--primary);">
+    <summary style="font-weight:600; cursor:pointer; font-size:17px;">Dans quelles villes intervenez-vous ?</summary>
+    <p style="margin:12px 0 0 0; line-height:1.7;">Partout en France : Paris, Lyon, Marseille, Toulouse, Bordeaux, Lille, Nantes, Strasbourg, Montpellier, Nice, Rennes, Grenoble, ainsi que dans toutes les villes moyennes et zones rurales. Chaque compagnie affiche sa zone géographique de déplacement.</p>
+  </details>
+</section>
+
+<section style="max-width:900px; margin:40px auto; padding:24px; background:#f8f9fa; border-radius:12px;">
+  <h2 style="font-size:22px; margin-bottom:14px; color:var(--primary);">Explorez nos autres pages de Noël</h2>
+  <div style="display:flex; gap:12px; flex-wrap:wrap;">
+    <a href="{{ url_for('spectacles_noel') }}" style="padding:10px 18px; background:#fff; border:1px solid #ddd; border-radius:8px; text-decoration:none; color:var(--primary); font-weight:500;">Tous les spectacles de Noël</a>
+    <a href="{{ url_for('spectacles_noel_ecole') }}" style="padding:10px 18px; background:#fff; border:1px solid #ddd; border-radius:8px; text-decoration:none; color:var(--primary); font-weight:500;">Spectacle Noël école</a>
+    <a href="{{ url_for('pere_noel_a_domicile') }}" style="padding:10px 18px; background:#fff; border:1px solid #ddd; border-radius:8px; text-decoration:none; color:var(--primary); font-weight:500;">Père Noël à domicile</a>
+    <a href="{{ url_for('animations_entreprises') }}" style="padding:10px 18px; background:#fff; border:1px solid #ddd; border-radius:8px; text-decoration:none; color:var(--primary); font-weight:500;">Animations entreprise</a>
+  </div>
+</section>
 
 {% endblock %}

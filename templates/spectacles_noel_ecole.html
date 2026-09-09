@@ -9,7 +9,81 @@
   "name": "Spectacle de Noël pour école",
   "serviceType": "Animation scolaire de Noël",
   "areaServed": "France",
-  "url": "{{ url_for('spectacles_noel_ecole', _external=True) }}"
+  "url": "{{ url_for('spectacles_noel_ecole', _external=True) }}",
+  "offers": {
+    "@type": "AggregateOffer",
+    "priceCurrency": "EUR",
+    "lowPrice": "350",
+    "highPrice": "800",
+    "offerCount": "50"
+  }
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {"@type": "ListItem", "position": 1, "name": "Accueil", "item": "{{ url_for('home', _external=True) }}"},
+    {"@type": "ListItem", "position": 2, "name": "Spectacles de Noël", "item": "{{ url_for('spectacles_noel', _external=True) }}"},
+    {"@type": "ListItem", "position": 3, "name": "Spectacle de Noël école", "item": "{{ url_for('spectacles_noel_ecole', _external=True) }}"}
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "Combien coûte un spectacle de Noël pour une école ?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Le tarif d'une séance scolaire de Noël se situe entre 350 € et 800 € selon la jauge (une ou deux classes), la distance de déplacement de l'artiste et la durée. Pour deux séances le même jour (mutualisation), les compagnies proposent souvent un tarif dégressif."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Quel format de spectacle de Noël pour la maternelle ?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Pour les PS-MS-GS, privilégiez un format court de 30 à 40 minutes maximum, avec contes féeriques, magie douce, marionnettes ou chansons à gestes. Les jeunes enfants ont besoin d'interactions visuelles et sonores fortes mais brèves."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Quand réserver un spectacle de Noël pour l'école ?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Dès la rentrée de septembre. Décembre est le mois le plus chargé pour les compagnies jeune public : les meilleures dates partent très vite. Réserver tôt sécurise votre créneau et l'artiste souhaité."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "De quel espace avons-nous besoin pour le spectacle ?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Une salle de motricité, un préau ou une BCD de 6 mètres sur 4 minimum, avec une prise électrique et un sol propre. Comptez une heure pour l'installation et 30 minutes pour le rangement de l'artiste."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Qui peut financer le spectacle de Noël à l'école ?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Plusieurs sources sont possibles : coopérative scolaire, OCCE, association de parents d'élèves (APE / APEL), subvention municipale, budget mairie, sponsors locaux. La mutualisation entre classes ou entre écoles voisines permet aussi de réduire fortement le coût par enfant."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Le spectacle peut-il inclure un prolongement pédagogique ?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Oui. De nombreuses compagnies proposent un livret pédagogique, un dossier enseignant ou un atelier de prolongement en classe (arts plastiques, expression corporelle, éveil musical) autour du spectacle."
+      }
+    }
+  ]
 }
 </script>
 {% endblock %}
@@ -70,7 +144,7 @@
         {% endif %}
       </div>
     </a>
-    <a href="{{ url_for('show_detail', show_id=show.id) }}" class="content-link">
+    <a href="{{ show_url(show) }}" class="content-link">
       <div class="content">
         {% if show.raison_sociale %}<p class="meta" style="font-weight:600; margin-bottom:8px; color:var(--primary);">{{ show.raison_sociale|title }}</p>{% endif %}
         <h3>{{ show.title }}</h3>
@@ -94,5 +168,49 @@
 <div style="text-align:center; margin:40px auto; max-width:700px;">
   <a href="{{ url_for('demande_animation') }}" style="display:inline-block; padding:14px 28px; background:linear-gradient(135deg,#27ae60,#2ecc71); color:#fff; text-decoration:none; border-radius:8px; font-weight:600; font-size:16px;">🎄 Demander un devis pour mon école</a>
 </div>
+
+<section class="faq-section" style="max-width:900px; margin:60px auto 40px; padding:0 20px;">
+  <h2 style="font-size:26px; margin-bottom:24px; color:var(--primary);">Questions fréquentes : spectacle de Noël à l'école</h2>
+
+  <details style="margin-bottom:14px; padding:14px 18px; background:#f8f9fa; border-radius:8px; border-left:4px solid var(--primary);">
+    <summary style="font-weight:600; cursor:pointer; font-size:17px;">Combien coûte un spectacle de Noël pour une école ?</summary>
+    <p style="margin:12px 0 0 0; line-height:1.7;">Le tarif d'une séance scolaire de Noël se situe entre <strong>350 € et 800 €</strong> selon la jauge (une ou deux classes), la distance de déplacement de l'artiste et la durée. Pour deux séances le même jour (mutualisation), les compagnies proposent souvent un tarif dégressif.</p>
+  </details>
+
+  <details style="margin-bottom:14px; padding:14px 18px; background:#f8f9fa; border-radius:8px; border-left:4px solid var(--primary);">
+    <summary style="font-weight:600; cursor:pointer; font-size:17px;">Quel format de spectacle de Noël pour la maternelle ?</summary>
+    <p style="margin:12px 0 0 0; line-height:1.7;">Pour les PS-MS-GS, privilégiez un format court de <strong>30 à 40 minutes maximum</strong>, avec contes féeriques, magie douce, marionnettes ou chansons à gestes. Les jeunes enfants ont besoin d'interactions visuelles et sonores fortes mais brèves.</p>
+  </details>
+
+  <details style="margin-bottom:14px; padding:14px 18px; background:#f8f9fa; border-radius:8px; border-left:4px solid var(--primary);">
+    <summary style="font-weight:600; cursor:pointer; font-size:17px;">Quand réserver un spectacle de Noël pour l'école ?</summary>
+    <p style="margin:12px 0 0 0; line-height:1.7;">Dès la <strong>rentrée de septembre</strong>. Décembre est le mois le plus chargé pour les compagnies jeune public : les meilleures dates partent très vite. Réserver tôt sécurise votre créneau et l'artiste souhaité.</p>
+  </details>
+
+  <details style="margin-bottom:14px; padding:14px 18px; background:#f8f9fa; border-radius:8px; border-left:4px solid var(--primary);">
+    <summary style="font-weight:600; cursor:pointer; font-size:17px;">De quel espace avons-nous besoin pour le spectacle ?</summary>
+    <p style="margin:12px 0 0 0; line-height:1.7;">Une salle de motricité, un préau ou une BCD de <strong>6 mètres sur 4 minimum</strong>, avec une prise électrique et un sol propre. Comptez une heure pour l'installation et 30 minutes pour le rangement de l'artiste.</p>
+  </details>
+
+  <details style="margin-bottom:14px; padding:14px 18px; background:#f8f9fa; border-radius:8px; border-left:4px solid var(--primary);">
+    <summary style="font-weight:600; cursor:pointer; font-size:17px;">Qui peut financer le spectacle de Noël à l'école ?</summary>
+    <p style="margin:12px 0 0 0; line-height:1.7;">Plusieurs sources sont possibles : <strong>coopérative scolaire, OCCE, APE / APEL, subvention municipale, budget mairie, sponsors locaux</strong>. La mutualisation entre classes ou entre écoles voisines permet aussi de réduire fortement le coût par enfant.</p>
+  </details>
+
+  <details style="margin-bottom:14px; padding:14px 18px; background:#f8f9fa; border-radius:8px; border-left:4px solid var(--primary);">
+    <summary style="font-weight:600; cursor:pointer; font-size:17px;">Le spectacle peut-il inclure un prolongement pédagogique ?</summary>
+    <p style="margin:12px 0 0 0; line-height:1.7;">Oui. De nombreuses compagnies proposent un <strong>livret pédagogique</strong>, un <strong>dossier enseignant</strong> ou un atelier de prolongement en classe (arts plastiques, expression corporelle, éveil musical) autour du spectacle.</p>
+  </details>
+</section>
+
+<section style="max-width:900px; margin:40px auto; padding:24px; background:#f8f9fa; border-radius:12px;">
+  <h2 style="font-size:22px; margin-bottom:14px; color:var(--primary);">Autres pages qui peuvent vous intéresser</h2>
+  <div style="display:flex; gap:12px; flex-wrap:wrap;">
+    <a href="{{ url_for('spectacles_noel') }}" style="padding:10px 18px; background:#fff; border:1px solid #ddd; border-radius:8px; text-decoration:none; color:var(--primary); font-weight:500;">Tous les spectacles de Noël</a>
+    <a href="{{ url_for('spectacles_enfants') }}" style="padding:10px 18px; background:#fff; border:1px solid #ddd; border-radius:8px; text-decoration:none; color:var(--primary); font-weight:500;">Spectacles pour enfants</a>
+    <a href="{{ url_for('pere_noel_a_domicile') }}" style="padding:10px 18px; background:#fff; border:1px solid #ddd; border-radius:8px; text-decoration:none; color:var(--primary); font-weight:500;">Père Noël à domicile</a>
+    <a href="{{ url_for('spectacles_noel_entreprise') }}" style="padding:10px 18px; background:#fff; border:1px solid #ddd; border-radius:8px; text-decoration:none; color:var(--primary); font-weight:500;">Spectacle Noël entreprise</a>
+  </div>
+</section>
 
 {% endblock %}

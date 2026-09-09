@@ -69,7 +69,7 @@
   <meta property="og:locale" content="fr_FR">
   
   <!-- Twitter Card -->
-  <meta name="twitter:card" content="summary">
+  <meta name="twitter:card" content="{% block twitter_card %}summary{% endblock %}">
   <meta name="twitter:title" content="{% block twitter_title %}Spectacle'ment VØtre - Spectacles et animations{% endblock %}">
   <meta name="twitter:description" content="{% block twitter_description %}Trouvez l'animation parfaite pour votre événement{% endblock %}">
   <meta name="twitter:image" content="{% block twitter_image %}{{ url_for('static', filename='img/logo_spectaclement_votre.png', _external=True) }}{% endblock %}">
@@ -82,10 +82,12 @@
   <!-- Favicon (SVG) -->
   <link rel="icon" href="{{ url_for('static', filename='img/favicon.svg') }}" type="image/svg+xml">
   <link rel="manifest" href="{{ url_for('static', filename='site.webmanifest') }}">
-  <meta name="theme-color" content="#6a11cb">
-  
-  <!-- Anti-flash blanc -->
-  <style>body{background:#0f0f12;color:#f5f6f8;}
+
+  <!-- Perf: preconnect vers les CDN les plus utilisés -->
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+  <link rel="dns-prefetch" href="https://cdn.jsdelivr.net">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 
   /* Badge "?" d'aide avec info-bulle au clic (toggle via :focus / .open) */
   .info-tip-wrap { position: relative; display: inline-flex; align-items: center; flex: 0 0 auto; }

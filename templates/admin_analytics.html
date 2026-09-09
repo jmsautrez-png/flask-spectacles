@@ -49,7 +49,7 @@
         {% for s in top_shows %}
         <tr style="border-top:1px solid var(--border);">
           <td style="padding:10px 16px; color:var(--muted);">{{ loop.index }}</td>
-          <td style="padding:10px 16px;"><a href="{{ url_for('show_detail', show_id=s.id) }}" style="color:var(--primary); text-decoration:none; font-weight:500;">{{ s.title }}</a></td>
+          <td style="padding:10px 16px;"><a href="{{ show_url(s) }}" style="color:var(--primary); text-decoration:none; font-weight:500;">{{ s.title }}</a></td>
           <td style="padding:10px 16px; color:var(--muted);">{{ s.raison_sociale or '—' }}</td>
           <td style="padding:10px 16px; text-align:right; font-weight:700;">{{ s.views }}</td>
         </tr>
@@ -74,7 +74,7 @@
       <tbody>
         {% for s in top_rated %}
         <tr style="border-top:1px solid var(--border);">
-          <td style="padding:10px 16px;"><a href="{{ url_for('show_detail', show_id=s.id) }}" style="color:var(--primary); text-decoration:none;">{{ s.title }}</a></td>
+          <td style="padding:10px 16px;"><a href="{{ show_url(s) }}" style="color:var(--primary); text-decoration:none;">{{ s.title }}</a></td>
           <td style="padding:10px 16px; text-align:right; color:#ffc107; font-weight:700;">{{ '%.1f'|format(s.avg_rating) }} ★</td>
           <td style="padding:10px 16px; text-align:right; color:var(--muted);">{{ s.review_count }}</td>
         </tr>

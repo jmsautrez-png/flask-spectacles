@@ -15,7 +15,62 @@
       {"@type": "ListItem", "position": 2, "name": "Catalogue", "item": "{{ url_for('catalogue', _external=True) }}"},
       {"@type": "ListItem", "position": 3, "name": "Animations Anniversaire", "item": "{{ url_for('animations_anniversaire', _external=True) }}"}
     ]
+  },
+  "offers": {
+    "@type": "AggregateOffer",
+    "priceCurrency": "EUR",
+    "lowPrice": "150",
+    "highPrice": "500",
+    "offerCount": "40"
   }
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "Combien coûte une animation d'anniversaire pour enfant à domicile ?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Comptez entre 150 € et 500 € pour une animation d'anniversaire à domicile d'1 h à 2 h : magicien 180-350 €, clown 200-400 €, sculpteur de ballons 150-250 €, maquilleuse 180-280 €, animateur multi-jeux 200-380 €. Les tarifs varient selon la durée, la zone géographique et le programme."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Quelle durée idéale pour une animation d'anniversaire ?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "1 h pour les 3-5 ans (attention brève), 1 h 30 à 2 h pour les 6-10 ans. La formule classique : 45 minutes de spectacle, puis 30 minutes d'atelier (sculpture ballons, maquillage) autour du goûter."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Quelle animation choisir selon l'âge de l'enfant ?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Pour un anniversaire de 3-4 ans : marionnettes, contes animés, maquillage doux. Pour 5-7 ans : magicien, clown, sculpture de ballons, chasse au trésor. Pour 8-12 ans : magie interactive, escape game, atelier scientifique, spectacle interactif."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "L'animateur apporte-t-il tout le matériel ?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Oui, l'animateur professionnel arrive avec l'intégralité du matériel (accessoires, ballons, maquillages, sono si besoin, décor). Vous n'avez qu'à prévoir un espace dégagé (salon, jardin ou salle) et une prise électrique si le numéro nécessite du son."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Combien de temps à l'avance faut-il réserver ?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "3 à 6 semaines à l'avance pour les week-ends. Pour les périodes fortes (juin, décembre, week-ends prolongés), réservez 2 mois à l'avance. Les meilleurs animateurs sont pris très vite le samedi après-midi."
+      }
+    }
+  ]
 }
 </script>
 {% endblock %}
@@ -85,7 +140,7 @@
       </div>
     </a>
 
-    <a href="{{ url_for('show_detail', show_id=show.id) }}" class="content-link">
+    <a href="{{ show_url(show) }}" class="content-link">
       <div class="content">
         {% if show.raison_sociale %}<p class="meta" style="font-weight:600; margin-bottom:8px; color:var(--primary);">{{ show.raison_sociale }}</p>{% endif %}
         <h3>{{ show.title }}</h3>
@@ -108,5 +163,34 @@
 </div>
 
 {% endif %}
+
+<section class="faq-section" style="max-width:900px; margin:60px auto 40px; padding:0 20px;">
+  <h2 style="font-size:26px; margin-bottom:24px; color:var(--primary);">Questions fréquentes : animation d'anniversaire enfant</h2>
+
+  <details style="margin-bottom:14px; padding:14px 18px; background:#f8f9fa; border-radius:8px; border-left:4px solid var(--primary);">
+    <summary style="font-weight:600; cursor:pointer; font-size:17px;">Combien coûte une animation d'anniversaire pour enfant à domicile ?</summary>
+    <p style="margin:12px 0 0 0; line-height:1.7;">Comptez entre <strong>150 € et 500 €</strong> pour une animation à domicile d'1 h à 2 h : magicien 180-350 €, clown 200-400 €, sculpteur de ballons 150-250 €, maquilleuse 180-280 €, animateur multi-jeux 200-380 €. Les tarifs varient selon la durée, la zone géographique et le programme.</p>
+  </details>
+
+  <details style="margin-bottom:14px; padding:14px 18px; background:#f8f9fa; border-radius:8px; border-left:4px solid var(--primary);">
+    <summary style="font-weight:600; cursor:pointer; font-size:17px;">Quelle durée idéale pour une animation d'anniversaire ?</summary>
+    <p style="margin:12px 0 0 0; line-height:1.7;"><strong>1 h</strong> pour les 3-5 ans (attention brève), <strong>1 h 30 à 2 h</strong> pour les 6-10 ans. Formule classique : 45 minutes de spectacle, puis 30 minutes d'atelier (sculpture ballons, maquillage) autour du goûter.</p>
+  </details>
+
+  <details style="margin-bottom:14px; padding:14px 18px; background:#f8f9fa; border-radius:8px; border-left:4px solid var(--primary);">
+    <summary style="font-weight:600; cursor:pointer; font-size:17px;">Quelle animation choisir selon l'âge de l'enfant ?</summary>
+    <p style="margin:12px 0 0 0; line-height:1.7;">Pour un anniversaire de <strong>3-4 ans</strong> : marionnettes, contes animés, maquillage doux. Pour <strong>5-7 ans</strong> : magicien, clown, sculpture de ballons, chasse au trésor. Pour <strong>8-12 ans</strong> : magie interactive, escape game, atelier scientifique, spectacle interactif.</p>
+  </details>
+
+  <details style="margin-bottom:14px; padding:14px 18px; background:#f8f9fa; border-radius:8px; border-left:4px solid var(--primary);">
+    <summary style="font-weight:600; cursor:pointer; font-size:17px;">L'animateur apporte-t-il tout le matériel ?</summary>
+    <p style="margin:12px 0 0 0; line-height:1.7;">Oui, l'animateur professionnel arrive avec <strong>l'intégralité du matériel</strong> (accessoires, ballons, maquillages, sono si besoin, décor). Vous n'avez qu'à prévoir un espace dégagé (salon, jardin ou salle) et une prise électrique si le numéro nécessite du son.</p>
+  </details>
+
+  <details style="margin-bottom:14px; padding:14px 18px; background:#f8f9fa; border-radius:8px; border-left:4px solid var(--primary);">
+    <summary style="font-weight:600; cursor:pointer; font-size:17px;">Combien de temps à l'avance faut-il réserver ?</summary>
+    <p style="margin:12px 0 0 0; line-height:1.7;"><strong>3 à 6 semaines à l'avance</strong> pour les week-ends. Pour les périodes fortes (juin, décembre, week-ends prolongés), réservez 2 mois à l'avance. Les meilleurs animateurs sont pris très vite le samedi après-midi.</p>
+  </details>
+</section>
 
 {% endblock %}

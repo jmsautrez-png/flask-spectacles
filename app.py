@@ -98,8 +98,8 @@ from utils.security import (
     fix_mojibake,
 )
 from utils.search import normalize_search_text, generate_search_patterns
-from utils.seo import SEO_CATEGORIES, optimize_title_seo, company_slug, company_id_from_slug
-from constants import SPECIALITES, EVENEMENTS, LIEUX, LIEUX_ORGANISATEUR, REGIONS_FRANCE, REGIONS_VOISINES, PUBLICS, PUBLIC_CIBLE_CATEGORIES, PUBLIC_CIBLE_ORGANISATEUR, PUBLIC_CIBLE_ADMIN, PUBLIC_CIBLE_INCOMPATIBLES, PUBLIC_CIBLE_CODES_VALIDES, LABELS_QUALITE, LABELS_QUALITE_CODES, LABELS_QUALITE_NEUTRES, LABELS_QUALITE_LABELS, LABELS_QUALITE_DESCRIPTIONS, MASQUER_COORDONNEES_DIRECTES, normalize_lieux_csv
+from utils.seo import SEO_CATEGORIES, optimize_title_seo, company_slug, company_id_from_slug, show_slug, show_id_from_slug
+from constants import SPECIALITES, EVENEMENTS, LIEUX, LIEUX_ORGANISATEUR, REGIONS_FRANCE, REGIONS_VOISINES, PUBLICS, PUBLIC_CIBLE_CATEGORIES, PUBLIC_CIBLE_ORGANISATEUR, PUBLIC_CIBLE_ADMIN, PUBLIC_CIBLE_INCOMPATIBLES, PUBLIC_CIBLE_CODES_VALIDES, LABELS_QUALITE, LABELS_QUALITE_CODES, LABELS_QUALITE_NEUTRES, LABELS_QUALITE_LABELS, LABELS_QUALITE_DESCRIPTIONS, MASQUER_COORDONNEES_DIRECTES, MAX_DESCRIPTION_WORDS, normalize_lieux_csv
 
 print("✓ Config, models et utils importés")
 
@@ -751,6 +751,23 @@ def create_app() -> Flask:
     def _normalize_lieux_filter(csv_value):
         return normalize_lieux_csv(csv_value)
 
+    # Filtre Jinja2 : produit un extrait propre pour meta description / og:description.
+    # - Décode les entités HTML (&nbsp;, &amp;…)
+    # - Compresse les espaces
+    # - Coupe au dernier mot avant la limite + ellipse "…"
+    @app.template_filter('meta_excerpt')
+    def _meta_excerpt(text, length: int = 160):
+        if not text:
+            return ""
+        import html as _html
+        import re as _re
+        s = _html.unescape(str(text))
+        s = _re.sub(r"\s+", " ", s).strip()
+        if len(s) <= length:
+            return s
+        cut = s[:length].rsplit(" ", 1)[0].rstrip(",;:—-·.")
+        return (cut or s[:length]) + "…"
+
     # Filtre Jinja2 pour formater les âges
     @app.template_filter('format_age')
     def format_age(value):
@@ -945,6 +962,19 @@ def create_app() -> Flask:
         """Expose la fonction company_slug() dans tous les templates.
         Usage : {{ url_for('compagnie_profile', slug=company_slug(show.user)) }}"""
         return {'company_slug': company_slug}
+
+    @app.context_processor
+    def inject_show_url():
+        """Expose une fonction show_url(show) qui renvoie l'URL SEO canonique
+        d'une fiche spectacle (``/spectacle/<slug>``). Utilisée dans les templates
+        à la place de ``url_for('show_detail', show_id=...)`` pour éviter le
+        redirect 301 à chaque clic interne."""
+        def show_url(show, _external: bool = False) -> str:
+            try:
+                return url_for("show_detail_seo", slug=show_slug(show), _external=_external)
+            except Exception:
+                return url_for("show_detail", show_id=show.id, _external=_external)
+        return {'show_url': show_url, 'show_slug': show_slug}
 
     register_routes(app)
     register_error_handlers(app)
@@ -1267,9 +1297,9 @@ def _send_recap_to_organisateur(demande, shows_contactes, admin_email_extra=None
         rows_html = ""
         for s in unique_shows:
             try:
-                show_url = url_for("show_detail", show_id=s.id, _external=True)
+                show_url = url_for("show_detail_seo", slug=show_slug(s), _external=True)
             except Exception:
-                show_url = f"https://www.spectacleanimation.fr/show/{s.id}"
+                show_url = f"https://www.spectacleanimation.fr/spectacle/{show_slug(s)}"
             cie_name = ""
             if getattr(s, "user", None):
                 cie_name = (s.user.company_name or s.user.email or "") if hasattr(s.user, "company_name") else ""
@@ -2706,7 +2736,7 @@ def register_routes(app: Flask) -> None:
         shows = Show.query.filter(Show.approved.is_(True)).all()
         for show in shows:
             pages.append({
-                'loc': url_for('show_detail', show_id=show.id, _external=True),
+                'loc': url_for('show_detail_seo', slug=show_slug(show), _external=True),
                 'lastmod': show.created_at.strftime('%Y-%m-%d') if show.created_at else datetime.utcnow().strftime('%Y-%m-%d'),
                 'changefreq': 'weekly',
                 'priority': '0.7'
@@ -2868,8 +2898,11 @@ def register_routes(app: Flask) -> None:
             if not raison_sociale and u:
                 raison_sociale = u.raison_sociale if u.raison_sociale else u.username
             title = request.form.get("title", "").strip()
-            from utils.sanitize import sanitize_html
+            from utils.sanitize import sanitize_html, enforce_word_limit
             description = sanitize_html(request.form.get("description", ""))
+            description, _orig_wc, _final_wc = enforce_word_limit(description, MAX_DESCRIPTION_WORDS)
+            if _orig_wc > MAX_DESCRIPTION_WORDS:
+                flash(f"Description raccourcie automatiquement à {MAX_DESCRIPTION_WORDS} mots (elle en contenait {_orig_wc}).", "warning")
             region = fix_mojibake(request.form.get("region", "").strip())
             location = request.form.get("location", "").strip()
             date_str = request.form.get("date", "").strip()
@@ -3149,7 +3182,25 @@ def register_routes(app: Flask) -> None:
 
     @app.route("/show/<int:show_id>")
     def show_detail(show_id: int):
+        """Ancienne URL non slugifiée → redirect 301 vers l'URL SEO canonique.
+
+        Conservée pour ne casser aucun lien externe déjà indexé/partagé.
+        """
         show = Show.query.get_or_404(show_id)
+        return redirect(url_for("show_detail_seo", slug=show_slug(show)), code=301)
+
+    @app.route("/spectacle/<slug>")
+    def show_detail_seo(slug: str):
+        """Fiche spectacle — URL SEO (slug + id à la fin, ex : ``france-is-beautiful-565``)."""
+        sid = show_id_from_slug(slug)
+        if not sid:
+            abort(404)
+        show = Show.query.get_or_404(sid)
+        # Slug canonique : si le titre a été modifié, on redirige vers le slug à jour.
+        canonical = show_slug(show)
+        if slug != canonical:
+            return redirect(url_for("show_detail_seo", slug=canonical), code=301)
+
         # Seuls les spectacles approuvés sont visibles (sauf pour les admins)
         u = current_user()
         if not show.approved and not (u and u.is_admin):
@@ -3162,25 +3213,25 @@ def register_routes(app: Flask) -> None:
         spectacles_une = Show.query.filter(
             Show.approved.is_(True),
             Show.category.ilike('%Spectacle à la une%'),
-            Show.id != show_id  # Exclure le spectacle actuel
+            Show.id != show.id  # Exclure le spectacle actuel
         ).order_by(Show.created_at.desc()).limit(8).all()
 
         # ── Phase 5 : tracking des vues ──
         import hashlib
-        sid = session.get("_id", "")
+        sid_sess = session.get("_id", "")
         ip_raw = request.remote_addr or ""
         ip_h = hashlib.sha256(ip_raw.encode()).hexdigest()[:16]
-        already = ShowView.query.filter_by(show_id=show_id, session_id=sid).first() if sid else None
+        already = ShowView.query.filter_by(show_id=show.id, session_id=sid_sess).first() if sid_sess else None
         if not already:
-            db.session.add(ShowView(show_id=show_id, session_id=sid, ip_hash=ip_h))
+            db.session.add(ShowView(show_id=show.id, session_id=sid_sess, ip_hash=ip_h))
             try:
                 db.session.commit()
             except Exception:
                 db.session.rollback()
-        view_count = ShowView.query.filter_by(show_id=show_id).count()
+        view_count = ShowView.query.filter_by(show_id=show.id).count()
 
         # ── Phase 5 : avis approuvés ──
-        reviews = Review.query.filter_by(show_id=show_id, approved=True).order_by(Review.created_at.desc()).all()
+        reviews = Review.query.filter_by(show_id=show.id, approved=True).order_by(Review.created_at.desc()).all()
         avg_rating = 0
         if reviews:
             avg_rating = round(sum(r.rating for r in reviews) / len(reviews), 1)
@@ -3303,7 +3354,7 @@ def register_routes(app: Flask) -> None:
     </div>
 
     <p style="margin-top:20px; font-size:0.8rem; color:#999; text-align:center;">
-      Fiche spectacle : <a href="{url_for('show_detail', show_id=show.id, _external=True)}" style="color:#1b5e20;">{url_for('show_detail', show_id=show.id, _external=True)}</a>
+      Fiche spectacle : <a href="{url_for('show_detail_seo', slug=show_slug(show), _external=True)}" style="color:#1b5e20;">{url_for('show_detail_seo', slug=show_slug(show), _external=True)}</a>
     </p>
   </div>
 </body>
@@ -3348,7 +3399,7 @@ def register_routes(app: Flask) -> None:
                     current_app.logger.error(f"[MAIL] ✗ Envoi impossible (demande devis): {e}")
 
             flash("✅ Votre demande a bien été envoyée ! Nous vous répondrons rapidement.", "success")
-            return redirect(url_for("show_detail", show_id=show.id))
+            return redirect(url_for("show_detail_seo", slug=show_slug(show)))
 
         return render_template("demande_devis.html", show=show, user=current_user())
 
@@ -3376,8 +3427,12 @@ def register_routes(app: Flask) -> None:
         if request.method == "POST":
             s.raison_sociale = request.form.get("raison_sociale","").strip() or None
             s.title = request.form.get("title","").strip()
-            from utils.sanitize import sanitize_html
-            s.description = sanitize_html(request.form.get("description",""))
+            from utils.sanitize import sanitize_html, enforce_word_limit
+            _desc = sanitize_html(request.form.get("description",""))
+            _desc, _orig_wc, _final_wc = enforce_word_limit(_desc, MAX_DESCRIPTION_WORDS)
+            if _orig_wc > MAX_DESCRIPTION_WORDS:
+                flash(f"Description raccourcie automatiquement à {MAX_DESCRIPTION_WORDS} mots (elle en contenait {_orig_wc}).", "warning")
+            s.description = _desc
             s.region = fix_mojibake(request.form.get("region","").strip()) or None
             s.location = request.form.get("location","").strip()
             s.age_range = (request.form.get("age_range","") or None)
@@ -4514,8 +4569,12 @@ def register_routes(app: Flask) -> None:
         if request.method == "POST":
             show.raison_sociale = request.form.get("raison_sociale", "").strip() or None
             show.title = request.form.get("title", "").strip()
-            from utils.sanitize import sanitize_html
-            show.description = sanitize_html(request.form.get("description", ""))
+            from utils.sanitize import sanitize_html, enforce_word_limit
+            _desc = sanitize_html(request.form.get("description", ""))
+            _desc, _orig_wc, _final_wc = enforce_word_limit(_desc, MAX_DESCRIPTION_WORDS)
+            if _orig_wc > MAX_DESCRIPTION_WORDS:
+                flash(f"Description raccourcie automatiquement à {MAX_DESCRIPTION_WORDS} mots (elle en contenait {_orig_wc}).", "warning")
+            show.description = _desc
             show.region = fix_mojibake(request.form.get("region", "").strip()) or None
             show.location = request.form.get("location", "").strip()
             show.category = request.form.get("category", "").strip()  # admin peut forcer la catégorie
@@ -4770,7 +4829,7 @@ def register_routes(app: Flask) -> None:
             try:
                 # On privilégie l'email de la compagnie si présent, sinon fallback admin
                 to_addr = show.contact_email if show.contact_email else (current_app.config.get("MAIL_DEFAULT_SENDER") or current_app.config.get("MAIL_USERNAME"))
-                show_url = url_for("show_detail", show_id=show.id, _external=True)
+                show_url = url_for("show_detail_seo", slug=show_slug(show), _external=True)
 
                 # Détection du label « édition libre » : mail court et discret
                 _show_labels = {c.strip().lower() for c in (show.labels or "").split(",") if c.strip()}
@@ -6937,9 +6996,9 @@ Accessibilité: {accessibilite}
                         for show in shows:
                             s_email = show.contact_email or (show.user.email if show.user and hasattr(show.user, 'email') else "—")
                             try:
-                                s_url = url_for("show_detail", show_id=show.id, _external=True)
+                                s_url = url_for("show_detail_seo", slug=show_slug(show), _external=True)
                             except Exception:
-                                s_url = f"https://www.spectacleanimation.fr/show/{show.id}"
+                                s_url = f"https://www.spectacleanimation.fr/spectacle/{show_slug(show)}"
                             # Catégorie : fallback sur specialites (CSV) si category vide
                             s_cat = show.category or getattr(show, 'specialites', None) or "—"
                             if s_cat and "," in s_cat:
@@ -9027,6 +9086,8 @@ def submit_review(show_id):
     if not show.approved:
         abort(404)
 
+    _show_url = url_for("show_detail_seo", slug=show_slug(show))
+
     author = request.form.get("author_name", "").strip()
     rating_str = request.form.get("rating", "")
     comment = request.form.get("comment", "").strip()
@@ -9034,10 +9095,10 @@ def submit_review(show_id):
     # Validation
     if not author or len(author) < 2:
         flash("Merci d'indiquer votre nom (2 caractères minimum).", "warning")
-        return redirect(url_for("show_detail", show_id=show_id))
+        return redirect(_show_url)
     if not rating_str.isdigit() or not (1 <= int(rating_str) <= 5):
         flash("Merci de sélectionner une note entre 1 et 5 étoiles.", "warning")
-        return redirect(url_for("show_detail", show_id=show_id))
+        return redirect(_show_url)
 
     # Limiter le commentaire
     if len(comment) > 1000:
@@ -9062,13 +9123,13 @@ def submit_review(show_id):
             type="review",
             title="Nouvel avis sur votre spectacle",
             body=f"{author} a laissé un avis {int(rating_str)}★ sur « {show.title} » (en attente de modération).",
-            link=url_for("show_detail", show_id=show_id),
+            link=_show_url,
         )
         db.session.add(notif)
         db.session.commit()
 
     flash("Merci pour votre avis ! Il sera visible après validation par notre équipe.", "success")
-    return redirect(url_for("show_detail", show_id=show_id))
+    return redirect(_show_url)
 
 
 @app.route("/admin/reviews")

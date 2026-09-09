@@ -460,7 +460,7 @@
 <div class="cards">
   {% for show in shows %}
   <article class="card">
-    <a href="{{ url_for('show_detail', show_id=show.id) }}">
+    <a href="{{ show_url(show) }}">
       <div class="media">
         {% if show.has_image() %}
           <img src="{{ thumbnail_url(show.file_name) }}" alt="{{ show.title }} - {{ city['name'] }}" loading="lazy">
@@ -499,7 +499,7 @@
       </div>
       {% endif %}
       
-      <a href="{{ url_for('show_detail', show_id=show.id) }}" class="btn-detail">
+      <a href="{{ show_url(show) }}" class="btn-detail">
         Voir les détails →
       </a>
     </div>

@@ -46,7 +46,7 @@
         "@type": "Event",
         "name": "{{ show.title }}",
         "description": "{{ ((show.description|striptags)[:150])|e if show.description else show.title|e }}",
-        "url": "{{ url_for('show_detail', show_id=show.id, _external=True) }}",
+        "url": "{{ show_url(show, _external=True) }}",
         "location": {
           "@type": "Place",
           "name": "{{ city['name'] }}",
@@ -213,7 +213,7 @@
   {% if shows %}
   <div class="spectacles-une-grid" style="display:grid; grid-template-columns:repeat(auto-fill, minmax(280px, 1fr)); gap:20px;">
     {% for show in shows %}
-    <a href="{{ url_for('show_detail', show_id=show.id) }}" style="text-decoration:none; color:inherit;">
+    <a href="{{ show_url(show) }}" style="text-decoration:none; color:inherit;">
       <div class="card" style="border-radius:12px; overflow:hidden; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); transition:transform .2s;">
         <div class="card-image" style="height:200px; overflow:hidden; background:#1a1a2e;">
           {% if show.has_image() %}

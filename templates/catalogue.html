@@ -21,8 +21,49 @@
 
 {# OG URL sans params aussi #}
 {% block og_url %}{{ request.base_url }}{% endblock %}
-{% block title %}Catalogue des spectacles - Spectacle'ment VØtre{% endblock %}
-{% block description %}Découvrez notre catalogue de spectacles pour enfants, animations d'entreprise et d'anniversaire. Magie, théâtre, cirque, clowns, marionnettes. Réservez directement avec des artistes professionnels en France.{% endblock %}
+{% block title %}Catalogue des spectacles et animations professionnels en France{% if request.args.get('specialite') %} - {{ request.args.get('specialite')|title }}{% endif %} | Spectacle'ment VØtre{% endblock %}
+{% block description %}Catalogue de spectacles et animations professionnels : magie, théâtre, cirque, clowns, marionnettes, contes, concerts jeune public. Réservez en direct des artistes vérifiés partout en France.{% endblock %}
+
+{% block extra_head %}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "CollectionPage",
+  "name": "Catalogue des spectacles et animations",
+  "description": "Catalogue de spectacles et animations professionnels partout en France : magie, théâtre, cirque, clowns, marionnettes, contes, concerts jeune public.",
+  "url": "{{ url_for('catalogue', _external=True) }}",
+  "isPartOf": { "@type": "WebSite", "name": "Spectacle'ment VØtre", "url": "{{ request.url_root }}" },
+  "breadcrumb": {
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      {"@type": "ListItem", "position": 1, "name": "Accueil", "item": "{{ url_for('home', _external=True) }}"},
+      {"@type": "ListItem", "position": 2, "name": "Catalogue", "item": "{{ url_for('catalogue', _external=True) }}"}
+    ]
+  }
+}
+</script>
+{% if shows %}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "ItemList",
+  "name": "Spectacles disponibles",
+  "numberOfItems": {{ shows|length }},
+  "itemListElement": [
+    {% for show in shows[:20] %}
+    {
+      "@type": "ListItem",
+      "position": {{ loop.index }},
+      "url": "{{ show_url(show, _external=True) }}",
+      "name": {{ show.title|tojson }}
+    }{% if not loop.last %},{% endif %}
+    {% endfor %}
+  ]
+}
+</script>
+{% endif %}
+{% endblock %}
+
 {% block content %}
 
 <style>
@@ -413,7 +454,7 @@
     <div class="cards">
       {% for show in shows or [] %}
       <article class="card" style="border:2px solid #222;border-radius:16px;box-shadow:0 2px 12px #0008;padding:0 0 8px 0;transition:box-shadow .2s;color:#fff;">
-        <a href="{{ url_for('show_detail', show_id=show.id) }}" class="media-link">
+        <a href="{{ show_url(show) }}" class="media-link">
           <div class="media img-skeleton">
             {% set images = show.get_all_images() %}
             {% if images|length > 1 %}
@@ -446,7 +487,7 @@
           </div>
         </a>
 
-        <a href="{{ url_for('show_detail', show_id=show.id) }}" class="content-link">
+        <a href="{{ show_url(show) }}" class="content-link">
           <div class="content">
             {% if show.labels %}
               <div style="display:flex; gap:6px; flex-wrap:wrap; margin-bottom:8px;">

@@ -15,7 +15,62 @@
       {"@type": "ListItem", "position": 2, "name": "Catalogue", "item": "{{ url_for('catalogue', _external=True) }}"},
       {"@type": "ListItem", "position": 3, "name": "Magiciens", "item": "{{ url_for('magiciens', _external=True) }}"}
     ]
+  },
+  "offers": {
+    "@type": "AggregateOffer",
+    "priceCurrency": "EUR",
+    "lowPrice": "200",
+    "highPrice": "2500",
+    "offerCount": "50"
   }
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "Combien coûte un magicien professionnel ?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Un magicien professionnel coûte entre 200 € et 500 € pour un anniversaire d'enfant (1 h), 400 € à 900 € pour un spectacle scolaire ou familial, et 800 € à 2 500 € pour un grand spectacle d'entreprise (CSE, arbre de Noël, mariage). Les tarifs varient selon la durée, la jauge, le déplacement et le type de magie (close-up, scène, grandes illusions)."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Quelle différence entre magie close-up et magie de scène ?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "La magie close-up (ou magie rapprochée) se pratique à quelques centimètres des spectateurs, souvent debout entre les tables lors d'un cocktail. La magie de scène s'adresse à un large public assis, avec illusions plus spectaculaires, jeux de lumière et parfois grandes illusions (apparitions, lévitations)."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "À partir de quel âge un enfant peut apprécier un spectacle de magie ?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Dès 3 ans pour la magie douce avec marionnettes et personnages. Vers 5-6 ans, l'enfant apprécie pleinement les tours interactifs. À partir de 8-10 ans, il découvre la magie mentale et les grandes illusions."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Le magicien peut-il faire participer les invités ?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Oui, la plupart des magiciens intègrent activement le public : cartes choisies au hasard, objets empruntés (montre, alliance, billet), enfant appelé sur scène. Cette interaction est essentielle pour l'émerveillement, notamment auprès des enfants."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Combien de temps dure un spectacle de magie ?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "20 à 30 minutes pour un anniversaire d'enfant, 45 à 60 minutes pour un spectacle familial ou d'entreprise, 1 h 30 à 2 heures pour une prestation close-up déambulatoire pendant un cocktail."
+      }
+    }
+  ]
 }
 </script>
 {% endblock %}
@@ -85,7 +140,7 @@
       </div>
     </a>
 
-    <a href="{{ url_for('show_detail', show_id=show.id) }}" class="content-link">
+    <a href="{{ show_url(show) }}" class="content-link">
       <div class="content">
         {% if show.raison_sociale %}<p class="meta" style="font-weight:600; margin-bottom:8px; color:var(--primary);">{{ show.raison_sociale|title }}</p>{% endif %}
         <h3>{{ show.title }}</h3>
@@ -108,5 +163,34 @@
 </div>
 
 {% endif %}
+
+<section class="faq-section" style="max-width:900px; margin:60px auto 40px; padding:0 20px;">
+  <h2 style="font-size:26px; margin-bottom:24px; color:var(--primary);">Questions fréquentes sur les spectacles de magie</h2>
+
+  <details style="margin-bottom:14px; padding:14px 18px; background:#f8f9fa; border-radius:8px; border-left:4px solid var(--primary);">
+    <summary style="font-weight:600; cursor:pointer; font-size:17px;">Combien coûte un magicien professionnel ?</summary>
+    <p style="margin:12px 0 0 0; line-height:1.7;">Un magicien professionnel coûte entre <strong>200 € et 500 €</strong> pour un anniversaire d'enfant (1 h), <strong>400 € à 900 €</strong> pour un spectacle scolaire ou familial, et <strong>800 € à 2 500 €</strong> pour un grand spectacle d'entreprise (CSE, arbre de Noël, mariage). Les tarifs varient selon la durée, la jauge, le déplacement et le type de magie.</p>
+  </details>
+
+  <details style="margin-bottom:14px; padding:14px 18px; background:#f8f9fa; border-radius:8px; border-left:4px solid var(--primary);">
+    <summary style="font-weight:600; cursor:pointer; font-size:17px;">Quelle différence entre magie close-up et magie de scène ?</summary>
+    <p style="margin:12px 0 0 0; line-height:1.7;">La <strong>magie close-up</strong> (rapprochée) se pratique à quelques centimètres des spectateurs, souvent debout entre les tables lors d'un cocktail. La <strong>magie de scène</strong> s'adresse à un large public assis, avec illusions plus spectaculaires, jeux de lumière et parfois grandes illusions (apparitions, lévitations).</p>
+  </details>
+
+  <details style="margin-bottom:14px; padding:14px 18px; background:#f8f9fa; border-radius:8px; border-left:4px solid var(--primary);">
+    <summary style="font-weight:600; cursor:pointer; font-size:17px;">À partir de quel âge un enfant apprécie un spectacle de magie ?</summary>
+    <p style="margin:12px 0 0 0; line-height:1.7;">Dès <strong>3 ans</strong> pour la magie douce avec marionnettes et personnages. Vers 5-6 ans, l'enfant apprécie pleinement les tours interactifs. À partir de 8-10 ans, il découvre la magie mentale et les grandes illusions.</p>
+  </details>
+
+  <details style="margin-bottom:14px; padding:14px 18px; background:#f8f9fa; border-radius:8px; border-left:4px solid var(--primary);">
+    <summary style="font-weight:600; cursor:pointer; font-size:17px;">Le magicien peut-il faire participer les invités ?</summary>
+    <p style="margin:12px 0 0 0; line-height:1.7;">Oui. La plupart des magiciens intègrent activement le public : cartes choisies au hasard, objets empruntés (montre, alliance, billet), enfant appelé sur scène. Cette interaction est essentielle pour l'émerveillement, notamment auprès des enfants.</p>
+  </details>
+
+  <details style="margin-bottom:14px; padding:14px 18px; background:#f8f9fa; border-radius:8px; border-left:4px solid var(--primary);">
+    <summary style="font-weight:600; cursor:pointer; font-size:17px;">Combien de temps dure un spectacle de magie ?</summary>
+    <p style="margin:12px 0 0 0; line-height:1.7;"><strong>20 à 30 minutes</strong> pour un anniversaire d'enfant, <strong>45 à 60 minutes</strong> pour un spectacle familial ou d'entreprise, <strong>1 h 30 à 2 heures</strong> pour une prestation close-up déambulatoire pendant un cocktail.</p>
+  </details>
+</section>
 
 {% endblock %}

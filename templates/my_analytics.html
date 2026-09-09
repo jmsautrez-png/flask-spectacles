@@ -31,7 +31,7 @@
     {% set st = stats[s.id] %}
     <div style="padding:16px 20px; background:var(--panel); border:1px solid var(--border); border-radius:10px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;">
       <div style="flex:1; min-width:200px;">
-        <a href="{{ url_for('show_detail', show_id=s.id) }}" style="color:var(--text); text-decoration:none; font-weight:600;">{{ s.title }}</a>
+        <a href="{{ show_url(s) }}" style="color:var(--text); text-decoration:none; font-weight:600;">{{ s.title }}</a>
         {% if not s.approved %}<span style="font-size:0.75rem; padding:2px 8px; background:#ff9800; color:#fff; border-radius:4px; margin-left:8px;">En attente</span>{% endif %}
       </div>
       <div style="display:flex; gap:24px; font-size:0.9rem;">

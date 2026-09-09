@@ -1,6 +1,27 @@
 {% extends "base.html" %}
-{% block title %}Événements annoncés - Spectacle'ment VØtre{% endblock %}
-{% block description %}Découvrez les spectacles et événements annoncés par nos artistes. Réservez directement avec des professionnels du spectacle en France.{% endblock %}
+{% block title %}Agenda des spectacles et événements annoncés en France - Spectacle'ment VØtre{% endblock %}
+{% block description %}Agenda des spectacles et événements annoncés par nos artistes partout en France. Théâtre, magie, cirque, contes, concerts jeune public : trouvez la date qui vous convient.{% endblock %}
+
+{% block extra_head %}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "CollectionPage",
+  "name": "Agenda des spectacles et événements annoncés",
+  "description": "Agenda des spectacles et événements annoncés par nos artistes partout en France.",
+  "url": "{{ url_for('evenements', _external=True) }}",
+  "isPartOf": { "@type": "WebSite", "name": "Spectacle'ment VØtre", "url": "{{ request.url_root }}" },
+  "breadcrumb": {
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      {"@type": "ListItem", "position": 1, "name": "Accueil", "item": "{{ url_for('home', _external=True) }}"},
+      {"@type": "ListItem", "position": 2, "name": "Catalogue", "item": "{{ url_for('catalogue', _external=True) }}"},
+      {"@type": "ListItem", "position": 3, "name": "Événements annoncés", "item": "{{ url_for('evenements', _external=True) }}"}
+    ]
+  }
+}
+</script>
+{% endblock %}
 
 {% block content %}
 <style>
@@ -52,9 +73,9 @@
 </style>
 
 <div class="event-hero">
-    <h1>📅 Événements annoncés</h1>
-    <p>Découvrez les spectacles et événements programmés par nos artistes</p>
-    <span class="event-badge">{{ shows|length }} événement{{ 's' if shows|length > 1 else '' }}</span>
+    <h1>Agenda des spectacles et événements annoncés</h1>
+    <p>Découvrez les spectacles et animations programmés par nos artistes partout en France</p>
+    <span class="event-badge">📅 {{ shows|length }} événement{{ 's' if shows|length > 1 else '' }}</span>
 </div>
 
 <a href="{{ url_for('catalogue') }}" class="back-link">
@@ -65,7 +86,7 @@
 <div class="cards">
     {% for show in shows %}
     <article class="card" style="border:2px solid #222;border-radius:16px;box-shadow:0 2px 12px #0008;padding:0 0 8px 0;transition:box-shadow .2s;color:#fff;">
-        <a href="{{ url_for('show_detail', show_id=show.id) }}" class="media-link">
+        <a href="{{ show_url(show) }}" class="media-link">
             <div class="media">
                 {% set images = show.get_all_images() %}
                 {% if images|length > 1 %}
@@ -99,7 +120,7 @@
             </div>
         </a>
 
-        <a href="{{ url_for('show_detail', show_id=show.id) }}" class="content-link">
+        <a href="{{ show_url(show) }}" class="content-link">
             <div class="content">
                 {% if show.raison_sociale %}
                     <p class="meta" style="font-weight:600; margin-bottom:8px; color:#e91e63; font-size:0.85em;">

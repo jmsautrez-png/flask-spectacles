@@ -2,6 +2,12 @@
 # Chaque dictionnaire : clé = nom de l'accordéon, valeur = liste de choix
 
 # ═══════════════════════════════════════════════════════════════════
+# LIMITE DESCRIPTION SPECTACLE — nombre max de mots
+# Utilisé côté serveur (troncature auto) et côté navigateur (compteur SEO).
+# ═══════════════════════════════════════════════════════════════════
+MAX_DESCRIPTION_WORDS = 300
+
+# ═══════════════════════════════════════════════════════════════════
 # INTERRUPTEUR — Affichage des coordonnées directes sur la fiche spectacle
 # Mettre à True pour MASQUER l'email et le site internet (le visiteur passe
 # alors par le formulaire « Demander un devis » → boîte Spectacle'ment Vôtre).

@@ -88,7 +88,7 @@
           <button class="carousel-nav carousel-next" aria-label="Photo suivante">›</button>
         </div>
       {% elif s.has_image() %}
-        <a href="{{ url_for('show_detail', show_id=s.id) }}">
+        <a href="{{ show_url(s) }}">
           <img src="{{ thumbnail_url(s.file_name) }}" alt="{{ s.title }}" style="cursor:pointer;">
         </a>
       {% elif s.is_pdf() %}
