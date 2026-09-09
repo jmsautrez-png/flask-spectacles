@@ -9237,6 +9237,28 @@ def submit_review(show_id):
         db.session.add(notif)
         db.session.commit()
 
+    # Email à l'admin pour signaler le nouvel avis à modérer
+    if getattr(current_app, "mail", None) and current_app.config.get("MAIL_USERNAME") and current_app.config.get("MAIL_PASSWORD") and MailMessage is not None:
+        try:
+            to_addr = current_app.config.get("MAIL_DEFAULT_SENDER") or current_app.config.get("MAIL_USERNAME")
+            note = int(rating_str)
+            stars = "★" * note + "☆" * (5 - note)
+            body_text = (
+                f"Un nouvel avis vient d'être déposé (en attente de modération) :\n\n"
+                f"Spectacle   : {show.title}\n"
+                f"Auteur      : {author}\n"
+                f"Note        : {stars} ({note}/5)\n"
+                f"Commentaire :\n{comment or '(aucun commentaire)'}\n\n"
+                f"→ Modérer  : {url_for('admin_reviews', _external=True)}\n"
+                f"→ Fiche    : {url_for('show_detail_seo', slug=show_slug(show), _external=True)}\n"
+            )
+            msg = MailMessage(subject=f"[Avis {note}★] {show.title}", recipients=[to_addr])  # type: ignore[arg-type]
+            msg.body = body_text  # type: ignore[assignment]
+            current_app.mail.send(msg)  # type: ignore[attr-defined]
+            current_app.logger.info(f"[MAIL] ✓ Email admin envoyé pour nouvel avis (show_id={show_id}, note={note})")
+        except Exception as e:
+            current_app.logger.error(f"[MAIL] ✗ Envoi email admin (nouvel avis) impossible: {e}")
+
     flash("Merci pour votre avis ! Il sera visible après validation par notre équipe.", "success")
     return redirect(_show_url)
 
