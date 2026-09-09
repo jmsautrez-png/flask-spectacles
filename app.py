@@ -2685,6 +2685,9 @@ def register_routes(app: Flask) -> None:
             ('pere_noel_a_domicile', '0.85'),
             ('spectacles_noel_ecole', '0.85'),
             ('spectacles_noel_entreprise', '0.85'),
+            # 🏛️ Collectivités et associations (SEO ciblé)
+            ('spectacles_fete_municipale', '0.9'),
+            ('spectacles_associations', '0.9'),
         ]
         
         for endpoint, priority in seo_pages:
@@ -5804,6 +5807,44 @@ Accessibilité: {accessibilite}
             )
         ).order_by(Show.display_order.asc(), Show.created_at.desc()).limit(24).all()
         return render_template("spectacles_noel_entreprise.html", shows=shows, user=current_user())
+
+    # ─── 🏛️ Pages thématiques SEO : collectivités et associations ───
+    @app.route("/spectacles-fete-municipale")
+    def spectacles_fete_municipale():
+        shows = Show.query.filter(
+            Show.approved.is_(True),
+            or_(
+                Show.evenements.ilike('%Fête municipale%'),
+                Show.evenements.ilike('%Fête de village%'),
+                Show.evenements.ilike('%14 juillet%'),
+                Show.evenements.ilike('%Fête de la musique%'),
+                Show.evenements.ilike('%Kermesse%'),
+                Show.evenements.ilike('%Inauguration%'),
+                Show.evenements.ilike('%Marché de Noël%'),
+                Show.specialites.ilike('%déambulation%'),
+                Show.specialites.ilike('%rue%'),
+                Show.category.ilike('%rue%'),
+            )
+        ).order_by(Show.display_order.asc(), Show.created_at.desc()).limit(24).all()
+        return render_template("spectacles_fete_municipale.html", shows=shows, user=current_user())
+
+    @app.route("/spectacles-associations")
+    def spectacles_associations():
+        shows = Show.query.filter(
+            Show.approved.is_(True),
+            or_(
+                Show.evenements.ilike('%Association%'),
+                Show.evenements.ilike('%Comité des fêtes%'),
+                Show.evenements.ilike('%Kermesse%'),
+                Show.evenements.ilike('%Loto%'),
+                Show.evenements.ilike('%Vide-grenier%'),
+                Show.evenements.ilike('%Gala%'),
+                Show.evenements.ilike('%Amicale%'),
+                Show.evenements.ilike('%EHPAD%'),
+                Show.evenements.ilike('%Club%'),
+            )
+        ).order_by(Show.display_order.asc(), Show.created_at.desc()).limit(24).all()
+        return render_template("spectacles_associations.html", shows=shows, user=current_user())
 
     @app.route("/animations-entreprises")
     def animations_entreprises():

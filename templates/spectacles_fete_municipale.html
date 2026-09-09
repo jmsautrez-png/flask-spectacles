@@ -1,0 +1,210 @@
+{% extends "base.html" %}
+{% block title %}Spectacles et animations pour fête municipale, mairie et village | Spectacle'ment VØtre{% endblock %}
+{% block description %}Trouvez un spectacle pour votre fête municipale, fête de village, 14 juillet, fête de la musique ou kermesse communale. Compagnies professionnelles partout en France, devis gratuit et rapide.{% endblock %}
+{% block extra_head %}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Service",
+  "name": "Spectacles et animations pour fête municipale",
+  "serviceType": "Animation événementielle pour collectivités et mairies",
+  "areaServed": "France",
+  "url": "{{ url_for('spectacles_fete_municipale', _external=True) }}",
+  "description": "Réservation de spectacles, animations de rue, déambulations, concerts et compagnies pour les fêtes municipales, fêtes de village, 14 juillet et événements communaux.",
+  "offers": {
+    "@type": "AggregateOffer",
+    "priceCurrency": "EUR",
+    "lowPrice": "400",
+    "highPrice": "3500",
+    "offerCount": "40"
+  }
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {"@type": "ListItem", "position": 1, "name": "Accueil", "item": "{{ url_for('home', _external=True) }}"},
+    {"@type": "ListItem", "position": 2, "name": "Catalogue", "item": "{{ url_for('catalogue', _external=True) }}"},
+    {"@type": "ListItem", "position": 3, "name": "Spectacles pour fête municipale", "item": "{{ url_for('spectacles_fete_municipale', _external=True) }}"}
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "Combien coûte un spectacle pour une fête municipale ?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Le budget d'un spectacle pour une fête de village ou une fête communale varie de 400 € à 3 500 € selon le format : déambulation (400-800 €), petite forme jeune public (500-900 €), concert ou spectacle familial (900-1 800 €), grande forme visuelle ou pyrotechnique (1 800-3 500 €). Les frais SACEM et de restauration sont à prévoir en plus."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Quel type de spectacle proposer pour le 14 juillet ou la fête du village ?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Les formats plein air fonctionnent le mieux : déambulations lumineuses ou musicales, fanfares, cracheurs de feu, échassiers, spectacles de feu, cirque de rue, concerts, guinguettes, bal populaire. Pour la journée : spectacles jeune public, marionnettes géantes, ateliers cirque et magie. Pour la soirée : concert, DJ, bal, spectacle pyrotechnique."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Comment un adjoint à la culture ou un comité des fêtes peut-il réserver ?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Publiez gratuitement une demande sur notre plateforme en précisant la date, le lieu, le budget et le type de public. Vous recevrez plusieurs propositions de compagnies professionnelles en quelques heures. Facturation par la compagnie directement, avec les mentions légales attendues par les collectivités (SIRET, RIB, RCS)."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Les compagnies gèrent-elles la SACEM et l'assurance ?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Les compagnies fournissent leur attestation de responsabilité civile professionnelle. La SACEM reste due par l'organisateur (la mairie ou l'association) pour la diffusion d'œuvres protégées ; pensez à faire la déclaration avant la manifestation. Certaines compagnies (auteurs de leurs propres œuvres) peuvent en être exonérées : demandez la mention lors du devis."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Quand faut-il réserver un spectacle pour l'été ou le 14 juillet ?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Réservez idéalement 4 à 6 mois à l'avance pour l'été. Les compagnies les plus recherchées (feu, déambulation lumineuse, grands formats) sont réservées dès janvier-février pour juillet et août. Les week-ends de mai (Fête de la musique, Pentecôte) et août tournent aussi très vite."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Peut-on payer par mandat administratif ?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Oui. La quasi-totalité des compagnies professionnelles présentes sur notre plateforme sont habituées aux règles de la comptabilité publique et acceptent le paiement par mandat administratif à réception de facture. Elles fournissent tous les documents nécessaires : devis, RIB, attestation d'assurance, SIRET."
+      }
+    }
+  ]
+}
+</script>
+{% endblock %}
+{% block content %}
+
+<h1>Spectacles pour fête municipale, fête de village et événements communaux</h1>
+
+<div style="max-width:900px; margin:0 auto 40px; padding:0 20px;">
+  <p style="margin-bottom:16px; font-size:17px; line-height:1.7;">
+    Vous êtes <strong>adjoint à la culture</strong>, membre d'un <strong>comité des fêtes</strong> ou d'une
+    <strong>mairie</strong> à la recherche d'un spectacle pour animer votre commune ? Notre plateforme réunit des
+    <strong>compagnies professionnelles</strong> spécialisées dans les événements municipaux :
+    fête du village, 14 juillet, fête de la musique, kermesse, marché de Noël, feux d'artifice,
+    inauguration, jumelage… Recevez plusieurs propositions et devis <strong>gratuitement</strong> en quelques heures.
+  </p>
+
+  <h2 style="font-size:20px; margin:24px 0 12px; color:var(--primary); font-weight:600;">
+    Quels formats pour une fête municipale ?
+  </h2>
+  <ul style="line-height:1.9; margin-bottom:24px; padding-left:0; list-style:none;">
+    <li style="padding-left:24px; position:relative; margin-bottom:8px;"><span style="position:absolute; left:0; color:var(--primary); font-weight:bold;">•</span> <strong>Déambulations</strong> : échassiers, fanfares, personnages lumineux, cracheurs de feu, mascottes géantes.</li>
+    <li style="padding-left:24px; position:relative; margin-bottom:8px;"><span style="position:absolute; left:0; color:var(--primary); font-weight:bold;">•</span> <strong>Spectacles jeune public</strong> : marionnettes, contes, magie, clowns pour la journée familiale.</li>
+    <li style="padding-left:24px; position:relative; margin-bottom:8px;"><span style="position:absolute; left:0; color:var(--primary); font-weight:bold;">•</span> <strong>Concerts et bals</strong> : chanson française, musique du monde, guinguette, DJ, bal populaire.</li>
+    <li style="padding-left:24px; position:relative; margin-bottom:8px;"><span style="position:absolute; left:0; color:var(--primary); font-weight:bold;">•</span> <strong>Grandes formes visuelles</strong> : spectacles de feu, pyrotechnie, cirque, arts de la rue.</li>
+    <li style="padding-left:24px; position:relative; margin-bottom:8px;"><span style="position:absolute; left:0; color:var(--primary); font-weight:bold;">•</span> <strong>Ateliers participatifs</strong> : cirque, danse, percussion, maquillage, sculpture de ballons.</li>
+  </ul>
+
+  <h2 style="font-size:20px; margin:24px 0 12px; color:var(--primary); font-weight:600;">
+    Occasions les plus fréquentes
+  </h2>
+  <p style="font-size:15px; color:#666; margin-bottom:20px; line-height:1.7;">
+    <strong>Fête nationale du 14 juillet</strong>, fête du village, <strong>fête de la musique</strong>,
+    kermesse d'été, brocante, vide-grenier, marché de Noël municipal, cérémonie du 8 mai ou du 11 novembre,
+    inauguration d'équipement communal, jumelage, comice agricole, festival intercommunal.
+  </p>
+
+  <h2 style="font-size:20px; margin:24px 0 12px; color:var(--primary); font-weight:600;">
+    Tarifs indicatifs et budget
+  </h2>
+  <p style="font-size:15px; color:#666; margin-bottom:20px; line-height:1.7;">
+    Comptez <strong>400 € à 800 €</strong> pour une déambulation d'une heure, <strong>500 € à 900 €</strong>
+    pour un petit spectacle jeune public, <strong>900 € à 1 800 €</strong> pour un concert ou une grande forme
+    familiale, et <strong>1 800 € à 3 500 €</strong> pour les grandes formes visuelles, pyrotechniques ou
+    plateaux artistiques. La SACEM et la restauration sont à prévoir en plus.
+  </p>
+</div>
+
+{% if shows %}
+<h2 style="text-align:center; margin:30px 0 20px;">Spectacles adaptés aux fêtes municipales</h2>
+<div class="cards">
+  {% for show in shows %}
+  <article class="card">
+    <a href="{{ url_for('demande_animation') }}" class="media-link">
+      <div class="media">
+        {% if show.has_image() %}
+          <img src="{{ thumbnail_url(show.file_name) }}" alt="{{ show.title }}" loading="lazy">
+        {% elif show.is_pdf() %}
+          <a class="pdf-thumb" href="{{ url_for('uploaded_file', filename=show.file_name) }}" target="_blank">PDF</a>
+        {% else %}
+          <div class="placeholder">Aucun fichier</div>
+        {% endif %}
+      </div>
+    </a>
+    <a href="{{ show_url(show) }}" class="content-link">
+      <div class="content">
+        {% if show.raison_sociale %}<p class="meta" style="font-weight:600; margin-bottom:8px; color:var(--primary);">{{ show.raison_sociale|title }}</p>{% endif %}
+        <h3>{{ show.title }}</h3>
+        <p class="meta">
+          {% if show.category %}{{ show.category|title }}{% endif %}
+          {% if show.location %} • {{ show.location }}{% endif %}
+        </p>
+        {% if show.description %}<p class="desc">{{ show.description|striptags }}</p>{% endif %}
+      </div>
+    </a>
+  </article>
+  {% endfor %}
+</div>
+{% else %}
+<div style="padding:24px; background:#f8f9fa; border-radius:8px; text-align:center; max-width:700px; margin:0 auto;">
+  <p style="margin:0; font-size:16px;">Aucun spectacle référencé pour le moment sur cette thématique.</p>
+  <p style="margin:12px 0 0 0;"><a href="{{ url_for('demande_animation') }}" style="color:var(--primary); font-weight:600;">Postez une demande gratuite</a> et recevez plusieurs propositions de compagnies en quelques heures.</p>
+</div>
+{% endif %}
+
+<div style="text-align:center; margin:40px auto; max-width:700px;">
+  <a href="{{ url_for('demande_animation') }}" style="display:inline-block; padding:14px 28px; background:linear-gradient(135deg,#0a1833,#1e3a8a); color:#fff; text-decoration:none; border-radius:8px; font-weight:600; font-size:16px;">Demander un devis gratuit pour votre commune</a>
+</div>
+
+<section class="faq-section" style="max-width:900px; margin:60px auto 40px; padding:0 20px;">
+  <h2 style="font-size:26px; margin-bottom:24px; color:var(--primary);">Questions fréquentes : spectacles pour fêtes municipales</h2>
+
+  <details style="margin-bottom:14px; padding:14px 18px; background:#f8f9fa; border-radius:8px; border-left:4px solid var(--primary);">
+    <summary style="font-weight:600; cursor:pointer; font-size:17px;">Combien coûte un spectacle pour une fête municipale ?</summary>
+    <p style="margin:12px 0 0 0; line-height:1.7;">Le budget varie de <strong>400 € à 3 500 €</strong> selon le format : déambulation (400-800 €), petite forme jeune public (500-900 €), concert ou spectacle familial (900-1 800 €), grande forme visuelle ou pyrotechnique (1 800-3 500 €). Les frais SACEM et de restauration sont à prévoir en plus.</p>
+  </details>
+
+  <details style="margin-bottom:14px; padding:14px 18px; background:#f8f9fa; border-radius:8px; border-left:4px solid var(--primary);">
+    <summary style="font-weight:600; cursor:pointer; font-size:17px;">Quel type de spectacle proposer pour le 14 juillet ou la fête du village ?</summary>
+    <p style="margin:12px 0 0 0; line-height:1.7;">Les formats plein air fonctionnent le mieux : <strong>déambulations</strong> lumineuses ou musicales, fanfares, cracheurs de feu, échassiers, <strong>spectacles de feu</strong>, cirque de rue, concerts, guinguettes, bal populaire. Pour la journée : spectacles jeune public, marionnettes géantes, ateliers cirque et magie. Pour la soirée : concert, DJ, bal, spectacle pyrotechnique.</p>
+  </details>
+
+  <details style="margin-bottom:14px; padding:14px 18px; background:#f8f9fa; border-radius:8px; border-left:4px solid var(--primary);">
+    <summary style="font-weight:600; cursor:pointer; font-size:17px;">Comment un adjoint à la culture ou un comité des fêtes peut-il réserver ?</summary>
+    <p style="margin:12px 0 0 0; line-height:1.7;">Publiez gratuitement une demande sur notre plateforme en précisant la date, le lieu, le budget et le type de public. Vous recevrez plusieurs propositions de compagnies professionnelles en quelques heures. Facturation par la compagnie directement, avec les mentions légales attendues par les collectivités (SIRET, RIB, RCS).</p>
+  </details>
+
+  <details style="margin-bottom:14px; padding:14px 18px; background:#f8f9fa; border-radius:8px; border-left:4px solid var(--primary);">
+    <summary style="font-weight:600; cursor:pointer; font-size:17px;">Les compagnies gèrent-elles la SACEM et l'assurance ?</summary>
+    <p style="margin:12px 0 0 0; line-height:1.7;">Les compagnies fournissent leur <strong>attestation de responsabilité civile professionnelle</strong>. La SACEM reste due par l'organisateur (la mairie ou l'association) pour la diffusion d'œuvres protégées ; pensez à faire la déclaration avant la manifestation. Certaines compagnies (auteurs de leurs propres œuvres) peuvent en être exonérées : demandez la mention lors du devis.</p>
+  </details>
+
+  <details style="margin-bottom:14px; padding:14px 18px; background:#f8f9fa; border-radius:8px; border-left:4px solid var(--primary);">
+    <summary style="font-weight:600; cursor:pointer; font-size:17px;">Quand faut-il réserver un spectacle pour l'été ou le 14 juillet ?</summary>
+    <p style="margin:12px 0 0 0; line-height:1.7;">Réservez idéalement <strong>4 à 6 mois à l'avance</strong> pour l'été. Les compagnies les plus recherchées (feu, déambulation lumineuse, grands formats) sont réservées dès janvier-février pour juillet et août. Les week-ends de mai (Fête de la musique, Pentecôte) et août tournent aussi très vite.</p>
+  </details>
+
+  <details style="margin-bottom:14px; padding:14px 18px; background:#f8f9fa; border-radius:8px; border-left:4px solid var(--primary);">
+    <summary style="font-weight:600; cursor:pointer; font-size:17px;">Peut-on payer par mandat administratif ?</summary>
+    <p style="margin:12px 0 0 0; line-height:1.7;">Oui. La quasi-totalité des compagnies professionnelles présentes sur notre plateforme sont habituées aux règles de la comptabilité publique et acceptent le <strong>paiement par mandat administratif</strong> à réception de facture. Elles fournissent tous les documents nécessaires : devis, RIB, attestation d'assurance, SIRET.</p>
+  </details>
+</section>
+
+{% endblock %}

@@ -1,0 +1,213 @@
+{% extends "base.html" %}
+{% block title %}Spectacles et animations pour associations, comités des fêtes, amicales | Spectacle'ment VØtre{% endblock %}
+{% block description %}Réservez un spectacle pour votre association, comité des fêtes, amicale, association de parents d'élèves ou club des aînés. Compagnies professionnelles, devis gratuit, tarifs adaptés au budget associatif.{% endblock %}
+{% block extra_head %}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Service",
+  "name": "Spectacles et animations pour associations",
+  "serviceType": "Animation événementielle pour associations et comités des fêtes",
+  "areaServed": "France",
+  "url": "{{ url_for('spectacles_associations', _external=True) }}",
+  "description": "Réservation de spectacles, animations, concerts et compagnies pour les associations loi 1901, comités des fêtes, amicales, associations de parents d'élèves, clubs des aînés et associations sportives.",
+  "offers": {
+    "@type": "AggregateOffer",
+    "priceCurrency": "EUR",
+    "lowPrice": "300",
+    "highPrice": "2500",
+    "offerCount": "40"
+  }
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {"@type": "ListItem", "position": 1, "name": "Accueil", "item": "{{ url_for('home', _external=True) }}"},
+    {"@type": "ListItem", "position": 2, "name": "Catalogue", "item": "{{ url_for('catalogue', _external=True) }}"},
+    {"@type": "ListItem", "position": 3, "name": "Spectacles pour associations", "item": "{{ url_for('spectacles_associations', _external=True) }}"}
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "Combien coûte un spectacle pour une association ?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Les tarifs pour une association vont généralement de 300 € à 2 500 € selon le format : petit spectacle intimiste (300-600 €), spectacle familial jeune public (500-900 €), concert acoustique ou théâtre (700-1 400 €), grande forme visuelle ou plateau (1 500-2 500 €). De nombreuses compagnies proposent des tarifs adaptés au budget associatif."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Quels spectacles proposer pour un loto, une kermesse ou un vide-grenier ?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Pour un loto ou une kermesse : magiciens close-up, sculpteurs de ballons, maquilleurs, mascottes, animations pour enfants. Pour un vide-grenier ou une brocante : déambulation musicale, fanfare, échassiers, cracheurs de feu. Pour un gala ou un repas dansant : DJ, orchestre de bal, chanteur, spectacle de cabaret, illusionnisme."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Comment une association de parents d'élèves peut-elle réserver ?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Publiez une demande gratuite en précisant l'événement (kermesse, fête de fin d'année, arbre de Noël), le nombre d'enfants, l'âge, la durée et le budget. Vous recevez plusieurs devis en quelques heures. Les compagnies fournissent leur facture au nom de l'association et acceptent le paiement par virement ou chèque de l'association."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Une association loi 1901 doit-elle payer la SACEM ?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Oui, dès qu'il y a diffusion publique d'œuvres protégées (musique enregistrée, chanson, danse). Des tarifs réduits existent pour les associations : forfait manifestation à but non lucratif, forfait animation ponctuelle. Déclarez votre manifestation 15 jours avant sur sacem.fr. Certaines compagnies (auteurs de leurs propres œuvres) en sont exonérées."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Quels formats fonctionnent le mieux pour un club des aînés ou un EHPAD ?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Les publics seniors apprécient particulièrement les tours de chant (variété française, chansons d'époque), les spectacles d'illusionnisme, le théâtre léger, les contes, les danses traditionnelles et les musiciens (accordéon, piano). Prévoyez une durée modérée (45 min à 1 h) et un volume sonore raisonnable."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Peut-on négocier les tarifs avec les compagnies pour une association ?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Oui, la plupart des compagnies pratiquent des tarifs adaptés pour les associations, avec des dégressifs pour plusieurs représentations, des réductions pour les créneaux creux (semaine, hors saison) ou pour les événements de solidarité. Précisez votre budget dans votre demande : les artistes peuvent proposer une formule adaptée plutôt que de refuser."
+      }
+    }
+  ]
+}
+</script>
+{% endblock %}
+{% block content %}
+
+<h1>Spectacles pour associations : comités des fêtes, amicales, parents d'élèves, clubs</h1>
+
+<div style="max-width:900px; margin:0 auto 40px; padding:0 20px;">
+  <p style="margin-bottom:16px; font-size:17px; line-height:1.7;">
+    Vous êtes membre d'une <strong>association loi 1901</strong>, d'un <strong>comité des fêtes</strong>,
+    d'une <strong>amicale</strong>, d'une <strong>APE / APEL</strong> ou d'un <strong>club des aînés</strong> ?
+    Notre plateforme regroupe des <strong>compagnies professionnelles</strong> qui proposent des
+    <strong>spectacles pour associations</strong> à tous les budgets : kermesse, loto, arbre de Noël,
+    fête de fin d'année, gala, repas dansant, vide-grenier. Recevez plusieurs propositions gratuitement.
+  </p>
+
+  <h2 style="font-size:20px; margin:24px 0 12px; color:var(--primary); font-weight:600;">
+    Quels événements associatifs animer ?
+  </h2>
+  <ul style="line-height:1.9; margin-bottom:24px; padding-left:0; list-style:none;">
+    <li style="padding-left:24px; position:relative; margin-bottom:8px;"><span style="position:absolute; left:0; color:var(--primary); font-weight:bold;">•</span> <strong>Kermesse d'école</strong> et fête de fin d'année (APE, APEL) : magiciens, clowns, sculpteurs de ballons, maquillage.</li>
+    <li style="padding-left:24px; position:relative; margin-bottom:8px;"><span style="position:absolute; left:0; color:var(--primary); font-weight:bold;">•</span> <strong>Arbre de Noël associatif</strong> : spectacle jeune public, Père Noël, distribution de cadeaux.</li>
+    <li style="padding-left:24px; position:relative; margin-bottom:8px;"><span style="position:absolute; left:0; color:var(--primary); font-weight:bold;">•</span> <strong>Loto, tombola, bingo</strong> : animateur de soirée, close-up entre les parties, sculpteur de ballons.</li>
+    <li style="padding-left:24px; position:relative; margin-bottom:8px;"><span style="position:absolute; left:0; color:var(--primary); font-weight:bold;">•</span> <strong>Vide-grenier, brocante</strong> : déambulation musicale, fanfare, échassiers, mascottes.</li>
+    <li style="padding-left:24px; position:relative; margin-bottom:8px;"><span style="position:absolute; left:0; color:var(--primary); font-weight:bold;">•</span> <strong>Gala et repas dansant</strong> : DJ, orchestre de bal, chanteur, spectacle de cabaret.</li>
+    <li style="padding-left:24px; position:relative; margin-bottom:8px;"><span style="position:absolute; left:0; color:var(--primary); font-weight:bold;">•</span> <strong>Club des aînés, EHPAD</strong> : tour de chant, théâtre léger, illusionnisme, danse traditionnelle.</li>
+  </ul>
+
+  <h2 style="font-size:20px; margin:24px 0 12px; color:var(--primary); font-weight:600;">
+    Un budget associatif ? Nous avons la solution
+  </h2>
+  <p style="font-size:15px; color:#666; margin-bottom:20px; line-height:1.7;">
+    De nombreuses compagnies proposent des <strong>tarifs adaptés au monde associatif</strong>, notamment
+    en semaine ou hors saison. Vous pouvez indiquer votre budget dans votre demande : les artistes peuvent
+    proposer une formule adaptée plutôt que de refuser. Comptez <strong>300 € à 600 €</strong> pour un petit
+    format, <strong>500 € à 900 €</strong> pour un spectacle familial, <strong>700 € à 1 400 €</strong>
+    pour un concert ou une pièce, <strong>1 500 € à 2 500 €</strong> pour une grande forme.
+  </p>
+
+  <h2 style="font-size:20px; margin:24px 0 12px; color:var(--primary); font-weight:600;">
+    Facturation, SACEM, assurance : ce que vous devez savoir
+  </h2>
+  <p style="font-size:15px; color:#666; margin-bottom:20px; line-height:1.7;">
+    Les compagnies éditent leur <strong>facture au nom de l'association</strong> (paiement par chèque
+    ou virement) et fournissent leur attestation de responsabilité civile professionnelle. La SACEM
+    reste due par l'association pour la diffusion d'œuvres protégées, avec des tarifs réduits pour
+    les manifestations à but non lucratif. Déclaration à faire 15 jours avant sur sacem.fr.
+  </p>
+</div>
+
+{% if shows %}
+<h2 style="text-align:center; margin:30px 0 20px;">Spectacles adaptés aux associations</h2>
+<div class="cards">
+  {% for show in shows %}
+  <article class="card">
+    <a href="{{ url_for('demande_animation') }}" class="media-link">
+      <div class="media">
+        {% if show.has_image() %}
+          <img src="{{ thumbnail_url(show.file_name) }}" alt="{{ show.title }}" loading="lazy">
+        {% elif show.is_pdf() %}
+          <a class="pdf-thumb" href="{{ url_for('uploaded_file', filename=show.file_name) }}" target="_blank">PDF</a>
+        {% else %}
+          <div class="placeholder">Aucun fichier</div>
+        {% endif %}
+      </div>
+    </a>
+    <a href="{{ show_url(show) }}" class="content-link">
+      <div class="content">
+        {% if show.raison_sociale %}<p class="meta" style="font-weight:600; margin-bottom:8px; color:var(--primary);">{{ show.raison_sociale|title }}</p>{% endif %}
+        <h3>{{ show.title }}</h3>
+        <p class="meta">
+          {% if show.category %}{{ show.category|title }}{% endif %}
+          {% if show.location %} • {{ show.location }}{% endif %}
+        </p>
+        {% if show.description %}<p class="desc">{{ show.description|striptags }}</p>{% endif %}
+      </div>
+    </a>
+  </article>
+  {% endfor %}
+</div>
+{% else %}
+<div style="padding:24px; background:#f8f9fa; border-radius:8px; text-align:center; max-width:700px; margin:0 auto;">
+  <p style="margin:0; font-size:16px;">Aucun spectacle référencé pour le moment sur cette thématique.</p>
+  <p style="margin:12px 0 0 0;"><a href="{{ url_for('demande_animation') }}" style="color:var(--primary); font-weight:600;">Postez une demande gratuite</a> et recevez plusieurs propositions de compagnies en quelques heures.</p>
+</div>
+{% endif %}
+
+<div style="text-align:center; margin:40px auto; max-width:700px;">
+  <a href="{{ url_for('demande_animation') }}" style="display:inline-block; padding:14px 28px; background:linear-gradient(135deg,#0a1833,#1e3a8a); color:#fff; text-decoration:none; border-radius:8px; font-weight:600; font-size:16px;">Demander un devis gratuit pour votre association</a>
+</div>
+
+<section class="faq-section" style="max-width:900px; margin:60px auto 40px; padding:0 20px;">
+  <h2 style="font-size:26px; margin-bottom:24px; color:var(--primary);">Questions fréquentes : spectacles pour associations</h2>
+
+  <details style="margin-bottom:14px; padding:14px 18px; background:#f8f9fa; border-radius:8px; border-left:4px solid var(--primary);">
+    <summary style="font-weight:600; cursor:pointer; font-size:17px;">Combien coûte un spectacle pour une association ?</summary>
+    <p style="margin:12px 0 0 0; line-height:1.7;">Les tarifs vont généralement de <strong>300 € à 2 500 €</strong> selon le format : petit spectacle intimiste (300-600 €), spectacle familial jeune public (500-900 €), concert acoustique ou théâtre (700-1 400 €), grande forme visuelle ou plateau (1 500-2 500 €). De nombreuses compagnies proposent des tarifs adaptés au budget associatif.</p>
+  </details>
+
+  <details style="margin-bottom:14px; padding:14px 18px; background:#f8f9fa; border-radius:8px; border-left:4px solid var(--primary);">
+    <summary style="font-weight:600; cursor:pointer; font-size:17px;">Quels spectacles proposer pour un loto, une kermesse ou un vide-grenier ?</summary>
+    <p style="margin:12px 0 0 0; line-height:1.7;">Pour un <strong>loto ou une kermesse</strong> : magiciens close-up, sculpteurs de ballons, maquilleurs, mascottes, animations pour enfants. Pour un <strong>vide-grenier</strong> : déambulation musicale, fanfare, échassiers, cracheurs de feu. Pour un <strong>gala ou repas dansant</strong> : DJ, orchestre de bal, chanteur, spectacle de cabaret, illusionnisme.</p>
+  </details>
+
+  <details style="margin-bottom:14px; padding:14px 18px; background:#f8f9fa; border-radius:8px; border-left:4px solid var(--primary);">
+    <summary style="font-weight:600; cursor:pointer; font-size:17px;">Comment une association de parents d'élèves peut-elle réserver ?</summary>
+    <p style="margin:12px 0 0 0; line-height:1.7;">Publiez une demande gratuite en précisant l'événement (kermesse, fête de fin d'année, arbre de Noël), le nombre d'enfants, l'âge, la durée et le budget. Vous recevez plusieurs devis en quelques heures. Les compagnies fournissent leur <strong>facture au nom de l'association</strong> et acceptent le paiement par virement ou chèque de l'association.</p>
+  </details>
+
+  <details style="margin-bottom:14px; padding:14px 18px; background:#f8f9fa; border-radius:8px; border-left:4px solid var(--primary);">
+    <summary style="font-weight:600; cursor:pointer; font-size:17px;">Une association loi 1901 doit-elle payer la SACEM ?</summary>
+    <p style="margin:12px 0 0 0; line-height:1.7;">Oui, dès qu'il y a diffusion publique d'œuvres protégées (musique enregistrée, chanson, danse). Des <strong>tarifs réduits</strong> existent pour les associations : forfait manifestation à but non lucratif, forfait animation ponctuelle. Déclarez votre manifestation 15 jours avant sur sacem.fr. Certaines compagnies (auteurs de leurs propres œuvres) en sont exonérées.</p>
+  </details>
+
+  <details style="margin-bottom:14px; padding:14px 18px; background:#f8f9fa; border-radius:8px; border-left:4px solid var(--primary);">
+    <summary style="font-weight:600; cursor:pointer; font-size:17px;">Quels formats fonctionnent le mieux pour un club des aînés ou un EHPAD ?</summary>
+    <p style="margin:12px 0 0 0; line-height:1.7;">Les publics seniors apprécient les <strong>tours de chant</strong> (variété française, chansons d'époque), les spectacles d'<strong>illusionnisme</strong>, le théâtre léger, les contes, les danses traditionnelles et les musiciens (accordéon, piano). Prévoyez une durée modérée (45 min à 1 h) et un volume sonore raisonnable.</p>
+  </details>
+
+  <details style="margin-bottom:14px; padding:14px 18px; background:#f8f9fa; border-radius:8px; border-left:4px solid var(--primary);">
+    <summary style="font-weight:600; cursor:pointer; font-size:17px;">Peut-on négocier les tarifs avec les compagnies pour une association ?</summary>
+    <p style="margin:12px 0 0 0; line-height:1.7;">Oui, la plupart des compagnies pratiquent des <strong>tarifs adaptés</strong> pour les associations, avec des dégressifs pour plusieurs représentations, des réductions pour les créneaux creux (semaine, hors saison) ou pour les événements de solidarité. Précisez votre budget dans votre demande : les artistes peuvent proposer une formule adaptée plutôt que de refuser.</p>
+  </details>
+</section>
+
+{% endblock %}
