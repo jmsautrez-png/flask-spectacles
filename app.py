@@ -981,6 +981,17 @@ def create_app() -> Flask:
                 return url_for("show_detail", show_id=show.id, _external=_external)
         return {'show_url': show_url, 'show_slug': show_slug}
 
+    @app.context_processor
+    def inject_seo_event_dates():
+        """Dates par défaut pour les Schema.org Event (rich snippets Google).
+        Utilisées quand un spectacle n'a pas de date précise (catalogue permanent)
+        pour satisfaire les champs obligatoires startDate/endDate."""
+        today = datetime.utcnow().date()
+        return {
+            'seo_today': today,
+            'seo_one_year_ahead': today + timedelta(days=365),
+        }
+
     register_routes(app)
     register_error_handlers(app)
     return app

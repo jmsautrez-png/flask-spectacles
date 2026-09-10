@@ -26,13 +26,19 @@
 
 {% block extra_head %}
 {# Schema.org Event enrichi pour les rich snippets Google - optimisé SEO #}
+{# Pour un catalogue de spectacles sans date précise :
+   - startDate = date de mise en ligne (created_at) ou aujourd'hui
+   - endDate   = date du spectacle si datée, sinon +1 an (offre permanente sur devis) #}
+{% set _start_date = show.date or (show.created_at.date() if show.created_at else seo_today) %}
+{% set _end_date = show.date or seo_one_year_ahead %}
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
   "@type": "Event",
   "name": {{ show.title|tojson }},
   {% if show.description %}"description": {{ (show.description|striptags)[:500]|tojson }},{% endif %}
-  {% if show.date %}"startDate": "{{ show.date.isoformat() }}",{% endif %}
+  "startDate": "{{ _start_date.isoformat() }}",
+  "endDate": "{{ _end_date.isoformat() }}",
   "eventStatus": "https://schema.org/EventScheduled",
   "eventAttendanceMode": "https://schema.org/OfflineEventAttendanceMode",
   
@@ -94,14 +100,20 @@
     }{% if not loop.last %},{% endif %}{% endfor %}
   ],{% endif %}
 
-  {# Offre de réservation #}
+  {# Offre de réservation (prix sur devis → price="0" satisfait l'exigence Google) #}
   "offers": {
     "@type": "Offer",
     "url": "{{ url_for('show_detail_seo', slug=show_slug(show), _external=True) }}",
     "availability": "https://schema.org/InStock",
+    "price": "0",
     "priceCurrency": "EUR",
-    "priceRange": "Sur devis",
-    "validFrom": "{{ show.created_at.isoformat() if show.created_at else '' }}"
+    "priceSpecification": {
+      "@type": "PriceSpecification",
+      "price": "0",
+      "priceCurrency": "EUR",
+      "description": "Sur devis - Contactez l'artiste pour obtenir un tarif personnalisé"
+    },
+    "validFrom": "{{ (show.created_at.date() if show.created_at else seo_today).isoformat() }}"
   },
   
   {# URL de la page #}

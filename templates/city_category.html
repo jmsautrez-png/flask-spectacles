@@ -39,6 +39,8 @@
   "numberOfItems": {{ total_shows }},
   "itemListElement": [
     {% for show in shows %}
+    {% set _start_date = show.date or (show.created_at.date() if show.created_at else seo_today) %}
+    {% set _end_date = show.date or seo_one_year_ahead %}
     {
       "@type": "ListItem",
       "position": {{ loop.index }},
@@ -47,6 +49,10 @@
         "name": "{{ show.title }}",
         "description": "{{ ((show.description|striptags)[:150])|e if show.description else show.title|e }}",
         "url": "{{ show_url(show, _external=True) }}",
+        "startDate": "{{ _start_date.isoformat() }}",
+        "endDate": "{{ _end_date.isoformat() }}",
+        "eventStatus": "https://schema.org/EventScheduled",
+        "eventAttendanceMode": "https://schema.org/OfflineEventAttendanceMode",
         "location": {
           "@type": "Place",
           "name": "{{ city['name'] }}",
@@ -57,6 +63,14 @@
             "postalCode": "{{ city['department'] }}000",
             "addressCountry": "FR"
           }
+        },
+        "offers": {
+          "@type": "Offer",
+          "url": "{{ show_url(show, _external=True) }}",
+          "availability": "https://schema.org/InStock",
+          "price": "0",
+          "priceCurrency": "EUR",
+          "validFrom": "{{ (show.created_at.date() if show.created_at else seo_today).isoformat() }}"
         }
       }
     }{% if not loop.last %},{% endif %}
