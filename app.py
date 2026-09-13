@@ -1898,31 +1898,25 @@ def register_routes(app: Flask) -> None:
                     <!-- Intro -->
                     <tr>
                         <td class="px" style="padding:18px 44px 0 44px; font-size:15px; line-height:1.65; color:#3a3a3a; text-align:center;">
-                            <p style="margin:0;">Votre compte a été créé avec succès. Vous pouvez maintenant vous connecter et&nbsp;:</p>
+                            <p style="margin:0;">Votre compte a été créé avec succès. Vous pouvez maintenant vous connecter et, <strong>après publication de votre spectacle</strong>&nbsp;:</p>
                         </td>
                     </tr>
 
-                    <!-- Feature list -->
+                    <!-- Info block (aligné mail validation spectacle) -->
                     <tr>
                         <td class="px" style="padding:20px 44px 4px 44px;">
-                            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
-                                <tr>
-                                    <td width="34" valign="top" style="padding:7px 0; font-size:20px; line-height:1.4;"></td>
-                                    <td valign="top" style="padding:7px 0; font-size:15px; line-height:1.5; color:#3a3a3a;">Publier vos spectacles et animations <strong>GRATUITEMENT toute l'année</strong></td>
-                                </tr>
-                                <tr>
-                                    <td width="34" valign="top" style="padding:7px 0; font-size:20px; line-height:1.4;"></td>
-                                    <td valign="top" style="padding:7px 0; font-size:15px; line-height:1.5; color:#3a3a3a;">Annoncer vos événements sans limite de temps : <a href="https://www.spectacleanimation.fr/submit" style="color:#6a1b9a; font-weight:700;">Publiez ici</a></td>
-                                </tr>
-                                <tr>
-                                    <td width="34" valign="top" style="padding:7px 0; font-size:20px; line-height:1.4;"></td>
-                                    <td valign="top" style="padding:7px 0; font-size:15px; line-height:1.5; color:#3a3a3a;">Bénéficier d'une visibilité renforcée auprès de notre réseau d'acheteurs</td>
-                                </tr>
-                                <tr>
-                                    <td width="34" valign="top" style="padding:7px 0; font-size:20px; line-height:1.4;"></td>
-                                    <td valign="top" style="padding:7px 0; font-size:15px; line-height:1.5; color:#3a3a3a;">Profiter de notre diffusion gratuite auprès de plus de 100 000 contacts professionnels</td>
-                                </tr>
-                            </table>
+                            <div style="background:#f8f9fa; border-left:4px solid #667eea; padding:18px 22px; border-radius:8px;">
+                                <p style="margin:0 0 10px 0; font-size:15px; color:#333; line-height:1.6;">Vous bénéficiez désormais&nbsp;:</p>
+                                <ul style="margin:0 0 14px 20px; padding:0; font-size:14px; color:#333; line-height:1.7;">
+                                    <li>d'une visibilité auprès de nos <strong>partenaires</strong> (mairies, écoles, CSE, centres culturels…)</li>
+                                    <li>de la promotion via nos <strong>envois de plus de 10&nbsp;000 emails annuels</strong></li>
+                                    <li>de la promotion <strong>quotidienne</strong> sur les <strong>réseaux sociaux</strong> de la plateforme</li>
+                                    <li>de nos <strong>campagnes publicitaires mensuelles et annuelles</strong></li>
+                                    <li>de <strong>demandes de devis en direct</strong>, sans commission, de nos partenaires</li>
+                                </ul>
+                                <p style="margin:0 0 12px 0; font-size:15px; color:#333; line-height:1.6;"><strong>Au niveau national</strong>, votre compagnie bénéficie également d'une <strong>visibilité accrue</strong> sur toute la France.</p>
+                                <p style="margin:0; font-size:13px; color:#666; line-height:1.6; font-style:italic;">C'est en accompagnant les compagnies qui le souhaitent sur le volet administratif (URSSAF, DSN, contrats de cession…) et grâce à nos services optionnels annexes que nous pérennisons ce modèle et assurons l'entretien du site.</p>
+                            </div>
                         </td>
                     </tr>
 
@@ -1955,29 +1949,6 @@ def register_routes(app: Flask) -> None:
                         </td>
                     </tr>
 
-                    <!-- Abonnement AO card -->
-                    <tr>
-                        <td class="px" style="padding:22px 44px 0 44px;">
-                            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#f3eef8; border-radius:10px;">
-                                <tr>
-                                    <td width="6" bgcolor="#6a1b9a" style="background-color:#6a1b9a; font-size:0; line-height:0;">&nbsp;</td>
-                                    <td style="padding:18px 22px;">
-                                        <p style="margin:0 0 10px 0; color:#4a148c; font-size:16px; font-weight:700;">🔓 Accédez aux appels d'offres — Abonnement annuel</p>
-                                        <p style="margin:0 0 12px 0; font-size:14px; color:#4a4a4a; line-height:1.65;">Votre <strong>présence dans l'annuaire</strong> et la <strong>publication de vos spectacles</strong> restent <strong>100&nbsp;% gratuites</strong>. Pour consulter les <strong>coordonnées des organisateurs</strong> et postuler à leurs <strong>appels d'offres</strong> (mairies, écoles, CSE, agences…), un abonnement annuel est requis : <strong>49&nbsp;€ TTC la 1<sup>re</sup> année</strong>, puis <strong>99&nbsp;€/an</strong>. Facture PDF fournie.</p>
-                                        <p style="margin:0 0 14px 0; font-size:13px; color:#4a4a4a; line-height:1.6;">Aucun engagement l'année suivante &mdash; paiement sécurisé via PayPal après un court entretien avec l'administrateur.</p>
-                                        <table role="presentation" cellpadding="0" cellspacing="0" border="0" align="center" style="margin:0 auto;">
-                                            <tr>
-                                                <td style="padding:2px;">
-                                                    <a href="https://www.spectacleanimation.fr/adhesion" style="display:inline-block; background-color:#6a1b9a; color:#ffffff; font-size:14px; font-weight:700; line-height:1; padding:12px 24px; border-radius:8px;">J'adhère →</a>
-                                                </td>
-                                            </tr>
-                                        </table>
-                                    </td>
-                                </tr>
-                            </table>
-                        </td>
-                    </tr>
-
                     <!-- Green card -->
                     <tr>
                         <td class="px" style="padding:16px 44px 0 44px;">
@@ -1986,11 +1957,8 @@ def register_routes(app: Flask) -> None:
                                     <td width="6" bgcolor="#2e7d32" style="background-color:#2e7d32; font-size:0; line-height:0;">&nbsp;</td>
                                     <td style="padding:18px 22px;">
                                         <p style="margin:0 0 10px 0; color:#2e7d32; font-size:16px; font-weight:700;">Pourquoi c'est efficace ?</p>
-                                        <p style="margin:0 0 10px 0; font-size:14px; color:#4a4a4a; line-height:1.65;">Spectacle'ment VØtre fonctionne comme un <strong>annuaire national de référence</strong> : plus il y a de spectacles publiés, plus les <strong>mairies, écoles, CSE, agences et organisateurs</strong> prennent l'habitude d'y chercher leurs animations &mdash; et d'y déposer leurs <strong>appels d'offres</strong>.</p>
-                                        <p style="margin:0 0 10px 0; font-size:14px; color:#4a4a4a; line-height:1.65;"><strong>Au niveau local</strong>, votre département gagne en visibilité à mesure que des compagnies de la région s'y inscrivent : les acteurs culturels de chez vous tombent alors sur <strong>votre profil en priorité</strong>.</p>
-                                        <p style="margin:0 0 10px 0; font-size:14px; color:#4a4a4a; line-height:1.65;"><strong>Au niveau national</strong>, vous recevrez aussi des appels d'offres venant de <strong>toute la France</strong> &mdash; un complément précieux à votre démarche commerciale régionale, qui vous ouvre des dates et des territoires que vous n'auriez pas prospectés seul.</p>
-                                        <p style="margin:0 0 10px 0; font-size:14px; color:#4a4a4a; line-height:1.65;">C'est cette dynamique collective qui nous permet d'offrir la <strong>publication de vos spectacles</strong> et de garder l'annuaire entièrement <strong>gratuit</strong>.</p>
-                                        <p style="margin:0; font-size:13px; color:#607060; line-height:1.65; font-style:italic;">C'est en accompagnant les compagnies qui le souhaitent sur le volet administratif (URSSAF, DSN, contrats de cession…) que nous pérennisons ce modèle.</p>
+                                        <p style="margin:0 0 10px 0; font-size:14px; color:#4a4a4a; line-height:1.65;">Spectacle'ment VØtre fonctionne comme un <strong>annuaire national de référence</strong> : plus il y a de spectacles publiés, plus les <strong>mairies, écoles, CSE, agences et organisateurs</strong> prennent l'habitude d'y chercher leurs animations.</p>
+                                        <p style="margin:0; font-size:14px; color:#4a4a4a; line-height:1.65;"><strong>Au niveau local</strong>, votre département gagne en visibilité à mesure que des compagnies de la région s'y inscrivent : les acteurs culturels de chez vous tombent alors sur <strong>votre profil en priorité</strong>.</p>
                                     </td>
                                 </tr>
                             </table>
@@ -3101,7 +3069,7 @@ def register_routes(app: Flask) -> None:
                         + f"Date de création de la fiche : {show.created_at.strftime('%d/%m/%Y %H:%M')}\n\n"
                         + f"Email: {contact_email}\n"
                         + f"Téléphone: {contact_phone}\n"
-                        + "\n\nRappel : Le déploiement sur Spectacle'ment Vôtre est entièrement gratuit.\n"
+                        + "\n\nRappel : La publication de vos spectacles est gratuite.\n"
                         + "Nous sélectionnons des artistes d'excellence pour offrir aux programmateurs des spectacles professionnels de qualité.\n\n"
                         + "Service d'administration disponible pour les compagnies (gestion URSSAF, DSN, contrats, etc.).\n"
                         + "\nCordialement,\nL'équipe Spectacle'ment VØtre"
@@ -4976,7 +4944,7 @@ def register_routes(app: Flask) -> None:
                         <p style="margin:0 0 18px 0; font-size:16px; color:#333; line-height:1.7;">Bonjour,</p>
                         <p style="margin:0 0 18px 0; font-size:16px; color:#333; line-height:1.7;"><strong>Votre spectacle a été repéré</strong>, et c'est avec grand plaisir que nous vous accueillons sur notre annuaire&nbsp;!</p>
                         <p style="margin:0 0 18px 0; font-size:15px; color:#444; line-height:1.7;">Séduits par votre univers, nous avons souhaité vous consacrer une fiche sur Spectacle'ment V&Oslash;tre pour que les programmateurs &mdash; mairies, salles de spectacle, comités des fêtes… &mdash; puissent vous découvrir et vous solliciter <strong>directement</strong>.</p>
-                        <p style="margin:0 0 18px 0; font-size:15px; color:#444; line-height:1.7;">Cette invitation est <strong>entièrement gratuite et sans engagement</strong>. Vous restez naturellement maître de votre présence&nbsp;: un simple mot <strong>par retour de ce mail</strong> suffit pour ajuster, compléter ou retirer votre fiche à tout moment.</p>
+                        <p style="margin:0 0 18px 0; font-size:15px; color:#444; line-height:1.7;">Cette invitation est <strong>sans engagement</strong>. Vous restez naturellement maître de votre présence&nbsp;: un simple mot <strong>par retour de ce mail</strong> suffit pour ajuster, compléter ou retirer votre fiche à tout moment.</p>
                         <p style="margin:0 0 18px 0; font-size:15px; color:#444; line-height:1.7;">Nous vous souhaitons de <strong>belles rencontres et de beaux projets</strong> à travers cette vitrine, et serions <strong>heureux d'y contribuer</strong> en portant votre spectacle vers de <strong>nouvelles dates et de nouveaux programmateurs</strong>.</p>
                     </td>
                 </tr>
@@ -5014,7 +4982,7 @@ def register_routes(app: Flask) -> None:
                         "Séduits par votre univers, nous avons souhaité vous consacrer une fiche sur Spectacle'ment VØtre "
                         "pour que les programmateurs — mairies, salles de spectacle, comités des fêtes… — puissent vous "
                         "découvrir et vous solliciter directement.\n\n"
-                        "Cette invitation est entièrement gratuite et sans engagement. Vous restez naturellement "
+                        "Cette invitation est sans engagement. Vous restez naturellement "
                         "maître de votre présence : un simple mot par retour de ce mail suffit pour ajuster, "
                         "compléter ou retirer votre fiche à tout moment.\n\n"
                         "Nous vous souhaitons de belles rencontres et de beaux projets à travers cette vitrine, "
@@ -5133,20 +5101,7 @@ def register_routes(app: Flask) -> None:
                     subject = "Votre spectacle est validé sur Spectacle'ment VØtre !"
                     abonnement_url = url_for('abonnement_compagnie', _external=True)
                     submit_url = url_for('submit_show', _external=True)
-                    # CTA abonnement AO : nouveaux comptes non encore abonnés uniquement.
-                    if show.user is not None and show.user.is_modele_payant and not getattr(show.user, 'is_subscribed', False):
-                        bloc_ao_offert = """
-                            <div style="background:#f3eef8; border-left:4px solid #6a1b9a; padding:20px; margin:25px 0; border-radius:8px;">
-                                <p style="margin:0 0 8px 0; font-size:16px; color:#4a148c; font-weight:bold;">🔓 Accédez aux appels d'offres</p>
-                                <p style="margin:0 0 12px 0; font-size:15px; color:#333; line-height:1.6;">
-                                    Votre spectacle est en ligne et visible par tous les organisateurs &mdash; c'est <strong>100&nbsp;% gratuit</strong>. Pour consulter les <strong>coordonnées</strong> et postuler aux <strong>appels d'offres</strong> (mairies, écoles, CSE…), un abonnement annuel est nécessaire : <strong>49&nbsp;€ TTC la 1<sup>re</sup> année</strong>, puis <strong>99&nbsp;€/an</strong>. Aucun engagement l'année suivante &mdash; paiement sécurisé via PayPal après un court entretien avec l'administrateur.
-                                </p>
-                                <p style="margin:0; text-align:center;">
-                                    <a href="https://www.spectacleanimation.fr/adhesion" style="display:inline-block; background:#6a1b9a; color:#fff; padding:12px 26px; border-radius:8px; text-decoration:none; font-weight:700;">J'adhère →</a>
-                                </p>
-                            </div>"""
-                    else:
-                        bloc_ao_offert = ""
+                    bloc_ao_offert = ""
                     body_html = f"""<!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -5196,11 +5151,19 @@ def register_routes(app: Flask) -> None:
 
                             <!-- Info Section -->
                             <div style="background: #f8f9fa; border-left: 4px solid #667eea; padding: 20px; margin: 25px 0; border-radius: 8px;">
+                                <p style="margin: 0 0 10px 0; font-size: 15px; color: #333; line-height: 1.6;">Vous bénéficiez désormais&nbsp;:</p>
+                                <ul style="margin: 0 0 14px 20px; padding: 0; font-size: 14px; color: #333; line-height: 1.7;">
+                                    <li>d'une visibilité auprès de nos <strong>partenaires</strong> (mairies, écoles, CSE, centres culturels…)</li>
+                                    <li>de la promotion via nos <strong>envois de plus de 10&nbsp;000 emails annuels</strong></li>
+                                    <li>de la promotion <strong>quotidienne</strong> sur les <strong>réseaux sociaux</strong> de la plateforme</li>
+                                    <li>de nos <strong>campagnes publicitaires mensuelles et annuelles</strong></li>
+                                    <li>de <strong>demandes de devis en direct</strong>, sans commission, de nos partenaires</li>
+                                </ul>
                                 <p style="margin: 0 0 12px 0; font-size: 15px; color: #333; line-height: 1.6;">
-                                    <strong>Spectacle'ment VØtre</strong> est un annuaire gratuit qui sélectionne des artistes d'excellence pour offrir aux programmateurs (écoles, mairies, CSE, centres culturels) des spectacles professionnels de qualité.
+                                    <strong>Au niveau national</strong>, votre compagnie bénéficie également d'une <strong>visibilité accrue</strong> sur toute la France.
                                 </p>
-                                <p style="margin: 0; font-size: 15px; color: #28a745; font-weight: bold;">
-                                    Votre déploiement sur la plateforme est <u>entièrement gratuit</u>.
+                                <p style="margin: 0; font-size: 13px; color: #666; line-height: 1.6; font-style: italic;">
+                                    C'est en accompagnant les compagnies qui le souhaitent sur le volet administratif (URSSAF, DSN, contrats de cession…) et grâce à nos services optionnels annexes que nous pérennisons ce modèle et assurons l'entretien du site.
                                 </p>
                             </div>
                             {bloc_ao_offert}
@@ -5265,11 +5228,11 @@ def register_routes(app: Flask) -> None:
                 <tr>
                     <td style="padding:35px 40px 20px;">
                         <p style="margin:0 0 18px 0; font-size:16px; color:#333; line-height:1.7;">Bonjour,</p>
-                        <p style="margin:0 0 18px 0; font-size:16px; color:#333; line-height:1.7;"><strong>F&eacute;licitations !</strong> Votre talent a retenu notre attention et nous avons cr&eacute;&eacute; une fiche pour vous sur notre annuaire gratuit.</p>
-                        <p style="margin:0 0 18px 0; font-size:15px; color:#444; line-height:1.7;">Vous profitez d&eacute;sormais des <strong>appels d'offres</strong> du site Spectacle'ment V&Oslash;tre gratuitement. En vous inscrivant, vous pourrez aller plus loin : annoncer vos &eacute;v&eacute;nements, d&eacute;ployer vos spectacles sur notre plateforme et recevoir directement les appels d'offres de nos partenaires, le tout <strong>gratuitement</strong>.</p>
+                        <p style="margin:0 0 18px 0; font-size:16px; color:#333; line-height:1.7;"><strong>F&eacute;licitations !</strong> Votre talent a retenu notre attention et nous avons cr&eacute;&eacute; une fiche pour vous sur notre annuaire du spectacle vivant.</p>
+                        <p style="margin:0 0 18px 0; font-size:15px; color:#444; line-height:1.7;">En vous inscrivant, vous pourrez aller plus loin : <strong>publier vos spectacles</strong>, annoncer vos &eacute;v&eacute;nements et enrichir votre pr&eacute;sence sur la plateforme.</p>
                         <div style="background:#e8f5e9; border:1px solid #a5d6a7; border-radius:8px; padding:16px 20px; margin-bottom:18px; text-align:center;">
-                            <p style="margin:0 0 8px 0; font-size:15px; color:#2e7d32; font-weight:600;">Votre d&eacute;ploiement sur notre plateforme est enti&egrave;rement gratuit.</p>
-                            <p style="margin:0 0 8px 0; font-size:13px; color:#388e3c; line-height:1.5;">Pourquoi ? Notre vocation depuis plus de 30 ans est de connecter artistes et programmateurs. Votre visibilit&eacute; enrichit notre annuaire et profite &agrave; l'ensemble du r&eacute;seau culturel. C'est en accompagnant les compagnies qui le souhaitent sur le volet administratif que nous p&eacute;rennisons ce mod&egrave;le gratuit.</p>
+                            <p style="margin:0 0 8px 0; font-size:15px; color:#2e7d32; font-weight:600;">La publication de vos spectacles est gratuite.</p>
+                            <p style="margin:0 0 8px 0; font-size:13px; color:#388e3c; line-height:1.5;">Pourquoi ? Notre vocation depuis plus de 30 ans est de connecter artistes et programmateurs. Votre visibilit&eacute; enrichit notre annuaire et profite &agrave; l'ensemble du r&eacute;seau culturel. C'est en accompagnant les compagnies qui le souhaitent sur le volet administratif et gr&acirc;ce &agrave; nos services optionnels annexes que nous assurons la p&eacute;rennit&eacute; et l'entretien du site.</p>
                             <p style="margin:0; font-size:13px; color:#388e3c; line-height:1.5;">Chaque compagnie inscrite apporte sa pierre &agrave; l'&eacute;difice : plus l'annuaire est riche, plus les programmateurs y trouvent leur bonheur, et plus les opportunit&eacute;s reviennent vers vous.</p>
                         </div>
                         <p style="margin:0; font-size:15px; color:#444; line-height:1.7;"><strong>Notre mission :</strong> Rep&eacute;rer les meilleurs artistes et compagnies pour offrir de l'excellence aux programmateurs qui recherchent des spectacles professionnels.</p>
@@ -5364,7 +5327,7 @@ def register_routes(app: Flask) -> None:
                 else:
                     # Spectacle créé par admin (ou découverte forcée) : email HTML découverte
                     msg.html = body_html_decouverte  # type: ignore[assignment]
-                    msg.body = f"Félicitations ! Votre talent a retenu notre attention. Nous avons créé une fiche pour vous sur notre annuaire gratuit.\n\nConsultez votre annonce : {show_url}\n\nSpectaclement vôtre,\nL'équipe Spectacle'ment VØtre"  # type: ignore[assignment]
+                    msg.body = f"Félicitations ! Votre talent a retenu notre attention. Nous avons créé une fiche pour vous sur notre annuaire du spectacle vivant.\n\nConsultez votre annonce : {show_url}\n\nSpectaclement vôtre,\nL'équipe Spectacle'ment VØtre"  # type: ignore[assignment]
                 
                 current_app.mail.send(msg)  # type: ignore[attr-defined]
                 current_app.logger.info(f"[MAIL] ✓ Email envoyé à {to_addr} (copie admin: {admin_email}) pour validation de spectacle: {show.title}")
@@ -8792,7 +8755,6 @@ def admin_delete_user(user_id):
             current_app.logger.info(f"[ADMIN] Préavis 7j posé sur {username} (ID: {user_id}) par {current_user().username}")
             if user_email and getattr(current_app, "mail", None) and current_app.config.get("MAIL_USERNAME") and current_app.config.get("MAIL_PASSWORD"):
                 deadline_str = user.pending_deletion_at.strftime('%d/%m/%Y')
-                phrase_ao_preavis = ""
                 body_html = f"""<!DOCTYPE html>
 <html><head><meta charset="utf-8"></head>
 <body style="font-family:Arial,sans-serif;background:#f4f6fa;margin:0;padding:20px;">
@@ -8816,8 +8778,7 @@ def admin_delete_user(user_id):
         <p style="margin:0 0 8px 0;font-size:14px;line-height:1.6;">Spectacle'ment VØtre fonctionne comme un <strong>annuaire national de référence</strong> : plus il y a de spectacles publiés, plus les <strong>mairies, écoles, CSE, agences et organisateurs</strong> prennent l'habitude d'y chercher leurs animations &mdash; et d'y déposer leurs <strong>appels d'offres</strong>.</p>
         <p style="margin:0 0 8px 0;font-size:14px;line-height:1.6;"><strong>Au niveau local</strong>, votre département gagne en visibilité à mesure que des compagnies de la région s'y inscrivent : les acteurs culturels de chez vous tombent alors sur <strong>votre profil en priorité</strong>.</p>
         <p style="margin:0 0 8px 0;font-size:14px;line-height:1.6;"><strong>Au niveau national</strong>, vous recevrez aussi des appels d'offres venant de <strong>toute la France</strong> &mdash; un complément précieux à votre démarche commerciale régionale, qui vous ouvre des dates et des territoires que vous n'auriez pas prospectés seul.</p>
-        <p style="margin:0 0 8px 0;font-size:14px;line-height:1.6;">C'est cette dynamique collective qui nous permet d'offrir la <strong>publication de vos spectacles</strong>{phrase_ao_preavis}.</p>
-        <p style="margin:0;font-size:13px;color:#555;font-style:italic;line-height:1.6;">C'est en accompagnant les compagnies qui le souhaitent sur le volet administratif (URSSAF, DSN, contrats de cession…) que nous pérennisons ce modèle.</p>
+        <p style="margin:0;font-size:13px;color:#555;font-style:italic;line-height:1.6;">C'est en accompagnant les compagnies qui le souhaitent sur le volet administratif (URSSAF, DSN, contrats de cession…) et grâce à nos services optionnels annexes que nous assurons la <strong>pérennité</strong> et l'<strong>entretien</strong> du site.</p>
       </div>
       <p style="font-size:0.9em;color:#666;">Si vous publiez un spectacle avant cette date, votre compte sera conservé automatiquement.</p>
       <p style="margin-top:24px;">Cordialement,<br><strong>L'équipe Spectacle'ment VØtre</strong><br>contact@spectacleanimation.fr</p>
