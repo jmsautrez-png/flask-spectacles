@@ -71,9 +71,19 @@
   ✨ <strong>"Spectacle'ment Vôtre"</strong> effectuera aussi une recherche poussée en fonction de la spécificité de votre demande et vous enverra une liste d'artistes non abonnés suivant vos critères demandés.
 </div>
 
-{% if user and not user.is_admin and not user.is_organisateur and user.is_modele_payant %}
-<div style="background:linear-gradient(135deg,#f9a825 0%,#f57f17 100%); color:#1a1a1a; border-radius:10px; padding:14px 18px; margin:0 0 16px 0; font-size:0.92rem; line-height:1.6; box-shadow:0 4px 12px rgba(0,0,0,0.15);">
-  <strong>Artistes &amp; compagnies :</strong> vous profitez d'<strong>une année gratuite</strong> pour consulter les appels d'offres à compter de votre 1er spectacle déployé. À l'issue de cette période, certaines annonces pourront passer en <strong>accès premium</strong> (modèle <strong>freemium</strong>), d'autres resteront en accès libre. Votre <strong>présence dans l'annuaire et la publication de vos spectacles restent gratuites</strong> : les organisateurs peuvent toujours vous trouver, vous contacter et vous faire des demandes de devis en direct, <strong>gratuitement</strong>.
+{% if user and not user.is_admin and not user.is_organisateur and user.is_modele_payant and not user.is_subscribed %}
+<div style="background:linear-gradient(135deg,#6a1b9a 0%,#8e24aa 100%); color:#fff; border-radius:10px; padding:14px 18px; margin:0 0 16px 0; font-size:0.95rem; line-height:1.6; box-shadow:0 4px 12px rgba(0,0,0,0.15); display:flex; align-items:center; gap:14px; flex-wrap:wrap;">
+  <div style="flex:1; min-width:240px;">
+    <strong style="font-size:1.05rem; display:block; margin-bottom:4px;">🔓 Accédez aux coordonnées des organisateurs</strong>
+    <span>Abonnement annuel Appels d'offres : <strong>49 € TTC la 1ʳᵉ année</strong> (puis 99 €/an). Postulez librement à toutes les annonces. Présence dans l'annuaire, publication de spectacles et demandes de devis en direct restent gratuites.</span>
+  </div>
+  <a href="{{ url_for('adhesion') }}" style="background:#fff; color:#6a1b9a; padding:10px 18px; border-radius:6px; text-decoration:none; font-weight:700; white-space:nowrap;">J'adhère →</a>
+</div>
+{% endif %}
+
+{% if user and not user.is_admin and not user.is_organisateur and user.is_modele_payant and user.is_subscribed %}
+<div style="background:linear-gradient(135deg,#2e7d32 0%,#43a047 100%); color:#fff; border-radius:10px; padding:10px 16px; margin:0 0 16px 0; font-size:0.9rem;">
+  ✅ <strong>Abonnement AO actif</strong> — coordonnées visibles sur toutes les annonces.
 </div>
 {% endif %}
 
@@ -82,6 +92,9 @@
   <strong>Cher(es) artistes et cie,</strong> vous bénéficiez <strong>actuellement</strong> d'un <strong>accès libre</strong> à tous les appels d'offres. À compter du <strong>1er anniversaire de votre publication</strong>, certaines annonces pourront passer en <strong>accès premium</strong> (modèle <strong>freemium</strong>) — les autres pourront aussi rester en accès libre. La publication de vos spectacles, votre présence dans l'annuaire et les demandes de devis en direct restent, elles, toujours <strong>gratuites</strong>.
 </div>
 {% endif %}
+
+{% set needs_abo = user and user.is_modele_payant and not user.is_subscribed and not user.is_admin %}
+{% set has_full_access = (user and user.is_admin) or (has_show and not needs_abo) %}
 
 <form action="/demandes-animation" method="get" class="mobile-search-block"
       style="display:flex; align-items:center; gap:10px; background:linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); border:2px solid #6d1313; padding:12px 16px; border-radius:16px; margin:0 0 20px; box-shadow:0 4px 12px rgba(109,19,19,0.3); color:#fff;"
@@ -145,7 +158,7 @@
           </div>
         </details>
 
-        {% if has_show or (user and user.is_admin) %}
+        {% if has_full_access %}
           {% if demande.intitule %}
           <p style="margin:0.3rem 0;"><strong style="color:#d32f2f;">📝 Intitulé :</strong>
             {% if demande.intitule|length > 80 %}
@@ -154,13 +167,15 @@
             {% else %}<span>{{ demande.intitule }}</span>{% endif %}
           </p>
           {% endif %}
+        {% elif needs_abo %}
+          <a href="{{ url_for('adhesion') }}" style="display:block;margin:0.4rem 0;background:linear-gradient(135deg,#6a1b9a,#8e24aa);color:#fff;padding:10px 16px;border-radius:10px;text-decoration:none;font-weight:700;text-align:center;font-size:0.85rem;">🔓 Abonnez-vous (49 € TTC/an) pour voir l'intitulé complet</a>
         {% elif user %}
           <a href="{{ url_for('company_dashboard') }}" style="display:block;margin:0.4rem 0;background:linear-gradient(135deg,#7c4dff,#536dfe);color:#fff;padding:10px 16px;border-radius:10px;text-decoration:none;font-weight:700;text-align:center;font-size:0.85rem;">🔒 Publier votre spectacle pour voir l'intitulé complet</a>
         {% else %}
           <a href="{{ url_for('register') }}" style="display:block;margin:0.4rem 0;background:linear-gradient(135deg,#7c4dff,#536dfe);color:#fff;padding:10px 16px;border-radius:10px;text-decoration:none;font-weight:700;text-align:center;font-size:0.85rem;">🔒 Publier votre spectacle pour voir l'intitulé complet</a>
         {% endif %}
 
-        {% if has_show or (user and user.is_admin) %}
+        {% if has_full_access %}
           {% if demande.region %}<p style="margin:0.2rem 0;"><strong>🗺️ Région :</strong> {{ demande.region }}</p>{% endif %}
           {% if demande.portee_nationale is defined %}
           <p style="margin:0.3rem 0;"><span style="display:inline-block; padding:3px 10px; border-radius:6px; font-size:0.82rem; font-weight:600; {% if demande.portee_nationale %}background:#e3f2fd; color:#1565c0; border:1px solid #90caf9;{% else %}background:#fff3e0; color:#e65100; border:1px solid #ffcc80;{% endif %}">{% if demande.portee_nationale %}🇫🇷 Accepte propositions de toute la France{% else %}📍 Accepte propositions régionales uniquement{% endif %}</span></p>
@@ -184,6 +199,24 @@
           <p style="margin:0.2rem 0;"><strong>📍 Lieu/Ville :</strong> {% if user and user.is_admin %}{{ demande.lieu_ville }}{% else %}<a href="{{ url_for('register') }}" style="color:#7c4dff; font-style:italic; text-decoration:underline;">[Lieu masqué]</a>{% endif %}</p>
           <div style="margin:0.4rem 0;">
             <iframe width="100%" height="140" style="border-radius:10px;border:1px solid #ccc;" frameborder="0" src="https://www.google.com/maps?q={{ demande.lieu_ville|urlencode }}&output=embed"></iframe>
+          </div>
+        {% elif needs_abo %}
+          {% if demande.region %}<p style="margin:0.2rem 0;"><strong>🗺️ Région :</strong> <span style="color:#aaa;">{{ demande.region }}</span></p>{% endif %}
+          {% if demande.portee_nationale is defined %}
+          <p style="margin:0.3rem 0;"><span style="display:inline-block; padding:3px 10px; border-radius:6px; font-size:0.82rem; font-weight:600; {% if demande.portee_nationale %}background:#e3f2fd; color:#1565c0; border:1px solid #90caf9;{% else %}background:#fff3e0; color:#e65100; border:1px solid #ffcc80;{% endif %}">{% if demande.portee_nationale %}🇫🇷 Accepte propositions de toute la France{% else %}📍 Accepte propositions régionales uniquement{% endif %}</span></p>
+          {% endif %}
+          <div style="background:#f3e5f5; padding:8px; border-radius:8px; margin:0.4rem 0; border:1px solid #ce93d8;">
+            <p style="margin:0.2rem 0;"><strong>👤 Contact :</strong> <span style="filter:blur(4px); user-select:none;">Dupont Marie</span></p>
+            <p style="margin:0.2rem 0;"><strong>📞 Téléphone :</strong> <span style="filter:blur(4px); user-select:none;">06 12 34 56 78</span></p>
+            <p style="margin:0.2rem 0;"><strong>✉️ Email :</strong> <span style="filter:blur(4px); user-select:none;">contact@organisateur.fr</span></p>
+            <a href="{{ url_for('adhesion') }}" style="display:block;margin:0.4rem 0 0.1rem 0;background:linear-gradient(135deg,#6a1b9a,#8e24aa);color:#fff;padding:8px 12px;border-radius:8px;text-decoration:none;font-weight:700;text-align:center;font-size:0.85rem;">🔓 Débloquer les coordonnées — 49 € TTC/an</a>
+          </div>
+          <p style="margin:0.2rem 0;"><strong>📍 Lieu/Ville :</strong> <span style="filter:blur(4px); user-select:none;">{{ demande.lieu_ville }}</span></p>
+          <div style="margin:0.4rem 0; position:relative; border-radius:10px; overflow:hidden;">
+            <iframe width="100%" height="140" style="border-radius:10px;border:1px solid #ccc;filter:blur(6px);pointer-events:none;" frameborder="0" src="https://www.google.com/maps?q={{ demande.lieu_ville|urlencode }}&output=embed"></iframe>
+            <div style="position:absolute;top:0;left:0;right:0;bottom:0;background:rgba(255,255,255,0.30);display:flex;align-items:center;justify-content:center;text-align:center;border-radius:10px;">
+              <div style="background:rgba(0,0,0,0.55);color:#fff;padding:10px 16px;border-radius:8px;font-weight:700;font-size:0.85em;">🔒 Localisation disponible avec l'abonnement</div>
+            </div>
           </div>
         {% elif user %}
           {% if demande.region %}<p style="margin:0.2rem 0;"><strong>🗺️ Région :</strong> <span style="color:#aaa;">{{ demande.region }}</span></p>{% endif %}

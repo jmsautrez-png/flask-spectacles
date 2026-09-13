@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+{% block title %}Adhésion Appels d'offres - Spectacle'ment Vôtre{% endblock %}
+{% block content %}
+<div style="max-width:720px; margin:0 auto; padding:20px 16px;">
+
+  <div style="background:linear-gradient(135deg,#6a1b9a 0%,#8e24aa 100%); color:#fff; padding:22px 22px; border-radius:14px; box-shadow:0 4px 18px rgba(0,0,0,0.18); margin-bottom:22px;">
+    <h1 style="margin:0 0 8px 0; font-size:1.6rem;">🔓 Abonnement annuel Appels d'offres</h1>
+    <p style="margin:0 0 10px 0; font-size:1rem; line-height:1.55;">
+      Accès illimité aux coordonnées des organisateurs et à toutes les annonces publiées sur Spectacle'ment Vôtre.
+    </p>
+    <div style="display:flex; gap:12px; flex-wrap:wrap; margin-top:12px;">
+      <div style="background:rgba(255,255,255,0.15); padding:10px 14px; border-radius:10px; flex:1; min-width:180px;">
+        <div style="font-size:0.85rem; opacity:0.9;">1ʳᵉ année</div>
+        <div style="font-size:1.6rem; font-weight:800; line-height:1.1;">49 € TTC</div>
+      </div>
+      <div style="background:rgba(255,255,255,0.10); padding:10px 14px; border-radius:10px; flex:1; min-width:180px;">
+        <div style="font-size:0.85rem; opacity:0.9;">Puis chaque année</div>
+        <div style="font-size:1.6rem; font-weight:800; line-height:1.1;">99 € TTC</div>
+      </div>
+    </div>
+    <p style="margin:14px 0 0 0; font-size:0.9rem; opacity:0.95; line-height:1.5;">
+      ✅ Consultez toutes les coordonnées &nbsp;·&nbsp; ✅ Postulez librement &nbsp;·&nbsp; ✅ Facture PDF envoyée par email<br>
+      ✅ <strong>Aucun engagement l'année suivante</strong> — vous choisissez de renouveler ou non<br>
+      ✅ <strong>Paiement sécurisé via PayPal</strong> — après un entretien avec l'administrateur<br>
+      La présence dans l'annuaire, la publication de vos spectacles et les demandes de devis en direct restent <strong>gratuites</strong>.
+    </p>
+  </div>
+
+  <div style="background:#fff; border-radius:14px; box-shadow:0 3px 12px rgba(0,0,0,0.08); padding:24px 22px; border:1px solid #e0e0e0;">
+    <h2 style="margin:0 0 6px 0; color:#333; font-size:1.25rem;">Demande d'adhésion</h2>
+    <p style="margin:0 0 18px 0; color:#666; font-size:0.92rem; line-height:1.5;">
+      Renseignez le formulaire ci-dessous. Nous vous rappelons rapidement pour finaliser l'activation (règlement par PayPal, facture envoyée par email).
+    </p>
+
+    <form method="post" action="{{ url_for('adhesion') }}" novalidate>
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+
+      <label for="adh_nom" style="display:block; font-weight:600; margin:8px 0 4px 0; color:#333;">Nom / Compagnie <span style="color:#d32f2f;">*</span></label>
+      <input type="text" id="adh_nom" name="nom" required maxlength="200" value="{{ nom|default('', true) }}"
+             style="width:100%; padding:11px 13px; border:1.5px solid #ccc; border-radius:8px; font-size:1rem; box-sizing:border-box;">
+
+      <label for="adh_tel" style="display:block; font-weight:600; margin:14px 0 4px 0; color:#333;">Téléphone <span style="color:#d32f2f;">*</span></label>
+      <input type="tel" id="adh_tel" name="telephone" required maxlength="50" value="{{ telephone|default('', true) }}"
+             placeholder="06 12 34 56 78"
+             style="width:100%; padding:11px 13px; border:1.5px solid #ccc; border-radius:8px; font-size:1rem; box-sizing:border-box;">
+
+      <label for="adh_email" style="display:block; font-weight:600; margin:14px 0 4px 0; color:#333;">Email <span style="color:#d32f2f;">*</span></label>
+      <input type="email" id="adh_email" name="email" required maxlength="255" value="{{ email|default('', true) }}"
+             style="width:100%; padding:11px 13px; border:1.5px solid #ccc; border-radius:8px; font-size:1rem; box-sizing:border-box;">
+
+      <label for="adh_msg" style="display:block; font-weight:600; margin:14px 0 4px 0; color:#333;">Message (facultatif)</label>
+      <textarea id="adh_msg" name="message" rows="4" maxlength="5000"
+                placeholder="Une question, un créneau préférentiel pour être rappelé..."
+                style="width:100%; padding:11px 13px; border:1.5px solid #ccc; border-radius:8px; font-size:0.95rem; box-sizing:border-box; font-family:inherit; resize:vertical;">{{ message|default('', true) }}</textarea>
+
+      <div style="margin-top:18px; display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
+        <button type="submit"
+                style="background:linear-gradient(135deg,#6a1b9a 0%,#8e24aa 100%); color:#fff; padding:12px 22px; border:none; border-radius:10px; font-weight:700; font-size:1rem; cursor:pointer; box-shadow:0 3px 10px rgba(106,27,154,0.3);">
+          📩 Envoyer ma demande
+        </button>
+        <a href="{{ url_for('demandes_animation') }}"
+           style="color:#6a1b9a; text-decoration:none; font-weight:600; padding:10px;">
+          ← Retour aux appels d'offres
+        </a>
+      </div>
+
+      <p style="margin:16px 0 0 0; color:#999; font-size:0.82rem; line-height:1.5;">
+        Aucun paiement en ligne ici : nous vous rappelons pour finaliser. Vos informations sont utilisées uniquement pour traiter votre demande d'adhésion.
+      </p>
+    </form>
+  </div>
+
+</div>
+{% endblock %}

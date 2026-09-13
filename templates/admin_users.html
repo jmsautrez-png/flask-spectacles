@@ -237,6 +237,43 @@
                 {% endif %}
               </form>
             </div>
+
+            {# ── Abonnement AO (activation manuelle après demande d'adhésion + PayPal + facture) ── #}
+            {% set _ao_abonne = user.is_subscribed %}
+            <div style="background: {% if _ao_abonne %}rgba(46,125,50,0.20){% else %}rgba(106,27,154,0.18){% endif %};
+                        border:2px solid {% if _ao_abonne %}#2e7d32{% else %}#6a1b9a{% endif %};
+                        border-radius:10px; padding:14px 18px; margin-bottom:14px;
+                        display:flex; flex-wrap:wrap; align-items:center; gap:16px;
+                        max-width:720px;">
+              <div style="flex:1 1 260px; min-width:220px;">
+                <div style="font-weight:700; color:#ffc107; margin-bottom:6px; font-size:1.05em;">
+                  💳 Abonnement Appels d'offres (49 € / 99 €)
+                </div>
+                {% if _ao_abonne %}
+                  <div style="color:#a5d6a7; font-size:0.95em;">
+                    ✅ <strong>Abonné</strong> — voit toutes les coordonnées librement.
+                  </div>
+                {% else %}
+                  <div style="color:#ce93d8; font-size:0.95em;">
+                    ⏸️ <strong>Non abonné</strong> — coordonnées floutées, bandeau adhésion visible.
+                  </div>
+                {% endif %}
+              </div>
+              <form method="post" action="{{ url_for('admin_toggle_is_subscribed', user_id=user.id) }}"
+                    style="flex:0 0 auto;"
+                    onsubmit="return confirm({% if _ao_abonne %}'Désactiver l\'abonnement AO de « {{ user.username }} » ?'{% else %}'Activer l\'abonnement AO de « {{ user.username }} » ? (paiement encaissé et facture envoyée)'{% endif %});">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                {% if _ao_abonne %}
+                  <button type="submit" style="background:#6a1b9a; color:#fff; border:none; padding:12px 22px; border-radius:8px; cursor:pointer; font-weight:700; font-size:1em; box-shadow:0 2px 6px rgba(0,0,0,0.3); white-space:nowrap;">
+                    ⏸️ Désactiver
+                  </button>
+                {% else %}
+                  <button type="submit" style="background:#2e7d32; color:#fff; border:none; padding:12px 22px; border-radius:8px; cursor:pointer; font-weight:700; font-size:1em; box-shadow:0 2px 6px rgba(0,0,0,0.3); white-space:nowrap;">
+                    ✅ Activer l'abonnement
+                  </button>
+                {% endif %}
+              </form>
+            </div>
             {% endif %}
             <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap:14px;">
               <div><strong style="color:#ffc107;">Département :</strong> {{ user.departement or '-' }}</div>

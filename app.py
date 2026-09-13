@@ -80,7 +80,7 @@ print("✓ Flask importé")
 
 from config import Config
 from models import db
-from models.models import User, Show, PageVisit, VisitorLog, Review, Conversation, Message, ShowView, Notification, PresignedUrlCache
+from models.models import User, Show, PageVisit, VisitorLog, Review, Conversation, Message, ShowView, Notification, PresignedUrlCache, Adhesion
 from seo_cities import FRENCH_CITIES, get_city_by_slug, get_all_city_slugs, get_neighbor_cities, get_city_seo_data, get_category_seo_data
 from seo_departments import FRENCH_DEPARTMENTS, get_department_by_slug, get_all_department_slugs
 
@@ -1871,7 +1871,7 @@ def register_routes(app: Flask) -> None:
     </style>
 </head>
 <body style="margin:0; padding:0; background-color:#eef0f4; font-family:'Segoe UI',Arial,Helvetica,sans-serif; color:#2d2d2d;">
-    <div style="display:none; max-height:0; overflow:hidden; mso-hide:all; opacity:0; color:#eef0f4;">Votre compte est créé — publiez vos spectacles gratuitement et profitez d'une 1ère année d'appels d'offres offerte.</div>
+    <div style="display:none; max-height:0; overflow:hidden; mso-hide:all; opacity:0; color:#eef0f4;">Votre compte est créé — publiez vos spectacles gratuitement sur Spectacle'ment VØtre.</div>
 
     <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#eef0f4;">
         <tr>
@@ -1955,15 +1955,23 @@ def register_routes(app: Flask) -> None:
                         </td>
                     </tr>
 
-                    <!-- Amber card -->
+                    <!-- Abonnement AO card -->
                     <tr>
                         <td class="px" style="padding:22px 44px 0 44px;">
-                            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#fff8e1; border-radius:10px;">
+                            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#f3eef8; border-radius:10px;">
                                 <tr>
-                                    <td width="6" bgcolor="#f57f17" style="background-color:#f57f17; font-size:0; line-height:0;">&nbsp;</td>
+                                    <td width="6" bgcolor="#6a1b9a" style="background-color:#6a1b9a; font-size:0; line-height:0;">&nbsp;</td>
                                     <td style="padding:18px 22px;">
-                                        <p style="margin:0 0 10px 0; color:#e65100; font-size:16px; font-weight:700;">Votre 1ère année d'appels d'offres offerte</p>
-                                        <p style="margin:0; font-size:14px; color:#4a4a4a; line-height:1.65;">En tant que nouvel inscrit, vous bénéficiez d'<strong>1 année gratuite</strong> pour consulter les appels d'offres des mairies, écoles, CSE et organisateurs. À l'issue de cette période, certaines annonces pourront passer en <strong>accès premium</strong> (modèle <strong>freemium</strong>), d'autres resteront en accès libre &mdash; nous vous préviendrons avant tout changement. Votre <strong>présence dans l'annuaire et la publication de vos spectacles restent gratuites</strong> : les organisateurs peuvent toujours vous trouver, vous contacter et vous faire des demandes de devis en direct, <strong>gratuitement</strong>.</p>
+                                        <p style="margin:0 0 10px 0; color:#4a148c; font-size:16px; font-weight:700;">🔓 Accédez aux appels d'offres — Abonnement annuel</p>
+                                        <p style="margin:0 0 12px 0; font-size:14px; color:#4a4a4a; line-height:1.65;">Votre <strong>présence dans l'annuaire</strong> et la <strong>publication de vos spectacles</strong> restent <strong>100&nbsp;% gratuites</strong>. Pour consulter les <strong>coordonnées des organisateurs</strong> et postuler à leurs <strong>appels d'offres</strong> (mairies, écoles, CSE, agences…), un abonnement annuel est requis : <strong>49&nbsp;€ TTC la 1<sup>re</sup> année</strong>, puis <strong>99&nbsp;€/an</strong>. Facture PDF fournie.</p>
+                                        <p style="margin:0 0 14px 0; font-size:13px; color:#4a4a4a; line-height:1.6;">Aucun engagement l'année suivante &mdash; paiement sécurisé via PayPal après un court entretien avec l'administrateur.</p>
+                                        <table role="presentation" cellpadding="0" cellspacing="0" border="0" align="center" style="margin:0 auto;">
+                                            <tr>
+                                                <td style="padding:2px;">
+                                                    <a href="https://www.spectacleanimation.fr/adhesion" style="display:inline-block; background-color:#6a1b9a; color:#ffffff; font-size:14px; font-weight:700; line-height:1; padding:12px 24px; border-radius:8px;">J'adhère →</a>
+                                                </td>
+                                            </tr>
+                                        </table>
                                     </td>
                                 </tr>
                             </table>
@@ -1981,7 +1989,7 @@ def register_routes(app: Flask) -> None:
                                         <p style="margin:0 0 10px 0; font-size:14px; color:#4a4a4a; line-height:1.65;">Spectacle'ment VØtre fonctionne comme un <strong>annuaire national de référence</strong> : plus il y a de spectacles publiés, plus les <strong>mairies, écoles, CSE, agences et organisateurs</strong> prennent l'habitude d'y chercher leurs animations &mdash; et d'y déposer leurs <strong>appels d'offres</strong>.</p>
                                         <p style="margin:0 0 10px 0; font-size:14px; color:#4a4a4a; line-height:1.65;"><strong>Au niveau local</strong>, votre département gagne en visibilité à mesure que des compagnies de la région s'y inscrivent : les acteurs culturels de chez vous tombent alors sur <strong>votre profil en priorité</strong>.</p>
                                         <p style="margin:0 0 10px 0; font-size:14px; color:#4a4a4a; line-height:1.65;"><strong>Au niveau national</strong>, vous recevrez aussi des appels d'offres venant de <strong>toute la France</strong> &mdash; un complément précieux à votre démarche commerciale régionale, qui vous ouvre des dates et des territoires que vous n'auriez pas prospectés seul.</p>
-                                        <p style="margin:0 0 10px 0; font-size:14px; color:#4a4a4a; line-height:1.65;">C'est cette dynamique collective qui nous permet d'offrir la <strong>publication de vos spectacles</strong> et votre <strong>première année d'appels d'offres</strong>.</p>
+                                        <p style="margin:0 0 10px 0; font-size:14px; color:#4a4a4a; line-height:1.65;">C'est cette dynamique collective qui nous permet d'offrir la <strong>publication de vos spectacles</strong> et de garder l'annuaire entièrement <strong>gratuit</strong>.</p>
                                         <p style="margin:0; font-size:13px; color:#607060; line-height:1.65; font-style:italic;">C'est en accompagnant les compagnies qui le souhaitent sur le volet administratif (URSSAF, DSN, contrats de cession…) que nous pérennisons ce modèle.</p>
                                     </td>
                                 </tr>
@@ -5125,13 +5133,16 @@ def register_routes(app: Flask) -> None:
                     subject = "Votre spectacle est validé sur Spectacle'ment VØtre !"
                     abonnement_url = url_for('abonnement_compagnie', _external=True)
                     submit_url = url_for('submit_show', _external=True)
-                    # Bloc "1re année d'appels d'offres offerte" : uniquement pour les comptes soumis au nouveau modèle
-                    if show.user is not None and show.user.is_modele_payant:
+                    # CTA abonnement AO : nouveaux comptes non encore abonnés uniquement.
+                    if show.user is not None and show.user.is_modele_payant and not getattr(show.user, 'is_subscribed', False):
                         bloc_ao_offert = """
-                            <div style="background:#fff8e1; border-left:4px solid #f57f17; padding:20px; margin:25px 0; border-radius:8px;">
-                                <p style="margin:0 0 8px 0; font-size:16px; color:#e65100; font-weight:bold;">🎁 Votre 1ère année d'appels d'offres offerte</p>
-                                <p style="margin:0; font-size:15px; color:#333; line-height:1.6;">
-                                    Dès aujourd'hui, vous bénéficiez d'<strong>une année gratuite</strong> pour consulter nos appels d'offres et répondre directement aux demandes des organisateurs. À l'issue de cette période, certaines annonces pourront passer en <strong>accès premium</strong> (modèle <strong>freemium</strong>), d'autres resteront en accès libre &mdash; la <strong>publication de vos spectacles reste gratuite</strong>.
+                            <div style="background:#f3eef8; border-left:4px solid #6a1b9a; padding:20px; margin:25px 0; border-radius:8px;">
+                                <p style="margin:0 0 8px 0; font-size:16px; color:#4a148c; font-weight:bold;">🔓 Accédez aux appels d'offres</p>
+                                <p style="margin:0 0 12px 0; font-size:15px; color:#333; line-height:1.6;">
+                                    Votre spectacle est en ligne et visible par tous les organisateurs &mdash; c'est <strong>100&nbsp;% gratuit</strong>. Pour consulter les <strong>coordonnées</strong> et postuler aux <strong>appels d'offres</strong> (mairies, écoles, CSE…), un abonnement annuel est nécessaire : <strong>49&nbsp;€ TTC la 1<sup>re</sup> année</strong>, puis <strong>99&nbsp;€/an</strong>. Aucun engagement l'année suivante &mdash; paiement sécurisé via PayPal après un court entretien avec l'administrateur.
+                                </p>
+                                <p style="margin:0; text-align:center;">
+                                    <a href="https://www.spectacleanimation.fr/adhesion" style="display:inline-block; background:#6a1b9a; color:#fff; padding:12px 26px; border-radius:8px; text-decoration:none; font-weight:700;">J'adhère →</a>
                                 </p>
                             </div>"""
                     else:
@@ -6160,6 +6171,74 @@ Accessibilité: {accessibilite}
             return render_template("contact.html")
         sujet = request.args.get("sujet", "").strip()
         return render_template("contact.html", sujet=sujet)
+
+    @app.route("/adhesion", methods=["GET", "POST"])
+    def adhesion():
+        """Formulaire de demande d'adhésion à l'abonnement Appels d'offres (activation manuelle)."""
+        user = current_user()
+        if request.method == "POST":
+            nom = (request.form.get("nom") or "").strip()[:200]
+            telephone = (request.form.get("telephone") or "").strip()[:50]
+            email = (request.form.get("email") or "").strip()[:255]
+            message = (request.form.get("message") or "").strip()[:5000]
+
+            if not nom or not telephone or not email:
+                flash("Merci de renseigner votre nom, téléphone et email.", "warning")
+                return render_template("adhesion.html", user=user, nom=nom, telephone=telephone, email=email, message=message)
+
+            try:
+                adh = Adhesion(
+                    user_id=user.id if user else None,
+                    nom=nom,
+                    telephone=telephone,
+                    email=email,
+                    message=message or None,
+                    statut="pending",
+                )
+                db.session.add(adh)
+                db.session.commit()
+            except Exception as e:
+                db.session.rollback()
+                current_app.logger.error(f"[ADHESION] Erreur enregistrement: {e}")
+                flash("Une erreur est survenue, merci de réessayer ou de nous contacter directement.", "danger")
+                return render_template("adhesion.html", user=user, nom=nom, telephone=telephone, email=email, message=message)
+
+            try:
+                if hasattr(current_app, "mail") and current_app.mail:
+                    lien_admin = url_for("admin_adhesions", _external=True)
+                    body = (
+                        f"Nouvelle demande d'adhésion Appels d'offres\n"
+                        f"---\n"
+                        f"Nom: {nom}\n"
+                        f"Téléphone: {telephone}\n"
+                        f"Email: {email}\n"
+                        f"Utilisateur connecté: {user.username if user else '(non connecté)'}\n"
+                        f"Message:\n{message or '(aucun)'}\n"
+                        f"---\n"
+                        f"Tableau admin: {lien_admin}\n"
+                    )
+                    msg = MailMessage(
+                        subject=f"[Adhésion AO] {nom}",
+                        recipients=["audition_2020@yahoo.fr"],
+                        body=body,
+                    )
+                    current_app.mail.send(msg)
+            except Exception as e:
+                current_app.logger.error(f"[ADHESION] Erreur mail admin: {e}")
+
+            flash("Merci ! Votre demande a bien été enregistrée. Nous vous rappelons rapidement pour activer votre abonnement.", "success")
+            return redirect(url_for("adhesion"))
+
+        prefill_email = user.email if user else ""
+        prefill_nom = user.username if user else ""
+        return render_template(
+            "adhesion.html",
+            user=user,
+            nom=prefill_nom,
+            telephone="",
+            email=prefill_email,
+            message="",
+        )
 
     @app.route("/demandes-animation")
     def demandes_animation():
@@ -8583,6 +8662,35 @@ def admin_toggle_bloque_appels_offres(user_id):
         return redirect(next_url)
     return redirect(url_for("admin_users"))
 
+@app.route("/admin/users/<int:user_id>/toggle-subscribed", methods=["POST"])
+@login_required
+@admin_required
+def admin_toggle_is_subscribed(user_id):
+    """Bascule le flag d'abonnement Appels d'offres (activation manuelle après paiement)."""
+    user = User.query.get_or_404(user_id)
+    if user.is_admin:
+        flash("Inutile de gérer l'abonnement d'un administrateur.", "warning")
+        return redirect(request.referrer or url_for("admin_users"))
+    try:
+        user.is_subscribed = not bool(user.is_subscribed)
+        db.session.commit()
+        if user.is_subscribed:
+            flash(f"✅ Abonnement AO activé pour « {user.username} ».", "success")
+        else:
+            flash(f"⏸️ Abonnement AO désactivé pour « {user.username} ».", "warning")
+        current_app.logger.info(
+            f"[ADMIN] is_subscribed={user.is_subscribed} pour user {user_id} "
+            f"par {current_user().username}"
+        )
+    except Exception as e:
+        db.session.rollback()
+        flash(f"Erreur : {e}", "danger")
+        current_app.logger.error(f"[ADMIN] Erreur toggle is_subscribed user {user_id}: {e}")
+    next_url = request.form.get("next") or request.referrer
+    if next_url and next_url.startswith("/"):
+        return redirect(next_url)
+    return redirect(url_for("admin_users"))
+
 @app.route("/admin/shows/<int:show_id>/reassign", methods=["POST"])
 @login_required
 @admin_required
@@ -8684,8 +8792,7 @@ def admin_delete_user(user_id):
             current_app.logger.info(f"[ADMIN] Préavis 7j posé sur {username} (ID: {user_id}) par {current_user().username}")
             if user_email and getattr(current_app, "mail", None) and current_app.config.get("MAIL_USERNAME") and current_app.config.get("MAIL_PASSWORD"):
                 deadline_str = user.pending_deletion_at.strftime('%d/%m/%Y')
-                # Mention "1re année d'AO offerte" : uniquement pour les comptes soumis au nouveau modèle
-                phrase_ao_preavis = " et votre <strong>première année d'appels d'offres</strong>" if user.is_modele_payant else ""
+                phrase_ao_preavis = ""
                 body_html = f"""<!DOCTYPE html>
 <html><head><meta charset="utf-8"></head>
 <body style="font-family:Arial,sans-serif;background:#f4f6fa;margin:0;padding:20px;">
@@ -9192,6 +9299,70 @@ def admin_demande_ecole_notes(demande_id):
     db.session.commit()
     flash("Notes enregistrées.", "success")
     return redirect(url_for("admin_demande_ecole_detail", demande_id=demande_id))
+
+@app.route("/admin/adhesions")
+@login_required
+@admin_required
+def admin_adhesions():
+    """Tableau de bord des demandes d'adhésion à l'abonnement AO (test manuel)."""
+    statut_filter = (request.args.get("statut") or "").strip()
+    query = Adhesion.query
+    if statut_filter in ("pending", "contacted", "activated", "rejected"):
+        query = query.filter(Adhesion.statut == statut_filter)
+    adhesions = query.order_by(Adhesion.created_at.desc()).all()
+
+    all_adh = Adhesion.query.all()
+    stats = {
+        "total": len(all_adh),
+        "pending": len([a for a in all_adh if a.statut == "pending"]),
+        "contacted": len([a for a in all_adh if a.statut == "contacted"]),
+        "activated": len([a for a in all_adh if a.statut == "activated"]),
+        "rejected": len([a for a in all_adh if a.statut == "rejected"]),
+    }
+    return render_template(
+        "admin_adhesions.html",
+        user=current_user(),
+        adhesions=adhesions,
+        stats=stats,
+        statut_filter=statut_filter,
+    )
+
+@app.route("/admin/adhesions/<int:adhesion_id>/statut", methods=["POST"])
+@login_required
+@admin_required
+def admin_adhesion_statut(adhesion_id):
+    """Change le statut d'une demande d'adhésion et horodate la transition."""
+    adh = Adhesion.query.get_or_404(adhesion_id)
+    nouveau = (request.form.get("statut") or "pending").strip()
+    if nouveau not in ("pending", "contacted", "activated", "rejected"):
+        flash("Statut invalide.", "warning")
+        return redirect(request.referrer or url_for("admin_adhesions"))
+    adh.statut = nouveau
+    now = datetime.utcnow()
+    if nouveau == "contacted" and not adh.contacted_at:
+        adh.contacted_at = now
+    elif nouveau == "activated":
+        adh.activated_at = now
+        if adh.user_id:
+            u = User.query.get(adh.user_id)
+            if u and not u.is_admin:
+                u.is_subscribed = True
+    elif nouveau == "rejected" and not adh.rejected_at:
+        adh.rejected_at = now
+    db.session.commit()
+    flash(f"Statut mis à jour : {adh.statut_label}", "success")
+    return redirect(request.referrer or url_for("admin_adhesions"))
+
+@app.route("/admin/adhesions/<int:adhesion_id>/notes", methods=["POST"])
+@login_required
+@admin_required
+def admin_adhesion_notes(adhesion_id):
+    """Enregistre les notes admin sur une demande d'adhésion."""
+    adh = Adhesion.query.get_or_404(adhesion_id)
+    adh.notes_admin = request.form.get("notes_admin", "")
+    db.session.commit()
+    flash("Notes enregistrées.", "success")
+    return redirect(request.referrer or url_for("admin_adhesions"))
 
 # =====================================================================
 # Phase 5 : Fonctionnalités Avancées

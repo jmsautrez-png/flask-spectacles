@@ -62,6 +62,18 @@
 </style>
 
 <div style="max-width:1400px; margin:0 auto; padding:20px;">
+  {% set needs_abo = user and user.is_modele_payant and not user.is_subscribed and not user.is_admin %}
+
+  {% if needs_abo %}
+  <div style="background:linear-gradient(135deg,#6a1b9a 0%,#8e24aa 100%); color:#fff; border-radius:14px; padding:18px 22px; margin-bottom:20px; box-shadow:0 4px 16px rgba(0,0,0,0.2); display:flex; align-items:center; gap:16px; flex-wrap:wrap;">
+    <div style="flex:1; min-width:260px;">
+      <div style="font-size:1.15rem; font-weight:800; margin-bottom:6px;">🔓 Débloquez les coordonnées des organisateurs</div>
+      <div style="font-size:0.95rem; line-height:1.5;">Abonnement annuel Appels d'offres : <strong>49 € TTC la 1ʳᵉ année</strong> (puis 99 €/an). Postulez librement à toutes les annonces.</div>
+    </div>
+    <a href="{{ url_for('adhesion') }}" style="background:#fff; color:#6a1b9a; padding:11px 22px; border-radius:10px; text-decoration:none; font-weight:800; white-space:nowrap; font-size:1rem;">J'adhère →</a>
+  </div>
+  {% endif %}
+
   <div class="header-mobile" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.5rem; flex-wrap:wrap; gap:1rem;">
     <div>
       <h1 style="margin:0; color:#fff; font-size:2rem;">📢 Mes appels d'offres</h1>
@@ -133,6 +145,11 @@
               <p style="margin:0.2rem 0; color:#c62828; font-weight:700; font-size:0.95rem;">⏹️ Annonce désactivée</p>
               <p style="margin:0.2rem 0; color:#666; font-size:0.82em;">Coordonnées masquées (annonce de plus de 10 jours)</p>
             </div>
+            {% elif needs_abo %}
+            <p style="margin:0.2rem 0;"><strong>👤</strong> <span style="filter:blur(4px); user-select:none;">{{ demande.nom }}</span></p>
+            <p style="margin:0.2rem 0;"><strong>📞</strong> <span style="filter:blur(4px); user-select:none;">{{ demande.telephone }}</span></p>
+            <p style="margin:0.2rem 0;"><strong>✉️</strong> <span style="filter:blur(4px); user-select:none;">{{ demande.contact_email }}</span></p>
+            <a href="{{ url_for('adhesion') }}" style="display:block; text-align:center; background:linear-gradient(135deg,#6a1b9a,#8e24aa); color:#fff; padding:7px 10px; border-radius:6px; text-decoration:none; font-weight:700; font-size:0.82rem; margin-top:6px;">🔓 Débloquer — 49 € TTC/an</a>
             {% else %}
             <p style="margin:0.2rem 0;"><strong>👤</strong> {{ demande.nom }}</p>
             <p style="margin:0.2rem 0;"><strong>📞</strong> <a href="tel:{{ demande.telephone }}" style="color:#1976d2;">{{ demande.telephone }}</a></p>
@@ -141,10 +158,12 @@
           </div>
 
           {% if not demande.is_desactivee or (user and user.is_admin) %}
+            {% if not needs_abo %}
           <a href="mailto:{{ demande.contact_email }}?subject=Réponse à votre appel d'offre {{ demande.genre_recherche }}&body=Bonjour {{ demande.nom }},%0D%0A%0D%0AJe suis intéressé par votre appel d'offre pour {{ demande.genre_recherche }} à {{ demande.lieu_ville }}.%0D%0A%0D%0A" 
              style="display:block; text-align:center; background:linear-gradient(135deg, #1976d2, #0d47a1); color:#fff; padding:8px; border-radius:8px; text-decoration:none; font-weight:700; font-size:0.9rem; margin:0.4rem 0;">
             📧 Répondre
           </a>
+            {% endif %}
           {% endif %}
 
           {% if user and user.is_admin %}

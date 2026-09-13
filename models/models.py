@@ -64,8 +64,10 @@ class DemandeAnimation(db.Model):
         return (datetime.utcnow() - self.created_at).days >= self.DESACTIVATION_JOURS
 
 
-# Comptes créés à partir de cette date (UTC) = soumis au nouveau modèle (1re année d'appels d'offres offerte, puis payant).
-MODELE_PAYANT_DEBUT = datetime(2026, 8, 6)
+# Comptes créés à partir de cette date (UTC) = soumis au modèle payant (abonnement pour consulter les appels d'offres).
+# Test lancement 13/09/2026 : 49 € TTC 1re année, puis 99 €/an. Activation manuelle (contact → PayPal → facture).
+# Reculée au 12/09 pour englober les 2 inscriptions du 12/09 soir (Saltimbanques, Stephax) dans le nouveau modèle.
+MODELE_PAYANT_DEBUT = datetime(2026, 9, 12)
 
 
 class User(db.Model):
@@ -381,3 +383,42 @@ class PresignedUrlCache(db.Model):
     s3_key = db.Column(db.String(512), primary_key=True)  # clé S3 immuable (UUID)
     url = db.Column(db.Text, nullable=False)
     expires_at = db.Column(db.Float, nullable=False, index=True)  # epoch (time.time())
+
+
+# Statuts possibles pour une demande d'adhésion (test freemium AO 09/2026, activation manuelle).
+ADHESION_STATUTS = ("pending", "contacted", "activated", "rejected")
+
+
+class Adhesion(db.Model):
+    """Demande d'adhésion à l'abonnement Appels d'offres (test manuel, sans paiement automatisé).
+
+    Flow : nouvel inscrit clique le bandeau → soumet ce formulaire → admin le rappelle,
+    encaisse via PayPal, envoie facture PDF, puis coche is_subscribed=True sur User.
+    """
+    __tablename__ = "adhesion"
+
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=True, index=True)
+    user = db.relationship("User", backref="adhesions")
+
+    nom = db.Column(db.String(200), nullable=False)
+    telephone = db.Column(db.String(50), nullable=False)
+    email = db.Column(db.String(255), nullable=False, index=True)
+    message = db.Column(db.Text, nullable=True)
+
+    statut = db.Column(db.String(20), nullable=False, default="pending", server_default="pending", index=True)
+    notes_admin = db.Column(db.Text, nullable=True)
+
+    created_at = db.Column(db.DateTime, default=datetime.utcnow, index=True)
+    contacted_at = db.Column(db.DateTime, nullable=True)
+    activated_at = db.Column(db.DateTime, nullable=True)
+    rejected_at = db.Column(db.DateTime, nullable=True)
+
+    @property
+    def statut_label(self) -> str:
+        return {
+            "pending": "🟡 En attente",
+            "contacted": "🟠 Contacté",
+            "activated": "🟢 Activé",
+            "rejected": "🔴 Rejeté",
+        }.get(self.statut, self.statut)

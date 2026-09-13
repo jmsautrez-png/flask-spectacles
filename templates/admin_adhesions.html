@@ -1,0 +1,137 @@
+{% extends "base.html" %}
+{% block title %}Adhésions AO - Admin{% endblock %}
+{% block content %}
+<div style="max-width:1400px; margin:0 auto; padding:20px;">
+
+  <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; flex-wrap:wrap; gap:12px;">
+    <div>
+      <h1 style="margin:0; color:#fff;">📩 Demandes d'adhésion — Abonnement AO</h1>
+      <p style="margin:6px 0 0 0; color:#aaa; font-size:0.95rem;">Activation manuelle : rappeler → encaisser (PayPal) → envoyer facture PDF → cocher « Activer ».</p>
+    </div>
+    <a href="{{ url_for('admin_dashboard') }}" style="background:#455a64; color:#fff; padding:9px 16px; border-radius:8px; text-decoration:none; font-weight:600;">← Retour admin</a>
+  </div>
+
+  <!-- Stats -->
+  <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(150px, 1fr)); gap:12px; margin-bottom:22px;">
+    <div style="background:linear-gradient(135deg,#455a64,#607d8b); color:#fff; padding:14px 16px; border-radius:10px; text-align:center;">
+      <div style="font-size:1.9rem; font-weight:800; line-height:1;">{{ stats.total }}</div>
+      <div style="font-size:0.85rem; opacity:0.9; margin-top:4px;">Total</div>
+    </div>
+    <div style="background:linear-gradient(135deg,#f9a825,#f57f17); color:#1a1a1a; padding:14px 16px; border-radius:10px; text-align:center;">
+      <div style="font-size:1.9rem; font-weight:800; line-height:1;">{{ stats.pending }}</div>
+      <div style="font-size:0.85rem; margin-top:4px;">🟡 En attente</div>
+    </div>
+    <div style="background:linear-gradient(135deg,#ef6c00,#f57c00); color:#fff; padding:14px 16px; border-radius:10px; text-align:center;">
+      <div style="font-size:1.9rem; font-weight:800; line-height:1;">{{ stats.contacted }}</div>
+      <div style="font-size:0.85rem; opacity:0.9; margin-top:4px;">🟠 Contactés</div>
+    </div>
+    <div style="background:linear-gradient(135deg,#2e7d32,#43a047); color:#fff; padding:14px 16px; border-radius:10px; text-align:center;">
+      <div style="font-size:1.9rem; font-weight:800; line-height:1;">{{ stats.activated }}</div>
+      <div style="font-size:0.85rem; opacity:0.9; margin-top:4px;">🟢 Activés</div>
+    </div>
+    <div style="background:linear-gradient(135deg,#c62828,#e53935); color:#fff; padding:14px 16px; border-radius:10px; text-align:center;">
+      <div style="font-size:1.9rem; font-weight:800; line-height:1;">{{ stats.rejected }}</div>
+      <div style="font-size:0.85rem; opacity:0.9; margin-top:4px;">🔴 Rejetés</div>
+    </div>
+  </div>
+
+  <!-- Filtres -->
+  <div style="background:#fff; padding:14px 18px; border-radius:10px; margin-bottom:18px; box-shadow:0 2px 8px rgba(0,0,0,0.08); display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
+    <span style="font-weight:600; color:#333;">Filtrer :</span>
+    <a href="{{ url_for('admin_adhesions') }}" style="padding:6px 14px; border-radius:6px; text-decoration:none; font-weight:600; font-size:0.9rem; {% if not statut_filter %}background:#1976d2; color:#fff;{% else %}background:#eee; color:#333;{% endif %}">Toutes</a>
+    <a href="{{ url_for('admin_adhesions', statut='pending') }}" style="padding:6px 14px; border-radius:6px; text-decoration:none; font-weight:600; font-size:0.9rem; {% if statut_filter == 'pending' %}background:#f9a825; color:#1a1a1a;{% else %}background:#eee; color:#333;{% endif %}">🟡 En attente</a>
+    <a href="{{ url_for('admin_adhesions', statut='contacted') }}" style="padding:6px 14px; border-radius:6px; text-decoration:none; font-weight:600; font-size:0.9rem; {% if statut_filter == 'contacted' %}background:#ef6c00; color:#fff;{% else %}background:#eee; color:#333;{% endif %}">🟠 Contactés</a>
+    <a href="{{ url_for('admin_adhesions', statut='activated') }}" style="padding:6px 14px; border-radius:6px; text-decoration:none; font-weight:600; font-size:0.9rem; {% if statut_filter == 'activated' %}background:#2e7d32; color:#fff;{% else %}background:#eee; color:#333;{% endif %}">🟢 Activés</a>
+    <a href="{{ url_for('admin_adhesions', statut='rejected') }}" style="padding:6px 14px; border-radius:6px; text-decoration:none; font-weight:600; font-size:0.9rem; {% if statut_filter == 'rejected' %}background:#c62828; color:#fff;{% else %}background:#eee; color:#333;{% endif %}">🔴 Rejetés</a>
+  </div>
+
+  <!-- Tableau -->
+  {% if adhesions %}
+  <div style="background:#fff; border-radius:10px; box-shadow:0 2px 12px rgba(0,0,0,0.1); overflow-x:auto;">
+    <table style="width:100%; border-collapse:collapse; font-size:0.9rem;">
+      <thead>
+        <tr style="background:#37474f; color:#fff;">
+          <th style="padding:11px 10px; text-align:left; white-space:nowrap;">Date</th>
+          <th style="padding:11px 10px; text-align:left;">Nom</th>
+          <th style="padding:11px 10px; text-align:left; white-space:nowrap;">Téléphone</th>
+          <th style="padding:11px 10px; text-align:left;">Email</th>
+          <th style="padding:11px 10px; text-align:left;">Message</th>
+          <th style="padding:11px 10px; text-align:center;">Compte lié</th>
+          <th style="padding:11px 10px; text-align:center;">Statut</th>
+          <th style="padding:11px 10px; text-align:center;">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for adh in adhesions %}
+        <tr style="border-bottom:1px solid #eee; {% if loop.index is odd %}background:#fafafa;{% endif %}">
+          <td style="padding:10px; white-space:nowrap; font-size:0.85rem; color:#555;">{{ adh.created_at.strftime('%d/%m/%Y') }}<br><span style="color:#999;">{{ adh.created_at.strftime('%H:%M') }}</span></td>
+          <td style="padding:10px; font-weight:600;">{{ adh.nom }}</td>
+          <td style="padding:10px; white-space:nowrap;"><a href="tel:{{ adh.telephone }}" style="color:#1976d2; text-decoration:none;">{{ adh.telephone }}</a></td>
+          <td style="padding:10px;"><a href="mailto:{{ adh.email }}" style="color:#1976d2; text-decoration:none; word-break:break-all;">{{ adh.email }}</a></td>
+          <td style="padding:10px; max-width:220px;">
+            {% if adh.message %}
+              <details><summary style="cursor:pointer; color:#1976d2;">Voir</summary><div style="margin-top:6px; font-size:0.85rem; color:#444; white-space:pre-wrap;">{{ adh.message }}</div></details>
+            {% else %}
+              <span style="color:#bbb;">—</span>
+            {% endif %}
+          </td>
+          <td style="padding:10px; text-align:center; font-size:0.85rem;">
+            {% if adh.user %}
+              <a href="{{ url_for('admin_users') }}#user-{{ adh.user.id }}" style="color:#1976d2;">{{ adh.user.username }}</a>
+              {% if adh.user.is_subscribed %}<br><span style="color:#2e7d32; font-weight:700;">✅ Abonné</span>{% endif %}
+            {% else %}
+              <span style="color:#999;">(non connecté)</span>
+            {% endif %}
+          </td>
+          <td style="padding:10px; text-align:center; white-space:nowrap;">
+            <strong style="font-size:0.88rem;">{{ adh.statut_label }}</strong>
+            {% if adh.statut == 'contacted' and adh.contacted_at %}<br><span style="font-size:0.75rem; color:#999;">{{ adh.contacted_at.strftime('%d/%m %H:%M') }}</span>{% endif %}
+            {% if adh.statut == 'activated' and adh.activated_at %}<br><span style="font-size:0.75rem; color:#999;">{{ adh.activated_at.strftime('%d/%m %H:%M') }}</span>{% endif %}
+            {% if adh.statut == 'rejected' and adh.rejected_at %}<br><span style="font-size:0.75rem; color:#999;">{{ adh.rejected_at.strftime('%d/%m %H:%M') }}</span>{% endif %}
+          </td>
+          <td style="padding:10px; text-align:center; min-width:180px;">
+            <div style="display:flex; flex-direction:column; gap:4px;">
+              {% if adh.statut != 'contacted' %}
+              <form method="post" action="{{ url_for('admin_adhesion_statut', adhesion_id=adh.id) }}" style="margin:0;">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                <input type="hidden" name="statut" value="contacted"/>
+                <button type="submit" style="width:100%; background:#ef6c00; color:#fff; padding:5px 8px; border:none; border-radius:5px; font-weight:600; cursor:pointer; font-size:0.8rem;">🟠 Contacté</button>
+              </form>
+              {% endif %}
+              {% if adh.statut != 'activated' %}
+              <form method="post" action="{{ url_for('admin_adhesion_statut', adhesion_id=adh.id) }}" style="margin:0;" onsubmit="return confirm('Activer l\'abonnement AO pour {{ adh.nom|e }} ? Le compte lié passera automatiquement en is_subscribed=True.');">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                <input type="hidden" name="statut" value="activated"/>
+                <button type="submit" style="width:100%; background:#2e7d32; color:#fff; padding:5px 8px; border:none; border-radius:5px; font-weight:600; cursor:pointer; font-size:0.8rem;">🟢 Activer</button>
+              </form>
+              {% endif %}
+              {% if adh.statut != 'rejected' %}
+              <form method="post" action="{{ url_for('admin_adhesion_statut', adhesion_id=adh.id) }}" style="margin:0;">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                <input type="hidden" name="statut" value="rejected"/>
+                <button type="submit" style="width:100%; background:#c62828; color:#fff; padding:5px 8px; border:none; border-radius:5px; font-weight:600; cursor:pointer; font-size:0.8rem;">🔴 Rejeter</button>
+              </form>
+              {% endif %}
+              <details style="margin-top:2px;">
+                <summary style="cursor:pointer; font-size:0.75rem; color:#666;">📝 Notes</summary>
+                <form method="post" action="{{ url_for('admin_adhesion_notes', adhesion_id=adh.id) }}" style="margin-top:4px;">
+                  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                  <textarea name="notes_admin" rows="3" maxlength="2000" style="width:100%; padding:4px; border:1px solid #ccc; border-radius:4px; font-size:0.8rem; box-sizing:border-box;">{{ adh.notes_admin or '' }}</textarea>
+                  <button type="submit" style="margin-top:2px; width:100%; background:#455a64; color:#fff; padding:4px; border:none; border-radius:4px; font-size:0.75rem; cursor:pointer;">Enregistrer</button>
+                </form>
+              </details>
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div style="background:#fff; padding:40px; border-radius:10px; text-align:center; color:#666;">
+    <p style="font-size:1.1rem; margin:0;">Aucune demande d'adhésion pour ce filtre.</p>
+  </div>
+  {% endif %}
+
+</div>
+{% endblock %}
