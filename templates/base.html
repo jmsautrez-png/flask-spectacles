@@ -345,7 +345,20 @@
     .hamburger-menu a.menu-abonnement:hover {
       background: linear-gradient(135deg, #7b93ff, #8b5fbf);
       transform: scale(1.03);
-      box-shadow: 0 4px 15px rgba(102, 126, 234, 0.5);
+      box-shadow: 0 4px 15px rgba(102, 126, 234, 0.5);    }
+
+    .hamburger-menu a.menu-cgu {
+      background: linear-gradient(135deg, #37474f, #263238);
+      border: 2px solid rgba(255, 255, 255, 0.2);
+      font-size: 0.92rem;
+      opacity: 0.92;
+    }
+
+    .hamburger-menu a.menu-cgu:hover {
+      background: linear-gradient(135deg, #455a64, #37474f);
+      transform: scale(1.03);
+      box-shadow: 0 4px 15px rgba(55, 71, 79, 0.5);
+      opacity: 1;
     }
 
     /* ===== Tooltip pour liens verrouilles (Appels d'offres) ===== */
@@ -1281,6 +1294,7 @@
     <a href="{{ url_for('contact', sujet='don') }}" class="menu-soutenir">💛 Soutenir</a>
     <a href="/ecoles" class="menu-pedagogique">Intervention pédagogique</a>
     <a href="{{ url_for('abonnement_compagnie') }}" class="menu-abonnement">Accompagnement Premium</a>
+    <a href="{{ url_for('cgu') }}" class="menu-cgu">📄 CGU</a>
   </div>
 </div>
 
