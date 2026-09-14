@@ -5723,6 +5723,10 @@ Accessibilité: {accessibilite}
     def legal():
         return render_template("legal.html", user=current_user())
 
+    @app.route("/cgu")
+    def cgu():
+        return render_template("cgu.html", user=current_user())
+
     # ---------------------------
     # Pages thématiques SEO
     # ---------------------------

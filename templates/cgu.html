@@ -1,0 +1,380 @@
+{% extends "base.html" %}
+
+{% block title %}Conditions Générales d'Utilisation – Spectacle'ment VØtre{% endblock %}
+
+{% block content %}
+<style>
+  .cgu-wrapper {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 0 1rem;
+  }
+
+  .cgu-hero {
+    text-align: center;
+    padding: 2.5rem 1rem 1.5rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .cgu-hero h1 {
+    color: #fff;
+    text-shadow: 0 2px 8px #16244766;
+    font-size: 2rem;
+    margin: 0 0 8px 0;
+  }
+
+  .cgu-hero .maj {
+    color: #e0e6f6;
+    text-shadow: 0 1px 4px #16244744;
+    font-size: 0.95rem;
+  }
+
+  .cgu-section {
+    background: linear-gradient(135deg, #162447 0%, #283e5e 100%);
+    border: 2px solid #283e5e;
+    border-radius: 14px;
+    padding: 22px 26px;
+    margin-bottom: 20px;
+    color: #fff;
+    box-shadow: 0 2px 8px #16244722;
+  }
+
+  .cgu-section h2 {
+    color: var(--primary);
+    font-size: 1.15rem;
+    margin: 0 0 14px 0;
+    padding-bottom: 10px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  .cgu-section p {
+    line-height: 1.65;
+    font-size: 0.98rem;
+    margin: 0 0 12px 0;
+    color: #e8ecf7;
+  }
+
+  .cgu-section ul {
+    line-height: 1.75;
+    font-size: 0.98rem;
+    color: #e8ecf7;
+    padding-left: 22px;
+    margin: 0 0 12px 0;
+  }
+
+  .cgu-section li {
+    margin-bottom: 6px;
+  }
+
+  .cgu-section strong {
+    color: #fff;
+  }
+
+  .cgu-editor {
+    background: rgba(255, 255, 255, 0.06);
+    border-left: 3px solid var(--primary);
+    border-radius: 6px;
+    padding: 14px 18px;
+    margin: 10px 0;
+    line-height: 1.8;
+  }
+
+  .cgu-editor a {
+    color: var(--primary);
+    text-decoration: none;
+    font-weight: 600;
+    word-break: break-all;
+  }
+
+  .cgu-tarif {
+    background: rgba(40, 167, 69, 0.12);
+    border-left: 3px solid #28a745;
+    border-radius: 6px;
+    padding: 12px 16px;
+    margin: 10px 0;
+    font-weight: 600;
+  }
+
+  .cgu-toc {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    padding: 18px 22px;
+    margin-bottom: 24px;
+  }
+
+  .cgu-toc h3 {
+    color: var(--primary);
+    font-size: 1rem;
+    margin: 0 0 10px 0;
+  }
+
+  .cgu-toc ol {
+    columns: 2;
+    column-gap: 30px;
+    margin: 0;
+    padding-left: 20px;
+    font-size: 0.9rem;
+    color: #e0e6f6;
+  }
+
+  .cgu-toc li {
+    margin-bottom: 4px;
+    break-inside: avoid;
+  }
+
+  .cgu-toc a {
+    color: #e0e6f6;
+    text-decoration: none;
+  }
+
+  .cgu-toc a:hover {
+    color: var(--primary);
+    text-decoration: underline;
+  }
+
+  @media (max-width: 700px) {
+    .cgu-toc ol { columns: 1; }
+    .cgu-section { padding: 18px; }
+  }
+</style>
+
+<div class="cgu-wrapper">
+  <div class="cgu-hero">
+    <h1>Conditions Générales d'Utilisation</h1>
+    <div class="maj">Spectacle'ment VØtre — Dernière mise à jour : 14 septembre 2026</div>
+  </div>
+
+  <nav class="cgu-toc" aria-label="Sommaire des CGU">
+    <h3>Sommaire</h3>
+    <ol>
+      <li><a href="#art-1">Objet</a></li>
+      <li><a href="#art-2">Éditeur de la plateforme</a></li>
+      <li><a href="#art-3">Acceptation des CGU</a></li>
+      <li><a href="#art-4">Conditions d'inscription</a></li>
+      <li><a href="#art-5">Validation des profils et annonces</a></li>
+      <li><a href="#art-6">Sélection, suspension et suppression</a></li>
+      <li><a href="#art-7">Publication des contenus</a></li>
+      <li><a href="#art-8">Autorisation d'utilisation des contenus</a></li>
+      <li><a href="#art-9">Mise en relation</a></li>
+      <li><a href="#art-10">Responsabilité des professionnels</a></li>
+      <li><a href="#art-11">Tarifs de l'abonnement</a></li>
+      <li><a href="#art-12">Offre de lancement</a></li>
+      <li><a href="#art-13">Renouvellement et résiliation</a></li>
+      <li><a href="#art-14">Utilisation interdite</a></li>
+      <li><a href="#art-15">Protection des données</a></li>
+      <li><a href="#art-16">Cookies</a></li>
+      <li><a href="#art-17">Propriété intellectuelle</a></li>
+      <li><a href="#art-18">Disponibilité du service</a></li>
+      <li><a href="#art-19">Liens et services tiers</a></li>
+      <li><a href="#art-20">Modification des CGU</a></li>
+      <li><a href="#art-21">Réclamations</a></li>
+      <li><a href="#art-22">Droit applicable</a></li>
+      <li><a href="#art-23">Contact</a></li>
+    </ol>
+  </nav>
+
+  <section id="art-1" class="cgu-section">
+    <h2>1. Objet</h2>
+    <p>Les présentes Conditions Générales d'Utilisation (CGU) définissent les règles d'accès et d'utilisation de la plateforme <strong>Spectacle'ment VØtre</strong>, accessible notamment depuis le site <strong>spectacleanimation.fr</strong> et, le cas échéant, depuis son application.</p>
+    <p>Spectacle'ment VØtre est une plateforme de mise en relation entre des professionnels du spectacle, de l'animation et de l'événementiel et des structures susceptibles de rechercher leurs services, notamment collectivités, établissements scolaires, associations, entreprises, CSE, organisateurs et particuliers.</p>
+    <p>La plateforme a notamment pour objet de permettre aux professionnels de présenter leurs activités, spectacles, prestations et coordonnées, et aux organisateurs de consulter les offres et de formuler des demandes.</p>
+  </section>
+
+  <section id="art-2" class="cgu-section">
+    <h2>2. Éditeur de la plateforme</h2>
+    <p>La plateforme est éditée par :</p>
+    <div class="cgu-editor">
+      <strong>Spectacle'ment VØtre</strong><br>
+      Siège social : Rue du Chateau, 11170 Villespy<br>
+      Licence d'entrepreneur de spectacles : Licence 2 — PLATESV-R-2025-001991<br>
+      E-mail : <a href="mailto:contact@spectacleanimation.fr">contact@spectacleanimation.fr</a><br>
+      Directeur de la publication : M. Jean
+    </div>
+  </section>
+
+  <section id="art-3" class="cgu-section">
+    <h2>3. Acceptation des CGU</h2>
+    <p>Toute création de compte, inscription, publication d'une annonce ou utilisation des fonctionnalités réservées aux professionnels implique l'acceptation des présentes CGU.</p>
+    <p>L'utilisateur reconnaît avoir pris connaissance des présentes conditions avant d'utiliser la plateforme.</p>
+    <p>Si l'utilisateur refuse les CGU, il ne doit pas créer de compte ni utiliser les fonctionnalités nécessitant une inscription.</p>
+  </section>
+
+  <section id="art-4" class="cgu-section">
+    <h2>4. Conditions d'inscription</h2>
+    <p>L'inscription professionnelle est réservée aux personnes ou structures exerçant une activité compatible avec l'objet de la plateforme.</p>
+    <p>L'utilisateur s'engage à fournir des informations exactes, à jour et vérifiables.</p>
+    <p>Il doit notamment, lorsque ces informations sont demandées ou nécessaires à son activité, communiquer des informations professionnelles exactes telles que sa dénomination, ses coordonnées, son numéro SIRET, ses références professionnelles ou, lorsque cela est applicable, les informations relatives à sa licence d'entrepreneur de spectacles.</p>
+    <p>L'utilisateur est responsable de la confidentialité de ses identifiants et de toutes les opérations effectuées depuis son compte.</p>
+  </section>
+
+  <section id="art-5" class="cgu-section">
+    <h2>5. Validation des profils et des annonces</h2>
+    <p>Afin de préserver la qualité et la fiabilité de la plateforme, Spectacle'ment VØtre peut procéder à une vérification des profils, annonces et informations communiquées.</p>
+    <p>La création d'un compte ne garantit pas automatiquement la publication d'un profil ou d'une annonce.</p>
+    <p>Spectacle'ment VØtre peut demander à l'utilisateur tout justificatif permettant de vérifier son identité, son activité professionnelle ou les informations publiées.</p>
+  </section>
+
+  <section id="art-6" class="cgu-section">
+    <h2>6. Sélection, suspension et suppression d'un compte</h2>
+    <p>Spectacle'ment VØtre souhaite proposer aux organisateurs un référencement professionnel et qualitatif.</p>
+    <p>À ce titre, la plateforme peut refuser, suspendre temporairement ou supprimer un compte ou une annonce lorsque notamment :</p>
+    <ul>
+      <li>les informations fournies sont fausses, incomplètes ou trompeuses ;</li>
+      <li>l'activité proposée ne correspond pas à l'objet de la plateforme ;</li>
+      <li>le professionnel ne fournit pas les justificatifs demandés ;</li>
+      <li>l'annonce contient un contenu illicite ou contraire aux présentes CGU ;</li>
+      <li>l'utilisateur porte atteinte aux droits d'un tiers ;</li>
+      <li>l'utilisateur utilise la plateforme à des fins abusives, frauduleuses ou détournées ;</li>
+      <li>l'utilisateur effectue un démarchage ou une collecte abusive de données ;</li>
+      <li>plusieurs signalements sérieux sont portés à la connaissance de la plateforme ;</li>
+      <li>le comportement de l'utilisateur est susceptible de porter atteinte au fonctionnement, à la réputation ou à la sécurité de la plateforme ;</li>
+      <li>l'utilisateur ne respecte pas les présentes CGU.</li>
+    </ul>
+    <p>En fonction de la situation, Spectacle'ment VØtre peut retirer immédiatement un contenu ou suspendre un compte lorsque cela est nécessaire pour préserver la sécurité ou le bon fonctionnement du service.</p>
+    <p>La suppression ou la suspension d'un compte n'interdit pas à l'utilisateur de faire valoir ses droits ou de contacter la plateforme afin de demander des explications ou de présenter ses observations.</p>
+  </section>
+
+  <section id="art-7" class="cgu-section">
+    <h2>7. Publication des contenus</h2>
+    <p>L'utilisateur reste responsable des textes, photographies, vidéos, fichiers, logos et autres contenus qu'il publie.</p>
+    <p>Il garantit disposer des droits et autorisations nécessaires à leur utilisation et à leur publication.</p>
+    <p>Il garantit notamment que les photographies et vidéos publiées ne portent pas atteinte aux droits à l'image, droits d'auteur ou autres droits de tiers.</p>
+    <p>Spectacle'ment VØtre peut retirer tout contenu dont la publication est susceptible de porter atteinte aux droits d'un tiers ou aux présentes CGU.</p>
+  </section>
+
+  <section id="art-8" class="cgu-section">
+    <h2>8. Autorisation d'utilisation des contenus</h2>
+    <p>En publiant un contenu sur la plateforme, l'utilisateur autorise Spectacle'ment VØtre, pour la durée de sa présence sur la plateforme, à le reproduire et le représenter dans la mesure nécessaire au fonctionnement et à la promotion du service.</p>
+    <p>Cette autorisation permet notamment l'affichage des photographies, textes, vidéos, logos et informations professionnelles sur le site, l'application et les supports de communication liés à la plateforme.</p>
+    <p>L'utilisateur peut demander le retrait de ses contenus selon les modalités prévues par la plateforme, sous réserve des obligations légales éventuelles de conservation.</p>
+  </section>
+
+  <section id="art-9" class="cgu-section">
+    <h2>9. Mise en relation</h2>
+    <p>Spectacle'ment VØtre est une plateforme de mise en relation.</p>
+    <p>Sauf indication contraire expresse, la plateforme ne garantit ni la conclusion d'une prestation, ni le nombre de demandes reçues, ni le chiffre d'affaires réalisé par un professionnel.</p>
+    <p>Les contrats conclus à la suite d'une mise en relation sont conclus directement entre les parties concernées.</p>
+    <p>Chaque professionnel reste responsable de ses prestations, de ses tarifs, de ses engagements contractuels, de ses obligations sociales, fiscales et professionnelles ainsi que des assurances nécessaires à son activité.</p>
+  </section>
+
+  <section id="art-10" class="cgu-section">
+    <h2>10. Responsabilité des professionnels</h2>
+    <p>Le professionnel demeure seul responsable :</p>
+    <ul>
+      <li>de la conformité de son activité à la réglementation applicable ;</li>
+      <li>de ses déclarations sociales et fiscales ;</li>
+      <li>de ses autorisations et licences éventuelles ;</li>
+      <li>de ses assurances ;</li>
+      <li>de ses contrats avec les clients ;</li>
+      <li>de ses tarifs et conditions commerciales ;</li>
+      <li>de la réalisation des prestations qu'il accepte.</li>
+    </ul>
+    <p>Spectacle'ment VØtre n'est pas l'employeur des professionnels référencés sur la plateforme.</p>
+  </section>
+
+  <section id="art-11" class="cgu-section">
+    <h2>11. Tarifs de l'abonnement professionnel</h2>
+    <p>L'accès aux fonctionnalités professionnelles de la plateforme peut être soumis à un abonnement.</p>
+    <p>Le tarif de lancement est fixé à :</p>
+    <div class="cgu-tarif">49 € TTC pour la première année d'abonnement.</div>
+    <p>À compter de la deuxième année, le tarif est fixé à :</p>
+    <div class="cgu-tarif">99 € TTC par année.</div>
+    <p>Les tarifs applicables sont ceux indiqués au moment de la souscription ou du renouvellement.</p>
+    <p>Toute modification tarifaire applicable à une période ultérieure devra être portée à la connaissance de l'utilisateur dans les conditions prévues par la réglementation applicable.</p>
+  </section>
+
+  <section id="art-12" class="cgu-section">
+    <h2>12. Offre de lancement — inscription avant le 12 septembre 2026</h2>
+    <p>Les professionnels inscrits sur Spectacle'ment VØtre <strong>avant le 12 septembre 2026</strong> peuvent bénéficier d'une offre de lancement leur permettant d'accéder gratuitement pendant une durée d'un an au service d'offres proposé par la plateforme, selon les fonctionnalités disponibles.</p>
+    <p>Cette gratuité est réservée aux inscriptions éligibles enregistrées avant la date limite.</p>
+    <p>À l'issue de cette période gratuite, les conditions tarifaires applicables sont celles indiquées lors de la souscription et dans les présentes CGU.</p>
+    <p>L'offre ne peut être cumulée avec une autre offre promotionnelle, sauf indication contraire expresse de Spectacle'ment VØtre.</p>
+  </section>
+
+  <section id="art-13" class="cgu-section">
+    <h2>13. Renouvellement et résiliation</h2>
+    <p>Lorsque l'abonnement est renouvelé, les conditions et le tarif applicables au renouvellement sont communiqués à l'utilisateur conformément à la réglementation applicable.</p>
+    <p>L'utilisateur peut demander la résiliation de son abonnement selon les modalités proposées sur la plateforme ou en contactant Spectacle'ment VØtre.</p>
+    <p>En cas de résiliation, les conséquences sur l'accès aux fonctionnalités payantes dépendent de la période d'abonnement déjà réglée et des conditions applicables au contrat souscrit.</p>
+  </section>
+
+  <section id="art-14" class="cgu-section">
+    <h2>14. Utilisation interdite de la plateforme</h2>
+    <p>Il est notamment interdit de :</p>
+    <ul>
+      <li>fournir de fausses informations ;</li>
+      <li>usurper l'identité d'une personne ou d'une structure ;</li>
+      <li>publier des contenus dont on ne possède pas les droits ;</li>
+      <li>utiliser la plateforme pour diffuser des contenus illicites ;</li>
+      <li>extraire automatiquement ou massivement les données du site ;</li>
+      <li>récupérer les coordonnées des utilisateurs à des fins abusives ;</li>
+      <li>utiliser les données de la plateforme pour constituer des fichiers commerciaux non autorisés ;</li>
+      <li>tenter de contourner les mesures de sécurité ;</li>
+      <li>perturber le fonctionnement du site ou de l'application ;</li>
+      <li>utiliser la plateforme pour une activité frauduleuse ou contraire à la loi.</li>
+    </ul>
+  </section>
+
+  <section id="art-15" class="cgu-section">
+    <h2>15. Protection des données personnelles</h2>
+    <p>Spectacle'ment VØtre collecte et traite certaines données personnelles nécessaires au fonctionnement de la plateforme.</p>
+    <p>Ces traitements sont réalisés conformément à la réglementation applicable, notamment au Règlement Général sur la Protection des Données (RGPD).</p>
+    <p>Les informations relatives aux traitements de données, aux finalités, aux durées de conservation, aux droits des personnes et aux modalités d'exercice de ces droits sont présentées dans la <strong>Politique de confidentialité</strong> de la plateforme.</p>
+  </section>
+
+  <section id="art-16" class="cgu-section">
+    <h2>16. Cookies</h2>
+    <p>Le site peut utiliser des cookies ou technologies similaires nécessaires à son fonctionnement ainsi que, selon les cas, des cookies soumis au consentement de l'utilisateur.</p>
+    <p>Les informations relatives à ces cookies sont présentées dans la politique de cookies ou le module de gestion du consentement proposé sur le site.</p>
+  </section>
+
+  <section id="art-17" class="cgu-section">
+    <h2>17. Propriété intellectuelle de la plateforme</h2>
+    <p>La structure générale du site, son fonctionnement, ses éléments graphiques, textes, logos, bases de données, développements informatiques et autres éléments propres à Spectacle'ment VØtre sont protégés par les dispositions applicables en matière de propriété intellectuelle.</p>
+    <p>Toute reproduction, extraction, modification ou exploitation non autorisée de tout ou partie de la plateforme est interdite.</p>
+  </section>
+
+  <section id="art-18" class="cgu-section">
+    <h2>18. Disponibilité du service</h2>
+    <p>Spectacle'ment VØtre met en œuvre les moyens raisonnables nécessaires pour assurer l'accessibilité et le fonctionnement de la plateforme.</p>
+    <p>Toutefois, le service peut être temporairement interrompu notamment pour des raisons de maintenance, de mise à jour, de sécurité, de panne, d'hébergement ou de circonstances indépendantes de la volonté de la plateforme.</p>
+  </section>
+
+  <section id="art-19" class="cgu-section">
+    <h2>19. Liens et services tiers</h2>
+    <p>La plateforme peut contenir des liens vers des sites ou services exploités par des tiers.</p>
+    <p>Spectacle'ment VØtre ne contrôle pas nécessairement ces services et ne peut être tenue responsable de leur contenu, fonctionnement ou disponibilité.</p>
+  </section>
+
+  <section id="art-20" class="cgu-section">
+    <h2>20. Modification des CGU</h2>
+    <p>Spectacle'ment VØtre peut modifier les présentes CGU afin de tenir compte de l'évolution du service, de la réglementation ou de ses fonctionnalités.</p>
+    <p>La version applicable est celle publiée sur la plateforme à la date de l'utilisation du service.</p>
+    <p>Lorsque la réglementation l'impose, les utilisateurs seront informés des modifications dans les conditions appropriées.</p>
+  </section>
+
+  <section id="art-21" class="cgu-section">
+    <h2>21. Réclamations</h2>
+    <p>Toute réclamation peut être adressée à Spectacle'ment VØtre à l'adresse électronique indiquée dans les mentions légales.</p>
+    <p>L'utilisateur est invité à préciser son identité, son compte, l'objet de sa demande et tout élément permettant son traitement.</p>
+  </section>
+
+  <section id="art-22" class="cgu-section">
+    <h2>22. Droit applicable</h2>
+    <p>Les présentes CGU sont soumises au droit français.</p>
+    <p>En cas de litige, les parties rechercheront prioritairement une solution amiable.</p>
+    <p>Lorsque l'utilisateur bénéficie de dispositions légales impératives lui accordant une protection particulière, celles-ci demeurent applicables.</p>
+  </section>
+
+  <section id="art-23" class="cgu-section">
+    <h2>23. Contact</h2>
+    <p>Pour toute question relative aux présentes CGU ou à l'utilisation de la plateforme :</p>
+    <div class="cgu-editor">
+      <strong>Spectacle'ment VØtre</strong><br>
+      Site : <a href="https://spectacleanimation.fr">spectacleanimation.fr</a><br>
+      E-mail : <a href="mailto:contact@spectacleanimation.fr">contact@spectacleanimation.fr</a>
+    </div>
+  </section>
+</div>
+{% endblock %}
