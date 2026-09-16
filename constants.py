@@ -137,6 +137,7 @@ SPECIALITES = {
         # Genres musicaux
         "Chanson française",
         "Variété française",
+        "Accordéon",
         "Pop",
         "Pop latino",
         "Musique latino",
@@ -153,6 +154,7 @@ SPECIALITES = {
         "Reggae",
         "Musique actuelle",
         "Musique Classique",
+        "Opéra",
         "Musique électronique",
         "Musique / chant traditionnel",
         "Musique traditionnelle africaine",
@@ -193,6 +195,7 @@ SPECIALITES = {
         # Spectacles musicaux
         "Spectacle Musical",
         "Spectacle Musical pour enfant",
+        "Opéra pour enfant",
         "Animation Musicale",
         "Tribute",
     ],
