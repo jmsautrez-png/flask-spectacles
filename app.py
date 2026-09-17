@@ -1310,6 +1310,10 @@ def _send_recap_to_organisateur(demande, shows_contactes, admin_email_extra=None
         #  - on n'affiche JAMAIS l'URL brute comme texte du lien (signal n°1 de phishing
         #    pour Thunderbird/Outlook) -> on met un libellé « Voir la fiche ».
         from markupsafe import escape
+        from utils.geo import distance_km
+        # CP + ville de la demande, pour estimer la distance a chaque compagnie
+        dem_cp = (getattr(demande, "code_postal", None) or "").strip()
+        dem_ville = (getattr(demande, "lieu_ville", None) or "").strip()
         rows_html = ""
         for s in unique_shows:
             try:
@@ -1320,10 +1324,26 @@ def _send_recap_to_organisateur(demande, shows_contactes, admin_email_extra=None
             if getattr(s, "user", None):
                 cie_name = (s.user.company_name or s.user.email or "") if hasattr(s.user, "company_name") else ""
             cie_html = f' <span style="color:#777;font-size:0.9em;">— {escape(cie_name)}</span>' if cie_name else ""
+            # Distance a vol d'oiseau via CP -> coord (cache Haversine, cf utils/geo.py)
+            cie_cp = (getattr(s, "code_postal", None) or "").strip()
+            if not cie_cp and getattr(s, "user", None):
+                cie_cp = (getattr(s.user, "code_postal", None) or "").strip()
+            dist_html = ""
+            if dem_cp and cie_cp:
+                dist_km = distance_km(dem_cp, cie_cp)
+                if dist_km is not None:
+                    dist_arr = int(round(dist_km))
+                    lieu_ref = f" de {escape(dem_ville)}" if dem_ville else ""
+                    dist_html = (
+                        f'<span style="color:#666;font-size:0.85em;">'
+                        f'À environ {dist_arr} km{lieu_ref} (à vol d\'oiseau)'
+                        f'</span><br>'
+                    )
             rows_html += (
                 f'<li style="margin:8px 0;">'
                 f'<a href="{show_url}" style="color:#8b1e1e;font-weight:700;text-decoration:none;">'
                 f'{escape(s.title)}</a>{cie_html}<br>'
+                f'{dist_html}'
                 f'<a href="{show_url}" style="color:#8b1e1e;font-size:0.85em;text-decoration:none;">Voir la fiche</a>'
                 f'</li>'
             )
