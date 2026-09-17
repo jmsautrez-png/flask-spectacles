@@ -6,5 +6,6 @@ Disallow: /register
 Disallow: /logout
 Disallow: /publish
 Disallow: /submit
+Disallow: /demande-devis/
 
 Sitemap: https://spectacleanimation.fr/sitemap.xml
