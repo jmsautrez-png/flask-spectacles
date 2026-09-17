@@ -425,15 +425,15 @@
     
     <!-- Bandeau intégré -->
     <div class="bandeau-interne-collectivite">
-      <h3>Appel d'offre GRATUIT - Un gain de temps considérable</h3>
+      <h3>Publiez gratuitement votre demande de recherche de spectacle, d'animation, votre appel d'offre, etc.</h3>
       <p class="texte-clignotant" style="font-style:italic; margin-top:12px; font-weight:700; font-size:1.1rem;">
         Vous ne cherchez plus, ce sont les artistes qui viennent à vous !
       </p>
       <p style="font-size:1.05rem; line-height:1.6; margin-top:12px;">
-        Publiez gratuitement votre demande de spectacle, animation, clown, magie, etc. et recevez des propositions ciblées d'artistes professionnels 
+        Décrivez votre spectacle, animation, clown, magie, etc. et recevez des propositions ciblées d'artistes professionnels
         de votre région, correspondant exactement à votre thème et votre budget.
       </p>
-      <a href="{{ url_for('demande_animation') }}" class="btn-bandeau">Publier ma demande →</a>
+      <a href="{{ url_for('demande_animation') }}" class="btn-bandeau">Publier ma demande en 2 clics →</a>
     </div>
     
     <div class="recherches-populaires">
@@ -1029,6 +1029,9 @@
     border: 2px solid #ffc107;
     box-shadow: 0 4px 14px rgba(0,0,0,0.35), 0 0 0 4px rgba(255,193,7,0.15), inset 0 1px 0 rgba(255,255,255,0.08);
     text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+    /* Évite le double-tap sur écran tactile */
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: rgba(255,193,7,0.25);
   }
   .bandeau-interne-collectivite .btn-bandeau::before {
     content: "";
@@ -1037,15 +1040,24 @@
     width: 100%; height: 100%;
     background: linear-gradient(90deg, transparent, rgba(255,193,7,0.35), transparent);
     transition: left 0.6s ease;
+    pointer-events: none;
   }
-  .bandeau-interne-collectivite .btn-bandeau:hover {
+  /* :hover uniquement pour les vrais pointeurs (souris) — évite le double-tap sur mobile */
+  @media (hover: hover) and (pointer: fine) {
+    .bandeau-interne-collectivite .btn-bandeau:hover {
+      background: linear-gradient(135deg, #2d1010 0%, #5a2424 50%, #2d1010 100%);
+      transform: translateY(-2px) scale(1.04);
+      box-shadow: 0 8px 22px rgba(0,0,0,0.4), 0 0 0 5px rgba(255,193,7,0.3), 0 0 30px rgba(255,193,7,0.4);
+      color: #fff;
+    }
+    .bandeau-interne-collectivite .btn-bandeau:hover::before {
+      left: 100%;
+    }
+  }
+  .bandeau-interne-collectivite .btn-bandeau:active {
+    transform: scale(0.98);
     background: linear-gradient(135deg, #2d1010 0%, #5a2424 50%, #2d1010 100%);
-    transform: translateY(-2px) scale(1.04);
-    box-shadow: 0 8px 22px rgba(0,0,0,0.4), 0 0 0 5px rgba(255,193,7,0.3), 0 0 30px rgba(255,193,7,0.4);
     color: #fff;
-  }
-  .bandeau-interne-collectivite .btn-bandeau:hover::before {
-    left: 100%;
   }
   
   .bloc-collectivites .btn-catalogue {

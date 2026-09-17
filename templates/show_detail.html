@@ -125,10 +125,24 @@
 {% block content %}
 
 <div style="max-width:900px; margin:0 auto;">
-  <!-- Back Button -->
-  <a href="{{ url_for('catalogue') }}" class="back-link" style="display:inline-flex; align-items:center; gap:8px; margin-bottom:24px; padding:10px 16px; color:var(--text); text-decoration:none; background:var(--panel); border:1px solid var(--border); border-radius:8px; font-weight:500; transition:all 0.2s ease;">
-    <span>←</span> Retour aux spectacles
-  </a>
+  <!-- Barre de navigation contextuelle : 3 boutons alignés sur une seule ligne (repli en colonne sous 720px) -->
+  <div class="show-detail-nav" style="display:flex; flex-wrap:nowrap; align-items:stretch; gap:8px; margin-bottom:24px;">
+    <a href="{{ url_for('catalogue') }}" class="show-nav-btn show-nav-btn--secondary" style="display:inline-flex; align-items:center; justify-content:center; gap:6px; padding:9px 12px; color:var(--text); text-decoration:none; background:var(--panel); border:1px solid var(--border); border-radius:8px; font-weight:500; font-size:0.9rem; white-space:nowrap; transition:all 0.2s ease; flex:0 0 auto;">
+      <span>←</span> Retour au catalogue
+    </a>
+    <a href="{{ url_for('demande_animation') }}" class="show-nav-btn show-nav-btn--cta" style="display:inline-flex; align-items:center; justify-content:center; gap:6px; padding:9px 14px; background:linear-gradient(135deg,#ffc107,#ff9800); color:#1a0a0a; text-decoration:none; border:1px solid #ff9800; border-radius:8px; font-weight:700; font-size:0.9rem; white-space:nowrap; box-shadow:0 3px 10px rgba(255,152,0,0.35); transition:all 0.2s ease; touch-action:manipulation; flex:1 1 auto; min-width:0;">
+      Publiez gratuitement votre demande de recherche de spectacle
+    </a>
+    <a href="{{ url_for('home') }}" class="show-nav-btn show-nav-btn--secondary" style="display:inline-flex; align-items:center; justify-content:center; gap:6px; padding:9px 12px; color:var(--text); text-decoration:none; background:var(--panel); border:1px solid var(--border); border-radius:8px; font-weight:500; font-size:0.9rem; white-space:nowrap; transition:all 0.2s ease; flex:0 0 auto;">
+      Retour à la page d'accueil
+    </a>
+  </div>
+  <style>
+    @media (max-width: 720px) {
+      .show-detail-nav { flex-wrap: wrap !important; }
+      .show-detail-nav .show-nav-btn { flex: 1 1 100% !important; white-space: normal !important; }
+    }
+  </style>
   
   <article class="card show-detail-article" style="max-width:none; box-shadow:0 4px 16px rgba(0,0,0,0.2);">
     {% set all_images = show.get_all_images() %}
