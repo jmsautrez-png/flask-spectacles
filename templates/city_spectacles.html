@@ -4,19 +4,23 @@
 {% block title %}{{ meta_title }}{% endblock %}
 {% block description %}{{ meta_description }}{% endblock %}
 
-{% block head_extra %}
-<meta name="keywords" content="{{ meta_keywords }}">
+{# Canonical / robots / og:url : surcharge des blocs de base.html pour éviter les balises en double. #}
+{% block canonical %}{{ url_for('city_spectacles', city_slug=city['slug'], _external=True) }}{% endblock %}
+{% block og_url %}{{ url_for('city_spectacles', city_slug=city['slug'], _external=True) }}{% endblock %}
+{% block robots %}
 {% if total_shows == 0 %}
 <meta name="robots" content="noindex,follow">
 {% else %}
 <meta name="robots" content="index,follow">
 {% endif %}
-<link rel="canonical" href="{{ url_for('city_spectacles', city_slug=city['slug'], _external=True) }}">
+{% endblock %}
+
+{% block head_extra %}
+<meta name="keywords" content="{{ meta_keywords }}">
 
 {# Open Graph pour les réseaux sociaux #}
 <meta property="og:title" content="{{ meta_title }}">
 <meta property="og:description" content="{{ meta_description }}">
-<meta property="og:url" content="{{ url_for('city_spectacles', city_slug=city['slug'], _external=True) }}">
 <meta property="og:type" content="website">
 
 {# Pagination SEO #}
