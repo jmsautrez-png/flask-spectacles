@@ -30,6 +30,8 @@ class DemandeAnimation(db.Model):
     code_postal = db.Column(db.String(10), nullable=True)  # Code postal
     region = db.Column(db.String(200), nullable=True)  # Région (déduite du code postal)
     departement = db.Column(db.String(100), nullable=True)  # Département (ex: "Ille-et-Vilaine (35)")
+    latitude = db.Column(db.Float, nullable=True)   # Coord. géographiques (matching sans appel API)
+    longitude = db.Column(db.Float, nullable=True)
     is_private = db.Column(db.Boolean, default=False, index=True)  # True = visible admin uniquement
     approved = db.Column(db.Boolean, default=False, index=True)  # True = approuvé et publié sur le site
     portee_nationale = db.Column(db.Boolean, default=True)  # True = toute la France, False = région uniquement
@@ -86,6 +88,8 @@ class User(db.Model):
     code_postal = db.Column(db.String(10), nullable=True)   # Code postal (ex: 75001)
     ville = db.Column(db.String(150), nullable=True)        # Ville (ex: Paris)
     departement = db.Column(db.String(100), nullable=True)  # Département (ex: Paris, Rhône)
+    latitude = db.Column(db.Float, nullable=True)           # Coord. géographiques (matching sans appel API)
+    longitude = db.Column(db.Float, nullable=True)
     site_internet = db.Column(db.String(255), nullable=True)  # Site web de l'utilisateur
     pending_deletion_at = db.Column(db.DateTime, nullable=True, index=True)  # Date prévue de suppression (préavis 7j inactivité)
     is_organisateur = db.Column(db.Boolean, default=False, index=True)  # True = compte demandeur (mairie, école…), False = compagnie/artiste
@@ -115,6 +119,8 @@ class Show(db.Model):
     location = db.Column(db.String(500), nullable=True, index=True)  # Augmenté à 500 pour plusieurs villes
     code_postal = db.Column(db.String(10), nullable=True)   # CP du spectacle (utile pour orphelins sans user)
     departement = db.Column(db.String(100), nullable=True)  # Département (ex: "Ille-et-Vilaine (35)")
+    latitude = db.Column(db.Float, nullable=True)           # Coord. géographiques (matching sans appel API)
+    longitude = db.Column(db.Float, nullable=True)
     category = db.Column(db.String(500), nullable=True, index=True)  # Augmenté à 500 pour plusieurs catégories
     date = db.Column(db.Date, nullable=True)
     age_range = db.Column(db.String(50), nullable=True)
@@ -422,3 +428,47 @@ class Adhesion(db.Model):
             "activated": "🟢 Activé",
             "rejected": "🔴 Rejeté",
         }.get(self.statut, self.statut)
+
+
+# ─────────────────────────────────────────────────────────────
+# Auto-géocodage : populate latitude/longitude depuis code_postal au save.
+# Évite les 150+ appels API HTTP au chargement de /admin/envoyer-demande.
+# ─────────────────────────────────────────────────────────────
+from sqlalchemy import event, inspect as sa_inspect
+
+
+def _auto_geocode_from_cp(mapper, connection, target):
+    """Populate target.latitude/longitude depuis target.code_postal si nécessaire.
+
+    Skip si lat/lon déjà présents ET code_postal inchangé.
+    En cas d'échec API (réseau/timeout), lat/lon restent None : le matching
+    retombera sur coords_from_cp à la volée (comportement historique).
+    """
+    cp = (getattr(target, "code_postal", None) or "").strip()
+    if not cp:
+        return
+
+    has_coords = target.latitude is not None and target.longitude is not None
+    cp_changed = False
+    try:
+        hist = sa_inspect(target).attrs.code_postal.history
+        if hist.has_changes():
+            cp_changed = True
+    except Exception:
+        pass
+
+    if has_coords and not cp_changed:
+        return
+
+    try:
+        from utils.geo import coords_from_cp
+        coords = coords_from_cp(cp)
+        if coords:
+            target.latitude, target.longitude = coords
+    except Exception:
+        pass
+
+
+for _model in (User, Show, DemandeAnimation):
+    event.listen(_model, "before_insert", _auto_geocode_from_cp)
+    event.listen(_model, "before_update", _auto_geocode_from_cp)

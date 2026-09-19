@@ -8,7 +8,7 @@ from constants import (
     PUBLIC_CIBLE_CODES_VALIDES, LABELS_QUALITE_NEUTRES,
     normalize_lieux_csv, LIEU_TOUT_TERRAIN,
 )
-from utils.geo import distance_km, distance_km_approx, distance_score
+from utils.geo import distance_km, distance_km_approx, distance_km_objs, distance_score
 
 
 _DEPT_CODE_RE = re.compile(r"\((\d{2,3}[A-Z]?)\)")
@@ -385,7 +385,8 @@ def compute_score(show, demande):
 
     distance = None
     if dem_cp and cie_cp:
-        distance = distance_km(dem_cp, cie_cp)
+        # Prioritise lat/lon stockés en base (0 appel réseau). Fallback CP via API.
+        distance = distance_km_objs(demande, show_user if show_user else show)
 
     # Codes departement (depuis champ departement "Nom (XX)" ou CP)
     dem_dept = _dept_code_from(demande)

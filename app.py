@@ -1036,6 +1036,11 @@ def _run_critical_migrations(app: Flask) -> None:
         ("shows", "public_sous_options", "TEXT", "TEXT", None),
         ("shows", "labels", "TEXT", "TEXT", None),
         ("shows", "pro_verifie_niveau", "INTEGER DEFAULT 0", "INTEGER DEFAULT 0", "0"),
+        # ── Coord. géographiques (auto-géocodage pour matching sans appel API) ──
+        ("shows", "latitude", "DOUBLE PRECISION", "REAL", None),
+        ("shows", "longitude", "DOUBLE PRECISION", "REAL", None),
+        ("users", "latitude", "DOUBLE PRECISION", "REAL", None),
+        ("users", "longitude", "DOUBLE PRECISION", "REAL", None),
         # ── demande_animation ──
         ("demande_animation", "is_private", "BOOLEAN DEFAULT FALSE", "BOOLEAN DEFAULT 0", "FALSE"),
         ("demande_animation", "approved", "BOOLEAN DEFAULT FALSE", "BOOLEAN DEFAULT 0", "FALSE"),
@@ -1050,6 +1055,8 @@ def _run_critical_migrations(app: Flask) -> None:
         ("demande_animation", "public_sous_options", "TEXT", "TEXT", None),
         ("demande_animation", "user_id", "INTEGER", "INTEGER", None),
         ("demande_animation", "desactivee_at", "TIMESTAMP", "DATETIME", None),
+        ("demande_animation", "latitude", "DOUBLE PRECISION", "REAL", None),
+        ("demande_animation", "longitude", "DOUBLE PRECISION", "REAL", None),
         # ── users ──
         ("users", "pending_deletion_at", "TIMESTAMP", "DATETIME", None),
         ("users", "is_organisateur", "BOOLEAN DEFAULT FALSE", "BOOLEAN DEFAULT 0", "FALSE"),
@@ -7984,7 +7991,7 @@ Accessibilité: {accessibilite}
         all_approved = (
             Show.query
             .options(
-                joinedload(Show.user).load_only(User.id, User.code_postal, User.region, User.departement)
+                joinedload(Show.user).load_only(User.id, User.code_postal, User.region, User.departement, User.latitude, User.longitude)
             )
             .filter(Show.approved.is_(True))
             .all()

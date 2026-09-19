@@ -237,6 +237,37 @@ def distance_km(cp_a: Optional[str], cp_b: Optional[str]) -> Optional[float]:
     return haversine_km(a[0], a[1], b[0], b[1])
 
 
+def coords_from_obj(obj) -> Optional[Tuple[float, float]]:
+    """Retourne (lat, lon) pour un objet SQLAlchemy avec fallback CP.
+
+    Priorité :
+      1. `obj.latitude` / `obj.longitude` (stockés en base → 0 appel réseau)
+      2. `coords_from_cp(obj.code_postal)` (cache mémoire/disque, sinon API)
+    """
+    if obj is None:
+        return None
+    lat = getattr(obj, "latitude", None)
+    lon = getattr(obj, "longitude", None)
+    if lat is not None and lon is not None:
+        try:
+            return (float(lat), float(lon))
+        except (TypeError, ValueError):
+            pass
+    cp = getattr(obj, "code_postal", None)
+    if cp:
+        return coords_from_cp(cp)
+    return None
+
+
+def distance_km_objs(obj_a, obj_b) -> Optional[float]:
+    """Distance entre deux objets (User, Show, DemandeAnimation), lat/lon prioritaires."""
+    a = coords_from_obj(obj_a)
+    b = coords_from_obj(obj_b)
+    if not a or not b:
+        return None
+    return haversine_km(a[0], a[1], b[0], b[1])
+
+
 # ---------------------------------------------------------------------------
 # Fallback departement : centroide du dpt via geo.api.gouv.fr
 # ---------------------------------------------------------------------------
