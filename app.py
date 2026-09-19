@@ -1393,14 +1393,23 @@ def _send_recap_to_organisateur(demande, shows_contactes, admin_email_extra=None
       {rows_html}
     </ul>
 
-    <div style="background:#fdf6e3;border-left:4px solid #ffc107;padding:12px 14px;border-radius:6px;margin-top:18px;font-size:0.9em;color:#555;">
-      <strong>Comment ça se passe ?</strong>
-      <ul style="margin:8px 0 0 0;padding-left:18px;">
-        <li style="margin:4px 0;">Vous recevez aujourd'hui notre <strong>première sélection</strong>, triée et filtrée par nos soins.</li>
-        <li style="margin:4px 0;">Pendant <strong>3 jours</strong>, votre demande reste privée : seules les compagnies que nous avons retenues sont contactées.</li>
-        <li style="margin:4px 0;">Passé ces 3 jours, votre annonce est <strong>déployée pendant 10 jours</strong> sur la plateforme. Vous recevrez alors d'autres propositions spontanées, en plus de notre sélection — mais celles-ci <strong>ne sont pas filtrées par nos services</strong> et ne portent pas forcément notre <strong>badge qualité</strong>.</li>
-        <li style="margin:4px 0;">Au-delà de ces 10 jours, <strong>votre annonce n'est plus active</strong>, afin de vous éviter une surcharge de courriels intempestifs.</li>
-      </ul>
+    <div style="background:#fdf6e3;border-left:4px solid #ffc107;padding:14px 16px;border-radius:6px;margin-top:18px;font-size:0.92em;color:#444;">
+      <strong style="display:block;font-size:1.05em;color:#8b1e1e;margin-bottom:10px;">Comment ça se passe ?</strong>
+
+      <div style="margin:10px 0;">
+        <div style="font-weight:700;color:#222;margin-bottom:2px;">🎯 Notre sélection curée</div>
+        <div style="color:#555;">Vous recevez aujourd'hui une <strong>sélection de compagnies triées à la main</strong> par notre équipe, adaptées à votre projet. Toutes portent notre <strong>badge qualité</strong> ✅.</div>
+      </div>
+
+      <div style="margin:10px 0;">
+        <div style="font-weight:700;color:#222;margin-bottom:2px;">🌍 Annonce active 10 jours</div>
+        <div style="color:#555;">Par ailleurs, vous recevrez d'autres propositions spontanées, en plus de notre sélection — mais celles-ci <strong>ne sont pas filtrées par nos services</strong> et ne portent pas forcément notre <strong>badge qualité</strong>.</div>
+      </div>
+
+      <div style="margin:10px 0 0 0;">
+        <div style="font-weight:700;color:#222;margin-bottom:2px;">⏱️ Désactivation automatique</div>
+        <div style="color:#555;">Après ces 10 jours, votre annonce se désactive pour vous éviter tout mail intempestif.</div>
+      </div>
     </div>
 
     <div style="background:#f5f5f5;padding:12px 14px;border-radius:6px;margin-top:18px;font-size:0.88em;color:#555;">
@@ -2426,12 +2435,40 @@ def register_routes(app: Flask) -> None:
             spectacles_une = Show.query.filter(
                 Show.approved == True
             ).order_by(Show.display_order.asc()).limit(8).all()
-        
+
+        # Trust signals dynamiques (chiffres clés issus de la vraie base)
+        try:
+            nb_spectacles = Show.query.filter(Show.approved.is_(True)).count()
+        except Exception:
+            nb_spectacles = 0
+        try:
+            company_ids = {
+                uid for (uid,) in db.session.query(Show.user_id)
+                .filter(Show.approved.is_(True), Show.user_id.isnot(None))
+                .all()
+            }
+            if company_ids:
+                nb_compagnies = User.query.filter(
+                    User.id.in_(company_ids),
+                    User.is_admin.is_(False),
+                ).count()
+            else:
+                nb_compagnies = 0
+        except Exception:
+            nb_compagnies = 0
+        try:
+            nb_villes_seo = len(get_all_city_slugs())
+        except Exception:
+            nb_villes_seo = 0
+
         return render_template(
             "home.html",
             user=current_user(),
             spectacles_une=spectacles_une,
             visit_count=visit_count,
+            nb_spectacles=nb_spectacles,
+            nb_compagnies=nb_compagnies,
+            nb_villes_seo=nb_villes_seo,
         )
 
     @app.route("/catalogue", endpoint="catalogue")
@@ -2660,28 +2697,73 @@ def register_routes(app: Flask) -> None:
         # Certains navigateurs requêtent /favicon.ico par défaut.
         return redirect(url_for("static", filename="img/favicon.svg"))
 
+    # Helper local pour générer le XML d'un urlset à partir d'une liste de pages
+    def _render_urlset(pages):
+        from flask import make_response
+        xml = '<?xml version="1.0" encoding="UTF-8"?>\n'
+        xml += '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
+        for p in pages:
+            xml += '  <url>\n'
+            xml += f'    <loc>{p["loc"]}</loc>\n'
+            if 'lastmod' in p:
+                xml += f'    <lastmod>{p["lastmod"]}</lastmod>\n'
+            if 'changefreq' in p:
+                xml += f'    <changefreq>{p["changefreq"]}</changefreq>\n'
+            if 'priority' in p:
+                xml += f'    <priority>{p["priority"]}</priority>\n'
+            xml += '  </url>\n'
+        xml += '</urlset>'
+        response = make_response(xml)
+        response.headers["Content-Type"] = "application/xml"
+        return response
+
     @app.route("/sitemap.xml")
     def sitemap_xml():
-        """Génère dynamiquement un sitemap XML"""
+        """Sitemap d'index — pointe vers les sous-sitemaps thématiques."""
         from flask import make_response
-        
+        submaps = [
+            "sitemap-pages.xml",
+            "sitemap-villes.xml",
+            "sitemap-villes-categories.xml",
+            "sitemap-departements.xml",
+            "sitemap-spectacles.xml",
+            "sitemap-compagnies.xml",
+        ]
+        today = datetime.utcnow().strftime('%Y-%m-%d')
+        base = request.url_root.rstrip('/')
+        xml = '<?xml version="1.0" encoding="UTF-8"?>\n'
+        xml += '<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
+        for sm in submaps:
+            xml += '  <sitemap>\n'
+            xml += f'    <loc>{base}/{sm}</loc>\n'
+            xml += f'    <lastmod>{today}</lastmod>\n'
+            xml += '  </sitemap>\n'
+        xml += '</sitemapindex>'
+        response = make_response(xml)
+        response.headers["Content-Type"] = "application/xml"
+        return response
+
+    @app.route("/sitemap-pages.xml")
+    def sitemap_pages_xml():
+        """Pages statiques principales (accueil, thématiques SEO, catalogue)."""
         pages = []
-        # Page d'accueil
+        today = datetime.utcnow().strftime('%Y-%m-%d')
         pages.append({
             'loc': url_for('home', _external=True),
-            'lastmod': datetime.utcnow().strftime('%Y-%m-%d'),
+            'lastmod': today,
             'changefreq': 'daily',
             'priority': '1.0'
         })
-        
-        # Page demande d'animation
+        pages.append({
+            'loc': url_for('catalogue', _external=True),
+            'changefreq': 'daily',
+            'priority': '0.9'
+        })
         pages.append({
             'loc': url_for('demande_animation', _external=True),
             'changefreq': 'monthly',
             'priority': '0.8'
         })
-        
-        # Pages thématiques SEO (haute priorité)
         seo_pages = [
             ('spectacles_enfants', '0.9'),
             ('animations_enfants', '0.9'),
@@ -2693,15 +2775,12 @@ def register_routes(app: Flask) -> None:
             ('animations_anniversaire', '0.85'),
             ('booker_artiste', '0.8'),
             ('demandes_animation', '0.8'),
-            # 🎄 Pages thématiques longue traîne Noël
             ('pere_noel_a_domicile', '0.85'),
             ('spectacles_noel_ecole', '0.85'),
             ('spectacles_noel_entreprise', '0.85'),
-            # 🏛️ Collectivités et associations (SEO ciblé)
             ('spectacles_fete_municipale', '0.9'),
             ('spectacles_associations', '0.9'),
         ]
-        
         for endpoint, priority in seo_pages:
             try:
                 pages.append({
@@ -2710,9 +2789,13 @@ def register_routes(app: Flask) -> None:
                     'priority': priority
                 })
             except Exception:
-                pass  # Si la route n'existe pas, on ignore
-        
-        # Pages SEO des villes françaises
+                pass
+        return _render_urlset(pages)
+
+    @app.route("/sitemap-villes.xml")
+    def sitemap_villes_xml():
+        """Pages ville seule (~130 grandes villes françaises)."""
+        pages = []
         try:
             for city_slug in get_all_city_slugs():
                 pages.append({
@@ -2721,32 +2804,21 @@ def register_routes(app: Flask) -> None:
                     'priority': '0.8'
                 })
         except Exception:
-            pass  # Si la fonction n'est pas encore disponible, on ignore
-
-        # Pages SEO département (96 départements métropolitains)
-        try:
-            for dept_slug in get_all_department_slugs():
-                pages.append({
-                    'loc': url_for('spectacles_departement', slug=dept_slug, _external=True),
-                    'changefreq': 'weekly',
-                    'priority': '0.8'
-                })
-        except Exception:
             pass
-        
-        # Pages catalogue
-        pages.append({
-            'loc': url_for('catalogue', _external=True),
-            'changefreq': 'daily',
-            'priority': '0.9'
-        })
-        
-        # Pages ville×catégorie (longue traîne SEO)
+        return _render_urlset(pages)
+
+    @app.route("/sitemap-villes-categories.xml")
+    def sitemap_villes_categories_xml():
+        """Pages ville×catégorie (longue traîne SEO, ~2340 URLs)."""
+        # Doit rester synchronisé avec SEO_TOP_CATEGORIES (maillage interne)
+        pages = []
         try:
             seo_top_cats = [
                 "magie", "marionnette", "clown", "theatre", "cirque",
                 "spectacle-enfant", "arbre-de-noel", "animation-ecole",
-                "pere-noel"
+                "conte", "mentaliste", "humoriste", "mascotte",
+                "pere-noel", "sculpteur-ballons", "maquillage",
+                "dj-orchestre", "chorale-gospel", "jazz",
             ]
             for city_slug in get_all_city_slugs():
                 for cat_slug in seo_top_cats:
@@ -2757,20 +2829,52 @@ def register_routes(app: Flask) -> None:
                     })
         except Exception:
             pass
-        
-        # Tous les spectacles approuvés
-        shows = Show.query.filter(Show.approved.is_(True)).all()
-        for show in shows:
-            pages.append({
-                'loc': url_for('show_detail_seo', slug=show_slug(show), _external=True),
-                'lastmod': show.created_at.strftime('%Y-%m-%d') if show.created_at else datetime.utcnow().strftime('%Y-%m-%d'),
-                'changefreq': 'weekly',
-                'priority': '0.7'
-            })
+        return _render_urlset(pages)
 
-        # Profils compagnies (users NON admin, NON organisateur, avec ≥ 1 show approuvé)
+    @app.route("/sitemap-departements.xml")
+    def sitemap_departements_xml():
+        """Pages département (96 départements métropolitains)."""
+        pages = []
         try:
-            company_ids = {show.user_id for show in shows if show.user_id}
+            for dept_slug in get_all_department_slugs():
+                pages.append({
+                    'loc': url_for('spectacles_departement', slug=dept_slug, _external=True),
+                    'changefreq': 'weekly',
+                    'priority': '0.8'
+                })
+        except Exception:
+            pass
+        return _render_urlset(pages)
+
+    @app.route("/sitemap-spectacles.xml")
+    def sitemap_spectacles_xml():
+        """Fiches de tous les spectacles approuvés."""
+        pages = []
+        today = datetime.utcnow().strftime('%Y-%m-%d')
+        try:
+            shows = Show.query.filter(Show.approved.is_(True)).all()
+            for show in shows:
+                pages.append({
+                    'loc': url_for('show_detail_seo', slug=show_slug(show), _external=True),
+                    'lastmod': show.created_at.strftime('%Y-%m-%d') if show.created_at else today,
+                    'changefreq': 'weekly',
+                    'priority': '0.7'
+                })
+        except Exception as _e:
+            current_app.logger.warning(f"[SITEMAP-SPECTACLES] {_e}")
+        return _render_urlset(pages)
+
+    @app.route("/sitemap-compagnies.xml")
+    def sitemap_compagnies_xml():
+        """Profils des compagnies (utilisateurs non admin, non organisateur, avec ≥ 1 show approuvé)."""
+        pages = []
+        today = datetime.utcnow().strftime('%Y-%m-%d')
+        try:
+            company_ids = {
+                uid for (uid,) in db.session.query(Show.user_id)
+                .filter(Show.approved.is_(True), Show.user_id.isnot(None))
+                .all()
+            }
             if company_ids:
                 cies = User.query.filter(
                     User.id.in_(company_ids),
@@ -2781,33 +2885,13 @@ def register_routes(app: Flask) -> None:
                         continue
                     pages.append({
                         'loc': url_for('compagnie_profile', slug=company_slug(cie), _external=True),
-                        'lastmod': datetime.utcnow().strftime('%Y-%m-%d'),
+                        'lastmod': today,
                         'changefreq': 'weekly',
                         'priority': '0.8'
                     })
         except Exception as _e_cie:
-            current_app.logger.warning(f"[SITEMAP] Compagnies non ajoutées: {_e_cie}")
-        
-        # Générer le XML
-        sitemap_xml = '<?xml version="1.0" encoding="UTF-8"?>\n'
-        sitemap_xml += '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
-        
-        for page in pages:
-            sitemap_xml += '  <url>\n'
-            sitemap_xml += f'    <loc>{page["loc"]}</loc>\n'
-            if 'lastmod' in page:
-                sitemap_xml += f'    <lastmod>{page["lastmod"]}</lastmod>\n'
-            if 'changefreq' in page:
-                sitemap_xml += f'    <changefreq>{page["changefreq"]}</changefreq>\n'
-            if 'priority' in page:
-                sitemap_xml += f'    <priority>{page["priority"]}</priority>\n'
-            sitemap_xml += '  </url>\n'
-        
-        sitemap_xml += '</urlset>'
-        
-        response = make_response(sitemap_xml)
-        response.headers["Content-Type"] = "application/xml"
-        return response
+            current_app.logger.warning(f"[SITEMAP-COMPAGNIES] {_e_cie}")
+        return _render_urlset(pages)
 
     # ---------------------------
     # Monitoring et Health Check

@@ -1400,16 +1400,23 @@
     </div>
     
     <div style="text-align:center; flex:1; min-width:140px; padding:10px;">
-      <p style="color:#FFDEDE; font-size:0.75rem; margin:0 0 4px 0; line-height:1.3;">Spectacles<br>programmés/an</p>
+      <p style="color:#FFDEDE; font-size:0.75rem; margin:0 0 4px 0; line-height:1.3;">Spectacles<br>disponibles</p>
       <div style="font-size:1.8rem; font-weight:800; color:#ffc107;">
-        <span style="font-size:1.2rem;">+</span><span class="counter" data-target="180">0</span>
+        <span class="counter" data-target="{{ nb_spectacles or 0 }}">0</span>
       </div>
     </div>
     
     <div style="text-align:center; flex:1; min-width:140px; padding:10px;">
-      <p style="color:#FFDEDE; font-size:0.75rem; margin:0 0 4px 0; line-height:1.3;">Artistes<br>référencés</p>
+      <p style="color:#FFDEDE; font-size:0.75rem; margin:0 0 4px 0; line-height:1.3;">Compagnies<br>référencées</p>
       <div style="font-size:1.8rem; font-weight:800; color:#ffc107;">
-        <span style="font-size:1.2rem;">+</span><span class="counter" data-target="200">0</span>
+        <span class="counter" data-target="{{ nb_compagnies or 0 }}">0</span>
+      </div>
+    </div>
+    
+    <div style="text-align:center; flex:1; min-width:140px; padding:10px;">
+      <p style="color:#FFDEDE; font-size:0.75rem; margin:0 0 4px 0; line-height:1.3;">Départements<br>desservis</p>
+      <div style="font-size:1.8rem; font-weight:800; color:#ffc107;">
+        <span class="counter" data-target="96">0</span>
       </div>
     </div>
     

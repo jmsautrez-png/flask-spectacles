@@ -164,6 +164,27 @@
 
 {% endif %}
 
+{# Maillage interne SEO discret : liens texte compacts vers les pages ville×catégorie #}
+{% set _seo_cities = [
+  ('paris','Paris'), ('lyon','Lyon'), ('marseille','Marseille'),
+  ('toulouse','Toulouse'), ('nice','Nice'), ('nantes','Nantes'),
+  ('montpellier','Montpellier'), ('strasbourg','Strasbourg'),
+  ('bordeaux','Bordeaux'), ('lille','Lille'), ('rennes','Rennes'), ('reims','Reims')
+] %}
+{% set _seo_blocks = [
+  ('sculpteur-ballons', 'Sculpteur de ballons'),
+  ('maquillage', 'Maquillage enfant'),
+  ('pere-noel', 'Père Noël')
+] %}
+<nav aria-label="Villes desservies" style="max-width:900px; margin:30px auto 10px; padding:14px 20px 0; font-size:0.8em; line-height:1.9; color:#888;">
+  {% for cat_slug, cat_label in _seo_blocks %}
+    <div style="margin-bottom:4px;">
+      <span style="color:#999;">{{ cat_label }} :</span>
+      {% for city_slug, city_name in _seo_cities %}<a href="{{ url_for('seo_category_city', category_slug=cat_slug, city_slug=city_slug) }}" style="color:#888; text-decoration:none;">{{ city_name }}</a>{% if not loop.last %} · {% endif %}{% endfor %}
+    </div>
+  {% endfor %}
+</nav>
+
 <section class="faq-section" style="max-width:900px; margin:60px auto 40px; padding:0 20px;">
   <h2 style="font-size:26px; margin-bottom:24px; color:var(--primary);">Questions fréquentes : animation d'anniversaire enfant</h2>
 
