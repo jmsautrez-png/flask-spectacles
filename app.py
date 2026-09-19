@@ -1351,7 +1351,7 @@ def _send_recap_to_organisateur(demande, shows_contactes, admin_email_extra=None
                 f'<a href="{show_url}" style="color:#8b1e1e;font-weight:700;text-decoration:none;">'
                 f'{escape(s.title)}</a>{cie_html}<br>'
                 f'{dist_html}'
-                f'<a href="{show_url}" style="color:#8b1e1e;font-size:0.85em;text-decoration:none;">Voir la fiche</a>'
+                f'<a href="{show_url}" style="color:#8b1e1e;font-size:0.85em;text-decoration:none;">Voir la fiche</a> <em style="color:#888;font-size:0.8em;">(devis, renseignements directement avec la cie)</em>'
                 f'</li>'
             )
 
@@ -1406,6 +1406,11 @@ def _send_recap_to_organisateur(demande, shows_contactes, admin_email_extra=None
       <div style="margin:10px 0;">
         <div style="font-weight:700;color:#222;margin-bottom:2px;">🎯 Notre sélection curée</div>
         <div style="color:#555;">Vous recevez aujourd'hui une <strong>sélection de compagnies triées à la main</strong> par notre équipe, adaptées à votre projet. Toutes portent notre <strong>badge qualité</strong> ✅.</div>
+      </div>
+
+      <div style="margin:10px 0;">
+        <div style="font-weight:700;color:#222;margin-bottom:2px;">Contact direct avec les compagnies</div>
+        <div style="color:#555;">Vous échangez <strong>directement avec les compagnies</strong> pour vos demandes de renseignements, disponibilités, devis et contrat. <strong>Notre équipe s'arrête à la sélection premium : la suite se joue entre vous et les artistes, sans intermédiaire.</strong></div>
       </div>
 
       <div style="margin:10px 0;">
