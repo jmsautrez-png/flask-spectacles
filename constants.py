@@ -55,6 +55,7 @@ SPECIALITES = {
         "Spectacle enfant clownesque",
         "Spectacle enfant avec de l'épée",
         "Spectacle enfant avec interactivité",
+        "Spectacle enfant avec des instruments de musique",
         "Spectacle pour enfant avec des ombres",
         "Spectacle de Rue",
         "Spectacle de rue pour enfant",
