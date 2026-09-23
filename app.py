@@ -1061,6 +1061,7 @@ def _run_critical_migrations(app: Flask) -> None:
         ("users", "pending_deletion_at", "TIMESTAMP", "DATETIME", None),
         ("users", "is_organisateur", "BOOLEAN DEFAULT FALSE", "BOOLEAN DEFAULT 0", "FALSE"),
         ("users", "bloque_appels_offres", "BOOLEAN DEFAULT FALSE", "BOOLEAN DEFAULT 0", "FALSE"),
+        ("users", "subscribed_until", "TIMESTAMP", "DATETIME", None),
     ]
 
     is_pg = 'postgresql' in str(db.engine.url)
@@ -1208,6 +1209,32 @@ def _format_age_label(value):
     return labels.get(v, value)
 
 
+def _bloc_cadeau_html(user):
+    """Bloc HTML « cadeau » injecté dans l'email d'appel d'offre uniquement pour
+    les compagnies inscrites après MODELE_PAYANT_DEBUT (12/09/2026) qui ne sont
+    PAS encore abonnées. Retourne chaîne vide dans tous les autres cas."""
+    if not user or not getattr(user, "is_modele_payant", False):
+        return ""
+    if getattr(user, "is_subscribed", False):
+        return ""
+    return (
+        '<div style="background:#fff8e1;border:2px solid #ffb300;border-radius:10px;'
+        'padding:14px 18px;margin:16px 0;text-align:center;">'
+        '<div style="font-size:1.15em;font-weight:700;color:#e65100;margin-bottom:6px;">'
+        "🎁 Cet appel d'offre vous est offert par Spectacle'ment VØtre"
+        '</div>'
+        '<div style="font-size:0.95em;color:#5d4037;line-height:1.5;">'
+        "Nos appels d'offres sont désormais réservés aux compagnies abonnées "
+        "(<strong>49&nbsp;€ TTC</strong> la 1<sup>re</sup>&nbsp;année, puis 99&nbsp;€/an). "
+        "Celui-ci vous est offert.<br>"
+        '<a href="mailto:contact@spectacleanimation.fr?subject=Abonnement%20compagnie" '
+        'style="color:#e65100;font-weight:600;text-decoration:none;">'
+        "👉 Je souhaite m'abonner</a>"
+        '</div>'
+        '</div>'
+    )
+
+
 def _build_appel_offre_email(demande, show):
     """Génère le HTML d'email pour un appel d'offre envoyé à un artiste."""
     return f"""<!DOCTYPE html>
@@ -1235,6 +1262,7 @@ h2 {{ color: #1b2a4e; margin-top: 0; }}
     <h2>Nouvelle Opportunité à {demande.lieu_ville}</h2>
     <p>Bonjour,</p>
     <p>Bonne nouvelle ! Nous avons reçu une demande d'animation pour <strong>{demande.genre_recherche}</strong> qui correspond à votre profil :</p>
+    {_bloc_cadeau_html(show.user if show else None)}
     <div class="opportunity-box">
         <h3>📋 {demande.genre_recherche} à {demande.lieu_ville}</h3>
         <div class="info-grid">
@@ -7595,6 +7623,7 @@ Accessibilité: {accessibilite}
         <h2>Nouvelle Opportunité à {demande.lieu_ville}</h2>
         <p>Bonjour,</p>
         <p>Bonne nouvelle ! Nous avons reçu une demande d'animation pour <strong>{demande.genre_recherche}</strong> qui correspond parfaitement à votre profil :</p>
+        {_bloc_cadeau_html(show.user if show else None)}
 
         <div class="opportunity-box">
             <h3>{demande.genre_recherche} à {demande.lieu_ville}</h3>
@@ -7724,6 +7753,7 @@ Accessibilité: {accessibilite}
         <h2>Nouvelle Opportunité à {demande.lieu_ville}</h2>
         <p>Bonjour,</p>
         <p>Nous avons reçu une demande d'animation pour <strong>{demande.genre_recherche}</strong> dans votre région qui pourrait vous intéresser :</p>
+        {_bloc_cadeau_html(user)}
 
         <div class="opportunity-box">
             <h3>{demande.genre_recherche} à {demande.lieu_ville}</h3>
@@ -8757,9 +8787,14 @@ def admin_toggle_is_subscribed(user_id):
         return redirect(request.referrer or url_for("admin_users"))
     try:
         user.is_subscribed = not bool(user.is_subscribed)
+        if user.is_subscribed:
+            user.subscribed_until = datetime.utcnow() + timedelta(days=365)
+        else:
+            user.subscribed_until = None
         db.session.commit()
         if user.is_subscribed:
-            flash(f"✅ Abonnement AO activé pour « {user.username} ».", "success")
+            _fin = user.subscribed_until.strftime("%d/%m/%Y") if user.subscribed_until else "—"
+            flash(f"✅ Abonnement AO activé pour « {user.username} » (valable jusqu'au {_fin}).", "success")
         else:
             flash(f"⏸️ Abonnement AO désactivé pour « {user.username} ».", "warning")
         current_app.logger.info(
@@ -8774,6 +8809,71 @@ def admin_toggle_is_subscribed(user_id):
     if next_url and next_url.startswith("/"):
         return redirect(next_url)
     return redirect(url_for("admin_users"))
+
+@app.route("/admin/abonnements-a-renouveler")
+@login_required
+@admin_required
+def admin_abonnements_renouveler():
+    """Liste des compagnies dont l'abonnement AO expire dans les X jours (défaut 30) ou est déjà expiré."""
+    try:
+        seuil_jours = int(request.args.get("jours") or 30)
+    except ValueError:
+        seuil_jours = 30
+    seuil_jours = max(0, min(seuil_jours, 365))
+    now = datetime.utcnow()
+    limite = now + timedelta(days=seuil_jours)
+    users = (
+        User.query
+        .filter(User.is_subscribed.is_(True))
+        .filter(User.subscribed_until.isnot(None))
+        .filter(User.subscribed_until <= limite)
+        .order_by(User.subscribed_until.asc())
+        .all()
+    )
+    # Compteurs pour l'entête
+    expires = [u for u in users if u.subscribed_until < now]
+    urgents = [u for u in users if now <= u.subscribed_until <= now + timedelta(days=7)]
+    proches = [u for u in users if now + timedelta(days=7) < u.subscribed_until <= limite]
+    return render_template(
+        "admin_abonnements_renouveler.html",
+        user=current_user(),
+        users=users,
+        seuil_jours=seuil_jours,
+        expires=expires,
+        urgents=urgents,
+        proches=proches,
+        now=now,
+    )
+
+@app.route("/admin/users/<int:user_id>/prolonger-abonnement", methods=["POST"])
+@login_required
+@admin_required
+def admin_prolonger_abonnement(user_id):
+    """Prolonge l'abonnement AO d'un an (redémarre depuis aujourd'hui si expiré, sinon ajoute 365j)."""
+    user = User.query.get_or_404(user_id)
+    if user.is_admin:
+        flash("Inutile de gérer l'abonnement d'un administrateur.", "warning")
+        return redirect(request.referrer or url_for("admin_abonnements_renouveler"))
+    try:
+        now = datetime.utcnow()
+        base = user.subscribed_until if (user.subscribed_until and user.subscribed_until > now) else now
+        user.subscribed_until = base + timedelta(days=365)
+        user.is_subscribed = True
+        db.session.commit()
+        flash(
+            f"✅ Abonnement AO prolongé pour « {user.username} » jusqu'au "
+            f"{user.subscribed_until.strftime('%d/%m/%Y')}.",
+            "success",
+        )
+        current_app.logger.info(
+            f"[ADMIN] Prolongation abonnement user {user_id} jusqu'au {user.subscribed_until} "
+            f"par {current_user().username}"
+        )
+    except Exception as e:
+        db.session.rollback()
+        flash(f"Erreur : {e}", "danger")
+        current_app.logger.error(f"[ADMIN] Erreur prolongation abonnement user {user_id}: {e}")
+    return redirect(request.referrer or url_for("admin_abonnements_renouveler"))
 
 @app.route("/admin/shows/<int:show_id>/reassign", methods=["POST"])
 @login_required
@@ -9429,6 +9529,7 @@ def admin_adhesion_statut(adhesion_id):
             u = User.query.get(adh.user_id)
             if u and not u.is_admin:
                 u.is_subscribed = True
+                u.subscribed_until = now + timedelta(days=365)
     elif nouveau == "rejected" and not adh.rejected_at:
         adh.rejected_at = now
     db.session.commit()

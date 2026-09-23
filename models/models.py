@@ -96,6 +96,9 @@ class User(db.Model):
     # Verrou admin : True = la compagnie ne peut pas consulter les appels d'offres
     # (utilisé notamment pour certaines fiches « Édition libre »). L'admin coche/décoche depuis /admin/users.
     bloque_appels_offres = db.Column(db.Boolean, default=False, nullable=False, server_default="false", index=True)
+    # Date de fin d'abonnement AO (calculée à l'activation = today + 365j).
+    # Null = jamais abonné, ou abonné historique sans date (rester considéré comme abonné tant que is_subscribed=True).
+    subscribed_until = db.Column(db.DateTime, nullable=True, index=True)
 
     def set_password(self, password: str):
         self.password_hash = generate_password_hash(password)
@@ -106,6 +109,14 @@ class User(db.Model):
     @property
     def is_modele_payant(self) -> bool:
         return self.created_at is not None and self.created_at >= MODELE_PAYANT_DEBUT
+
+    @property
+    def subscription_days_left(self):
+        """Nombre de jours restants avant expiration de l'abonnement AO.
+        Retourne None si pas de date connue ; peut être négatif si déjà expiré."""
+        if not self.subscribed_until:
+            return None
+        return (self.subscribed_until - datetime.utcnow()).days
 
 
 class Show(db.Model):

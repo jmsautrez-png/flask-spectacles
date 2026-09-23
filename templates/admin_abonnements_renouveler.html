@@ -1,0 +1,121 @@
+{% extends "base.html" %}
+
+{% block title %}Abonnements à renouveler{% endblock %}
+
+{% block content %}
+<div class="container my-4">
+
+  <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; margin-bottom:18px;">
+    <h2 style="margin:0; color:#ffc107;">🗓️ Abonnements AO à renouveler</h2>
+    <a href="{{ url_for('admin_dashboard') }}" style="background:#455a64; color:#fff; padding:8px 16px; border-radius:6px; text-decoration:none; font-weight:600;">← Dashboard</a>
+  </div>
+
+  <p style="color:#ccc; font-size:0.95em; max-width:720px;">
+    Ces compagnies sont marquées « abonnées » et leur date d'expiration approche (ou est déjà dépassée).
+    Prolongez d'un an, ou allez sur la fiche pour désactiver.
+  </p>
+
+  <div style="display:flex; gap:12px; flex-wrap:wrap; margin:16px 0;">
+    <div style="background:rgba(239,83,80,0.15); border:2px solid #ef5350; border-radius:8px; padding:10px 16px; min-width:150px; text-align:center;">
+      <div style="font-size:0.85em; color:#ffcdd2;">Déjà expirés</div>
+      <div style="font-size:1.6em; font-weight:700; color:#ef5350;">{{ expires|length }}</div>
+    </div>
+    <div style="background:rgba(255,179,0,0.15); border:2px solid #ffb300; border-radius:8px; padding:10px 16px; min-width:150px; text-align:center;">
+      <div style="font-size:0.85em; color:#ffe082;">Expire ≤ 7 j</div>
+      <div style="font-size:1.6em; font-weight:700; color:#ffb300;">{{ urgents|length }}</div>
+    </div>
+    <div style="background:rgba(129,199,132,0.15); border:2px solid #81c784; border-radius:8px; padding:10px 16px; min-width:150px; text-align:center;">
+      <div style="font-size:0.85em; color:#c8e6c9;">Expire ≤ {{ seuil_jours }} j</div>
+      <div style="font-size:1.6em; font-weight:700; color:#81c784;">{{ proches|length }}</div>
+    </div>
+  </div>
+
+  <form method="get" style="margin:12px 0; display:flex; align-items:center; gap:8px;">
+    <label for="jours" style="color:#ccc; font-size:0.9em;">Fenêtre :</label>
+    <select name="jours" id="jours" onchange="this.form.submit()" style="padding:6px 10px; border-radius:6px; border:1px solid #666; background:#2a2a2a; color:#fff;">
+      {% for j in [7, 15, 30, 60, 90] %}
+        <option value="{{ j }}" {% if seuil_jours == j %}selected{% endif %}>{{ j }} jours</option>
+      {% endfor %}
+    </select>
+  </form>
+
+  {% if users %}
+  <div style="overflow-x:auto; background:#1e1e1e; border-radius:8px; padding:0; margin-top:8px;">
+    <table style="width:100%; border-collapse:collapse; color:#eee;">
+      <thead>
+        <tr style="background:#333; text-align:left;">
+          <th style="padding:11px 10px;">Compagnie</th>
+          <th style="padding:11px 10px;">Email</th>
+          <th style="padding:11px 10px; text-align:center;">Expire le</th>
+          <th style="padding:11px 10px; text-align:center;">Restant</th>
+          <th style="padding:11px 10px; text-align:center; min-width:220px;">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for u in users %}
+        {% set _days = u.subscription_days_left %}
+        {% set _expired = _days is not none and _days < 0 %}
+        {% set _urgent = _days is not none and 0 <= _days <= 7 %}
+        <tr style="border-top:1px solid #333;">
+          <td style="padding:10px;">
+            <a href="{{ url_for('admin_users') }}#user-{{ u.id }}" style="color:#4fc3f7; font-weight:600;">
+              {{ u.raison_sociale or u.username }}
+            </a>
+            <br><span style="font-size:0.8rem; color:#999;">{{ u.username }}</span>
+          </td>
+          <td style="padding:10px; font-size:0.9rem;">
+            {% if u.email %}
+              <a href="mailto:{{ u.email }}" style="color:#81c784;">{{ u.email }}</a>
+            {% else %}
+              <span style="color:#666;">—</span>
+            {% endif %}
+          </td>
+          <td style="padding:10px; text-align:center; white-space:nowrap;">
+            <strong style="color:{% if _expired %}#ef5350{% elif _urgent %}#ffb300{% else %}#c8e6c9{% endif %};">
+              {{ u.subscribed_until.strftime('%d/%m/%Y') }}
+            </strong>
+          </td>
+          <td style="padding:10px; text-align:center; white-space:nowrap;">
+            {% if _days is none %}
+              <span style="color:#999;">—</span>
+            {% elif _expired %}
+              <span style="background:#ef5350; color:#fff; padding:3px 8px; border-radius:12px; font-size:0.8rem; font-weight:700;">
+                Expiré depuis {{ -_days }}&nbsp;j
+              </span>
+            {% elif _urgent %}
+              <span style="background:#ffb300; color:#1a1a1a; padding:3px 8px; border-radius:12px; font-size:0.8rem; font-weight:700;">
+                {{ _days }}&nbsp;j
+              </span>
+            {% else %}
+              <span style="background:#81c784; color:#1a1a1a; padding:3px 8px; border-radius:12px; font-size:0.8rem; font-weight:700;">
+                {{ _days }}&nbsp;j
+              </span>
+            {% endif %}
+          </td>
+          <td style="padding:10px; text-align:center;">
+            <div style="display:flex; gap:6px; justify-content:center; flex-wrap:wrap;">
+              <form method="post" action="{{ url_for('admin_prolonger_abonnement', user_id=u.id) }}" style="margin:0;"
+                    onsubmit="return confirm('Prolonger l\'abonnement AO de « {{ (u.raison_sociale or u.username)|e }} » d\'un an ?');">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                <button type="submit" style="background:#2e7d32; color:#fff; border:none; padding:6px 12px; border-radius:6px; cursor:pointer; font-weight:600; font-size:0.85rem;">
+                  🔄 +1 an
+                </button>
+              </form>
+              <a href="{{ url_for('admin_users') }}#user-{{ u.id }}" style="background:#455a64; color:#fff; padding:6px 12px; border-radius:6px; text-decoration:none; font-weight:600; font-size:0.85rem;">
+                👤 Fiche
+              </a>
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div style="background:rgba(129,199,132,0.15); border:2px solid #81c784; border-radius:8px; padding:20px; text-align:center; color:#c8e6c9; margin-top:20px;">
+    ✅ Aucun abonnement à renouveler dans les {{ seuil_jours }} prochains jours.
+  </div>
+  {% endif %}
+
+</div>
+{% endblock %}

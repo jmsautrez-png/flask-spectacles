@@ -252,6 +252,20 @@
                 {% if _ao_abonne %}
                   <div style="color:#a5d6a7; font-size:0.95em;">
                     ✅ <strong>Abonné</strong> — voit toutes les coordonnées librement.
+                    {% if user.subscribed_until %}
+                      {% set _days_left = user.subscription_days_left %}
+                      <br>
+                      <span style="font-size:0.9em; color:{% if _days_left is not none and _days_left < 30 %}#ffb300{% else %}#c8e6c9{% endif %};">
+                        🗓️ Valable jusqu'au <strong>{{ user.subscribed_until.strftime('%d/%m/%Y') }}</strong>
+                        {% if _days_left is not none %}
+                          {% if _days_left < 0 %}
+                            <span style="color:#ef5350; font-weight:700;">(expiré depuis {{ -_days_left }} j)</span>
+                          {% elif _days_left < 30 %}
+                            <span style="color:#ffb300; font-weight:700;">(expire dans {{ _days_left }} j)</span>
+                          {% endif %}
+                        {% endif %}
+                      </span>
+                    {% endif %}
                   </div>
                 {% else %}
                   <div style="color:#ce93d8; font-size:0.95em;">
