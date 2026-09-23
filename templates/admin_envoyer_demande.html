@@ -3,6 +3,28 @@
 {% block title %}Envoyer la demande d'animation{% endblock %}
 
 {% block content %}
+<style>
+    /* Auto-matching : distinction visuelle coché/décoché + case à cocher agrandie */
+    #select-all-matched, .matched-cb {
+        transform: scale(1.6);
+        cursor: pointer;
+        margin: 0 6px;
+    }
+    tr.matched-row {
+        cursor: pointer;
+        transition: background-color 0.15s;
+    }
+    tr.matched-row.row-checked > td {
+        background-color: #e8f5e9 !important; /* vert pâle = sélectionné */
+    }
+    tr.matched-row:not(.row-checked) > td {
+        background-color: #f5f5f5 !important; /* gris pâle = non sélectionné */
+        color: #999 !important;
+    }
+    tr.matched-row:hover > td {
+        filter: brightness(0.94);
+    }
+</style>
 <div class="container my-5">
     <div class="row justify-content-center">
         <div class="col-lg-10">
@@ -48,7 +70,7 @@
                         </div>
                         <div class="card-body p-0">
                             <div class="table-responsive">
-                                <table class="table table-hover mb-0">
+                                <table class="table mb-0">
                                     <thead class="table-light">
                                         <tr>
                                             <th style="width:40px;"><input type="checkbox" id="select-all-matched" checked></th>
@@ -62,11 +84,20 @@
                                     </thead>
                                     <tbody>
                                     {% for show, score in matched_shows %}
-                                        <tr>
+                                        <tr class="matched-row">
                                             <td><input type="checkbox" class="matched-cb" name="matched_show_ids" value="{{ show.id }}" checked></td>
                                             <td>
                                                 <strong>{{ show.title }}</strong>
                                                 <br><small class="text-muted">{{ show.category or '' }} — {{ show.contact_email or (show.user.email if show.user else '—') }}</small>
+                                                {% if show.user and show.user.created_at %}
+                                                <div style="margin-top:4px;">
+                                                    {% if show.user.is_modele_payant %}
+                                                    <span class="badge" title="Inscription postérieure au lancement du modèle payant (12/09/2026)" style="background:#ff9800;color:#fff;font-weight:600;">🆕 Inscrit le {{ show.user.created_at.strftime('%d/%m/%Y') }} — modèle payant</span>
+                                                    {% else %}
+                                                    <small class="text-muted">Inscrit le {{ show.user.created_at.strftime('%d/%m/%Y') }}</small>
+                                                    {% endif %}
+                                                </div>
+                                                {% endif %}
                                                 {% if show.labels %}
                                                 <div style="display:flex; gap:4px; flex-wrap:wrap; margin-top:4px;">
                                                     {% for code in show.labels.split(',') %}
@@ -143,8 +174,12 @@
     const selectAllMatched = document.getElementById('select-all-matched');
     if (selectAllMatched) {
         selectAllMatched.addEventListener('change', function() {
-            document.querySelectorAll('.matched-cb').forEach(cb => cb.checked = this.checked);
-            updateMatchedCount();
+            const checked = this.checked;
+            document.querySelectorAll('.matched-cb').forEach(cb => {
+                cb.checked = checked;
+                // Synchronise l'état visuel de la ligne + le compteur.
+                cb.dispatchEvent(new Event('change'));
+            });
         });
     }
     // Update matched count when individual checkboxes change
@@ -156,6 +191,25 @@
         const el = document.getElementById('matched-count');
         if (el) el.textContent = count;
     }
+
+    // Ligne cliquable + état visuel (vert coché / gris décoché)
+    function updateRowState(tr, cb) {
+        tr.classList.toggle('row-checked', cb.checked);
+    }
+    document.querySelectorAll('tr.matched-row').forEach(tr => {
+        const cb = tr.querySelector('.matched-cb');
+        if (!cb) return;
+        updateRowState(tr, cb);
+        tr.addEventListener('click', function(e) {
+            // Ne pas intercepter les clics sur liens, cases, boutons, labels ou badges avec tooltip
+            if (e.target.closest('a, input, label, button, [title]')) return;
+            cb.checked = !cb.checked;
+            cb.dispatchEvent(new Event('change'));
+        });
+        cb.addEventListener('change', function() {
+            updateRowState(tr, cb);
+        });
+    });
     
     // Fonction pour sélectionner/désélectionner toutes les régions
     function selectAllRegions() {

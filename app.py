@@ -7993,10 +7993,11 @@ Accessibilité: {accessibilite}
         # Auto-matching basé sur les nouveaux champs
         from utils.matching import find_matching_shows
         # Préchargement du propriétaire pour éviter les requêtes N+1 dans compute_score.
+        # created_at chargé aussi : sert au badge "modèle payant" (>= 12/09/2026) côté template.
         all_approved = (
             Show.query
             .options(
-                joinedload(Show.user).load_only(User.id, User.code_postal, User.region, User.departement, User.latitude, User.longitude)
+                joinedload(Show.user).load_only(User.id, User.code_postal, User.region, User.departement, User.latitude, User.longitude, User.created_at)
             )
             .filter(Show.approved.is_(True))
             .all()
