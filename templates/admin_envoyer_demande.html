@@ -4,7 +4,8 @@
 
 {% block content %}
 <style>
-    /* Auto-matching : distinction visuelle coché/décoché + case à cocher agrandie */
+    /* Auto-matching : distinction visuelle coché/décoché + case à cocher agrandie.
+       color forcé car le thème sombre du site rend le texte blanc invisible sur fond clair. */
     #select-all-matched, .matched-cb {
         transform: scale(1.6);
         cursor: pointer;
@@ -14,12 +15,23 @@
         cursor: pointer;
         transition: background-color 0.15s;
     }
+    tr.matched-row.row-checked > td,
+    tr.matched-row.row-checked > td strong,
+    tr.matched-row.row-checked > td small,
+    tr.matched-row.row-checked > td span:not(.badge) {
+        color: #212529 !important;
+    }
     tr.matched-row.row-checked > td {
         background-color: #e8f5e9 !important; /* vert pâle = sélectionné */
     }
     tr.matched-row:not(.row-checked) > td {
         background-color: #f5f5f5 !important; /* gris pâle = non sélectionné */
-        color: #999 !important;
+    }
+    tr.matched-row:not(.row-checked) > td,
+    tr.matched-row:not(.row-checked) > td strong,
+    tr.matched-row:not(.row-checked) > td small,
+    tr.matched-row:not(.row-checked) > td span:not(.badge) {
+        color: #6c757d !important;
     }
     tr.matched-row:hover > td {
         filter: brightness(0.94);
