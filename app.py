@@ -6407,7 +6407,8 @@ Accessibilité: {accessibilite}
         elif user:
             has_show = Show.query.filter(Show.user_id == user.id, Show.approved.is_(True)).count() > 0
         
-        return render_template("demandes_animation.html", demandes=demandes, page=page, nb_pages=nb_pages, total=total, per_page=per_page, user=current_user(), has_show=has_show, categories=categories, regions=regions, categorie=categorie, region=region, spectacles_une=spectacles_une)
+        masquage_ville_seuil = datetime(2026, 9, 12)
+        return render_template("demandes_animation.html", demandes=demandes, page=page, nb_pages=nb_pages, total=total, per_page=per_page, user=current_user(), has_show=has_show, categories=categories, regions=regions, categorie=categorie, region=region, spectacles_une=spectacles_une, masquage_ville_seuil=masquage_ville_seuil)
 
 
     @app.route("/demandes-animation/carte")
