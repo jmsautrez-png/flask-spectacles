@@ -99,6 +99,8 @@ class User(db.Model):
     # Date de fin d'abonnement AO (calculée à l'activation = today + 365j).
     # Null = jamais abonné, ou abonné historique sans date (rester considéré comme abonné tant que is_subscribed=True).
     subscribed_until = db.Column(db.DateTime, nullable=True, index=True)
+    # Nombre d'appels d'offres « cadeau » (bloc `_bloc_cadeau_html`) envoyés à cet utilisateur depuis MODELE_PAYANT_DEBUT.
+    cadeaux_offerts_count = db.Column(db.Integer, nullable=False, default=0, server_default="0")
 
     def set_password(self, password: str):
         self.password_hash = generate_password_hash(password)

@@ -90,6 +90,7 @@
                                             <th style="width:80px;">Lieux</th>
                                             <th style="width:80px;">Région</th>
                                             <th style="width:90px;">Distance</th>
+                                            <th style="width:80px;" class="text-center" title="Nombre d'appels d'offres offerts (bloc « cadeau ») envoyés à cette compagnie depuis le 12/09/2026">🎁 Cadeaux</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -138,6 +139,17 @@
                                             <td><small>{{ score.lieux }}%</small></td>
                                             <td><small>{{ score.region }}%</small></td>
                                             <td><small>{% if score.distance_km_display is not none %}{% if score.distance_approx %}<span title="Distance approximative (centroïde du département)" style="color:#90caf9;">≈ {{ score.distance_km_display|round|int }} km</span>{% else %}{{ score.distance_km_display|round|int }} km{% endif %}{% else %}<span class="text-muted">—</span>{% endif %}</small></td>
+                                            <td class="text-center">
+                                                {% if show.user and show.user.is_modele_payant and not show.user.is_subscribed %}
+                                                    {% set _nb_cadeaux = show.user.cadeaux_offerts_count or 0 %}
+                                                    <span class="badge" title="Appels d'offres offerts envoyés à cette compagnie depuis le 12/09/2026"
+                                                          style="background:{% if _nb_cadeaux == 0 %}#9e9e9e{% elif _nb_cadeaux < 3 %}#ff9800{% else %}#c62828{% endif %};color:#fff;font-weight:700;font-size:0.85rem;">
+                                                        🎁 {{ _nb_cadeaux }}
+                                                    </span>
+                                                {% else %}
+                                                    <span class="text-muted" title="Compagnie non concernée par le bloc cadeau (inscrite avant 12/09/2026 ou déjà abonnée)">—</span>
+                                                {% endif %}
+                                            </td>
                                         </tr>
                                     {% endfor %}
                                     </tbody>

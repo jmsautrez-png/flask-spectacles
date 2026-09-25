@@ -1062,6 +1062,7 @@ def _run_critical_migrations(app: Flask) -> None:
         ("users", "is_organisateur", "BOOLEAN DEFAULT FALSE", "BOOLEAN DEFAULT 0", "FALSE"),
         ("users", "bloque_appels_offres", "BOOLEAN DEFAULT FALSE", "BOOLEAN DEFAULT 0", "FALSE"),
         ("users", "subscribed_until", "TIMESTAMP", "DATETIME", None),
+        ("users", "cadeaux_offerts_count", "INTEGER DEFAULT 0", "INTEGER DEFAULT 0", "0"),
     ]
 
     is_pg = 'postgresql' in str(db.engine.url)
@@ -1209,13 +1210,32 @@ def _format_age_label(value):
     return labels.get(v, value)
 
 
+def _user_recoit_cadeau(user) -> bool:
+    """Vrai si un envoi d'appel d'offre à ce user doit inclure le bloc « cadeau »
+    (inscription >= 12/09/2026 et pas encore abonné)."""
+    if not user or not getattr(user, "is_modele_payant", False):
+        return False
+    if getattr(user, "is_subscribed", False):
+        return False
+    return True
+
+
+def _incr_cadeau_count(user) -> None:
+    """Incrémente en base le compteur de cadeaux offerts au user (sans committer).
+    Silencieux si le user ne remplit pas les conditions du cadeau."""
+    if not _user_recoit_cadeau(user):
+        return
+    try:
+        user.cadeaux_offerts_count = (user.cadeaux_offerts_count or 0) + 1
+    except Exception as _e:
+        print(f"[CADEAU COUNT] Erreur incrément user={getattr(user, 'id', '?')}: {_e}")
+
+
 def _bloc_cadeau_html(user):
     """Bloc HTML « cadeau » injecté dans l'email d'appel d'offre uniquement pour
     les compagnies inscrites après MODELE_PAYANT_DEBUT (12/09/2026) qui ne sont
     PAS encore abonnées. Retourne chaîne vide dans tous les autres cas."""
-    if not user or not getattr(user, "is_modele_payant", False):
-        return ""
-    if getattr(user, "is_subscribed", False):
+    if not _user_recoit_cadeau(user):
         return ""
     return (
         '<div style="background:#fff8e1;border:2px solid #ffb300;border-radius:10px;'
@@ -7286,6 +7306,7 @@ Accessibilité: {accessibilite}
                                     msg.html = body_html
                                     conn.send(msg)
                                     success_count += 1
+                                    _incr_cadeau_count(getattr(show, 'user', None))
                                     print(f"[DEBUG] ✅ Email envoyé à {email}")
                                 except Exception as e:
                                     error_count += 1
@@ -7379,7 +7400,14 @@ Accessibilité: {accessibilite}
                     flash(f"⚠️ {error_count} email(s) en erreur.", "warning")
                 if success_count == 0 and error_count == 0:
                     flash("⚠️ Aucun email à envoyer.", "warning")
-                
+
+                # Persiste les incréments du compteur de cadeaux (voir _incr_cadeau_count).
+                try:
+                    db.session.commit()
+                except Exception as _e:
+                    db.session.rollback()
+                    print(f"[CADEAU COUNT] commit send_matched failed: {_e}")
+
                 return redirect(url_for("admin_demandes_animation"))
 
             # === ACTION send_recap_only : envoi UNIQUEMENT du récap à l'organisateur ===
@@ -7718,7 +7746,8 @@ Accessibilité: {accessibilite}
                         'body_html': body_html,
                         'show_title': f"{show.title} - {show.category}",
                         'type': 'spectacle',
-                        'show': show
+                        'show': show,
+                        'user': getattr(show, 'user', None)
                     })
             
             # Collecter aussi les utilisateurs additionnels par région
@@ -7842,7 +7871,8 @@ Accessibilité: {accessibilite}
                         'email': user.email,
                         'body_html': body_html,
                         'show_title': f"Région: {user.region}" if user.region else "Utilisateur régional",
-                        'type': 'region'
+                        'type': 'region',
+                        'user': user
                     })
             
             print(f"[DEBUG] Phase 1 terminée : {len(emails_to_send)} emails à envoyer")
@@ -7882,6 +7912,7 @@ Accessibilité: {accessibilite}
                                 msg.html = email_data['body_html']
                                 conn.send(msg)
                                 success_count += 1
+                                _incr_cadeau_count(email_data.get('user'))
                                 print(f"[DEBUG] ✅ Email envoyé à {email_data['email']} ({success_count}/{total_emails})")
                             except Exception as e:
                                 error_msg = str(e)
@@ -8016,7 +8047,14 @@ Accessibilité: {accessibilite}
             
             if success_count == 0 and error_count == 0:
                 flash("⚠️ Aucun email n'a été envoyé. Aucun spectacle correspondant trouvé.", "warning")
-            
+
+            # Persiste les incréments du compteur de cadeaux (voir _incr_cadeau_count).
+            try:
+                db.session.commit()
+            except Exception as _e:
+                db.session.rollback()
+                print(f"[CADEAU COUNT] commit send batch failed: {_e}")
+
             # Retourner à la page admin des demandes
             return redirect(url_for("admin_demandes_animation"))
         
@@ -8028,7 +8066,7 @@ Accessibilité: {accessibilite}
         all_approved = (
             Show.query
             .options(
-                joinedload(Show.user).load_only(User.id, User.code_postal, User.region, User.departement, User.latitude, User.longitude, User.created_at)
+                joinedload(Show.user).load_only(User.id, User.code_postal, User.region, User.departement, User.latitude, User.longitude, User.created_at, User.is_subscribed, User.cadeaux_offerts_count)
             )
             .filter(Show.approved.is_(True))
             .all()
