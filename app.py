@@ -3485,6 +3485,9 @@ def register_routes(app: Flask) -> None:
             code_postal = request.form.get("code_postal", "").strip()
             ville = request.form.get("ville", "").strip()
             region = request.form.get("region", "").strip()
+            departement = request.form.get("departement", "").strip()
+            if not departement and code_postal:
+                departement = code_postal[:2]
             date_manifestation = request.form.get("date_manifestation", "").strip()
             budget = request.form.get("budget", "").strip()
             type_lieu = request.form.get("type_lieu", "").strip()
@@ -3532,6 +3535,7 @@ def register_routes(app: Flask) -> None:
     <table style="width:100%; border-collapse:collapse;">
       <tr><td style="padding:6px 0; color:#666; width:120px;">Date</td><td style="padding:6px 0;">{date_manifestation or '—'}</td></tr>
       <tr><td style="padding:6px 0; color:#666;">Lieu</td><td style="padding:6px 0;">{ville or '—'} ({code_postal}){f' — {region}' if region else ''}</td></tr>
+      <tr><td style="padding:6px 0; color:#666;">Département</td><td style="padding:6px 0;">{departement or '—'}</td></tr>
       <tr><td style="padding:6px 0; color:#666;">Type de lieu</td><td style="padding:6px 0;">{type_lieu or '—'}</td></tr>
       <tr><td style="padding:6px 0; color:#666;">Budget</td><td style="padding:6px 0; font-weight:700; color:#2e7d32;">{budget or '—'}</td></tr>
     </table>

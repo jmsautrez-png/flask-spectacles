@@ -71,6 +71,7 @@
         <input type="text" name="region" maxlength="120" autocomplete="address-level1"
                placeholder="(auto)" value="{{ request.form.get('region','') }}"
                style="width:100%; padding:10px 14px; border:2px solid #9e9e9e; border-radius:8px; font-size:1rem; box-sizing:border-box; background:#fff;">
+        <input type="hidden" name="departement" value="{{ request.form.get('departement','') }}">
       </div>
     </div>
 
@@ -103,15 +104,14 @@
         </label>
         <select name="budget" class="budget-select" style="width:100%; padding:10px 14px; border:2px solid #9e9e9e; border-radius:8px; font-size:1rem; box-sizing:border-box; background:#fff;">
           <option value="">-- Sélectionner --</option>
-          <option value="À partir de 300 € — Animation / atelier / Père Noël">À partir de 300 € — Animation / atelier / Père Noël (ballons, maquillage…)</option>
-          <option value="730 à 930 €">730 à 930 €</option>
-          <option value="930 à 1200 €">930 à 1200 €</option>
-          <option value="1200 à 1600 €">1200 à 1600 €</option>
-          <option value="1600 à 2000 €">1600 à 2000 €</option>
-          <option value="2000 à 3000 €">2000 à 3000 €</option>
-          <option value="3000 à 5000 €">3000 à 5000 €</option>
-          <option value="Plus de 5000 €">Plus de 5000 €</option>
-          <option value="À définir">À définir</option>
+          <option value="À partir de 300 € — Ateliers divers, maquillage, ballons, déambulation, Père Noël, etc.">À partir de 300 € — Ateliers divers, maquillage, ballons, déambulation, Père Noël, etc.</option>
+          <option value="730 à 930 € — Petit spectacle (courte durée, artiste local)">730 à 930 € — Petit spectacle (courte durée, artiste local)</option>
+          <option value="930 à 1200 € — Spectacle standard">930 à 1200 € — Spectacle standard</option>
+          <option value="1200 à 1600 € — Spectacle plus élaboré">1200 à 1600 € — Spectacle plus élaboré</option>
+          <option value="1600 à 2000 € — Spectacle premium">1600 à 2000 € — Spectacle premium</option>
+          <option value="2000 à 3000 € — Grand spectacle">2000 à 3000 € — Grand spectacle</option>
+          <option value="3000 à 5000 € — Grand spectacle / plusieurs artistes">3000 à 5000 € — Grand spectacle / plusieurs artistes</option>
+          <option value="Plus de 5000 € — Événement d'envergure">Plus de 5000 € — Événement d'envergure</option>
         </select>
         <div id="budget-info" role="note" style="display:none; margin-top:8px; padding:10px 12px; background:rgba(255,255,255,0.08); border-left:3px solid #ffc107; border-radius:6px; font-size:0.82rem; color:#ffe082; line-height:1.5;">
           <strong style="color:#ffc107;">ℹ️ À savoir :</strong>
