@@ -46,8 +46,9 @@
     </div>
 
     <div style="margin-bottom:16px;">
-      <label style="display:block; font-weight:600; margin-bottom:6px; color:#fff;">Votre structure / organisation</label>
-      <input type="text" name="structure" maxlength="200"
+      <label style="display:block; font-weight:600; margin-bottom:6px; color:#fff;">Votre structure / organisation *</label>
+      <input type="text" name="structure" required maxlength="200"
+             value="{{ request.form.get('structure','') }}"
              style="width:100%; padding:10px 14px; border:2px solid #9e9e9e; border-radius:8px; font-size:1rem; box-sizing:border-box; background:#fff;">
     </div>
 
@@ -93,23 +94,26 @@
                style="width:100%; padding:10px 14px; border:2px solid #9e9e9e; border-radius:8px; font-size:1rem; box-sizing:border-box; background:#fff;">
       </div>
       <div>
-        <label style="display:block; font-weight:600; margin-bottom:6px; color:#fff;">Budget envisagé</label>
+        <label style="display:flex; align-items:center; gap:8px; font-weight:600; margin-bottom:6px; color:#fff;">
+          Budget envisagé <span style="font-weight:400; font-size:0.85rem; color:#ccc;">(budget pour votre spectacle)</span>
+          <button type="button" onclick="var b=document.getElementById('budget-info');b.style.display=(b.style.display==='block'?'none':'block');" aria-label="Aide sur les budgets" title="Aide sur les budgets"
+                  style="display:inline-flex; align-items:center; justify-content:center; width:22px; height:22px; padding:0; border-radius:50%; border:none; background:#ffc107; color:#222; font-weight:800; font-size:0.85rem; cursor:pointer; line-height:1;">
+            i
+          </button>
+        </label>
         <select name="budget" class="budget-select" style="width:100%; padding:10px 14px; border:2px solid #9e9e9e; border-radius:8px; font-size:1rem; box-sizing:border-box; background:#fff;">
           <option value="">-- Sélectionner --</option>
           <option value="À partir de 300 € — Animation / atelier / Père Noël">À partir de 300 € — Animation / atelier / Père Noël (ballons, maquillage…)</option>
-          <option value="À partir de 730 € — Spectacle (région uniquement)">À partir de 730 € — Spectacle (votre région uniquement)</option>
-          <option value="930 à 1200 € (toute région)" class="opt-toute-region">930 à 1200 € (toute région)</option>
-          <option value="1200 à 1600 € (toute région)" class="opt-toute-region">1200 à 1600 € (toute région)</option>
-          <option value="1600 à 2000 € (toute région)" class="opt-toute-region">1600 à 2000 € (toute région)</option>
-          <option value="2000 à 3000 € (toute région)" class="opt-toute-region">2000 à 3000 € (toute région)</option>
-          <option value="3000 à 5000 € (toute région)" class="opt-toute-region">3000 à 5000 € (toute région)</option>
-          <option value="Plus de 5000 € (toute région)" class="opt-toute-region">Plus de 5000 € (toute région)</option>
+          <option value="730 à 930 €">730 à 930 €</option>
+          <option value="930 à 1200 €">930 à 1200 €</option>
+          <option value="1200 à 1600 €">1200 à 1600 €</option>
+          <option value="1600 à 2000 €">1600 à 2000 €</option>
+          <option value="2000 à 3000 €">2000 à 3000 €</option>
+          <option value="3000 à 5000 €">3000 à 5000 €</option>
+          <option value="Plus de 5000 €">Plus de 5000 €</option>
           <option value="À définir">À définir</option>
         </select>
-        <style>
-          .budget-select .opt-toute-region { font-style: italic; }
-        </style>
-        <div style="margin-top:8px; padding:10px 12px; background:rgba(255,255,255,0.08); border-left:3px solid #ffc107; border-radius:6px; font-size:0.82rem; color:#ffe082; line-height:1.5;">
+        <div id="budget-info" role="note" style="display:none; margin-top:8px; padding:10px 12px; background:rgba(255,255,255,0.08); border-left:3px solid #ffc107; border-radius:6px; font-size:0.82rem; color:#ffe082; line-height:1.5;">
           <strong style="color:#ffc107;">ℹ️ À savoir :</strong>
           en dessous de <strong>730 €</strong>, aucun spectacle n'est proposé — uniquement animations, ateliers ou visites du Père Noël (ballons, maquillage…).
           À partir de <strong>730 €</strong>, un spectacle est possible mais <strong>uniquement dans votre région</strong> (frais de déplacement limités). Au-delà, spectacles disponibles partout en France.

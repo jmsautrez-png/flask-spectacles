@@ -3490,8 +3490,8 @@ def register_routes(app: Flask) -> None:
             type_lieu = request.form.get("type_lieu", "").strip()
             message = request.form.get("message", "").strip()
 
-            if not all([nom, email, message]):
-                flash("Veuillez remplir les champs obligatoires (nom, email, message).", "danger")
+            if not all([nom, structure, email, message]):
+                flash("Veuillez remplir les champs obligatoires (nom, structure, email, message).", "danger")
                 return render_template("demande_devis.html", show=show, user=current_user())
 
             import re as _re
