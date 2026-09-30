@@ -3482,6 +3482,9 @@ def register_routes(app: Flask) -> None:
             structure = request.form.get("structure", "").strip()
             email = request.form.get("email", "").strip()
             telephone = request.form.get("telephone", "").strip()
+            code_postal = request.form.get("code_postal", "").strip()
+            ville = request.form.get("ville", "").strip()
+            region = request.form.get("region", "").strip()
             date_manifestation = request.form.get("date_manifestation", "").strip()
             budget = request.form.get("budget", "").strip()
             type_lieu = request.form.get("type_lieu", "").strip()
@@ -3489,6 +3492,11 @@ def register_routes(app: Flask) -> None:
 
             if not all([nom, email, message]):
                 flash("Veuillez remplir les champs obligatoires (nom, email, message).", "danger")
+                return render_template("demande_devis.html", show=show, user=current_user())
+
+            import re as _re
+            if not _re.match(r"^\d{5}$", code_postal):
+                flash("Veuillez saisir un code postal valide (5 chiffres).", "danger")
                 return render_template("demande_devis.html", show=show, user=current_user())
 
             # Envoi email à la compagnie + admin en copie
@@ -3523,6 +3531,7 @@ def register_routes(app: Flask) -> None:
     <h3 style="color:#1b5e20; border-bottom:2px solid #e0e0e0; padding-bottom:8px; margin-top:20px;">Événement</h3>
     <table style="width:100%; border-collapse:collapse;">
       <tr><td style="padding:6px 0; color:#666; width:120px;">Date</td><td style="padding:6px 0;">{date_manifestation or '—'}</td></tr>
+      <tr><td style="padding:6px 0; color:#666;">Lieu</td><td style="padding:6px 0;">{ville or '—'} ({code_postal}){f' — {region}' if region else ''}</td></tr>
       <tr><td style="padding:6px 0; color:#666;">Type de lieu</td><td style="padding:6px 0;">{type_lieu or '—'}</td></tr>
       <tr><td style="padding:6px 0; color:#666;">Budget</td><td style="padding:6px 0; font-weight:700; color:#2e7d32;">{budget or '—'}</td></tr>
     </table>
