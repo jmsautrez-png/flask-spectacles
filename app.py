@@ -3491,6 +3491,7 @@ def register_routes(app: Flask) -> None:
             date_manifestation = request.form.get("date_manifestation", "").strip()
             budget = request.form.get("budget", "").strip()
             type_lieu = request.form.get("type_lieu", "").strip()
+            preference_local = request.form.get("preference_local") == "1"
             message = request.form.get("message", "").strip()
 
             if not all([nom, structure, email, message]):
@@ -3538,6 +3539,7 @@ def register_routes(app: Flask) -> None:
       <tr><td style="padding:6px 0; color:#666;">Département</td><td style="padding:6px 0;">{departement or '—'}</td></tr>
       <tr><td style="padding:6px 0; color:#666;">Type de lieu</td><td style="padding:6px 0;">{type_lieu or '—'}</td></tr>
       <tr><td style="padding:6px 0; color:#666;">Budget</td><td style="padding:6px 0; font-weight:700; color:#2e7d32;">{budget or '—'}</td></tr>
+      <tr><td style="padding:6px 0; color:#666;">Préférence</td><td style="padding:6px 0;">{'🏡 Artiste local (région / dpt)' if preference_local else 'Aucune préférence géographique'}</td></tr>
     </table>
 
     <h3 style="color:#1b5e20; border-bottom:2px solid #e0e0e0; padding-bottom:8px; margin-top:20px;">Message</h3>
@@ -5644,6 +5646,7 @@ def register_routes(app: Flask) -> None:
             accessibilite = request.form.get("accessibilite", "").strip()
             contact_email = request.form.get("contact_email", "").strip()
             intitule = request.form.get("intitule", "").strip()
+            preference_local = request.form.get("preference_local") == "1"
 
             # Matching fields (accordions)
             specialites_recherchees = ",".join(request.form.getlist("specialites_recherchees"))
@@ -5704,6 +5707,7 @@ Spécialités recherchées: {specialites_recherchees or 'Non précisées'}
 Tranche d'âge: {age_range}
 Jauge: {jauge}
 Budget: {budget}
+Préférence géographique: {'Artiste local (région / dpt) souhaité' if preference_local else 'Aucune préférence'}
 Contraintes techniques: {contraintes}
 Accessibilité: {accessibilite}
 """

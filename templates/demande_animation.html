@@ -181,7 +181,7 @@
           <select id="budget" name="budget" required>
             <option value="">-- Fourchette de budget --</option>
             <option value="À partir de 300 € — Ateliers divers, maquillage, ballons, déambulation, Père Noël, etc." {% if v_budget == 'À partir de 300 € — Ateliers divers, maquillage, ballons, déambulation, Père Noël, etc.' %}selected{% endif %}>À partir de 300 € — Ateliers divers, maquillage, ballons, déambulation, Père Noël, etc.</option>
-            <option value="730 à 930 € — Petit spectacle (courte durée, artiste local)" {% if v_budget == '730 à 930 € — Petit spectacle (courte durée, artiste local)' %}selected{% endif %}>730 à 930 € — Petit spectacle (courte durée, artiste local)</option>
+            <option value="730 à 930 € — Artiste / spectacle local (région / dpt)" {% if v_budget == '730 à 930 € — Artiste / spectacle local (région / dpt)' %}selected{% endif %}>730 à 930 € — Artiste / spectacle local (région / dpt)</option>
             <option value="930 à 1200 € — Spectacle standard" {% if v_budget == '930 à 1200 € — Spectacle standard' %}selected{% endif %}>930 à 1200 € — Spectacle standard</option>
             <option value="1200 à 1600 € — Spectacle plus élaboré" {% if v_budget == '1200 à 1600 € — Spectacle plus élaboré' %}selected{% endif %}>1200 à 1600 € — Spectacle plus élaboré</option>
             <option value="1600 à 2000 € — Spectacle premium" {% if v_budget == '1600 à 2000 € — Spectacle premium' %}selected{% endif %}>1600 à 2000 € — Spectacle premium</option>
@@ -191,8 +191,15 @@
           </select>
           <div id="budget-info-anim" role="note" style="display:none; margin-top:8px; padding:10px 12px; background:#fff8e1; border-left:3px solid #ffc107; border-radius:6px; font-size:0.85rem; color:#5d4037; line-height:1.5;">
             <strong style="color:#f57f17;">ℹ️ À savoir :</strong>
-            en dessous de <strong>730 €</strong>, aucun spectacle n'est proposé — uniquement animations, ateliers ou visites du Père Noël (ballons, maquillage…).
-            À partir de <strong>730 €</strong>, un spectacle est possible mais <strong>uniquement dans votre région</strong> (frais de déplacement limités). Au-delà, spectacles disponibles partout en France.
+            moins de <strong>730 €</strong> = animations, ateliers ou Père Noël uniquement.
+            À partir de <strong>730 €</strong>, un spectacle est possible mais à ce tarif seuls les artistes <strong>locaux (région / dpt)</strong> peuvent répondre.
+            Plus votre budget monte, plus les artistes peuvent venir de loin — mais les <strong>artistes locaux restent toujours disponibles</strong> à tous les tarifs.
+          </div>
+          <div style="display:flex; align-items:center; gap:8px; margin-top:10px; font-size:0.92rem;">
+            <input type="checkbox" id="pref-local-anim" name="preference_local" value="1" {% if request.form.get('preference_local') %}checked{% endif %} style="width:18px; height:18px; accent-color:#f57f17; cursor:pointer;">
+            <label for="pref-local-anim" style="cursor:pointer; margin:0;">
+              Je préfère un artiste de ma région <span style="color:#777; font-size:0.85rem;">(frais de déplacement réduits)</span>
+            </label>
           </div>
           <small class="hint">Même approximatif, ça aide l'artiste à vous proposer la bonne formule.</small>
         </label>

@@ -105,7 +105,7 @@
         <select name="budget" class="budget-select" style="width:100%; padding:10px 14px; border:2px solid #9e9e9e; border-radius:8px; font-size:1rem; box-sizing:border-box; background:#fff;">
           <option value="">-- Sélectionner --</option>
           <option value="À partir de 300 € — Ateliers divers, maquillage, ballons, déambulation, Père Noël, etc.">À partir de 300 € — Ateliers divers, maquillage, ballons, déambulation, Père Noël, etc.</option>
-          <option value="730 à 930 € — Petit spectacle (courte durée, artiste local)">730 à 930 € — Petit spectacle (courte durée, artiste local)</option>
+          <option value="730 à 930 € — Artiste / spectacle local (région / dpt)">730 à 930 € — Artiste / spectacle local (région / dpt)</option>
           <option value="930 à 1200 € — Spectacle standard">930 à 1200 € — Spectacle standard</option>
           <option value="1200 à 1600 € — Spectacle plus élaboré">1200 à 1600 € — Spectacle plus élaboré</option>
           <option value="1600 à 2000 € — Spectacle premium">1600 à 2000 € — Spectacle premium</option>
@@ -115,9 +115,14 @@
         </select>
         <div id="budget-info" role="note" style="display:none; margin-top:8px; padding:10px 12px; background:rgba(255,255,255,0.08); border-left:3px solid #ffc107; border-radius:6px; font-size:0.82rem; color:#ffe082; line-height:1.5;">
           <strong style="color:#ffc107;">ℹ️ À savoir :</strong>
-          en dessous de <strong>730 €</strong>, aucun spectacle n'est proposé — uniquement animations, ateliers ou visites du Père Noël (ballons, maquillage…).
-          À partir de <strong>730 €</strong>, un spectacle est possible mais <strong>uniquement dans votre région</strong> (frais de déplacement limités). Au-delà, spectacles disponibles partout en France.
+          moins de <strong>730 €</strong> = animations, ateliers ou Père Noël uniquement.
+          À partir de <strong>730 €</strong>, un spectacle est possible mais à ce tarif seuls les artistes <strong>locaux (région / dpt)</strong> peuvent répondre.
+          Plus votre budget monte, plus les artistes peuvent venir de loin — mais les <strong>artistes locaux restent toujours disponibles</strong> à tous les tarifs.
         </div>
+        <label style="display:flex; align-items:center; gap:8px; margin-top:10px; color:#fff; font-size:0.92rem; cursor:pointer;">
+          <input type="checkbox" name="preference_local" value="1" {% if request.form.get('preference_local') %}checked{% endif %} style="width:18px; height:18px; accent-color:#ffc107; cursor:pointer;">
+          Je préfère un artiste de ma région <span style="color:#ccc; font-size:0.85rem;">(frais de déplacement réduits)</span>
+        </label>
       </div>
     </div>
 
