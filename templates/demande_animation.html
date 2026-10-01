@@ -170,19 +170,30 @@
         </label>
 
         <label>
-          <span class="label-text">Budget indicatif <span class="req">*</span></span>
+          <span class="label-text">
+            Budget indicatif <span class="req">*</span>
+            <button type="button" onclick="var b=document.getElementById('budget-info-anim');b.style.display=(b.style.display==='block'?'none':'block');" aria-label="Aide sur les budgets" title="Aide sur les budgets"
+                    style="display:inline-flex; align-items:center; justify-content:center; width:22px; height:22px; padding:0; margin-left:6px; border-radius:50%; border:none; background:#ffc107; color:#222; font-weight:800; font-size:0.85rem; cursor:pointer; line-height:1; vertical-align:middle;">
+              i
+            </button>
+          </span>
           {% set v_budget = request.form.get('budget','') or (d.budget if d else '') %}
           <select id="budget" name="budget" required>
             <option value="">-- Fourchette de budget --</option>
-            <option value="300 à 500 €" {% if v_budget == '300 à 500 €' %}selected{% endif %}>300 à 500 €</option>
-            <option value="500 à 800 €" {% if v_budget == '500 à 800 €' %}selected{% endif %}>500 à 800 €</option>
-            <option value="800 à 1200 €" {% if v_budget == '800 à 1200 €' %}selected{% endif %}>800 à 1200 €</option>
-            <option value="1200 à 1600 €" {% if v_budget == '1200 à 1600 €' %}selected{% endif %}>1200 à 1600 €</option>
-            <option value="1600 à 2000 €" {% if v_budget == '1600 à 2000 €' %}selected{% endif %}>1600 à 2000 €</option>
-            <option value="2000 à 3000 €" {% if v_budget == '2000 à 3000 €' %}selected{% endif %}>2000 à 3000 €</option>
-            <option value="3000 à 5000 €" {% if v_budget == '3000 à 5000 €' %}selected{% endif %}>3000 à 5000 €</option>
-            <option value="Plus de 5000 €" {% if v_budget == 'Plus de 5000 €' %}selected{% endif %}>Plus de 5000 €</option>
+            <option value="À partir de 300 € — Ateliers divers, maquillage, ballons, déambulation, Père Noël, etc." {% if v_budget == 'À partir de 300 € — Ateliers divers, maquillage, ballons, déambulation, Père Noël, etc.' %}selected{% endif %}>À partir de 300 € — Ateliers divers, maquillage, ballons, déambulation, Père Noël, etc.</option>
+            <option value="730 à 930 € — Petit spectacle (courte durée, artiste local)" {% if v_budget == '730 à 930 € — Petit spectacle (courte durée, artiste local)' %}selected{% endif %}>730 à 930 € — Petit spectacle (courte durée, artiste local)</option>
+            <option value="930 à 1200 € — Spectacle standard" {% if v_budget == '930 à 1200 € — Spectacle standard' %}selected{% endif %}>930 à 1200 € — Spectacle standard</option>
+            <option value="1200 à 1600 € — Spectacle plus élaboré" {% if v_budget == '1200 à 1600 € — Spectacle plus élaboré' %}selected{% endif %}>1200 à 1600 € — Spectacle plus élaboré</option>
+            <option value="1600 à 2000 € — Spectacle premium" {% if v_budget == '1600 à 2000 € — Spectacle premium' %}selected{% endif %}>1600 à 2000 € — Spectacle premium</option>
+            <option value="2000 à 3000 € — Grand spectacle" {% if v_budget == '2000 à 3000 € — Grand spectacle' %}selected{% endif %}>2000 à 3000 € — Grand spectacle</option>
+            <option value="3000 à 5000 € — Grand spectacle / plusieurs artistes" {% if v_budget == '3000 à 5000 € — Grand spectacle / plusieurs artistes' %}selected{% endif %}>3000 à 5000 € — Grand spectacle / plusieurs artistes</option>
+            <option value="Plus de 5000 € — Événement d'envergure" {% if v_budget == 'Plus de 5000 € — Événement d\'envergure' %}selected{% endif %}>Plus de 5000 € — Événement d'envergure</option>
           </select>
+          <div id="budget-info-anim" role="note" style="display:none; margin-top:8px; padding:10px 12px; background:#fff8e1; border-left:3px solid #ffc107; border-radius:6px; font-size:0.85rem; color:#5d4037; line-height:1.5;">
+            <strong style="color:#f57f17;">ℹ️ À savoir :</strong>
+            en dessous de <strong>730 €</strong>, aucun spectacle n'est proposé — uniquement animations, ateliers ou visites du Père Noël (ballons, maquillage…).
+            À partir de <strong>730 €</strong>, un spectacle est possible mais <strong>uniquement dans votre région</strong> (frais de déplacement limités). Au-delà, spectacles disponibles partout en France.
+          </div>
           <small class="hint">Même approximatif, ça aide l'artiste à vous proposer la bonne formule.</small>
         </label>
       </div>
