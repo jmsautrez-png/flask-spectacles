@@ -441,6 +441,11 @@ class Adhesion(db.Model):
     statut = db.Column(db.String(20), nullable=False, default="pending", server_default="pending", index=True)
     notes_admin = db.Column(db.Text, nullable=True)
 
+    # Facturation (envoi automatique facture + lien PayPal)
+    invoice_number = db.Column(db.String(50), nullable=True, index=True)
+    invoice_sent_at = db.Column(db.DateTime, nullable=True)
+    invoice_amount = db.Column(db.Integer, nullable=True)  # en euros (TTC, sans TVA)
+
     created_at = db.Column(db.DateTime, default=datetime.utcnow, index=True)
     contacted_at = db.Column(db.DateTime, nullable=True)
     activated_at = db.Column(db.DateTime, nullable=True)

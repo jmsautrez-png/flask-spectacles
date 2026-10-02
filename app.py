@@ -1070,6 +1070,10 @@ def _run_critical_migrations(app: Flask) -> None:
         ("users", "bloque_appels_offres", "BOOLEAN DEFAULT FALSE", "BOOLEAN DEFAULT 0", "FALSE"),
         ("users", "subscribed_until", "TIMESTAMP", "DATETIME", None),
         ("users", "cadeaux_offerts_count", "INTEGER DEFAULT 0", "INTEGER DEFAULT 0", "0"),
+        # ── Facturation Adhésions (envoi auto facture + PayPal) ──
+        ("adhesion", "invoice_number", "VARCHAR(50)", "VARCHAR(50)", None),
+        ("adhesion", "invoice_sent_at", "TIMESTAMP", "DATETIME", None),
+        ("adhesion", "invoice_amount", "INTEGER", "INTEGER", None),
         # ── Infos légales (privées, auto-attribution Cie Pro) ──
         ("users", "siret", "VARCHAR(14)", "VARCHAR(14)", None),
         ("users", "licence_spectacle", "VARCHAR(100)", "VARCHAR(100)", None),
@@ -6600,12 +6604,18 @@ Accessibilité: {accessibilite}
                         f"---\n"
                         f"Tableau admin: {lien_admin}\n"
                     )
-                    msg = MailMessage(
-                        subject=f"[Adhésion AO] {nom}",
-                        recipients=["audition_2020@yahoo.fr"],
-                        body=body,
-                    )
-                    current_app.mail.send(msg)
+                    admin_addr = current_app.config.get("MAIL_DEFAULT_SENDER") or current_app.config.get("MAIL_USERNAME")
+                    recipients = [admin_addr] if admin_addr else []
+                    if not recipients:
+                        current_app.logger.warning("[ADHESION] Aucun destinataire admin configuré, email non envoyé.")
+                    else:
+                        msg = MailMessage(
+                            subject=f"[Adhésion AO] {nom}",
+                            recipients=recipients,
+                            body=body,
+                        )
+                        current_app.mail.send(msg)
+                        current_app.logger.info(f"[ADHESION] ✓ Email notification envoyé à {recipients} pour {nom}")
             except Exception as e:
                 current_app.logger.error(f"[ADHESION] Erreur mail admin: {e}")
 
@@ -9837,6 +9847,309 @@ def admin_adhesion_notes(adhesion_id):
     db.session.commit()
     flash("Notes enregistrées.", "success")
     return redirect(request.referrer or url_for("admin_adhesions"))
+
+
+# Montant par défaut de l'abonnement AO (euros TTC, TVA non applicable)
+ADHESION_TARIF_DEFAUT = 49
+
+
+def _build_adhesion_invoice_html(adh, amount, invoice_number, now_dt, date_debut, date_fin, paypal_email, cgu_url):
+    """Construit le HTML de la facture d'adhésion (réutilisé par preview et envoi)."""
+    return f"""<!DOCTYPE html>
+<html lang="fr"><head><meta charset="UTF-8"></head>
+<body style="font-family:Arial,Helvetica,sans-serif;background:#f4f6fa;margin:0;padding:20px;color:#333;">
+  <div style="max-width:640px;margin:0 auto;background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 4px 16px rgba(0,0,0,0.08);">
+
+    <div style="background:linear-gradient(135deg,#6a1b9a,#4a148c);color:#fff;padding:22px 28px;">
+      <h2 style="margin:0;font-size:1.4rem;">Facture n° {invoice_number}</h2>
+      <p style="margin:6px 0 0 0;opacity:0.9;font-size:0.95rem;">Émise le {now_dt.strftime('%d/%m/%Y')} — Spectacle'ment Vôtre</p>
+    </div>
+
+    <div style="padding:24px 28px;">
+      <table style="width:100%;border-collapse:collapse;margin-bottom:18px;font-size:0.9rem;">
+        <tr>
+          <td style="vertical-align:top;padding:4px 0;color:#666;width:50%;">
+            <strong style="color:#333;">ÉMETTEUR</strong><br>
+            <strong>Spectacle'ment Vôtre</strong><br>
+            <span style="color:#999;font-size:0.82rem;">Édité par Compagnie ARTEMISIA — Association loi 1901</span><br>
+            SIRET : 434 739 769 00058<br>
+            Maison des Associations<br>
+            3 place Guy Hersant (BAL69) BP 74134<br>
+            31031 Toulouse Cedex 04<br>
+            Tél : 06 76 07 01 79<br>
+            Licence spectacle : PLATESV-R-2025-00046
+          </td>
+          <td style="vertical-align:top;padding:4px 0;color:#666;padding-left:16px;">
+            <strong style="color:#333;">DESTINATAIRE</strong><br>
+            <strong>{adh.nom}</strong><br>
+            {adh.email}<br>
+            {adh.telephone}
+          </td>
+        </tr>
+      </table>
+
+      <table style="width:100%;border-collapse:collapse;margin:20px 0;">
+        <thead>
+          <tr style="background:#f3e5f5;">
+            <th style="padding:10px 12px;text-align:left;border-bottom:2px solid #ce93d8;font-size:0.88rem;color:#4a148c;">Désignation</th>
+            <th style="padding:10px 12px;text-align:right;border-bottom:2px solid #ce93d8;font-size:0.88rem;color:#4a148c;width:120px;">Montant</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td style="padding:12px;border-bottom:1px solid #e0e0e0;">
+              <strong>Abonnement annuel « Appels d'offres »</strong><br>
+              <span style="color:#666;font-size:0.85rem;">Plateforme Spectacle'ment VØtre<br>Période : du {date_debut.strftime('%d/%m/%Y')} au {date_fin.strftime('%d/%m/%Y')}</span>
+            </td>
+            <td style="padding:12px;border-bottom:1px solid #e0e0e0;text-align:right;font-weight:700;">{amount} €</td>
+          </tr>
+          <tr>
+            <td style="padding:8px 12px;color:#777;font-size:0.82rem;font-style:italic;">TVA non applicable, art. 293 B du CGI (association loi 1901)</td>
+            <td style="padding:8px 12px;text-align:right;color:#777;font-size:0.82rem;">—</td>
+          </tr>
+          <tr>
+            <td style="padding:14px 12px;background:#f3e5f5;color:#4a148c;font-size:1rem;"><strong>TOTAL À PAYER</strong></td>
+            <td style="padding:14px 12px;background:#f3e5f5;text-align:right;font-weight:800;color:#4a148c;font-size:1.1rem;">{amount} €</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div style="background:#e3f2fd;border-left:4px solid #1976d2;padding:16px 18px;border-radius:6px;margin:18px 0;">
+        <strong style="color:#1565c0;display:block;margin-bottom:8px;">💳 Règlement par PayPal (le plus rapide — 1 clic)</strong>
+        <p style="margin:0 0 12px 0;font-size:0.92rem;color:#333;">Cliquez sur le bouton ci-dessous pour régler <strong>{amount} €</strong> en 1 clic. Le montant est pré-rempli automatiquement.</p>
+        <div style="text-align:center;margin:14px 0;">
+          <a href="https://paypal.me/SpectaclementVotre/{amount}EUR" target="_blank" rel="noopener"
+             style="display:inline-block;background:linear-gradient(135deg,#003087,#009cde);color:#fff;padding:14px 32px;border-radius:30px;text-decoration:none;font-weight:700;font-size:1.05rem;box-shadow:0 3px 10px rgba(0,48,135,0.3);">
+            Payer {amount} € avec <span style="font-style:italic;letter-spacing:-0.5px;">PayPal</span>
+          </a>
+        </div>
+        <p style="margin:12px 0 0 0;font-size:0.82rem;color:#555;text-align:center;">
+          Lien direct : <a href="https://paypal.me/SpectaclementVotre/{amount}EUR" target="_blank" rel="noopener" style="color:#1565c0;">paypal.me/SpectaclementVotre/{amount}EUR</a><br>
+          Pensez à indiquer la référence <strong>{invoice_number} — {adh.nom}</strong> dans le libellé.
+        </p>
+      </div>
+
+      <div style="background:#f3e5f5;border-left:4px solid #6a1b9a;padding:16px 18px;border-radius:6px;margin:18px 0;">
+        <strong style="color:#4a148c;display:block;margin-bottom:8px;">🏦 Règlement par virement bancaire</strong>
+        <p style="margin:0 0 10px 0;font-size:0.92rem;color:#333;">Vous pouvez également régler <strong>{amount} €</strong> par virement SEPA sur notre compte :</p>
+        <table style="width:100%;border-collapse:collapse;background:#fff;border-radius:6px;border:1px solid #ce93d8;overflow:hidden;font-size:0.88rem;">
+          <tr>
+            <td style="padding:8px 12px;color:#666;border-bottom:1px solid #f0e0f5;width:120px;">Titulaire</td>
+            <td style="padding:8px 12px;border-bottom:1px solid #f0e0f5;font-weight:600;">ARTEMISIA ET COMPAGNIE</td>
+          </tr>
+          <tr>
+            <td style="padding:8px 12px;color:#666;border-bottom:1px solid #f0e0f5;">IBAN</td>
+            <td style="padding:8px 12px;border-bottom:1px solid #f0e0f5;font-family:monospace;font-weight:600;color:#4a148c;">FR63 3000 2040 6800 0007 9115 E59</td>
+          </tr>
+          <tr>
+            <td style="padding:8px 12px;color:#666;border-bottom:1px solid #f0e0f5;">BIC</td>
+            <td style="padding:8px 12px;border-bottom:1px solid #f0e0f5;font-family:monospace;font-weight:600;color:#4a148c;">CRLYFRPP</td>
+          </tr>
+          <tr>
+            <td style="padding:8px 12px;color:#666;">Banque</td>
+            <td style="padding:8px 12px;">LCL — Ramonville Saint-Agne</td>
+          </tr>
+        </table>
+        <p style="margin:10px 0 0 0;font-size:0.82rem;color:#555;">Merci d'indiquer la référence <strong>{invoice_number} — {adh.nom}</strong> dans le libellé du virement.</p>
+      </div>
+
+      <div style="background:#fff3e0;border-left:4px solid #ff9800;padding:14px 18px;border-radius:6px;margin:18px 0;font-size:0.88rem;color:#555;line-height:1.6;">
+        <strong style="color:#e65100;display:block;margin-bottom:6px;">📜 Conditions essentielles</strong>
+        <ul style="margin:0;padding-left:18px;">
+          <li>Abonnement de <strong>12 mois</strong> à compter de la réception du paiement.</li>
+          <li>Service activé <strong>sous 24 h</strong> après encaissement.</li>
+          <li>Accès complet aux appels d'offres déposés par les organisateurs (mairies, écoles, CSE…).</li>
+          <li>Résiliation libre à tout moment (pas de reconduction tacite automatique).</li>
+          <li>Conditions complètes : <a href="{cgu_url}" style="color:#1976d2;">{cgu_url}</a></li>
+        </ul>
+      </div>
+
+      <p style="margin-top:24px;color:#555;font-size:0.88rem;line-height:1.5;">
+        En cas de question, contactez-nous à <a href="mailto:contact@spectacleanimation.fr" style="color:#1976d2;">contact@spectacleanimation.fr</a> ou au <strong>06 76 07 01 79</strong>.
+      </p>
+      <p style="color:#333;font-size:0.92rem;">Cordialement,<br>L'équipe <strong>Spectacle'ment Vôtre</strong></p>
+    </div>
+
+    <div style="background:#f5f5f5;padding:12px 28px;font-size:0.72rem;color:#888;text-align:center;line-height:1.5;">
+      Spectacle'ment Vôtre · édité par Compagnie ARTEMISIA · SIRET 434 739 769 00058 · Association loi 1901 non assujettie à la TVA
+    </div>
+  </div>
+</body></html>"""
+
+
+def _next_invoice_number(now_dt):
+    """Génère le prochain numéro de facture au format YYYY-MM-{YYYY+1}-NNN."""
+    periode = f"{now_dt.year}-{now_dt.month:02d}-{now_dt.year + 1}"
+    existing = Adhesion.query.filter(Adhesion.invoice_number.like(f"{periode}-%")).count()
+    return f"{periode}-{(existing + 1):03d}"
+
+
+@app.route("/admin/adhesions/<int:adhesion_id>/preview-invoice", methods=["GET"])
+@login_required
+@admin_required
+def admin_adhesion_preview_invoice(adhesion_id):
+    """Affiche l'aperçu de la facture avant envoi (prévisualisation)."""
+    adh = Adhesion.query.get_or_404(adhesion_id)
+    try:
+        amount_raw = (request.args.get("amount") or "").strip()
+        amount = int(amount_raw) if amount_raw else (adh.invoice_amount or ADHESION_TARIF_DEFAUT)
+    except (ValueError, TypeError):
+        amount = ADHESION_TARIF_DEFAUT
+    if amount <= 0 or amount > 10000:
+        amount = ADHESION_TARIF_DEFAUT
+
+    now = datetime.utcnow()
+    invoice_number = adh.invoice_number or _next_invoice_number(now)
+    date_debut = now
+    try:
+        date_fin = now.replace(year=now.year + 1)
+    except ValueError:
+        date_fin = now + timedelta(days=365)
+    paypal_email = "jsautrez@yahoo.fr"
+    cgu_url = url_for("cgu", _external=True) if "cgu" in current_app.view_functions else "https://spectacleanimation.fr/cgu"
+
+    invoice_html = _build_adhesion_invoice_html(adh, amount, invoice_number, now, date_debut, date_fin, paypal_email, cgu_url)
+
+    return render_template(
+        "admin_adhesion_preview_invoice.html",
+        adh=adh,
+        amount=amount,
+        invoice_number=invoice_number,
+        invoice_number_is_temporary=(not adh.invoice_number),
+        invoice_html=invoice_html,
+        user=current_user(),
+    )
+
+
+@app.route("/admin/adhesions/<int:adhesion_id>/invoice.pdf", methods=["GET"])
+@login_required
+@admin_required
+def admin_adhesion_download_invoice_pdf(adhesion_id):
+    """Télécharge la facture au format PDF (pour archivage admin).
+
+    Si la facture a déjà été envoyée, régénère le même PDF avec le numéro figé.
+    Sinon, génère un PDF d'aperçu avec un numéro provisoire.
+    """
+    adh = Adhesion.query.get_or_404(adhesion_id)
+    try:
+        amount_raw = (request.args.get("amount") or "").strip()
+        amount = int(amount_raw) if amount_raw else (adh.invoice_amount or ADHESION_TARIF_DEFAUT)
+    except (ValueError, TypeError):
+        amount = adh.invoice_amount or ADHESION_TARIF_DEFAUT
+    if amount <= 0 or amount > 10000:
+        amount = ADHESION_TARIF_DEFAUT
+
+    now = adh.invoice_sent_at or datetime.utcnow()
+    invoice_number = adh.invoice_number or _next_invoice_number(now)
+    date_debut = now
+    try:
+        date_fin = now.replace(year=now.year + 1)
+    except ValueError:
+        date_fin = now + timedelta(days=365)
+    paypal_email = "jsautrez@yahoo.fr"
+    cgu_url = url_for("cgu", _external=True) if "cgu" in current_app.view_functions else "https://spectacleanimation.fr/cgu"
+
+    html = _build_adhesion_invoice_html(adh, amount, invoice_number, now, date_debut, date_fin, paypal_email, cgu_url)
+
+    try:
+        from weasyprint import HTML  # type: ignore
+        pdf_bytes = HTML(string=html).write_pdf()
+    except Exception as e:
+        current_app.logger.warning(f"[ADHESION FACTURE PDF] Génération impossible : {e}")
+        flash(f"Impossible de générer le PDF : {e}", "danger")
+        return redirect(url_for("admin_adhesions"))
+
+    from flask import Response
+    return Response(
+        pdf_bytes,
+        mimetype="application/pdf",
+        headers={
+            "Content-Disposition": f'inline; filename="facture-{invoice_number}.pdf"',
+        },
+    )
+
+
+@app.route("/admin/adhesions/<int:adhesion_id>/send-invoice", methods=["POST"])
+@login_required
+@admin_required
+def admin_adhesion_send_invoice(adhesion_id):
+    """Envoie par email la facture + lien PayPal à l'adhérent.
+
+    - Génère un numéro de facture au format YYYY-MM-{YYYY+1}-NNN (période couverte + séquence).
+    - Enregistre le numéro, l'horodatage d'envoi et le montant sur l'Adhesion.
+    - Passe automatiquement le statut à « contacted ».
+    - BCC vers l'admin pour archivage.
+    """
+    adh = Adhesion.query.get_or_404(adhesion_id)
+
+    try:
+        amount_raw = (request.form.get("amount") or "").strip()
+        amount = int(amount_raw) if amount_raw else ADHESION_TARIF_DEFAUT
+    except (ValueError, TypeError):
+        amount = ADHESION_TARIF_DEFAUT
+    if amount <= 0 or amount > 10000:
+        amount = ADHESION_TARIF_DEFAUT
+
+    now = datetime.utcnow()
+
+    # Génération du numéro si pas déjà présent
+    if not adh.invoice_number:
+        adh.invoice_number = _next_invoice_number(now)
+
+    adh.invoice_amount = amount
+    adh.invoice_sent_at = now
+
+    date_debut = now
+    try:
+        date_fin = now.replace(year=now.year + 1)
+    except ValueError:
+        date_fin = now + timedelta(days=365)
+
+    paypal_email = "jsautrez@yahoo.fr"
+    cgu_url = url_for("cgu", _external=True) if "cgu" in current_app.view_functions else "https://spectacleanimation.fr/cgu"
+
+    html = _build_adhesion_invoice_html(adh, amount, adh.invoice_number, now, date_debut, date_fin, paypal_email, cgu_url)
+
+    # Génération PDF (en pièce jointe) — fallback silencieux si WeasyPrint non dispo
+    pdf_bytes = None
+    try:
+        from weasyprint import HTML  # type: ignore
+        pdf_bytes = HTML(string=html).write_pdf()
+        current_app.logger.info(f"[ADHESION FACTURE] PDF généré ({len(pdf_bytes)} octets)")
+    except Exception as pdf_err:
+        current_app.logger.warning(f"[ADHESION FACTURE] Génération PDF impossible (WeasyPrint) : {pdf_err}")
+
+    admin_addr = current_app.config.get("MAIL_DEFAULT_SENDER") or current_app.config.get("MAIL_USERNAME")
+    try:
+        if hasattr(current_app, "mail") and current_app.mail:
+            msg = MailMessage(
+                subject=f"[Facture {adh.invoice_number}] Abonnement Appels d'offres — Spectacle'ment VØtre",
+                recipients=[adh.email],
+                bcc=[admin_addr] if admin_addr else None,
+            )
+            msg.html = html
+            if pdf_bytes:
+                msg.attach(
+                    filename=f"facture-{adh.invoice_number}.pdf",
+                    content_type="application/pdf",
+                    data=pdf_bytes,
+                )
+            current_app.mail.send(msg)
+            _pdf_info = "(avec PDF joint)" if pdf_bytes else "(sans PDF — HTML uniquement)"
+            current_app.logger.info(f"[ADHESION FACTURE] ✓ Envoyée à {adh.email} (n° {adh.invoice_number}, {amount} €) {_pdf_info}")
+    except Exception as e:
+        current_app.logger.error(f"[ADHESION FACTURE] Envoi email échoué : {e}")
+        flash(f"Erreur d'envoi de l'email : {e}", "danger")
+        db.session.rollback()
+        return redirect(url_for("admin_adhesions"))
+
+    if adh.statut == "pending":
+        adh.statut = "contacted"
+        adh.contacted_at = now
+
+    db.session.commit()
+    flash(f"✓ Facture n° {adh.invoice_number} envoyée à {adh.email} ({amount} €).", "success")
+    return redirect(url_for("admin_adhesions"))
 
 # =====================================================================
 # Phase 5 : Fonctionnalités Avancées

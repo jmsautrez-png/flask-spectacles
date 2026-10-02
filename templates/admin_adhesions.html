@@ -92,6 +92,26 @@
           </td>
           <td style="padding:10px; text-align:center; min-width:180px;">
             <div style="display:flex; flex-direction:column; gap:4px;">
+              <form method="get" action="{{ url_for('admin_adhesion_preview_invoice', adhesion_id=adh.id) }}" style="margin:0; display:flex; gap:4px;">
+                <input type="number" name="amount" value="{{ adh.invoice_amount or 49 }}" min="1" max="10000" step="1"
+                       title="Montant en € (TVA non applicable)"
+                       style="width:55px; padding:4px; border:1px solid #ccc; border-radius:4px; font-size:0.8rem; text-align:center;">
+                <button type="submit" style="flex:1; background:#6a1b9a; color:#fff; padding:5px 8px; border:none; border-radius:5px; font-weight:600; cursor:pointer; font-size:0.8rem;" title="{% if adh.invoice_number %}Réémettre : {{ adh.invoice_number }}{% else %}Prévisualiser et envoyer la facture + lien PayPal{% endif %}">
+                  {% if adh.invoice_number %}👁️ Réémettre{% else %}👁️ Facture + PayPal{% endif %}
+                </button>
+              </form>
+              {% if adh.invoice_number %}
+              <small style="color:#6a1b9a; font-weight:600; font-size:0.72rem;">
+                N° {{ adh.invoice_number }}<br>
+                <span style="color:#999; font-weight:400;">envoyée le {{ adh.invoice_sent_at.strftime('%d/%m à %H:%M') if adh.invoice_sent_at else '—' }}</span>
+              </small>
+              <a href="{{ url_for('admin_adhesion_download_invoice_pdf', adhesion_id=adh.id) }}" target="_blank"
+                 style="background:#546e7a; color:#fff; padding:4px 8px; border-radius:5px; font-weight:600; font-size:0.75rem; text-decoration:none; text-align:center;"
+                 title="Télécharger la facture au format PDF">
+                📄 PDF
+              </a>
+              {% endif %}
+
               {% if adh.statut != 'contacted' %}
               <form method="post" action="{{ url_for('admin_adhesion_statut', adhesion_id=adh.id) }}" style="margin:0;">
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
