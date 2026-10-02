@@ -101,6 +101,10 @@ class User(db.Model):
     subscribed_until = db.Column(db.DateTime, nullable=True, index=True)
     # Nombre d'appels d'offres « cadeau » (bloc `_bloc_cadeau_html`) envoyés à cet utilisateur depuis MODELE_PAYANT_DEBUT.
     cadeaux_offerts_count = db.Column(db.Integer, nullable=False, default=0, server_default="0")
+    # ── Infos légales (privées, usage interne uniquement) : saisie optionnelle qui déclenche l'attribution auto du badge 🛡️ Cie Pro ──
+    siret = db.Column(db.String(14), nullable=True)
+    licence_spectacle = db.Column(db.String(100), nullable=True)
+    pro_verifie_auto_at = db.Column(db.DateTime, nullable=True)  # Date d'attribution auto du badge "pro_verifie"
 
     def set_password(self, password: str):
         self.password_hash = generate_password_hash(password)
@@ -168,6 +172,15 @@ class Show(db.Model):
     labels = db.Column(db.Text, nullable=True, index=True)    # "premium,coup_de_coeur"
     # Niveau d'étoiles « Cie Pro » (0–3), purement visuel — aucun impact sur le matching.
     pro_verifie_niveau = db.Column(db.Integer, nullable=False, default=0, server_default="0")
+
+    # ── Fourchette de prix (privée : sert uniquement au matching, jamais affichée publiquement) ──
+    prix_min = db.Column(db.Integer, nullable=True)  # en euros
+    prix_max = db.Column(db.Integer, nullable=True)  # en euros
+
+    # ── Intervenants / régie technique ──
+    nb_comediens = db.Column(db.Integer, nullable=True)
+    regisseur_son = db.Column(db.Boolean, nullable=False, default=False, server_default="false")
+    regisseur_lumiere = db.Column(db.Boolean, nullable=False, default=False, server_default="false")
 
     # ⬇⬇⬇ Association au propriétaire (compagnie)
     user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=True)

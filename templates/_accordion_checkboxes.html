@@ -487,6 +487,12 @@ var MATCHING_SOLO = [
   "Conteuse Conteur"
 ];
 
+// Valeurs « SELECT ALL » : quand cochée, toutes les autres cases du même champ sont automatiquement cochées.
+// (ex: « Tout terrain » = l'artiste joue partout → coche automatiquement tous les autres lieux)
+var MATCHING_SELECT_ALL = {
+  "lieux_intervention": "Tout terrain"
+};
+
 function _isSoloValue(val) {
   return MATCHING_SOLO.indexOf(val) !== -1;
 }
@@ -506,6 +512,12 @@ function _showSoloMessage(fieldName, msg) {
 }
 
 function checkMatchingLimit(fieldName, cb) {
+  // SELECT ALL : si la case "tout" est cochée, cocher automatiquement toutes les autres du même champ
+  if (cb.checked && MATCHING_SELECT_ALL.hasOwnProperty(fieldName) && MATCHING_SELECT_ALL[fieldName] === cb.value) {
+    document.querySelectorAll('input[name="' + fieldName + '"]').forEach(function(other) {
+      if (other !== cb && !other.checked) other.checked = true;
+    });
+  }
   // Exclusion mutuelle : si on coche une case, on décoche sa paire opposée
   if (cb.checked && MATCHING_EXCLUSIVES.hasOwnProperty(cb.value)) {
     var partner = MATCHING_EXCLUSIVES[cb.value];

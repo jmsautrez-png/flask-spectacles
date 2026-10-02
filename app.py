@@ -1036,6 +1036,13 @@ def _run_critical_migrations(app: Flask) -> None:
         ("shows", "public_sous_options", "TEXT", "TEXT", None),
         ("shows", "labels", "TEXT", "TEXT", None),
         ("shows", "pro_verifie_niveau", "INTEGER DEFAULT 0", "INTEGER DEFAULT 0", "0"),
+        # ── Fourchette prix privée (matching uniquement) ──
+        ("shows", "prix_min", "INTEGER", "INTEGER", None),
+        ("shows", "prix_max", "INTEGER", "INTEGER", None),
+        # ── Intervenants / régie technique ──
+        ("shows", "nb_comediens", "INTEGER", "INTEGER", None),
+        ("shows", "regisseur_son", "BOOLEAN DEFAULT FALSE", "BOOLEAN DEFAULT 0", "FALSE"),
+        ("shows", "regisseur_lumiere", "BOOLEAN DEFAULT FALSE", "BOOLEAN DEFAULT 0", "FALSE"),
         # ── Coord. géographiques (auto-géocodage pour matching sans appel API) ──
         ("shows", "latitude", "DOUBLE PRECISION", "REAL", None),
         ("shows", "longitude", "DOUBLE PRECISION", "REAL", None),
@@ -1063,6 +1070,10 @@ def _run_critical_migrations(app: Flask) -> None:
         ("users", "bloque_appels_offres", "BOOLEAN DEFAULT FALSE", "BOOLEAN DEFAULT 0", "FALSE"),
         ("users", "subscribed_until", "TIMESTAMP", "DATETIME", None),
         ("users", "cadeaux_offerts_count", "INTEGER DEFAULT 0", "INTEGER DEFAULT 0", "0"),
+        # ── Infos légales (privées, auto-attribution Cie Pro) ──
+        ("users", "siret", "VARCHAR(14)", "VARCHAR(14)", None),
+        ("users", "licence_spectacle", "VARCHAR(100)", "VARCHAR(100)", None),
+        ("users", "pro_verifie_auto_at", "TIMESTAMP", "DATETIME", None),
     ]
 
     is_pg = 'postgresql' in str(db.engine.url)
@@ -1911,6 +1922,15 @@ def register_routes(app: Flask) -> None:
                 )
                 user.set_password(password)
                 db.session.add(user)
+                db.session.commit()
+                # Infos légales optionnelles → attribution auto du badge Cie Pro
+                _try_grant_cie_pro(
+                    user,
+                    request.form.get("siret", ""),
+                    request.form.get("licence_spectacle", ""),
+                    context_show=None,
+                    trigger_source="Inscription (/register)",
+                )
                 db.session.commit()
 
                 # Envoi d'un email à l'admin avec le pédigrée du nouvel utilisateur
@@ -3057,6 +3077,164 @@ def register_routes(app: Flask) -> None:
         # Rediriger vers le vrai formulaire de publication
         return redirect(url_for("submit_show"))
 
+    def _parse_prix(raw):
+        """Parse une valeur string → int euros, ou None si vide/invalide/<=0."""
+        if raw is None:
+            return None
+        s = str(raw).strip().replace(" ", "").replace("\u00a0", "")
+        if not s:
+            return None
+        try:
+            v = int(float(s))
+        except (ValueError, TypeError):
+            return None
+        return v if 0 < v <= 99999 else None
+
+    def _clean_siret(raw):
+        """Garde uniquement les chiffres."""
+        if not raw:
+            return ""
+        return "".join(ch for ch in str(raw) if ch.isdigit())
+
+    def _siret_luhn_ok(siret: str) -> bool:
+        """Valide un SIRET : 14 chiffres + algorithme de Luhn.
+
+        Luhn SIRET : on double les chiffres aux positions paires depuis la droite
+        (indices pairs 0, 2, 4, …, 12 pour un SIRET de 14 chiffres).
+        """
+        if not siret or len(siret) != 14 or not siret.isdigit():
+            return False
+        total = 0
+        for i, ch in enumerate(siret):
+            n = int(ch)
+            if i % 2 == 0:
+                n *= 2
+                if n > 9:
+                    n -= 9
+            total += n
+        return total % 10 == 0
+
+    def _verify_siret_insee(siret: str):
+        """Vérifie un SIRET via recherche-entreprises.api.gouv.fr (gratuit, public).
+
+        Retourne un dict {nom_entreprise, etat} si trouvé et actif, sinon None.
+        Timeout court pour ne jamais bloquer la soumission.
+        """
+        try:
+            import requests as _rq
+            r = _rq.get(
+                "https://recherche-entreprises.api.gouv.fr/search",
+                params={"q": siret, "page": 1, "per_page": 1},
+                timeout=4,
+            )
+            if not r.ok:
+                return None
+            data = r.json()
+            for res in data.get("results", []) or []:
+                siege = res.get("siege") or {}
+                if siege.get("siret") == siret:
+                    return {"nom_entreprise": res.get("nom_complet") or res.get("nom_raison_sociale"),
+                            "etat": siege.get("etat_administratif")}
+                for etab in res.get("matching_etablissements", []) or []:
+                    if etab.get("siret") == siret:
+                        return {"nom_entreprise": res.get("nom_complet") or res.get("nom_raison_sociale"),
+                                "etat": etab.get("etat_administratif")}
+            return None
+        except Exception as e:
+            current_app.logger.warning(f"[SIRET] vérification INSEE échouée : {e}")
+            return None
+
+    def _labels_set(csv):
+        return {l.strip() for l in (csv or "").split(",") if l.strip()}
+
+    def _try_grant_cie_pro(user, siret_raw, licence_raw, context_show=None, trigger_source=""):
+        """Tente l'attribution automatique du badge « pro_verifie » à partir du SIRET + licence.
+
+        Effets de bord :
+          - sauvegarde SIRET et licence sur `user` (si format valide pour le SIRET)
+          - initialise `user.pro_verifie_auto_at` (une seule fois)
+          - propage le label `pro_verifie` sur TOUS les spectacles existants du user
+            (première attribution uniquement)
+          - ajoute le label `pro_verifie` au `context_show` fourni (nouveau spectacle)
+          - envoie un email de contrôle à l'admin (première attribution uniquement)
+
+        Retourne un dict : {granted, newly_granted, siret_clean, licence_clean, insee_info}
+        """
+        siret_clean = _clean_siret(siret_raw)
+        licence_clean = (licence_raw or "").strip()[:100]
+        insee_info = None
+        granted = False
+        was_already_granted = bool(user and getattr(user, "pro_verifie_auto_at", None))
+
+        if siret_clean and licence_clean and _siret_luhn_ok(siret_clean):
+            insee_info = _verify_siret_insee(siret_clean)
+            if insee_info is None or insee_info.get("etat") in (None, "A", "Actif"):
+                granted = True
+
+        if user:
+            if siret_clean and _siret_luhn_ok(siret_clean):
+                user.siret = siret_clean
+            if licence_clean:
+                user.licence_spectacle = licence_clean
+            if granted and not user.pro_verifie_auto_at:
+                user.pro_verifie_auto_at = datetime.utcnow()
+                # Propage le label aux spectacles déjà publiés par ce user
+                for s in Show.query.filter_by(user_id=user.id).all():
+                    labels = _labels_set(s.labels)
+                    if "pro_verifie" not in labels:
+                        labels.add("pro_verifie")
+                        s.labels = ",".join(sorted(labels))
+
+        if granted and context_show is not None:
+            labels = _labels_set(context_show.labels)
+            if "pro_verifie" not in labels:
+                labels.add("pro_verifie")
+                context_show.labels = ",".join(sorted(labels))
+
+        newly_granted = granted and not was_already_granted
+
+        if newly_granted and getattr(current_app, "mail", None) and current_app.config.get("MAIL_USERNAME"):
+            try:
+                _admin_addr = current_app.config.get("MAIL_DEFAULT_SENDER") or current_app.config.get("MAIL_USERNAME")
+                _nom_insee = (insee_info or {}).get("nom_entreprise") or "— (API INSEE non confirmée)"
+                _etat_insee = (insee_info or {}).get("etat") or "— (non vérifié)"
+                _ctx_line = (f"<tr><td style='padding:6px 0; color:#666;'>Spectacle concerné</td><td style='padding:6px 0;'>{context_show.title} (ID #{context_show.id})</td></tr>" if context_show else "<tr><td style='padding:6px 0; color:#666;'>Source</td><td style='padding:6px 0;'>Profil utilisateur (aucun spectacle associé)</td></tr>")
+                _src_line = f"<tr><td style='padding:6px 0; color:#666;'>Déclenché depuis</td><td style='padding:6px 0;'>{trigger_source or '—'}</td></tr>" if trigger_source else ""
+                _notif_html = f"""<!DOCTYPE html>
+<html lang=\"fr\"><head><meta charset=\"UTF-8\"></head>
+<body style=\"font-family:Arial,sans-serif; color:#333; max-width:600px; margin:0 auto;\">
+  <div style=\"background:#1b5e20; padding:16px; text-align:center; border-radius:8px 8px 0 0;\">
+    <h2 style=\"color:#fff; margin:0;\">🛡️ Badge Cie Pro auto-attribué</h2>
+    <p style=\"color:rgba(255,255,255,0.9); margin:6px 0 0 0; font-size:0.9rem;\">Contrôle à effectuer a posteriori</p>
+  </div>
+  <div style=\"background:#f9f9f9; padding:20px; border:1px solid #e0e0e0; border-radius:0 0 8px 8px;\">
+    <table style=\"width:100%; border-collapse:collapse;\">
+      <tr><td style=\"padding:6px 0; color:#666; width:160px;\">Compagnie</td><td style=\"padding:6px 0;\"><strong>{(user.raison_sociale if user else '') or (user.username if user else '—')}</strong></td></tr>
+      <tr><td style=\"padding:6px 0; color:#666;\">Utilisateur</td><td style=\"padding:6px 0;\">{user.username if user else '—'} · {user.email if user else '—'}</td></tr>
+      <tr><td style=\"padding:6px 0; color:#666;\">SIRET</td><td style=\"padding:6px 0; font-family:monospace;\">{siret_clean}</td></tr>
+      <tr><td style=\"padding:6px 0; color:#666;\">Nom entreprise (INSEE)</td><td style=\"padding:6px 0;\">{_nom_insee}</td></tr>
+      <tr><td style=\"padding:6px 0; color:#666;\">État administratif (INSEE)</td><td style=\"padding:6px 0;\">{_etat_insee}</td></tr>
+      <tr><td style=\"padding:6px 0; color:#666;\">N° Licence spectacle</td><td style=\"padding:6px 0; font-family:monospace;\">{licence_clean}</td></tr>
+      {_ctx_line}
+      {_src_line}
+    </table>
+    <p style=\"margin:16px 0 0 0; font-size:0.85rem; color:#777;\">
+      Si les infos ne sont pas conformes, retirer le label <code>pro_verifie</code> depuis l'admin du spectacle ou de la compagnie.
+    </p>
+  </div>
+</body></html>"""
+                _notif_msg = MailMessage(subject=f"🛡️ Cie Pro auto-attribué — {(user.raison_sociale if user else '') or (user.username if user else '')}",
+                                         recipients=[_admin_addr])
+                _notif_msg.html = _notif_html
+                current_app.mail.send(_notif_msg)
+                current_app.logger.info(f"[CIE PRO AUTO] ✓ Email contrôle envoyé (SIRET {siret_clean}, user={user.id if user else '?'}, source={trigger_source})")
+            except Exception as _e:
+                current_app.logger.warning(f"[CIE PRO AUTO] email contrôle échoué : {_e}")
+
+        return {"granted": granted, "newly_granted": newly_granted,
+                "siret_clean": siret_clean, "licence_clean": licence_clean,
+                "insee_info": insee_info}
+
     @app.route("/submit", methods=["GET", "POST"])
     @login_required
     def submit_show():
@@ -3213,8 +3391,19 @@ def register_routes(app: Flask) -> None:
                 regions_intervention=",".join(regions_list) if regions_list else None,
                 public_categories=",".join(public_categories_list) if public_categories_list else None,
                 public_sous_options=",".join(public_sous_options_list) if public_sous_options_list else None,
+                prix_min=_parse_prix(request.form.get("prix_min")),
+                prix_max=_parse_prix(request.form.get("prix_max")),
             )
             db.session.add(show)
+            db.session.flush()  # obtenir show.id pour le helper
+            # Tentative d'attribution auto du badge Cie Pro (SIRET + licence)
+            _try_grant_cie_pro(
+                current_user(),
+                request.form.get("siret", ""),
+                request.form.get("licence_spectacle", ""),
+                context_show=show,
+                trigger_source="Publication spectacle (/submit)",
+            )
             db.session.commit()
 
             if getattr(current_app, "mail", None) and current_app.config.get("MAIL_USERNAME") and current_app.config.get("MAIL_PASSWORD"):
@@ -4424,6 +4613,14 @@ def register_routes(app: Flask) -> None:
             user.email = email or None
             user.telephone = telephone or None
             user.site_internet = site_internet or None
+            # Infos légales + attribution auto badge Cie Pro
+            _try_grant_cie_pro(
+                user,
+                request.form.get("siret", ""),
+                request.form.get("licence_spectacle", ""),
+                context_show=None,
+                trigger_source="Profil utilisateur (/profil)",
+            )
             db.session.commit()
 
             # Mettre à jour la session pour que la déconnexion ne se déclenche pas
@@ -4887,6 +5084,30 @@ def register_routes(app: Flask) -> None:
             # la valeur existante est préservée (encore utilisée par le SEO/catalogue).
             show.lieux_intervention = ",".join(request.form.getlist("lieux_intervention"))
             show.regions_intervention = ",".join(request.form.getlist("regions_intervention"))
+            # Fourchette prix privée (matching uniquement)
+            show.prix_min = _parse_prix(request.form.get("prix_min"))
+            show.prix_max = _parse_prix(request.form.get("prix_max"))
+            # Intervenants / régie technique
+            _nbc_raw = (request.form.get("nb_comediens") or "").strip()
+            try:
+                _nbc = int(_nbc_raw) if _nbc_raw else None
+                show.nb_comediens = _nbc if _nbc and 1 <= _nbc <= 15 else None
+            except (ValueError, TypeError):
+                show.nb_comediens = None
+            if show.nb_comediens is None:
+                flash("Veuillez indiquer le nombre d'intervenants pour votre spectacle.", "danger")
+                return redirect(request.url)
+            show.regisseur_son = request.form.get("regisseur_son") == "1"
+            show.regisseur_lumiere = request.form.get("regisseur_lumiere") == "1"
+            # Infos légales + attribution auto badge Cie Pro (sauvegarde sur le user)
+            if show.user:
+                _try_grant_cie_pro(
+                    show.user,
+                    request.form.get("siret", ""),
+                    request.form.get("licence_spectacle", ""),
+                    context_show=show,
+                    trigger_source=f"Édition spectacle (/admin/shows/{show.id}/edit)",
+                )
             _pc_cats = request.form.getlist("public_categories")
             _pc_subs = request.form.getlist("public_sous_options")
             # Appliquer single_select : pour chaque catégorie marquée single_select,

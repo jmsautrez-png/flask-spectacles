@@ -154,6 +154,77 @@ def _age_score(show_age_raw, dem_age_raw):
     return True, 0.0
 
 
+# ───────────────────────────────────────────────────────────────────
+# Budget / Prix (option D : privé, matching uniquement)
+# ───────────────────────────────────────────────────────────────────
+# Formats de budget côté demande gérés :
+#   "À partir de 300 € — Ateliers divers, ..."       → (300, 300)
+#   "730 à 930 € — Artiste / spectacle local (...)"  → (730, 930)
+#   "Plus de 5000 € — Événement d'envergure"         → (5000, 999999)
+#   "930 à 1200 € — Spectacle standard"              → (930, 1200)
+_NUM_RE = re.compile(r"(\d[\d\s]*)")
+
+
+def _parse_budget(budget_str):
+    """Retourne (min, max) en euros ou (None, None) si inparsable."""
+    if not budget_str:
+        return (None, None)
+    s = budget_str.strip().lower()
+    nums = [int(m.group(1).replace(" ", "")) for m in _NUM_RE.finditer(s)]
+    if not nums:
+        return (None, None)
+    if "à partir de" in s or "a partir de" in s:
+        return (nums[0], nums[0])
+    if "plus de" in s:
+        return (nums[0], 999_999)
+    if " à " in s or " a " in s:
+        if len(nums) >= 2:
+            return (nums[0], nums[1])
+        return (nums[0], nums[0])
+    return (nums[0], nums[-1] if len(nums) > 1 else nums[0])
+
+
+def _budget_compat(show, demande):
+    """Évalue la compatibilité budgétaire entre un spectacle et une demande.
+
+    Retourne un dict :
+        {'evaluable': bool, 'compatible': bool|None, 'show_min': int|None,
+         'show_max': int|None, 'dem_min': int|None, 'dem_max': int|None}
+
+    - evaluable=False  →  prix du show non renseigné OU budget demande inparsable
+    - compatible=True  →  l'artiste peut proposer dans le budget de la demande
+    - compatible=False →  l'artiste refuse en-dessous du plafond demandé
+
+    Modes :
+    - « À partir de » (prix_min seul renseigné, cas moderne) :
+        compatible si prix_min ≤ budget_max_demande
+    - Fourchette (prix_min + prix_max, données historiques) :
+        compatible si chevauchement des intervalles [prix_min, prix_max] ∩ [dem_min, dem_max]
+    """
+    s_min = getattr(show, "prix_min", None)
+    s_max = getattr(show, "prix_max", None)
+    if s_min is None and s_max is None:
+        return {"evaluable": False, "compatible": None,
+                "show_min": None, "show_max": None, "dem_min": None, "dem_max": None}
+    # Fallback : si seul prix_max est renseigné, l'utiliser aussi comme plancher
+    if s_min is None:
+        s_min = s_max
+
+    d_min, d_max = _parse_budget(getattr(demande, "budget", None))
+    if d_min is None:
+        return {"evaluable": False, "compatible": None,
+                "show_min": s_min, "show_max": s_max, "dem_min": None, "dem_max": None}
+
+    if s_max is None or s_max == s_min:
+        # Mode « À partir de X € » : compatible si l'artiste peut rentrer dans le plafond
+        compatible = s_min <= d_max
+    else:
+        # Mode fourchette (compatibilité descendante avec les anciennes données) : chevauchement
+        compatible = (s_min <= d_max) and (s_max >= d_min)
+    return {"evaluable": True, "compatible": compatible,
+            "show_min": s_min, "show_max": s_max, "dem_min": d_min, "dem_max": d_max}
+
+
 def _csv_to_set(value):
     """Convert a CSV string (or None) to a set of stripped, lower-cased, non-empty values."""
     if not value:
@@ -480,6 +551,7 @@ def compute_score(show, demande):
         "region_compatible": region_compatible,
         "matching_specs": show_specs & dem_specs,
         "matching_lieux": show_lieux & dem_lieux,
+        "budget": _budget_compat(show, demande),
     }
 
 
@@ -489,6 +561,8 @@ def find_matching_shows(demande, all_shows, min_score=1):
     Only shows with total >= min_score are included.
     If the demande specifies specialites, shows with 0% specialites match
     are excluded (they matched only on generic criteria like events/lieux).
+    Budget-incompatible shows are kept but ranked at the bottom
+    (option B : affichés en bas avec badge « Budget supérieur »).
     """
     dem_specs = _csv_to_set(demande.specialites_recherchees)
     results = []
@@ -510,5 +584,13 @@ def find_matching_shows(demande, all_shows, min_score=1):
             if dem_specs and score["specialites"] == 0:
                 continue
             results.append((show, score))
-    results.sort(key=lambda x: x[1]["total"], reverse=True)
+    # Tri : d'abord compatibles budget (ou non évaluables = inconnus = traités comme neutres),
+    # puis hors-budget en bas. Au sein de chaque groupe, tri par score desc.
+    def _sort_key(item):
+        _show, _score = item
+        _bud = _score.get("budget") or {}
+        # Priorité 0 = compatible/inconnu (afficher en haut), 1 = hors budget (en bas)
+        _priority = 1 if (_bud.get("evaluable") and _bud.get("compatible") is False) else 0
+        return (_priority, -_score["total"])
+    results.sort(key=_sort_key)
     return results

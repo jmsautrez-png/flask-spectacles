@@ -76,9 +76,9 @@
 
       <div>
         <label>
-          <span class="label-text">Raison sociale <span class="req">*</span></span>
-          <input type="text" name="raison_sociale" placeholder="Nom de votre compagnie" value="{{ user.raison_sociale if user and user.raison_sociale else (user.username if user else '') }}" required>
-          <span class="hint">Nom de votre compagnie ou structure (vous pouvez le modifier pour gérer plusieurs compagnies)</span>
+          <span class="label-text">Raison sociale, nom d'artiste ou de votre compagnie <span class="req">*</span></span>
+          <input type="text" name="raison_sociale" placeholder="Nom d'artiste ou de votre compagnie" value="{{ user.raison_sociale if user and user.raison_sociale else (user.username if user else '') }}" required>
+          <span class="hint">Nom d'artiste, de votre compagnie ou structure (vous pouvez le modifier pour gérer plusieurs compagnies)</span>
         </label>
       </div>
 
@@ -98,6 +98,38 @@
           </label>
         </div>
       </div>
+
+      <div style="background:rgba(76,175,80,0.08); border:1px solid rgba(76,175,80,0.35); border-radius:10px; padding:14px 16px; margin:14px 0 0 0;">
+        <div style="display:flex; align-items:center; gap:8px; margin-bottom:8px; flex-wrap:wrap;">
+          <strong style="color:#81c784; font-size:0.95rem;">🛡️ Informations légales — Badge Cie Pro automatique</strong>
+          <span style="background:#2e7d32; color:#fff; font-size:0.72rem; padding:2px 8px; border-radius:10px; font-weight:700;">🔒 CONFIDENTIEL</span>
+          <span style="background:#000; color:#fff; font-size:0.72rem; padding:2px 8px; border-radius:10px; font-weight:700;">OPTIONNEL</span>
+        </div>
+        <p style="color:#ccc; font-size:0.82rem; margin:0 0 10px 0; line-height:1.5;">
+          <strong style="color:#4caf50;">✔ Usage interne uniquement</strong> — ces informations ne sont <strong>jamais affichées publiquement</strong>. Elles servent uniquement à vous attribuer automatiquement le badge <strong>🛡️ Cie Pro</strong> sur votre spectacle (gage de professionnalisme auprès des organisateurs).
+          <br><strong style="color:#ffc107;">⚠ Optionnel</strong> — si vous renseignez un <strong>SIRET valide</strong> et un <strong>numéro de licence spectacle</strong>, le badge <strong>🛡️ Cie Pro</strong> vous est <strong>attribué automatiquement</strong>. Notre équipe est notifiée pour contrôle a posteriori.
+        </p>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+          <label>
+            <span class="label-text" style="font-size:0.88rem;">N° SIRET (14 chiffres)</span>
+            <input type="text" name="siret" maxlength="17" inputmode="numeric"
+                   placeholder="Ex : 123 456 789 00012"
+                   value="{{ request.form.get('siret', user.siret if user and user.siret else '') }}"
+                   pattern="[\d\s]{14,17}">
+          </label>
+          <label>
+            <span class="label-text" style="font-size:0.88rem;">N° Licence spectacle</span>
+            <input type="text" name="licence_spectacle" maxlength="80"
+                   placeholder="Ex : PLATESV-R-2023-012345"
+                   value="{{ request.form.get('licence_spectacle', user.licence_spectacle if user and user.licence_spectacle else '') }}">
+          </label>
+        </div>
+        {% if user and user.pro_verifie_auto_at %}
+        <p style="margin:10px 0 0 0; color:#81c784; font-size:0.82rem;">
+          ✅ Badge <strong>🛡️ Cie Pro</strong> déjà attribué automatiquement le {{ user.pro_verifie_auto_at.strftime('%d/%m/%Y') }}.
+        </p>
+        {% endif %}
+      </div>
     </fieldset>
 
     <!-- SECTION: Détails du spectacle -->
@@ -108,6 +140,25 @@
           <span class="label-text">Titre du spectacle <span class="req">*</span></span>
           <input type="text" name="title" placeholder="Ex: La magie des 4 éléments" required>
         </label>
+      </div>
+      <div style="background:rgba(255,193,7,0.08); border:1px solid rgba(255,193,7,0.35); border-radius:10px; padding:12px 16px; margin:10px 0;">
+        <div style="display:flex; align-items:center; gap:8px; margin-bottom:8px;">
+          <strong style="color:#ffc107; font-size:0.95rem;">💶 Prix minimum de votre spectacle (« à partir de »)</strong>
+          <span style="background:#2e7d32; color:#fff; font-size:0.72rem; padding:2px 8px; border-radius:10px; font-weight:700;">🔒 CONFIDENTIEL</span>
+          <span style="background:#000; color:#fff; font-size:0.72rem; padding:2px 8px; border-radius:10px; font-weight:700;">OPTIONNEL</span>
+        </div>
+        <p style="color:#ccc; font-size:0.82rem; margin:0 0 8px 0; line-height:1.5;">
+          <strong style="color:#4caf50;">✔ Garantie de confidentialité</strong> — ce montant n'est <strong>jamais affiché publiquement</strong> (ni sur la fiche spectacle, ni dans le catalogue, ni sur Google, ni communiqué aux autres compagnies).
+          <br>Il sert <strong>uniquement en interne</strong> à l'algorithme de matching pour prioriser les appels d'offres compatibles avec votre tarif plancher.
+          <br><strong style="color:#ffc107;">⚠ Optionnel mais fortement conseillé</strong> — renseigner votre prix minimum évite les demandes hors budget et vous fait <strong>gagner du temps</strong> (moins d'allers-retours inutiles avec les organisateurs).
+        </p>
+        <div style="max-width:280px;">
+          <label>
+            <span class="label-text" style="font-size:0.88rem;">Prix minimum (€)</span>
+            <input type="number" name="prix_min" min="0" max="99999" step="10"
+                   placeholder="Ex : 800" value="{{ request.form.get('prix_min','') }}">
+          </label>
+        </div>
       </div>
       <div>
         <label>

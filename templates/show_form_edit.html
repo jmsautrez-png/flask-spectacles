@@ -103,6 +103,34 @@
         <a href="{{ show.user.site_internet }}" target="_blank" rel="noopener" style="color:#4caf50;">{{ show.user.site_internet }}</a>
       {% else %}-{% endif %}
     </div>
+
+    <div style="grid-column: 1 / -1; margin-top:6px; padding:10px 12px; background:rgba(76,175,80,0.08); border:1px solid rgba(76,175,80,0.30); border-radius:8px;">
+      <div style="font-weight:700; color:#81c784; margin-bottom:8px; font-size:0.92rem;">🛡️ Infos légales compagnie</div>
+      <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap:10px;">
+        <div><strong style="color:#ffc107;">SIRET :</strong> <span style="font-family:monospace;">{{ show.user.siret or '—' }}</span></div>
+        <div><strong style="color:#ffc107;">Licence spectacle :</strong> <span style="font-family:monospace;">{{ show.user.licence_spectacle or '—' }}</span></div>
+        {% if show.user.pro_verifie_auto_at %}
+        <div style="grid-column: 1 / -1; color:#81c784;">
+          ✅ Badge <strong>🛡️ Cie Pro</strong> auto-attribué le {{ show.user.pro_verifie_auto_at.strftime('%d/%m/%Y') }}
+        </div>
+        {% endif %}
+      </div>
+    </div>
+
+    <div style="grid-column: 1 / -1; margin-top:4px; padding:10px 12px; background:rgba(103,58,183,0.10); border:1px solid rgba(103,58,183,0.35); border-radius:8px;">
+      <div style="font-weight:700; color:#b39ddb; margin-bottom:8px; font-size:0.92rem;">🎭 Fiche technique du spectacle</div>
+      <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap:10px;">
+        <div><strong style="color:#ffc107;">Nombre d'intervenants :</strong>
+          {% if show.nb_comediens %}{{ show.nb_comediens }}{% if show.nb_comediens >= 15 %} ou plus{% endif %}{% else %}—{% endif %}
+        </div>
+        <div><strong style="color:#ffc107;">Régisseur son :</strong>
+          {% if show.regisseur_son %}<span style="color:#81c784;">✅ requis</span>{% else %}<span style="color:#888;">non</span>{% endif %}
+        </div>
+        <div><strong style="color:#ffc107;">Régisseur lumière :</strong>
+          {% if show.regisseur_lumiere %}<span style="color:#81c784;">✅ requis</span>{% else %}<span style="color:#888;">non</span>{% endif %}
+        </div>
+      </div>
+    </div>
     {% if user and user.is_admin %}
     <div style="grid-column: 1 / -1; margin-top:10px; padding-top:12px; border-top:1px dashed rgba(255,255,255,0.15);">
       <form method="post" action="{{ url_for('admin_update_user_localisation', user_id=show.user.id) }}"
@@ -166,14 +194,14 @@
 
 <form method="post" enctype="multipart/form-data" class="form">
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-  <label>Raison sociale
-    <input type="text" name="raison_sociale" value="{{ show.raison_sociale or (show.user.raison_sociale if show and show.user and show.user.raison_sociale else '') }}">
+  <label>Raison sociale, votre nom d'artiste ou de compagnie
+    <input type="text" name="raison_sociale" placeholder="Nom d'artiste ou de votre compagnie" value="{{ show.raison_sociale or (show.user.raison_sociale if show and show.user and show.user.raison_sociale else '') }}">
   </label>
 
   <label>Titre
     <input type="text" name="title" value="{{ show.title }}" required>
   </label>
-  
+
   <label>Description (max 300 mots)
     <div style="background:rgba(255,193,7,0.10); border:1px solid rgba(255,193,7,0.45); border-radius:10px; padding:10px 14px; margin:6px 0 10px 0;">
       <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap;">
@@ -286,6 +314,56 @@
   <label>Téléphone de contact
     <input type="tel" name="contact_phone" value="{{ show.contact_phone if show and show.contact_phone else (show.user.telephone if show and show.user and show.user.telephone else '') }}" placeholder="06 12 34 56 78">
   </label>
+
+  <div style="background:rgba(255,193,7,0.08); border:1px solid rgba(255,193,7,0.35); border-radius:10px; padding:12px 16px; margin:12px 0;">
+    <div style="display:flex; align-items:center; gap:8px; margin-bottom:8px;">
+      <strong style="color:#ffc107; font-size:0.95rem;">💶 Prix minimum de votre spectacle (« à partir de »)</strong>
+      <span style="background:#2e7d32; color:#fff; font-size:0.72rem; padding:2px 8px; border-radius:10px; font-weight:700;">🔒 CONFIDENTIEL</span>
+      <span style="background:#000; color:#fff; font-size:0.72rem; padding:2px 8px; border-radius:10px; font-weight:700;">OPTIONNEL</span>
+    </div>
+    <p style="color:#ccc; font-size:0.82rem; margin:0 0 8px 0; line-height:1.5;">
+      <strong style="color:#4caf50;">✔ Garantie de confidentialité</strong> — ce montant n'est <strong>jamais affiché publiquement</strong> (ni sur la fiche spectacle, ni dans le catalogue, ni sur Google, ni communiqué aux autres compagnies).
+      <br>Il sert <strong>uniquement en interne</strong> à l'algorithme de matching pour prioriser les appels d'offres compatibles avec votre tarif plancher.
+      <br><strong style="color:#ffc107;">⚠ Optionnel mais fortement conseillé</strong> — renseigner votre prix minimum évite les demandes hors budget et vous fait <strong>gagner du temps</strong> (moins d'allers-retours inutiles avec les organisateurs).
+    </p>
+    <div style="max-width:280px;">
+      <label style="margin:0;">
+        <span style="display:block; font-size:0.88rem; color:#fff; margin-bottom:4px;">Prix minimum (€)</span>
+        <input type="number" name="prix_min" min="0" max="99999" step="10"
+               placeholder="Ex : 800" value="{{ show.prix_min if show.prix_min is not none else '' }}">
+      </label>
+    </div>
+  </div>
+
+  <div style="background:rgba(76,175,80,0.08); border:1px solid rgba(76,175,80,0.35); border-radius:10px; padding:12px 16px; margin:12px 0;">
+    <div style="display:flex; align-items:center; gap:8px; margin-bottom:8px; flex-wrap:wrap;">
+      <strong style="color:#81c784; font-size:0.95rem;">🛡️ Informations légales — Badge Cie Pro automatique</strong>
+      <span style="background:#2e7d32; color:#fff; font-size:0.72rem; padding:2px 8px; border-radius:10px; font-weight:700;">🔒 CONFIDENTIEL</span>
+      <span style="background:#000; color:#fff; font-size:0.72rem; padding:2px 8px; border-radius:10px; font-weight:700;">OPTIONNEL</span>
+    </div>
+    <p style="color:#ccc; font-size:0.82rem; margin:0 0 10px 0; line-height:1.5;">
+      <strong style="color:#4caf50;">✔ Usage interne uniquement</strong> — jamais affiché publiquement. Un <strong>SIRET valide</strong> + une <strong>licence spectacle</strong> déclenchent l'attribution automatique du badge <strong>🛡️ Cie Pro</strong>.
+    </p>
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+      <label style="margin:0;">
+        <span style="display:block; font-size:0.88rem; color:#fff; margin-bottom:4px;">N° SIRET (14 chiffres)</span>
+        <input type="text" name="siret" maxlength="17" inputmode="numeric"
+               placeholder="Ex : 180 020 026 00019"
+               value="{{ (show.user.siret if show.user and show.user.siret else '') }}">
+      </label>
+      <label style="margin:0;">
+        <span style="display:block; font-size:0.88rem; color:#fff; margin-bottom:4px;">N° Licence spectacle</span>
+        <input type="text" name="licence_spectacle" maxlength="80"
+               placeholder="Ex : PLATESV-R-2023-012345"
+               value="{{ (show.user.licence_spectacle if show.user and show.user.licence_spectacle else '') }}">
+      </label>
+    </div>
+    {% if show.user and show.user.pro_verifie_auto_at %}
+    <p style="margin:10px 0 0 0; color:#81c784; font-size:0.82rem;">
+      ✅ Badge <strong>🛡️ Cie Pro</strong> déjà attribué automatiquement le {{ show.user.pro_verifie_auto_at.strftime('%d/%m/%Y') }}.
+    </p>
+    {% endif %}
+  </div>
 
   {% if user and user.is_admin %}
   <div style="background:linear-gradient(135deg,#e91e63 0%,#9c27b0 100%);border-radius:12px;padding:16px;margin:16px 0;box-shadow:0 4px 15px rgba(233,30,99,0.3);">
@@ -509,6 +587,32 @@
 
     <div id="specialites-error" style="display:none; color:#ff1744; font-weight:600; margin:0 0 4px 8px; font-size:0.95em;">⚠️ Veuillez cocher au moins une spécialité artistique.</div>
     {{ accordion_checkboxes("specialites", specialites_data, current_specialites, "", "Vos spécialités artistiques", "#6a1b9a", "", "#fff", 5) }}
+
+    <div style="background:rgba(103,58,183,0.10); border:1px solid rgba(103,58,183,0.40); border-radius:10px; padding:14px 16px; margin:14px 0;">
+      <strong style="color:#b39ddb; font-size:0.95rem; display:block; margin-bottom:10px;">Nombre d'intervenants pour votre spectacle <span style="color:#ff6b6b;">*</span></strong>
+      <div style="display:grid; grid-template-columns:220px 1fr; gap:16px; align-items:end;">
+        <label style="margin:0;">
+          <span style="display:block; font-size:0.88rem; color:#fff; margin-bottom:4px;">Nombre de comédiens / artistes <span style="color:#ff6b6b;">*</span></span>
+          <select name="nb_comediens" required style="width:100%;">
+            <option value="">— à préciser —</option>
+            {% set _nb = show.nb_comediens %}
+            {% for i in range(1, 16) %}
+              <option value="{{ i }}" {% if _nb == i %}selected{% endif %}>{{ i }}{% if i == 15 %} ou plus{% endif %}</option>
+            {% endfor %}
+          </select>
+        </label>
+        <div style="display:flex; flex-wrap:wrap; gap:14px; align-items:center;">
+          <label style="display:inline-flex; align-items:center; gap:8px; cursor:pointer; margin:0; background:rgba(255,255,255,0.06); padding:8px 14px; border-radius:8px; border:1px solid rgba(255,255,255,0.15);">
+            <input type="checkbox" name="regisseur_son" value="1" {% if show.regisseur_son %}checked{% endif %} style="width:18px; height:18px; accent-color:#b39ddb; cursor:pointer;">
+            <span style="color:#fff; font-size:0.9rem;">Régisseur son</span>
+          </label>
+          <label style="display:inline-flex; align-items:center; gap:8px; cursor:pointer; margin:0; background:rgba(255,255,255,0.06); padding:8px 14px; border-radius:8px; border:1px solid rgba(255,255,255,0.15);">
+            <input type="checkbox" name="regisseur_lumiere" value="1" {% if show.regisseur_lumiere %}checked{% endif %} style="width:18px; height:18px; accent-color:#b39ddb; cursor:pointer;">
+            <span style="color:#fff; font-size:0.9rem;">Régisseur lumière</span>
+          </label>
+        </div>
+      </div>
+    </div>
 
     <div id="lieux-warning" style="display:none; color:#ffb347; font-weight:500; margin:0 0 4px 8px; font-size:0.9em;">💡 Aucun type de lieu sélectionné — votre annonce sera moins visible dans les recherches.</div>
     {{ accordion_checkboxes("lieux_intervention", lieux_data, current_lieux, "", "Types de lieux où vous pouvez jouer", "#2e7d32", "Dans quels types de lieux pouvez-vous vous produire ?", "#fff", open_by_default=True) }}

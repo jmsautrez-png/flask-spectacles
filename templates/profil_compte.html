@@ -51,6 +51,37 @@
              style="width:100%;">
     </label>
 
+    <div style="background:rgba(76,175,80,0.08); border:1px solid rgba(76,175,80,0.35); border-radius:10px; padding:14px 16px; margin:14px 0;">
+      <div style="display:flex; align-items:center; gap:8px; margin-bottom:8px; flex-wrap:wrap;">
+        <strong style="color:#81c784; font-size:0.95rem;">🛡️ Informations légales — Badge Cie Pro automatique</strong>
+        <span style="background:#2e7d32; color:#fff; font-size:0.72rem; padding:2px 8px; border-radius:10px; font-weight:700;">🔒 CONFIDENTIEL</span>
+        <span style="background:#000; color:#fff; font-size:0.72rem; padding:2px 8px; border-radius:10px; font-weight:700;">OPTIONNEL</span>
+      </div>
+      <p style="color:#bbdefb; font-size:0.84rem; margin:0 0 10px 0; line-height:1.5;">
+        <strong style="color:#4caf50;">✔ Usage interne uniquement</strong> — jamais affiché publiquement.
+        <br>Si vous renseignez un <strong>SIRET valide</strong> et une <strong>licence spectacle</strong>, le badge <strong>🛡️ Cie Pro</strong> est <strong>auto-attribué</strong> à tous vos spectacles.
+      </p>
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+        <label style="margin:0;">
+          <span style="display:block; font-size:0.85rem; color:#fff; margin-bottom:4px;">N° SIRET (14 chiffres)</span>
+          <input type="text" name="siret" maxlength="17" inputmode="numeric"
+                 placeholder="Ex : 180 020 026 00019"
+                 value="{{ user.siret or '' }}" style="width:100%;">
+        </label>
+        <label style="margin:0;">
+          <span style="display:block; font-size:0.85rem; color:#fff; margin-bottom:4px;">N° Licence spectacle</span>
+          <input type="text" name="licence_spectacle" maxlength="80"
+                 placeholder="Ex : PLATESV-R-2023-012345"
+                 value="{{ user.licence_spectacle or '' }}" style="width:100%;">
+        </label>
+      </div>
+      {% if user.pro_verifie_auto_at %}
+      <p style="margin:10px 0 0 0; color:#81c784; font-size:0.82rem;">
+        ✅ Badge <strong>🛡️ Cie Pro</strong> déjà attribué automatiquement le {{ user.pro_verifie_auto_at.strftime('%d/%m/%Y') }}.
+      </p>
+      {% endif %}
+    </div>
+
     <div style="background:rgba(25,118,210,0.12); border:1px solid rgba(25,118,210,0.4); border-radius:8px; padding:12px 14px; margin-bottom:14px; font-size:0.88rem; color:#bbdefb;">
       💡 Pour modifier votre <strong>localisation</strong> (code postal, ville, région),
       utilisez la page <a href="{{ url_for('profil_localisation') }}" style="color:#64b5f6;">Ma localisation</a>.
