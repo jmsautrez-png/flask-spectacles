@@ -202,6 +202,33 @@
           </div>
         </label>
       </div>
+
+      <div style="background:rgba(103,58,183,0.10); border:1px solid rgba(103,58,183,0.40); border-radius:10px; padding:14px 16px; margin:14px 0;">
+        <strong style="color:#b39ddb; font-size:0.95rem; display:block; margin-bottom:10px;">Nombre d'intervenants pour votre spectacle <span style="color:#ff6b6b;">*</span></strong>
+        <div style="display:grid; grid-template-columns:220px 1fr; gap:16px; align-items:end;">
+          <label style="margin:0;">
+            <span style="display:block; font-size:0.88rem; color:#fff; margin-bottom:4px;">Nombre de comédiens / artistes <span style="color:#ff6b6b;">*</span></span>
+            <select name="nb_comediens" required style="width:100%;">
+              <option value="">— à préciser —</option>
+              {% set _nb = request.form.get('nb_comediens') %}
+              {% for i in range(1, 16) %}
+                <option value="{{ i }}" {% if _nb == i|string %}selected{% endif %}>{{ i }}{% if i == 15 %} ou plus{% endif %}</option>
+              {% endfor %}
+            </select>
+          </label>
+          <div style="display:flex; flex-wrap:wrap; gap:14px; align-items:center;">
+            <label style="display:inline-flex; align-items:center; gap:8px; cursor:pointer; margin:0; background:rgba(255,255,255,0.06); padding:8px 14px; border-radius:8px; border:1px solid rgba(255,255,255,0.15);">
+              <input type="checkbox" name="regisseur_son" value="1" {% if request.form.get('regisseur_son') %}checked{% endif %} style="width:18px; height:18px; accent-color:#b39ddb; cursor:pointer;">
+              <span style="color:#fff; font-size:0.9rem;">Régisseur son</span>
+            </label>
+            <label style="display:inline-flex; align-items:center; gap:8px; cursor:pointer; margin:0; background:rgba(255,255,255,0.06); padding:8px 14px; border-radius:8px; border:1px solid rgba(255,255,255,0.15);">
+              <input type="checkbox" name="regisseur_lumiere" value="1" {% if request.form.get('regisseur_lumiere') %}checked{% endif %} style="width:18px; height:18px; accent-color:#b39ddb; cursor:pointer;">
+              <span style="color:#fff; font-size:0.9rem;">Régisseur lumière</span>
+            </label>
+          </div>
+        </div>
+      </div>
+
       <div style="background:#0d2540; border:1px solid #1976d2; border-radius:8px; padding:12px; margin-bottom:12px;">
         <div style="color:#90caf9; font-size:0.9em; margin-bottom:8px;">📍 Localisation (pré-remplie depuis votre compte — modifiable si le spectacle a lieu ailleurs)</div>
         <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px;">

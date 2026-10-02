@@ -3365,6 +3365,17 @@ def register_routes(app: Flask) -> None:
                     flash("Erreur lors de l'enregistrement de la photo 3. Veuillez réessayer.", "danger")
                     return redirect(request.url)
 
+            # Nombre d'intervenants (obligatoire)
+            _nbc_raw = (request.form.get("nb_comediens") or "").strip()
+            try:
+                _nbc = int(_nbc_raw) if _nbc_raw else None
+                nb_comediens_val = _nbc if _nbc and 1 <= _nbc <= 15 else None
+            except (ValueError, TypeError):
+                nb_comediens_val = None
+            if nb_comediens_val is None:
+                flash("Veuillez indiquer le nombre d'intervenants pour votre spectacle.", "danger")
+                return redirect(request.url)
+
             show = Show(
                 raison_sociale=raison_sociale or None,
                 title=title,
@@ -3393,6 +3404,9 @@ def register_routes(app: Flask) -> None:
                 public_sous_options=",".join(public_sous_options_list) if public_sous_options_list else None,
                 prix_min=_parse_prix(request.form.get("prix_min")),
                 prix_max=_parse_prix(request.form.get("prix_max")),
+                nb_comediens=nb_comediens_val,
+                regisseur_son=(request.form.get("regisseur_son") == "1"),
+                regisseur_lumiere=(request.form.get("regisseur_lumiere") == "1"),
             )
             db.session.add(show)
             db.session.flush()  # obtenir show.id pour le helper
