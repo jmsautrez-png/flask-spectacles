@@ -99,6 +99,11 @@ class User(db.Model):
     # Date de fin d'abonnement AO (calculée à l'activation = today + 365j).
     # Null = jamais abonné, ou abonné historique sans date (rester considéré comme abonné tant que is_subscribed=True).
     subscribed_until = db.Column(db.DateTime, nullable=True, index=True)
+    # Tracking des rappels d'expiration : stocke la valeur de subscribed_until au moment de l'envoi.
+    # Permet de distinguer les périodes d'abonnement successives (reset implicite à chaque renouvellement).
+    renewal_j30_sent_for = db.Column(db.DateTime, nullable=True)
+    renewal_j7_sent_for = db.Column(db.DateTime, nullable=True)
+    renewal_expired_sent_for = db.Column(db.DateTime, nullable=True)
     # Nombre d'appels d'offres « cadeau » (bloc `_bloc_cadeau_html`) envoyés à cet utilisateur depuis MODELE_PAYANT_DEBUT.
     cadeaux_offerts_count = db.Column(db.Integer, nullable=False, default=0, server_default="0")
     # ── Infos légales (privées, usage interne uniquement) : saisie optionnelle qui déclenche l'attribution auto du badge 🛡️ Cie Pro ──

@@ -11,6 +11,25 @@
     <a href="{{ url_for('admin_dashboard') }}" style="background:#455a64; color:#fff; padding:9px 16px; border-radius:8px; text-decoration:none; font-weight:600;">← Retour admin</a>
   </div>
 
+  <!-- Export CSV compta -->
+  <div style="background:#fff; padding:14px 18px; border-radius:10px; margin-bottom:18px; box-shadow:0 2px 8px rgba(0,0,0,0.08); display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
+    <strong style="color:#333;">📊 Export comptable :</strong>
+    <a href="{{ url_for('admin_adhesions_export_csv') }}" style="padding:7px 14px; background:#1b5e20; color:#fff; border-radius:6px; text-decoration:none; font-weight:600; font-size:0.88rem;">
+      📥 CSV — Toutes années
+    </a>
+    {% set current_year = (adhesions[0].invoice_sent_at.year if adhesions and adhesions[0].invoice_sent_at else 2026) %}
+    <a href="{{ url_for('admin_adhesions_export_csv', year=current_year) }}" style="padding:7px 14px; background:#2e7d32; color:#fff; border-radius:6px; text-decoration:none; font-weight:600; font-size:0.88rem;">
+      📥 CSV — {{ current_year }}
+    </a>
+    <a href="{{ url_for('admin_adhesions_export_csv', year=current_year-1) }}" style="padding:7px 14px; background:#546e7a; color:#fff; border-radius:6px; text-decoration:none; font-weight:600; font-size:0.88rem;">
+      📥 CSV — {{ current_year-1 }}
+    </a>
+    <a href="{{ url_for('admin_adhesions_export_csv', statut='activated') }}" style="padding:7px 14px; background:#1565c0; color:#fff; border-radius:6px; text-decoration:none; font-weight:600; font-size:0.88rem;">
+      📥 CSV — Factures payées (activées)
+    </a>
+    <span style="color:#777; font-size:0.82rem; font-style:italic;">Format Excel/LibreOffice · séparateur ; · encodage UTF-8</span>
+  </div>
+
   <!-- Stats -->
   <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(150px, 1fr)); gap:12px; margin-bottom:22px;">
     <div style="background:linear-gradient(135deg,#455a64,#607d8b); color:#fff; padding:14px 16px; border-radius:10px; text-align:center;">
@@ -93,7 +112,7 @@
           <td style="padding:10px; text-align:center; min-width:180px;">
             <div style="display:flex; flex-direction:column; gap:4px;">
               <form method="get" action="{{ url_for('admin_adhesion_preview_invoice', adhesion_id=adh.id) }}" style="margin:0; display:flex; gap:4px;">
-                <input type="number" name="amount" value="{{ adh.invoice_amount or 49 }}" min="1" max="10000" step="1"
+                <input type="number" name="amount" value="{{ adh.invoice_amount or suggested_amount(adh) }}" min="1" max="10000" step="1"
                        title="Montant en € (TVA non applicable)"
                        style="width:55px; padding:4px; border:1px solid #ccc; border-radius:4px; font-size:0.8rem; text-align:center;">
                 <button type="submit" style="flex:1; background:#6a1b9a; color:#fff; padding:5px 8px; border:none; border-radius:5px; font-weight:600; cursor:pointer; font-size:0.8rem;" title="{% if adh.invoice_number %}Réémettre : {{ adh.invoice_number }}{% else %}Prévisualiser et envoyer la facture + lien PayPal{% endif %}">

@@ -1069,6 +1069,10 @@ def _run_critical_migrations(app: Flask) -> None:
         ("users", "is_organisateur", "BOOLEAN DEFAULT FALSE", "BOOLEAN DEFAULT 0", "FALSE"),
         ("users", "bloque_appels_offres", "BOOLEAN DEFAULT FALSE", "BOOLEAN DEFAULT 0", "FALSE"),
         ("users", "subscribed_until", "TIMESTAMP", "DATETIME", None),
+        # ── Tracking des rappels d'expiration abonnement (idempotence du cron quotidien) ──
+        ("users", "renewal_j30_sent_for", "TIMESTAMP", "DATETIME", None),
+        ("users", "renewal_j7_sent_for", "TIMESTAMP", "DATETIME", None),
+        ("users", "renewal_expired_sent_for", "TIMESTAMP", "DATETIME", None),
         ("users", "cadeaux_offerts_count", "INTEGER DEFAULT 0", "INTEGER DEFAULT 0", "0"),
         # ── Facturation Adhésions (envoi auto facture + PayPal) ──
         ("adhesion", "invoice_number", "VARCHAR(50)", "VARCHAR(50)", None),
@@ -9090,6 +9094,10 @@ def admin_toggle_is_subscribed(user_id):
         user.is_subscribed = not bool(user.is_subscribed)
         if user.is_subscribed:
             user.subscribed_until = datetime.utcnow() + timedelta(days=365)
+            # Reset des flags de rappel pour la nouvelle période
+            user.renewal_j30_sent_for = None
+            user.renewal_j7_sent_for = None
+            user.renewal_expired_sent_for = None
         else:
             user.subscribed_until = None
         db.session.commit()
@@ -9160,6 +9168,10 @@ def admin_prolonger_abonnement(user_id):
         base = user.subscribed_until if (user.subscribed_until and user.subscribed_until > now) else now
         user.subscribed_until = base + timedelta(days=365)
         user.is_subscribed = True
+        # Reset des flags de rappel : la nouvelle période d'abonnement n'a pas encore été notifiée
+        user.renewal_j30_sent_for = None
+        user.renewal_j7_sent_for = None
+        user.renewal_expired_sent_for = None
         db.session.commit()
         flash(
             f"✅ Abonnement AO prolongé pour « {user.username} » jusqu'au "
@@ -9808,6 +9820,7 @@ def admin_adhesions():
         adhesions=adhesions,
         stats=stats,
         statut_filter=statut_filter,
+        suggested_amount=_default_adhesion_amount,
     )
 
 @app.route("/admin/adhesions/<int:adhesion_id>/statut", methods=["POST"])
@@ -9831,6 +9844,9 @@ def admin_adhesion_statut(adhesion_id):
             if u and not u.is_admin:
                 u.is_subscribed = True
                 u.subscribed_until = now + timedelta(days=365)
+                u.renewal_j30_sent_for = None
+                u.renewal_j7_sent_for = None
+                u.renewal_expired_sent_for = None
     elif nouveau == "rejected" and not adh.rejected_at:
         adh.rejected_at = now
     db.session.commit()
@@ -9849,8 +9865,45 @@ def admin_adhesion_notes(adhesion_id):
     return redirect(request.referrer or url_for("admin_adhesions"))
 
 
-# Montant par défaut de l'abonnement AO (euros TTC, TVA non applicable)
-ADHESION_TARIF_DEFAUT = 49
+# Tarifs abonnement AO (euros TTC, TVA non applicable)
+ADHESION_TARIF_PREMIERE_ANNEE = 49
+ADHESION_TARIF_RENOUVELLEMENT = 99
+
+
+def _is_adhesion_renewal(adh):
+    """Détermine si la demande d'adhésion correspond à un renouvellement.
+
+    Règle métier : 1re adhésion = 49 €, renouvellement (2e année et +) = 99 €.
+    """
+    if not adh or not adh.user_id:
+        return False
+
+    # Historique explicite : facture déjà émise ou activation passée pour ce compte.
+    historique = (
+        Adhesion.query
+        .filter(Adhesion.user_id == adh.user_id, Adhesion.id != adh.id)
+        .filter(or_(
+            Adhesion.invoice_number.isnot(None),
+            Adhesion.invoice_sent_at.isnot(None),
+            Adhesion.statut == "activated",
+        ))
+        .first()
+    )
+    if historique:
+        return True
+
+    # Cas legacy : compte déjà abonné historiquement, mais sans ancienne ligne d'adhésion.
+    if adh.user and adh.user.subscribed_until and adh.statut != "activated":
+        return True
+
+    return False
+
+
+def _default_adhesion_amount(adh):
+    """Montant suggéré pour la facture d'adhésion (automatique mais éditable)."""
+    if _is_adhesion_renewal(adh):
+        return ADHESION_TARIF_RENOUVELLEMENT
+    return ADHESION_TARIF_PREMIERE_ANNEE
 
 
 def _build_adhesion_invoice_html(adh, amount, invoice_number, now_dt, date_debut, date_fin, paypal_email, cgu_url):
@@ -9990,13 +10043,14 @@ def _next_invoice_number(now_dt):
 def admin_adhesion_preview_invoice(adhesion_id):
     """Affiche l'aperçu de la facture avant envoi (prévisualisation)."""
     adh = Adhesion.query.get_or_404(adhesion_id)
+    default_amount = _default_adhesion_amount(adh)
     try:
         amount_raw = (request.args.get("amount") or "").strip()
-        amount = int(amount_raw) if amount_raw else (adh.invoice_amount or ADHESION_TARIF_DEFAUT)
+        amount = int(amount_raw) if amount_raw else (adh.invoice_amount or default_amount)
     except (ValueError, TypeError):
-        amount = ADHESION_TARIF_DEFAUT
+        amount = default_amount
     if amount <= 0 or amount > 10000:
-        amount = ADHESION_TARIF_DEFAUT
+        amount = default_amount
 
     now = datetime.utcnow()
     invoice_number = adh.invoice_number or _next_invoice_number(now)
@@ -10031,13 +10085,14 @@ def admin_adhesion_download_invoice_pdf(adhesion_id):
     Sinon, génère un PDF d'aperçu avec un numéro provisoire.
     """
     adh = Adhesion.query.get_or_404(adhesion_id)
+    default_amount = _default_adhesion_amount(adh)
     try:
         amount_raw = (request.args.get("amount") or "").strip()
-        amount = int(amount_raw) if amount_raw else (adh.invoice_amount or ADHESION_TARIF_DEFAUT)
+        amount = int(amount_raw) if amount_raw else (adh.invoice_amount or default_amount)
     except (ValueError, TypeError):
-        amount = adh.invoice_amount or ADHESION_TARIF_DEFAUT
+        amount = adh.invoice_amount or default_amount
     if amount <= 0 or amount > 10000:
-        amount = ADHESION_TARIF_DEFAUT
+        amount = default_amount
 
     now = adh.invoice_sent_at or datetime.utcnow()
     invoice_number = adh.invoice_number or _next_invoice_number(now)
@@ -10069,6 +10124,84 @@ def admin_adhesion_download_invoice_pdf(adhesion_id):
     )
 
 
+@app.route("/admin/adhesions/export.csv", methods=["GET"])
+@login_required
+@admin_required
+def admin_adhesions_export_csv():
+    """Export CSV compta de toutes les factures émises (format Excel/LibreOffice).
+
+    Paramètres optionnels :
+      ?year=2026     → filtre par année d'émission
+      ?statut=activated → filtre par statut
+    """
+    import csv as _csv
+    import io
+
+    year_filter = (request.args.get("year") or "").strip()
+    statut_filter = (request.args.get("statut") or "").strip()
+
+    q = Adhesion.query.filter(Adhesion.invoice_number.isnot(None))
+    if statut_filter in ("pending", "contacted", "activated", "rejected"):
+        q = q.filter(Adhesion.statut == statut_filter)
+    if year_filter.isdigit() and len(year_filter) == 4:
+        q = q.filter(Adhesion.invoice_number.like(f"{year_filter}-%"))
+    adhesions = q.order_by(Adhesion.invoice_sent_at.asc()).all()
+
+    output = io.StringIO()
+    # BOM UTF-8 pour qu'Excel ouvre proprement les accents
+    output.write("\ufeff")
+    writer = _csv.writer(output, delimiter=";", quoting=_csv.QUOTE_MINIMAL)
+    writer.writerow([
+        "Date d'émission",
+        "N° facture",
+        "Client (nom)",
+        "Email",
+        "Téléphone",
+        "Montant HT",
+        "TVA",
+        "Montant TTC",
+        "Statut",
+        "Date de contact",
+        "Date d'activation",
+        "Compte utilisateur",
+        "Abonnement valable jusqu'au",
+        "Notes admin",
+    ])
+    for a in adhesions:
+        montant = a.invoice_amount or 0
+        writer.writerow([
+            a.invoice_sent_at.strftime("%d/%m/%Y") if a.invoice_sent_at else "",
+            a.invoice_number or "",
+            a.nom or "",
+            a.email or "",
+            a.telephone or "",
+            f"{montant:.2f}".replace(".", ","),  # format FR (virgule)
+            "0,00",  # TVA non applicable
+            f"{montant:.2f}".replace(".", ","),
+            {"pending": "En attente", "contacted": "Contacté", "activated": "Activé", "rejected": "Rejeté"}.get(a.statut, a.statut or ""),
+            a.contacted_at.strftime("%d/%m/%Y") if a.contacted_at else "",
+            a.activated_at.strftime("%d/%m/%Y") if a.activated_at else "",
+            a.user.username if a.user else "",
+            a.user.subscribed_until.strftime("%d/%m/%Y") if (a.user and a.user.subscribed_until) else "",
+            (a.notes_admin or "").replace("\n", " ")[:500],
+        ])
+
+    csv_bytes = output.getvalue().encode("utf-8")
+    output.close()
+
+    filename_year = year_filter or "toutes-annees"
+    filename = f"factures-adhesions-{filename_year}.csv"
+
+    from flask import Response
+    return Response(
+        csv_bytes,
+        mimetype="text/csv; charset=utf-8",
+        headers={
+            "Content-Disposition": f'attachment; filename="{filename}"',
+        },
+    )
+
+
 @app.route("/admin/adhesions/<int:adhesion_id>/send-invoice", methods=["POST"])
 @login_required
 @admin_required
@@ -10081,14 +10214,15 @@ def admin_adhesion_send_invoice(adhesion_id):
     - BCC vers l'admin pour archivage.
     """
     adh = Adhesion.query.get_or_404(adhesion_id)
+    default_amount = _default_adhesion_amount(adh)
 
     try:
         amount_raw = (request.form.get("amount") or "").strip()
-        amount = int(amount_raw) if amount_raw else ADHESION_TARIF_DEFAUT
+        amount = int(amount_raw) if amount_raw else (adh.invoice_amount or default_amount)
     except (ValueError, TypeError):
-        amount = ADHESION_TARIF_DEFAUT
+        amount = adh.invoice_amount or default_amount
     if amount <= 0 or amount > 10000:
-        amount = ADHESION_TARIF_DEFAUT
+        amount = default_amount
 
     now = datetime.utcnow()
 
