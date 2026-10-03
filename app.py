@@ -9833,6 +9833,7 @@ def admin_adhesion_statut(adhesion_id):
     if nouveau not in ("pending", "contacted", "activated", "rejected"):
         flash("Statut invalide.", "warning")
         return redirect(request.referrer or url_for("admin_adhesions"))
+    premiere_activation = nouveau == "activated" and adh.statut != "activated"
     adh.statut = nouveau
     now = datetime.utcnow()
     if nouveau == "contacted" and not adh.contacted_at:
@@ -9847,6 +9848,30 @@ def admin_adhesion_statut(adhesion_id):
                 u.renewal_j30_sent_for = None
                 u.renewal_j7_sent_for = None
                 u.renewal_expired_sent_for = None
+                mail_client = getattr(current_app, "mail", None)
+                if premiere_activation and mail_client and MailMessage and u.email:
+                    date_activation = now.strftime("%d/%m/%Y")
+                    date_fin = u.subscribed_until.strftime("%d/%m/%Y")
+                    msg = MailMessage(
+                        subject="Votre abonnement Appels d'offres est activé",
+                        recipients=[u.email],
+                    )
+                    msg.html = f"""<!DOCTYPE html>
+<html lang="fr"><head><meta charset="UTF-8"></head>
+<body style="font-family:Arial,sans-serif;color:#333;line-height:1.6;">
+  <p>Bonjour {html.escape(u.raison_sociale or u.username or adh.nom)},</p>
+  <p>Nous vous confirmons l'activation de votre abonnement <strong>Appels d'offres</strong>.</p>
+  <p>Date d'activation : <strong>{date_activation}</strong><br>
+     Votre abonnement est valable jusqu'au <strong>{date_fin}</strong>.</p>
+  <p>Vous pouvez dès maintenant accéder aux appels d'offres depuis votre compte.</p>
+  <p>Cordialement,<br>L'équipe Spectacle'ment Vôtre</p>
+</body></html>"""
+                    try:
+                        mail_client.send(msg)
+                    except Exception as mail_error:
+                        current_app.logger.warning(
+                            f"[ADHESION ACTIVATION] Email impossible pour {u.email} : {mail_error}"
+                        )
     elif nouveau == "rejected" and not adh.rejected_at:
         adh.rejected_at = now
     db.session.commit()
