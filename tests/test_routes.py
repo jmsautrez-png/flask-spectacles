@@ -65,6 +65,36 @@ class TestStaticPages:
         assert resp.status_code == 200
 
 
+class TestAdhesionEligibility:
+    """An approved show is required before an AO subscription can be activated."""
+
+    def test_adhesion_requires_approved_show(self, logged_in_client):
+        resp = logged_in_client.get("/adhesion")
+        assert resp.status_code == 302
+
+    def test_admin_cannot_activate_without_approved_show(self, db, admin_client, normal_user):
+        from models.models import Adhesion
+
+        adhesion = Adhesion(
+            user_id=normal_user.id,
+            nom="Compagnie test",
+            telephone="0600000000",
+            email=normal_user.email,
+            statut="pending",
+        )
+        db.session.add(adhesion)
+        db.session.commit()
+
+        resp = admin_client.post(
+            f"/admin/adhesions/{adhesion.id}/statut",
+            data={"statut": "activated"},
+        )
+
+        assert resp.status_code == 302
+        db.session.refresh(adhesion)
+        assert adhesion.statut == "pending"
+
+
 class TestSitemap:
     """Tests for the XML sitemap."""
 

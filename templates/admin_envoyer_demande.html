@@ -103,7 +103,9 @@
                                                 <br><small class="text-muted">{{ show.category or '' }} — {{ show.contact_email or (show.user.email if show.user else '—') }}</small>
                                                 {% if show.user and show.user.created_at %}
                                                 <div style="margin-top:4px;">
-                                                    {% if show.user.is_modele_payant %}
+                                                    {% if show.user.is_modele_payant and show.user.is_subscribed %}
+                                                    <span class="badge" title="Abonnement Appels d'offres actif" style="background:#2e7d32;color:#fff;font-weight:700;">✅ Abonné</span>
+                                                    {% elif show.user.is_modele_payant %}
                                                     <span class="badge" title="Inscription postérieure au lancement du modèle payant (12/09/2026)" style="background:#ff9800;color:#fff;font-weight:600;">🆕 Inscrit le {{ show.user.created_at.strftime('%d/%m/%Y') }} — modèle payant</span>
                                                     {% else %}
                                                     <small class="text-muted">Inscrit le {{ show.user.created_at.strftime('%d/%m/%Y') }}</small>

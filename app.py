@@ -6564,9 +6564,17 @@ Accessibilité: {accessibilite}
         return render_template("contact.html", sujet=sujet)
 
     @app.route("/adhesion", methods=["GET", "POST"])
+    @login_required
     def adhesion():
         """Formulaire de demande d'adhésion à l'abonnement Appels d'offres (activation manuelle)."""
         user = current_user()
+        if not user.is_admin and not Show.query.filter(
+            Show.user_id == user.id,
+            Show.approved.is_(True),
+        ).first():
+            flash("Pour demander un abonnement, vous devez d'abord avoir au moins un spectacle approuvé.", "warning")
+            return redirect(url_for("company_dashboard"))
+
         if request.method == "POST":
             nom = (request.form.get("nom") or "").strip()[:200]
             telephone = (request.form.get("telephone") or "").strip()[:50]
@@ -6804,8 +6812,8 @@ Accessibilité: {accessibilite}
             Show.approved.is_(True)
         ).count() > 0
         
-        if not has_show and not user.is_admin:
-            flash("Vous devez avoir un spectacle approuvé pour accéder aux appels d'offre.", "warning")
+        if not has_show and not user.is_admin and not user.is_subscribed:
+            flash("Vous devez avoir un spectacle approuvé ou un abonnement AO actif pour accéder aux appels d'offre.", "warning")
             return redirect(url_for("company_dashboard"))
 
         # Verrou admin : compte explicitement bloqué pour les appels d'offres
@@ -9833,6 +9841,19 @@ def admin_adhesion_statut(adhesion_id):
     if nouveau not in ("pending", "contacted", "activated", "rejected"):
         flash("Statut invalide.", "warning")
         return redirect(request.referrer or url_for("admin_adhesions"))
+    if nouveau == "activated":
+        user_a_activer = User.query.get(adh.user_id) if adh.user_id else None
+        has_approved_show = bool(
+            user_a_activer
+            and Show.query.filter(
+                Show.user_id == user_a_activer.id,
+                Show.approved.is_(True),
+            ).first()
+        )
+        if not user_a_activer or user_a_activer.is_admin or not has_approved_show:
+            flash("Activation impossible : ce compte doit être lié à au moins un spectacle approuvé.", "warning")
+            return redirect(request.referrer or url_for("admin_adhesions"))
+
     premiere_activation = nouveau == "activated" and adh.statut != "activated"
     adh.statut = nouveau
     now = datetime.utcnow()
@@ -9852,9 +9873,17 @@ def admin_adhesion_statut(adhesion_id):
                 if premiere_activation and mail_client and MailMessage and u.email:
                     date_activation = now.strftime("%d/%m/%Y")
                     date_fin = u.subscribed_until.strftime("%d/%m/%Y")
+                    admin_user = current_user()
+                    admin_email = (
+                        getattr(admin_user, "email", None)
+                        or current_app.config.get("MAIL_DEFAULT_SENDER")
+                        or current_app.config.get("MAIL_USERNAME")
+                    )
+                    admin_bcc = [admin_email] if admin_email and admin_email.lower() != u.email.lower() else None
                     msg = MailMessage(
                         subject="Votre abonnement Appels d'offres est activé",
                         recipients=[u.email],
+                        bcc=admin_bcc,
                     )
                     msg.html = f"""<!DOCTYPE html>
 <html lang="fr"><head><meta charset="UTF-8"></head>
