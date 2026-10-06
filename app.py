@@ -6645,6 +6645,16 @@ Accessibilité: {accessibilite}
             message="",
         )
 
+    def _user_can_view_demandes_map(user):
+        if not user:
+            return False
+        if user.is_admin or user.is_subscribed:
+            return True
+
+        from models.models import MODELE_PAYANT_DEBUT
+        return user.created_at is not None and user.created_at < MODELE_PAYANT_DEBUT
+
+
     @app.route("/demandes-animation")
     def demandes_animation():
         from models.models import DemandeAnimation
@@ -6702,7 +6712,7 @@ Accessibilité: {accessibilite}
             has_show = Show.query.filter(Show.user_id == user.id, Show.approved.is_(True)).count() > 0
         
         masquage_ville_seuil = datetime(2026, 9, 12)
-        return render_template("demandes_animation.html", demandes=demandes, page=page, nb_pages=nb_pages, total=total, per_page=per_page, user=current_user(), has_show=has_show, categories=categories, regions=regions, categorie=categorie, region=region, spectacles_une=spectacles_une, masquage_ville_seuil=masquage_ville_seuil)
+        return render_template("demandes_animation.html", demandes=demandes, page=page, nb_pages=nb_pages, total=total, per_page=per_page, user=user, has_show=has_show, categories=categories, regions=regions, categorie=categorie, region=region, spectacles_une=spectacles_une, masquage_ville_seuil=masquage_ville_seuil, can_view_demandes_map=_user_can_view_demandes_map(user))
 
 
     @app.route("/demandes-animation/carte")
@@ -6722,6 +6732,14 @@ Accessibilité: {accessibilite}
                 "warning",
             )
             return redirect(url_for("abonnement_compagnie"))
+
+        if not _user_can_view_demandes_map(user):
+            flash(
+                "La carte des appels d'offres est réservée aux abonnés et aux comptes "
+                "inscrits avant le 12 septembre 2026.",
+                "warning",
+            )
+            return redirect(url_for("demandes_animation"))
 
         if user and user.is_admin:
             demandes_query = DemandeAnimation.query.filter(DemandeAnimation.is_private == False).order_by(DemandeAnimation.created_at.desc())
@@ -10755,7 +10773,6 @@ def unread_messages_count():
 # -----------------------------------------------------
 if __name__ == "__main__":
     app.run(debug=True, host="127.0.0.1", port=5000)
-
 
 
 

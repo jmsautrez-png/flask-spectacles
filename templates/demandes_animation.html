@@ -55,9 +55,11 @@
 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem; gap:12px; flex-wrap:wrap;">
   <h2 style="margin:0;">Appels d'offres</h2>
   <div style="display:flex; gap:10px; flex-wrap:wrap;">
+    {% if can_view_demandes_map %}
     <a href="{{ url_for('demandes_animation_carte', categorie=categorie, region=region) }}" class="btn btn-primary" style="padding:10px 20px; border-radius:8px; text-decoration:none; background:#1976d2; color:white; font-weight:700;">
       🗺️ Carte de France
     </a>
+    {% endif %}
     {% if user and user.is_admin %}
     <a href="{{ url_for('admin_create_demande_animation') }}" class="btn btn-primary" style="padding:10px 20px; border-radius:8px; text-decoration:none; background:#28a745; color:white; font-weight:600;">
       ➕ Créer une demande

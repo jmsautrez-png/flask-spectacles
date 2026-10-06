@@ -147,15 +147,71 @@ class TestDemandeAnimationPage:
 class TestDemandesAnimationPages:
     """Tests for the public demandes animation pages."""
 
-    def test_list_page_has_map_button(self, client):
+    def test_list_page_hides_map_button_from_anonymous_visitors(self, client):
         resp = client.get("/demandes-animation")
         assert resp.status_code == 200
         html = resp.data.decode("utf-8")
-        assert "Carte de France" in html
+        assert "Carte de France" not in html
 
-    def test_map_page_returns_200(self, client):
+    def test_map_page_redirects_anonymous_visitors(self, client):
+        resp = client.get("/demandes-animation/carte")
+        assert resp.status_code == 302
+        assert resp.headers["Location"].endswith("/demandes-animation")
+
+    def test_map_page_allows_accounts_created_before_cutoff(self, client, db):
+        from datetime import datetime
+        from models.models import User
+
+        user = User(
+            username="old-map-user",
+            created_at=datetime(2026, 9, 11, 23, 59),
+        )
+        user.set_password("test-password")
+        db.session.add(user)
+        db.session.commit()
+        with client.session_transaction() as sess:
+            sess["username"] = user.username
+
         resp = client.get("/demandes-animation/carte")
         assert resp.status_code == 200
+
+    def test_map_page_allows_subscribers_created_after_cutoff(self, client, db):
+        from datetime import datetime
+        from models.models import User
+
+        user = User(
+            username="subscribed-map-user",
+            created_at=datetime(2026, 9, 12),
+            is_subscribed=True,
+        )
+        user.set_password("test-password")
+        db.session.add(user)
+        db.session.commit()
+        with client.session_transaction() as sess:
+            sess["username"] = user.username
+
+        resp = client.get("/demandes-animation/carte")
+        assert resp.status_code == 200
+
+    def test_map_page_denies_recent_unsubscribed_accounts(self, client, db):
+        from datetime import datetime
+        from models.models import User
+
+        user = User(
+            username="new-map-user",
+            created_at=datetime(2026, 9, 12),
+        )
+        user.set_password("test-password")
+        db.session.add(user)
+        db.session.commit()
+        with client.session_transaction() as sess:
+            sess["username"] = user.username
+
+        list_resp = client.get("/demandes-animation")
+        assert "Carte de France" not in list_resp.data.decode("utf-8")
+        map_resp = client.get("/demandes-animation/carte")
+        assert map_resp.status_code == 302
+        assert map_resp.headers["Location"].endswith("/demandes-animation")
 
 
 class TestEvenementsPage:
