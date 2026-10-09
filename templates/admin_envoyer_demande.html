@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% from "_offre_envoi_choice.html" import offre_envoi_choice %}
 
 {% block title %}Envoyer la demande d'animation{% endblock %}
 
@@ -59,6 +60,7 @@
                             <li><strong>Date(s) :</strong> {{ demande.dates_horaires }}</li>
                             <li><strong>Budget :</strong> {{ demande.budget }}</li>
                             <li><strong>Jauge :</strong> {{ demande.jauge }}</li>
+                            <li><strong>Consultations :</strong> {{ demande.consultations_count or 0 }}</li>
                             {% if demande.specialites_recherchees %}
                             <li><strong>Spécialités :</strong> {{ demande.specialites_recherchees }}</li>
                             {% endif %}
@@ -92,6 +94,8 @@
                                             <th style="width:90px;">Distance</th>
                                             <th style="width:120px;" class="text-center" title="Compatibilité budget : chevauchement entre la fourchette privée du spectacle et le budget de la demande">💶 Budget</th>
                                             <th style="width:80px;" class="text-center" title="Nombre d'appels d'offres offerts (bloc « cadeau ») envoyés à cette compagnie depuis le 12/09/2026">🎁 Cadeaux</th>
+                                            <th style="width:80px;" class="text-center" title="Nombre d'aperçus masqués envoyés avec succès à cette compagnie">Aperçus</th>
+                                            <th>Mode d'envoi</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -166,6 +170,12 @@
                                                     <span class="text-muted" title="Compagnie non concernée par le bloc cadeau (inscrite avant 12/09/2026 ou déjà abonnée)">—</span>
                                                 {% endif %}
                                             </td>
+                                            <td class="text-center">
+                                                {% if show.user and show.user.is_modele_payant and not show.user.is_subscribed %}
+                                                <span class="badge" title="Aperçus masqués envoyés avec succès" style="background:#1976d2;color:#fff;font-weight:700;">{{ show.user.apercus_envoyes_count or 0 }}</span>
+                                                {% else %}<span class="text-muted">—</span>{% endif %}
+                                            </td>
+                                            <td>{{ offre_envoi_choice(show.user) }}</td>
                                         </tr>
                                     {% endfor %}
                                     </tbody>
@@ -175,6 +185,7 @@
                     </div>
 
                     <div class="d-flex flex-wrap gap-2 justify-content-center mb-4" style="background:#fff8e1;border:1px solid #ffd54f;border-radius:8px;padding:14px;">
+                        <p style="width:100%;color:#333;">Inscrits depuis le 12/09/2026 non abonnés : aperçu par défaut. Cochez « Offrir cette offre » pour transmettre les coordonnées et débloquer uniquement cette annonce.</p>
                         <button type="submit" name="action" value="send_matched_recap_only" class="btn btn-outline-primary btn-lg" id="btn-recap-only" style="font-weight:600;">
                             📧 Envoyer le récap à l'organisateur uniquement
                         </button>

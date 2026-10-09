@@ -126,8 +126,42 @@ flask-spectacles/
 - Aucune migration ni modification automatique des fiches existantes :
   l'admin peut compléter progressivement les âges réellement adaptés.
 
-## 🌍 URLs Production
+### Envoi des appels d'offres : aperçu ou cadeau
+- Pour les compagnies inscrites à partir du 12/09/2026 et non abonnées,
+  l'auto-matching et l'envoi filtré transmettent un aperçu par défaut, sans
+  coordonnées, ville précise ni description libre, avec un lien vers l'annonce
+  et une invitation à s'abonner.
+- Dans l'auto-matching ou la prévisualisation des destinataires, l'admin peut
+  cocher « Offrir cette offre » par compagnie. Un cadeau transmet l'offre
+  complète et autorise cette compagnie à consulter uniquement cette annonce.
+- Les abonnés et les anciens inscrits conservent leur fonctionnement habituel.
+  Le verrou admin et la désactivation des annonces restent prioritaires sur
+  l'accès aux coordonnées sur le site.
+- La table `appel_offre_envois` est créée au démarrage par `db.create_all()`.
+  Les autorisations et compteurs sont enregistrés après succès SMTP ; seuls les
+  cadeaux incrémentent le compteur de cadeaux. Un nouvel aperçu ne retire pas
+  un cadeau existant.
+- Un compteur distinct d'aperçus envoyés est conservé par compagnie, à côté des
+  cadeaux, dans l'auto-matching et la sélection manuelle. Il démarre à zéro
+  lors de l'ajout de la colonne au démarrage, sans reconstitution des anciens
+  envois. Chaque renvoi réussi compte à nouveau, comme pour les cadeaux.
+- Le récap admin distingue aperçus, cadeaux et envois complets habituels :
+  bilan de l'envoi courant, destinataires effectivement contactés, mode envoyé
+  et compteurs cumulés par compagnie. Les échecs SMTP ne sont pas comptés.
+- Les anciennes autorisations cadeaux ne sont pas déduites du compteur global :
+  seule une nouvelle offre explicitement offerte crée l'accès ciblé.
 
+### Compteur de consultations des demandes
+- Chaque demande dispose d'un compteur visible uniquement dans l'admin.
+- L'ouverture de sa page ou de ses détails dans les deux listes compte une fois
+  par session, y compris les aperçus masqués. Afficher une liste ne compte pas.
+- Les visites admin et les accès refusés sont exclus. La déduplication utilise
+  une clé de session aléatoire, sans nom, compte utilisateur ni adresse IP.
+- La colonne est ajoutée au démarrage et commence à zéro. La table technique
+  `appel_offre_consultations` est créée automatiquement ; ses entrées sont
+  supprimées avec la demande.
+
+## 🌍 URLs Production
 - **Site** : https://spectacleanimation.fr
 - **Admin** : https://spectacleanimation.fr/admin
 - **Health Check** : https://spectacleanimation.fr/health

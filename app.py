@@ -1064,6 +1064,7 @@ def _run_critical_migrations(app: Flask) -> None:
         ("demande_animation", "desactivee_at", "TIMESTAMP", "DATETIME", None),
         ("demande_animation", "latitude", "DOUBLE PRECISION", "REAL", None),
         ("demande_animation", "longitude", "DOUBLE PRECISION", "REAL", None),
+        ("demande_animation", "consultations_count", "INTEGER DEFAULT 0", "INTEGER DEFAULT 0", "0"),
         # ── users ──
         ("users", "pending_deletion_at", "TIMESTAMP", "DATETIME", None),
         ("users", "is_organisateur", "BOOLEAN DEFAULT FALSE", "BOOLEAN DEFAULT 0", "FALSE"),
@@ -1074,6 +1075,7 @@ def _run_critical_migrations(app: Flask) -> None:
         ("users", "renewal_j7_sent_for", "TIMESTAMP", "DATETIME", None),
         ("users", "renewal_expired_sent_for", "TIMESTAMP", "DATETIME", None),
         ("users", "cadeaux_offerts_count", "INTEGER DEFAULT 0", "INTEGER DEFAULT 0", "0"),
+        ("users", "apercus_envoyes_count", "INTEGER DEFAULT 0", "INTEGER DEFAULT 0", "0"),
         # ── Facturation Adhésions (envoi auto facture + PayPal) ──
         ("adhesion", "invoice_number", "VARCHAR(50)", "VARCHAR(50)", None),
         ("adhesion", "invoice_sent_at", "TIMESTAMP", "DATETIME", None),
@@ -1230,24 +1232,48 @@ def _format_age_label(value):
 
 
 def _user_recoit_cadeau(user) -> bool:
-    """Vrai si un envoi d'appel d'offre à ce user doit inclure le bloc « cadeau »
-    (inscription >= 12/09/2026 et pas encore abonné)."""
-    if not user or not getattr(user, "is_modele_payant", False):
-        return False
-    if getattr(user, "is_subscribed", False):
-        return False
-    return True
+    """Compagnie éligible au choix aperçu/cadeau (>= 12/09/2026, non abonnée)."""
+    from utils.offres import needs_offer_subscription
+    return needs_offer_subscription(user)
 
 
-def _incr_cadeau_count(user) -> None:
-    """Incrémente en base le compteur de cadeaux offerts au user (sans committer).
-    Silencieux si le user ne remplit pas les conditions du cadeau."""
-    if not _user_recoit_cadeau(user):
-        return
+def _record_appel_offre_delivery(user, demande, gift=False):
+    from sqlalchemy.exc import SQLAlchemyError
+    from utils.offres import record_offer_delivery
     try:
-        user.cadeaux_offerts_count = (user.cadeaux_offerts_count or 0) + 1
-    except Exception as _e:
-        print(f"[CADEAU COUNT] Erreur incrément user={getattr(user, 'id', '?')}: {_e}")
+        record_offer_delivery(user, demande, gift=gift)
+        return True
+    except SQLAlchemyError:
+        db.session.rollback()
+        current_app.logger.exception("Email transmis mais accès à l'offre non enregistré")
+        flash("Email transmis, mais l'accès à l'offre n'a pas pu être enregistré. Réessayez l'envoi.", "danger")
+        return False
+
+
+def _record_offer_consultation(demande, user):
+    from sqlalchemy.exc import SQLAlchemyError
+    from utils.offres import record_offer_consultation
+    try:
+        record_offer_consultation(demande, user)
+        return True
+    except SQLAlchemyError:
+        db.session.rollback()
+        current_app.logger.exception("Consultation d'appel d'offres non enregistrée")
+        return False
+
+
+def _appel_offre_apercu(demande):
+    return render_template(
+        "email_appel_offre_apercu.html", demande=demande,
+        offer_url=f"https://www.spectacleanimation.fr/appels-offres/{demande.id}",
+        subscription_url="https://www.spectacleanimation.fr/adhesion",
+    )
+
+
+def _appel_offre_subject(demande, user, gift=False):
+    if _user_recoit_cadeau(user) and not gift:
+        return f"Un appel d'offres correspond à votre profil - {demande.genre_recherche}"
+    return f"Nouvelle Opportunité - {demande.genre_recherche} à {demande.lieu_ville}"
 
 
 def _bloc_cadeau_html(user):
@@ -1274,8 +1300,10 @@ def _bloc_cadeau_html(user):
     )
 
 
-def _build_appel_offre_email(demande, show):
+def _build_appel_offre_email(demande, show, gift=False):
     """Génère le HTML d'email pour un appel d'offre envoyé à un artiste."""
+    if _user_recoit_cadeau(show.user if show else None) and not gift:
+        return _appel_offre_apercu(demande)
     return f"""<!DOCTYPE html>
 <html>
 <head><meta charset="UTF-8">
@@ -1326,7 +1354,7 @@ h2 {{ color: #1b2a4e; margin-top: 0; }}
         <strong>Email :</strong> <a href="mailto:{demande.contact_email}" style="color:#1b5e20;">{demande.contact_email}</a><br>
         <strong>Téléphone :</strong> {demande.telephone}</p>
         <p style="text-align:center;"><a href="mailto:{demande.contact_email}" class="btn">✉️ Contacter le demandeur</a></p>
-        <p style="text-align:center;margin-top:8px;"><a href="https://www.spectacleanimation.fr/demandes-animation" style="display:inline-block;padding:10px 24px;background:#1b5e20;color:white;text-decoration:none;border-radius:5px;font-weight:bold;">👁️ Voir l'appel d'offre</a></p>
+        <p style="text-align:center;margin-top:8px;"><a href="https://www.spectacleanimation.fr/appels-offres/{demande.id}" style="display:inline-block;padding:10px 24px;background:#1b5e20;color:white;text-decoration:none;border-radius:5px;font-weight:bold;">👁️ Voir l'appel d'offre</a></p>
     </div>
     <div style="background-color:#e8eaf6;padding:15px;border-radius:8px;margin:15px 0;">
         <p><strong>✨ Votre spectacle concerné :</strong><br>{show.title} - {show.category}</p>
@@ -6672,7 +6700,8 @@ Accessibilité: {accessibilite}
         if categorie:
             demandes_query = demandes_query.filter(DemandeAnimation.genre_recherche.ilike(f"%{categorie}%"))
         if region:
-            demandes_query = demandes_query.filter(DemandeAnimation.lieu_ville.ilike(f"%{region}%"))
+            region_field = DemandeAnimation.region if _user_recoit_cadeau(user) else DemandeAnimation.lieu_ville
+            demandes_query = demandes_query.filter(region_field.ilike(f"%{region}%"))
         
         total = demandes_query.count()
         demandes = demandes_query.offset((page-1)*per_page).limit(per_page).all()
@@ -6696,6 +6725,11 @@ Accessibilité: {accessibilite}
             has_show = Show.query.filter(Show.user_id == user.id, Show.approved.is_(True)).count() > 0
         
         masquage_ville_seuil = datetime(2026, 9, 12)
+        from utils.offres import offered_ids, offer_view
+        gifts = offered_ids(user)
+        demandes = [offer_view(d, user, gifts) for d in demandes]
+        if _user_recoit_cadeau(user):
+            regions = [r[0] for r in db.session.query(DemandeAnimation.region).distinct().all() if r[0]]
         return render_template("demandes_animation.html", demandes=demandes, page=page, nb_pages=nb_pages, total=total, per_page=per_page, user=user, has_show=has_show, categories=categories, regions=regions, categorie=categorie, region=region, spectacles_une=spectacles_une, masquage_ville_seuil=masquage_ville_seuil, can_view_demandes_map=_user_can_view_demandes_map(user))
 
 
@@ -6841,7 +6875,8 @@ Accessibilité: {accessibilite}
         if categorie:
             demandes_query = demandes_query.filter(DemandeAnimation.genre_recherche.ilike(f"%{categorie}%"))
         if region:
-            demandes_query = demandes_query.filter(DemandeAnimation.lieu_ville.ilike(f"%{region}%"))
+            region_field = DemandeAnimation.region if _user_recoit_cadeau(user) else DemandeAnimation.lieu_ville
+            demandes_query = demandes_query.filter(region_field.ilike(f"%{region}%"))
         
         total = demandes_query.count()
         demandes = demandes_query.offset((page-1)*per_page).limit(per_page).all()
@@ -6851,7 +6886,50 @@ Accessibilité: {accessibilite}
         categories = [c[0] for c in db.session.query(DemandeAnimation.genre_recherche).distinct().all() if c[0]]
         regions = [r[0] for r in db.session.query(DemandeAnimation.lieu_ville).distinct().all() if r[0]]
         
-        return render_template("mes_appels_offres.html", demandes=demandes, page=page, nb_pages=nb_pages, total=total, per_page=per_page, user=current_user(), categories=categories, regions=regions, categorie=categorie, region=region)
+        from utils.offres import offered_ids, offer_view
+        gifts = offered_ids(user)
+        demandes = [offer_view(d, user, gifts) for d in demandes]
+        if _user_recoit_cadeau(user):
+            regions = [r[0] for r in db.session.query(DemandeAnimation.region).distinct().all() if r[0]]
+        return render_template("mes_appels_offres.html", demandes=demandes, page=page, nb_pages=nb_pages, total=total, per_page=per_page, user=user, categories=categories, regions=regions, categorie=categorie, region=region)
+
+    @app.route("/appels-offres/<int:demande_id>")
+    @login_required
+    def appel_offre_detail(demande_id):
+        from models.models import AppelOffreEnvoi, DemandeAnimation
+        from utils.offres import offered_ids, offer_view
+        user = current_user()
+        if _user_offres_bloquees(user):
+            flash("L'accès aux appels d'offres n'est pas activé sur votre compte.", "warning")
+            return redirect(url_for("abonnement_compagnie"))
+        demande = DemandeAnimation.query.get_or_404(demande_id)
+        delivery = AppelOffreEnvoi.query.filter_by(
+            user_id=user.id, demande_id=demande.id,
+        ).first()
+        if not user.is_admin and not delivery and (demande.is_private or not demande.approved):
+            abort(404)
+        has_show = Show.query.filter_by(user_id=user.id, approved=True).first() is not None
+        if not user.is_admin and not user.is_subscribed and not has_show and not delivery:
+            flash("Un spectacle approuvé ou un abonnement AO est nécessaire.", "warning")
+            return redirect(url_for("company_dashboard"))
+        _record_offer_consultation(demande, user)
+        return render_template(
+            "appel_offre_detail.html",
+            demande=offer_view(demande, user, offered_ids(user)), user=user,
+        )
+
+    @app.route("/appels-offres/<int:demande_id>/consultation", methods=["POST"])
+    def appel_offre_consultation(demande_id):
+        from models.models import DemandeAnimation
+        user = current_user()
+        if _user_offres_bloquees(user):
+            abort(403)
+        demande = DemandeAnimation.query.get_or_404(demande_id)
+        if demande.is_private or not demande.approved:
+            abort(404)
+        if not _record_offer_consultation(demande, user):
+            return jsonify(error="La consultation n'a pas pu être enregistrée."), 503
+        return "", 204
 
     @app.route("/mes-demandes")
     @login_required
@@ -7506,6 +7584,13 @@ Accessibilité: {accessibilite}
             print(f"[DEBUG] POST reçu pour demande_id={demande_id}")
             action = request.form.get("action", "preview")
             print(f"[DEBUG] Action: {action}")
+            from utils.offres import gift_selected
+            from utils.offres import delivery_recap_entry
+            try:
+                gift_user_ids = {int(uid) for uid in request.form.getlist("gift_user_ids")}
+            except ValueError:
+                flash("Choix de cadeau invalide.", "danger")
+                return redirect(request.url)
             
             # === ACTION send_matched_recap_only : envoie UNIQUEMENT le récap à l'organisateur ===
             # Réutilise les compagnies cochées dans la liste auto-matching, sans envoyer aux artistes
@@ -7561,6 +7646,7 @@ Accessibilité: {accessibilite}
                 success_count = 0
                 error_count = 0
                 errors_detail = []
+                successful_deliveries = []
                 
                 # OPTIMISATION : une seule connexion SMTP pour tous les emails
                 # Évite handshake TLS répété (cause du WORKER TIMEOUT gunicorn)
@@ -7573,16 +7659,22 @@ Accessibilité: {accessibilite}
                             
                             if email and email not in emails_sent:
                                 emails_sent.add(email)
-                                body_html = _build_appel_offre_email(demande, show)
+                                recipient_user = getattr(show, "user", None)
+                                gift = gift_selected(recipient_user, gift_user_ids)
+                                body_html = _build_appel_offre_email(demande, show, gift=gift)
                                 try:
                                     msg = MailMessage(
-                                        subject=f"Nouvelle Opportunité - {demande.genre_recherche} à {demande.lieu_ville}",
+                                        subject=_appel_offre_subject(demande, recipient_user, gift=gift),
                                         recipients=[email]
                                     )
                                     msg.html = body_html
                                     conn.send(msg)
                                     success_count += 1
-                                    _incr_cadeau_count(getattr(show, 'user', None))
+                                    tracked = _record_appel_offre_delivery(recipient_user, demande, gift=gift)
+                                    successful_deliveries.append(delivery_recap_entry(
+                                        recipient_user, email, show.title,
+                                        gift=gift, show=show, tracked=tracked,
+                                    ))
                                     print(f"[DEBUG] ✅ Email envoyé à {email}")
                                 except Exception as e:
                                     error_count += 1
@@ -7599,34 +7691,11 @@ Accessibilité: {accessibilite}
                     admin_email = current_app.config.get("MAIL_DEFAULT_SENDER") or current_app.config.get("MAIL_USERNAME")
                 if admin_email:
                     try:
-                        # Liste des compagnies contactées
-                        cie_rows = ""
-                        for show in shows:
-                            s_email = show.contact_email or (show.user.email if show.user and hasattr(show.user, 'email') else "—")
-                            try:
-                                s_url = url_for("show_detail_seo", slug=show_slug(show), _external=True)
-                            except Exception:
-                                s_url = f"https://www.spectacleanimation.fr/spectacle/{show_slug(show)}"
-                            # Catégorie : fallback sur specialites (CSV) si category vide
-                            s_cat = show.category or getattr(show, 'specialites', None) or "—"
-                            if s_cat and "," in s_cat:
-                                s_cat = s_cat.replace(",", ", ")
-                            cie_rows += (
-                                f'<tr>'
-                                f'<td style="padding:6px 10px;border-bottom:1px solid #eee;">{show.title}</td>'
-                                f'<td style="padding:6px 10px;border-bottom:1px solid #eee;">{s_cat}</td>'
-                                f'<td style="padding:6px 10px;border-bottom:1px solid #eee;">{s_email}</td>'
-                                f'<td style="padding:6px 10px;border-bottom:1px solid #eee;"><a href="{s_url}" style="color:#8b1e1e;text-decoration:none;font-weight:600;">🎭 Voir</a></td>'
-                                f'</tr>'
-                            )
-                        # Erreurs éventuelles
-                        err_html = ""
-                        if errors_detail:
-                            err_html = '<div style="background:#fff3cd;padding:10px;border-radius:6px;margin:12px 0;"><strong>Erreurs :</strong><ul style="margin:4px 0;">'
-                            for ed in errors_detail[:10]:
-                                err_html += f"<li>{ed}</li>"
-                            err_html += "</ul></div>"
-
+                        delivery_summary = render_template(
+                            "_admin_offre_envois_recap.html",
+                            deliveries=successful_deliveries,
+                            errors=errors_detail,
+                        )
                         admin_body = f"""<!DOCTYPE html><html><head><meta charset="UTF-8"></head><body style="font-family:Arial,sans-serif;max-width:650px;margin:0 auto;color:#333;">
 <div style="text-align:center;margin:16px 0;"><img src="https://www.spectacleanimation.fr/static/img/logo_spectaclement_votre.png" alt="Logo" style="max-width:180px;"></div>
 <div style="background:#1b2a4e;color:#fff;padding:14px 20px;border-radius:8px 8px 0 0;text-align:center;font-weight:700;font-size:1.1em;">COPIE ADMIN — Auto-matching envoyé à {success_count} compagnie(s)</div>
@@ -7644,12 +7713,7 @@ Accessibilité: {accessibilite}
 <tr><td style="padding:3px 0;"><strong>Espace :</strong></td><td>{demande.type_espace}</td></tr>
 <tr><td style="padding:3px 0;"><strong>Région :</strong></td><td>{demande.region or '—'}</td></tr>
 </table>
-<h4 style="margin:16px 0 8px 0;color:#1b2a4e;">{success_count} compagnie(s) contactée(s) :</h4>
-<table style="width:100%;border-collapse:collapse;font-size:0.85em;background:#fff;border-radius:6px;">
-<tr style="background:#e8eaf6;"><th style="padding:8px 10px;text-align:left;">Spectacle</th><th style="padding:8px 10px;text-align:left;">Catégorie</th><th style="padding:8px 10px;text-align:left;">Email</th><th style="padding:8px 10px;text-align:left;">Fiche</th></tr>
-{cie_rows}
-</table>
-{err_html}
+{delivery_summary}
 <p style="text-align:center;margin-top:16px;color:#888;font-size:0.85em;">Spectacle'ment Vôtre — contact@spectacleanimation.fr</p>
 </div></body></html>"""
                         admin_msg = MailMessage(
@@ -7665,7 +7729,10 @@ Accessibilité: {accessibilite}
                                 subject=f"[ADMIN COPIE ARTISTE] Nouvelle Opportunité - {demande.genre_recherche} à {demande.lieu_ville}",
                                 recipients=[admin_email]
                             )
-                            artist_copy.html = _build_appel_offre_email(demande, sample_show)
+                            artist_copy.html = _build_appel_offre_email(
+                                demande, sample_show,
+                                gift=gift_selected(sample_show.user, gift_user_ids),
+                            )
                             current_app.mail.send(artist_copy)
                     except Exception as e:
                         print(f"[MAIL] ⚠️ Erreur copie admin: {e}")
@@ -7676,13 +7743,6 @@ Accessibilité: {accessibilite}
                     flash(f"⚠️ {error_count} email(s) en erreur.", "warning")
                 if success_count == 0 and error_count == 0:
                     flash("⚠️ Aucun email à envoyer.", "warning")
-
-                # Persiste les incréments du compteur de cadeaux (voir _incr_cadeau_count).
-                try:
-                    db.session.commit()
-                except Exception as _e:
-                    db.session.rollback()
-                    print(f"[CADEAU COUNT] commit send_matched failed: {_e}")
 
                 return redirect(url_for("admin_demandes_animation"))
 
@@ -7842,7 +7902,8 @@ Accessibilité: {accessibilite}
                             'category': show.category,
                             'region': show.region or (show.user.region if show.user else ""),
                             'show_id': show.id,
-                            'type': 'spectacle'
+                            'type': 'spectacle',
+                            'recipient_user': show.user,
                         })
                 
                 # Collecter les destinataires régionaux additionnels
@@ -7855,7 +7916,8 @@ Accessibilité: {accessibilite}
                             'category': "Utilisateur régional",
                             'region': user.region or "",
                             'show_id': None,
-                            'type': 'region'
+                            'type': 'region',
+                            'recipient_user': user,
                         })
                 
                 print(f"[DEBUG] {len(destinataires)} destinataires uniques trouvés pour prévisualisation")
@@ -7985,7 +8047,7 @@ Accessibilité: {accessibilite}
                 <a href="mailto:{demande.contact_email}" class="btn">Contacter le demandeur</a>
             </p>
             <p style="text-align: center; margin-top: 8px;">
-                <a href="https://www.spectacleanimation.fr/demandes-animation" style="display:inline-block;padding:10px 24px;background:#1b5e20;color:white;text-decoration:none;border-radius:5px;font-weight:bold;">Voir l'appel d'offre</a>
+                <a href="https://www.spectacleanimation.fr/appels-offres/{demande.id}" style="display:inline-block;padding:10px 24px;background:#1b5e20;color:white;text-decoration:none;border-radius:5px;font-weight:bold;">Voir l'appel d'offre</a>
             </p>
         </div>
 
@@ -8016,6 +8078,10 @@ Accessibilité: {accessibilite}
 </body>
 </html>
 """
+                    recipient_user = getattr(show, "user", None)
+                    gift = gift_selected(recipient_user, gift_user_ids)
+                    if _user_recoit_cadeau(recipient_user):
+                        body_html = _build_appel_offre_email(demande, show, gift=gift)
                     # Ajouter à la liste au lieu d'envoyer immédiatement
                     emails_to_send.append({
                         'email': email,
@@ -8023,7 +8089,8 @@ Accessibilité: {accessibilite}
                         'show_title': f"{show.title} - {show.category}",
                         'type': 'spectacle',
                         'show': show,
-                        'user': getattr(show, 'user', None)
+                        'user': recipient_user,
+                        'gift': gift,
                     })
             
             # Collecter aussi les utilisateurs additionnels par région
@@ -8116,7 +8183,7 @@ Accessibilité: {accessibilite}
                 <a href="mailto:{demande.contact_email}" class="btn">Contacter le demandeur</a>
             </p>
             <p style="text-align: center; margin-top: 8px;">
-                <a href="https://www.spectacleanimation.fr/demandes-animation" style="display:inline-block;padding:10px 24px;background:#1b5e20;color:white;text-decoration:none;border-radius:5px;font-weight:bold;">Voir l'appel d'offre</a>
+                <a href="https://www.spectacleanimation.fr/appels-offres/{demande.id}" style="display:inline-block;padding:10px 24px;background:#1b5e20;color:white;text-decoration:none;border-radius:5px;font-weight:bold;">Voir l'appel d'offre</a>
             </p>
         </div>
 
@@ -8142,13 +8209,17 @@ Accessibilité: {accessibilite}
 </body>
 </html>
 """
+                    gift = gift_selected(user, gift_user_ids)
+                    if _user_recoit_cadeau(user) and not gift:
+                        body_html = _appel_offre_apercu(demande)
                     # Ajouter à la liste
                     emails_to_send.append({
                         'email': user.email,
                         'body_html': body_html,
                         'show_title': f"Région: {user.region}" if user.region else "Utilisateur régional",
                         'type': 'region',
-                        'user': user
+                        'user': user,
+                        'gift': gift,
                     })
             
             print(f"[DEBUG] Phase 1 terminée : {len(emails_to_send)} emails à envoyer")
@@ -8167,6 +8238,7 @@ Accessibilité: {accessibilite}
                 return redirect(url_for("admin_demandes_animation"))
             
             print(f"[DEBUG] Phase 2 : Envoi par batchs de {BATCH_SIZE} emails...")
+            successful_deliveries = []
             
             # Découper en batchs
             for i in range(0, total_emails, BATCH_SIZE):
@@ -8182,13 +8254,18 @@ Accessibilité: {accessibilite}
                         for email_data in batch:
                             try:
                                 msg = MailMessage(
-                                    subject=f"Nouvelle Opportunité - {demande.genre_recherche} à {demande.lieu_ville}",
+                                    subject=_appel_offre_subject(demande, email_data.get('user'), gift=email_data['gift']),
                                     recipients=[email_data['email']]
                                 )
                                 msg.html = email_data['body_html']
                                 conn.send(msg)
                                 success_count += 1
-                                _incr_cadeau_count(email_data.get('user'))
+                                tracked = _record_appel_offre_delivery(email_data.get('user'), demande, gift=email_data['gift'])
+                                successful_deliveries.append(delivery_recap_entry(
+                                    email_data.get('user'), email_data['email'],
+                                    email_data['show_title'], gift=email_data['gift'],
+                                    show=email_data.get('show'), tracked=tracked,
+                                ))
                                 print(f"[DEBUG] ✅ Email envoyé à {email_data['email']} ({success_count}/{total_emails})")
                             except Exception as e:
                                 error_msg = str(e)
@@ -8212,6 +8289,11 @@ Accessibilité: {accessibilite}
                 admin_email = current_app.config.get("MAIL_DEFAULT_SENDER") or current_app.config.get("MAIL_USERNAME")
             if admin_email:
                 try:
+                    delivery_summary = render_template(
+                        "_admin_offre_envois_recap.html",
+                        deliveries=successful_deliveries,
+                        errors=errors_detail,
+                    )
                     admin_body_html = f"""
 <!DOCTYPE html>
 <html>
@@ -8240,6 +8322,7 @@ Accessibilité: {accessibilite}
         <div class="admin-notice">
             COPIE ADMIN - Appel d'offre envoyé à {success_count} compagnie(s)
         </div>
+        {delivery_summary}
         <p style="font-size:0.95em; color:#444; margin:0 0 16px 0;"><strong>Appel d'offre :</strong> {demande.intitule or 'Demande d\'animation'}</p>
 
         <div class="opportunity-box">
@@ -8306,7 +8389,7 @@ Accessibilité: {accessibilite}
             # === RÉCAP ORGANISATEUR ===
             # Envoi auto d'un récap court à l'organisateur avec les liens des fiches contactées
             if success_count > 0:
-                shows_recap = [e['show'] for e in emails_to_send if e.get('type') == 'spectacle' and e.get('show')]
+                shows_recap = [e['show'] for e in successful_deliveries if e.get('show')]
                 recap_ok, recap_err = _send_recap_to_organisateur(demande, shows_recap, admin_email_extra=admin_email)
                 if not recap_ok:
                     flash(f"⚠️ Récap non transmis à l'organisateur : {recap_err or 'voir logs.'}", "warning")
@@ -8324,13 +8407,6 @@ Accessibilité: {accessibilite}
             if success_count == 0 and error_count == 0:
                 flash("⚠️ Aucun email n'a été envoyé. Aucun spectacle correspondant trouvé.", "warning")
 
-            # Persiste les incréments du compteur de cadeaux (voir _incr_cadeau_count).
-            try:
-                db.session.commit()
-            except Exception as _e:
-                db.session.rollback()
-                print(f"[CADEAU COUNT] commit send batch failed: {_e}")
-
             # Retourner à la page admin des demandes
             return redirect(url_for("admin_demandes_animation"))
         
@@ -8342,7 +8418,7 @@ Accessibilité: {accessibilite}
         all_approved = (
             Show.query
             .options(
-                joinedload(Show.user).load_only(User.id, User.code_postal, User.region, User.departement, User.latitude, User.longitude, User.created_at, User.is_subscribed, User.cadeaux_offerts_count)
+                joinedload(Show.user).load_only(User.id, User.email, User.is_admin, User.bloque_appels_offres, User.code_postal, User.region, User.departement, User.latitude, User.longitude, User.created_at, User.is_subscribed, User.cadeaux_offerts_count, User.apercus_envoyes_count)
             )
             .filter(Show.approved.is_(True))
             .all()
@@ -10757,5 +10833,3 @@ def unread_messages_count():
 # -----------------------------------------------------
 if __name__ == "__main__":
     app.run(debug=True, host="127.0.0.1", port=5000)
-
-

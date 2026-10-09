@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block title %}Appel d'offres{% endblock %}
+{% block content %}
+<section style="max-width:800px;margin:30px auto;padding:24px;background:#fff;color:#222;border-radius:14px;">
+  <h1>Appel d'offres : {{ demande.genre_recherche }}</h1>
+  {% if demande.offert %}<p style="color:#e65100;font-weight:700;">🎁 Cet appel d'offres vous est offert. Cela ne débloque pas les autres annonces.</p>{% endif %}
+  <p><strong>Région :</strong> {{ demande.region or 'Non précisée' }}</p>
+  <p><strong>Département :</strong> {{ demande.departement or 'Non précisé' }}</p>
+  <p><strong>Budget :</strong> {{ demande.budget }}</p>
+  <p><strong>Jauge :</strong> {{ demande.jauge }}</p>
+  <p><strong>Public :</strong> {{ demande|format_public_cible }}</p>
+  {% if demande.acces_complet %}
+    <p><strong>Structure :</strong> {{ demande.structure }}</p>
+    <p><strong>Ville :</strong> {{ demande.lieu_ville }}</p>
+    {% if demande.code_postal %}<p><strong>Code postal :</strong> {{ demande.code_postal }}</p>{% endif %}
+    <p><strong>Dates :</strong> {{ demande.dates_horaires }}</p>
+    <p><strong>Type d'espace :</strong> {{ demande.type_espace }}</p>
+    {% if demande.accessibilite %}<p><strong>Accessibilité :</strong> {{ demande.accessibilite }}</p>{% endif %}
+    {% if demande.specialites_recherchees %}<p><strong>Spécialités :</strong> {{ demande.specialites_recherchees }}</p>{% endif %}
+    {% if demande.intitule %}<p>{{ demande.intitule }}</p>{% endif %}
+    {% if demande.contraintes %}<p><strong>Contraintes :</strong> {{ demande.contraintes }}</p>{% endif %}
+    {% if demande.is_desactivee and not user.is_admin %}
+      <p>Annonce désactivée : coordonnées masquées.</p>
+    {% else %}
+      <p><strong>Contact :</strong> {{ demande.nom }}</p>
+      <p><strong>Téléphone :</strong> {{ demande.telephone }}</p>
+      <p><strong>Email :</strong> <a href="mailto:{{ demande.contact_email }}">{{ demande.contact_email }}</a></p>
+    {% endif %}
+  {% else %}
+    <div style="background:#fff8ed;border:1px solid #f0d7b0;padding:24px;border-radius:14px;color:#483624;line-height:1.6;">
+      <h2 style="margin:0 0 12px;color:#75451f;font-size:1.25rem;">Une belle occasion pour votre compagnie !</h2>
+      <p>Cet appel d'offres pourrait vous intéresser. Pourquoi ne pas vous abonner pour découvrir l'annonce complète et contacter directement l'organisateur ?</p>
+      <p><strong>49 € TTC la première année, puis 99 €/an.</strong></p>
+      <a href="{{ url_for('adhesion') }}" style="display:inline-block;background:#75451f;color:#fff;padding:12px 20px;border-radius:8px;text-decoration:none;font-weight:700;">Je découvre l'abonnement</a>
+    </div>
+  {% endif %}
+  <p><a href="{{ url_for('mes_appels_offres') }}">Mes appels d'offres</a></p>
+</section>
+{% endblock %}

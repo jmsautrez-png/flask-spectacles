@@ -1,0 +1,16 @@
+{% macro offre_envoi_choice(recipient) %}
+  {% if recipient and recipient.is_modele_payant and not recipient.is_subscribed and not recipient.is_admin %}
+    {% if recipient.bloque_appels_offres %}
+      <span>Accès bloqué : aperçu uniquement</span>
+    {% else %}
+      <label style="display:block;color:#212529;">
+        <input type="checkbox" name="gift_user_ids" value="{{ recipient.id }}"
+               onchange="document.querySelectorAll('input[name=gift_user_ids]').forEach(cb => { if (cb.value === this.value) cb.checked = this.checked; });">
+        🎁 Offrir cette offre
+      </label>
+      <small style="color:#555;">Non coché : aperçu masqué + invitation à s'abonner.</small>
+    {% endif %}
+  {% else %}
+    <span>Envoi complet (accès habituel)</span>
+  {% endif %}
+{% endmacro %}

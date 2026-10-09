@@ -1,0 +1,25 @@
+{% if not (user and user.is_admin) %}
+<script>
+document.querySelectorAll('[data-offer-consultation]').forEach(function(button) {
+  var pending = false;
+  var counted = false;
+  button.addEventListener('click', function() {
+    var details = document.getElementById(button.getAttribute('data-offer-details'));
+    if (!details || details.style.display === 'none' || pending || counted) return;
+    pending = true;
+    fetch(button.getAttribute('data-offer-consultation'), {
+      method: 'POST',
+      credentials: 'same-origin',
+      headers: {'X-CSRFToken': {{ csrf_token()|tojson }}}
+    }).then(function(response) {
+      if (response.status !== 204) throw new Error('Consultation HTTP ' + response.status);
+      counted = true;
+    }).catch(function(error) {
+      console.error("Impossible d'enregistrer la consultation de l'annonce.", error);
+    }).finally(function() {
+      pending = false;
+    });
+  });
+});
+</script>
+{% endif %}

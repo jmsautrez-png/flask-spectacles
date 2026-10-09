@@ -38,6 +38,7 @@ class DemandeAnimation(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
     # ── Matching : axes de correspondance (CSV) ──
+    consultations_count = db.Column(db.Integer, nullable=False, default=0, server_default="0")
     specialites_recherchees = db.Column(db.Text, nullable=True)  # "Clown,Magie et Magicien"
     evenements_contexte = db.Column(db.Text, nullable=True)       # "Fête de village / Fête locale"
     lieux_souhaites = db.Column(db.Text, nullable=True)           # "Salle des fêtes,Parc / Jardin public"
@@ -70,6 +71,36 @@ class DemandeAnimation(db.Model):
 # Test lancement 13/09/2026 : 49 € TTC 1re année, puis 99 €/an. Activation manuelle (contact → PayPal → facture).
 # Reculée au 12/09 pour englober les 2 inscriptions du 12/09 soir (Saltimbanques, Stephax) dans le nouveau modèle.
 MODELE_PAYANT_DEBUT = datetime(2026, 9, 12)
+
+
+class AppelOffreConsultation(db.Model):
+    __tablename__ = "appel_offre_consultations"
+    __table_args__ = (db.UniqueConstraint("demande_id", "session_key"),)
+
+    id = db.Column(db.Integer, primary_key=True)
+    demande_id = db.Column(db.Integer, db.ForeignKey("demande_animation.id"), nullable=False)
+    session_key = db.Column(db.String(32), nullable=False)
+    demande = db.relationship(
+        "DemandeAnimation",
+        backref=db.backref("consultations_sessions", cascade="all, delete-orphan"),
+    )
+
+
+class AppelOffreEnvoi(db.Model):
+    __tablename__ = "appel_offre_envois"
+    __table_args__ = (db.UniqueConstraint("user_id", "demande_id"),)
+
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
+    demande_id = db.Column(db.Integer, db.ForeignKey("demande_animation.id"), nullable=False)
+    offert = db.Column(db.Boolean, nullable=False, default=False)
+    created_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    user = db.relationship(
+        "User", backref=db.backref("appels_offres_envoyes", cascade="all, delete-orphan"),
+    )
+    demande = db.relationship(
+        "DemandeAnimation", backref=db.backref("envois_compagnies", cascade="all, delete-orphan"),
+    )
 
 
 class User(db.Model):
@@ -106,6 +137,7 @@ class User(db.Model):
     renewal_expired_sent_for = db.Column(db.DateTime, nullable=True)
     # Nombre d'appels d'offres « cadeau » (bloc `_bloc_cadeau_html`) envoyés à cet utilisateur depuis MODELE_PAYANT_DEBUT.
     cadeaux_offerts_count = db.Column(db.Integer, nullable=False, default=0, server_default="0")
+    apercus_envoyes_count = db.Column(db.Integer, nullable=False, default=0, server_default="0")
     # ── Infos légales (privées, usage interne uniquement) : saisie optionnelle qui déclenche l'attribution auto du badge 🛡️ Cie Pro ──
     siret = db.Column(db.String(14), nullable=True)
     licence_spectacle = db.Column(db.String(100), nullable=True)

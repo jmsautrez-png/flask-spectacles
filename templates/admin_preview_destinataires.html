@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% from "_offre_envoi_choice.html" import offre_envoi_choice %}
 
 {% block title %}Prévisualisation destinataires{% endblock %}
 
@@ -63,6 +64,7 @@
 
                     <!-- Formulaire d'envoi -->
                     <form method="post" id="form-envoi">
+                        <p>Aperçu par défaut pour les inscrits depuis le 12/09/2026 non abonnés. Choisissez « Offrir cette offre » pour leur transmettre l'annonce complète.</p>
                         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                         <input type="hidden" name="action" id="action-field" value="send"/>
                         <input type="hidden" name="demande_id" value="{{ demande.id }}"/>
@@ -106,6 +108,8 @@
                                         <th>🎭 Spectacle</th>
                                         <th>📂 Catégorie</th>
                                         <th>🗺️ Région</th>
+                                        <th>Aperçus / Cadeaux</th>
+                                        <th>Mode d'envoi</th>
                                     </tr>
                                 </thead>
                                 <tbody id="table-body">
@@ -126,11 +130,18 @@
                                             <td class="show-cell">{{ dest.show_title }}</td>
                                             <td class="text-muted category-cell">{{ dest.category }}</td>
                                             <td class="text-muted region-cell">{{ dest.region or 'Non spécifiée' }}</td>
+                                            <td>
+                                                {% if dest.recipient_user and dest.recipient_user.is_modele_payant and not dest.recipient_user.is_subscribed %}
+                                                Aperçus : {{ dest.recipient_user.apercus_envoyes_count or 0 }}<br>
+                                                Cadeaux : {{ dest.recipient_user.cadeaux_offerts_count or 0 }}
+                                                {% else %}—{% endif %}
+                                            </td>
+                                            <td>{{ offre_envoi_choice(dest.recipient_user) }}</td>
                                         </tr>
                                         {% endfor %}
                                     {% else %}
                                         <tr>
-                                            <td colspan="6" class="text-center text-muted py-5">
+                                            <td colspan="8" class="text-center text-muted py-5">
                                                 <h5>❌ Aucune compagnie trouvée</h5>
                                                 <p>Les critères sélectionnés ne correspondent à aucune compagnie.</p>
                                             </td>

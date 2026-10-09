@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head><meta charset="UTF-8"><title>Un appel d'offres correspond à votre profil</title></head>
+<body style="font-family:Arial,sans-serif;color:#333;line-height:1.6;max-width:600px;margin:auto;">
+  <h2 style="color:#1b2a4e;">Un appel d'offres correspond à votre profil</h2>
+  <p>Bonjour, une demande d'animation pourrait vous intéresser.</p>
+  <div style="background:#e3f2fd;padding:18px;border-radius:10px;">
+    <p><strong>Type recherché :</strong> {{ demande.genre_recherche }}</p>
+    <p><strong>Région :</strong> {{ demande.region or 'Non précisée' }}</p>
+    <p><strong>Département :</strong> {{ demande.departement or 'Non précisé' }}</p>
+    <p><strong>Budget :</strong> {{ demande.budget }}</p>
+    <p><strong>Jauge :</strong> {{ demande.jauge }}</p>
+    <p><strong>Public :</strong> {{ demande|format_public_cible }}</p>
+  </div>
+  <div style="background:#fff8ed;border:1px solid #f0d7b0;padding:24px;border-radius:14px;margin:18px 0;text-align:center;color:#483624;">
+    <h2 style="margin:0 0 12px;color:#75451f;font-size:20px;">Une belle occasion pour votre compagnie !</h2>
+    <p>Cet appel d'offres correspond à votre profil. Pourquoi ne pas vous abonner pour découvrir l'annonce complète et contacter directement l'organisateur ?</p>
+    <p><strong>49 € TTC la première année, puis 99 €/an.</strong></p>
+    <p><a href="{{ offer_url }}" style="color:#75451f;font-weight:bold;">Voir l'annonce</a></p>
+    <p><a href="{{ subscription_url }}" style="display:inline-block;background:#75451f;color:#fff;padding:12px 20px;text-decoration:none;border-radius:8px;font-weight:bold;">Je découvre l'abonnement</a></p>
+  </div>
+  <p>La publication de vos spectacles reste gratuite.</p>
+  <p>L'équipe Spectacle'ment Vôtre</p>
+</body>
+</html>

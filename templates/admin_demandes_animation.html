@@ -63,6 +63,7 @@
                 <div>📱 <strong>Téléphone:</strong> {{ demande.telephone }}</div>
                 <div>💰 <strong>Budget:</strong> {{ demande.budget }} €</div>
                 <div>👥 <strong>Jauge:</strong> {{ demande.jauge }} personnes</div>
+                <div><strong>Consultations :</strong> {{ demande.consultations_count or 0 }}</div>
                 {% if demande.contraintes %}
                 <div>⚠️ <strong>Contraintes:</strong> {{ demande.contraintes[:50] }}{% if demande.contraintes|length > 50 %}...{% endif %}</div>
                 {% endif %}
@@ -161,6 +162,7 @@
                 <div>📱 <strong>Téléphone:</strong> {{ demande.telephone }}</div>
                 <div>💰 <strong>Budget:</strong> {{ demande.budget }} €</div>
                 <div>👥 <strong>Jauge:</strong> {{ demande.jauge }} personnes</div>
+                <div><strong>Consultations :</strong> {{ demande.consultations_count or 0 }}</div>
             </div>
         </div>
 

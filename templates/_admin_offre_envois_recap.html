@@ -1,0 +1,46 @@
+<h4 style="margin:16px 0 8px;color:#1b2a4e;">Bilan des envois réussis</h4>
+<p>
+  Aperçus masqués : <strong>{{ deliveries|selectattr('mode', 'equalto', 'apercu')|list|length }}</strong>
+  · Cadeaux : <strong>{{ deliveries|selectattr('mode', 'equalto', 'cadeau')|list|length }}</strong>
+  · Envois complets habituels : <strong>{{ deliveries|selectattr('mode', 'equalto', 'complet')|list|length }}</strong>
+</p>
+<table style="width:100%;border-collapse:collapse;font-size:0.85em;background:#fff;">
+  <thead>
+    <tr style="background:#e8eaf6;">
+      <th style="padding:8px;text-align:left;">Compagnie / Spectacle</th>
+      <th style="padding:8px;text-align:left;">Email</th>
+      <th style="padding:8px;text-align:left;">Mode envoyé</th>
+      <th style="padding:8px;text-align:left;">Total aperçus</th>
+      <th style="padding:8px;text-align:left;">Total cadeaux</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for delivery in deliveries %}
+    <tr>
+      <td style="padding:8px;border-bottom:1px solid #eee;">
+        {{ delivery.title }}
+        {% if delivery.show %}
+          <br>{{ delivery.show.category or delivery.show.specialites or '' }}
+          <br><a href="{{ url_for('show_detail', show_id=delivery.show.id, _external=True) }}">Voir la fiche</a>
+        {% endif %}
+      </td>
+      <td style="padding:8px;border-bottom:1px solid #eee;">{{ delivery.email }}</td>
+      <td style="padding:8px;border-bottom:1px solid #eee;">
+        {% if delivery.mode == 'apercu' %}Aperçu masqué{% elif delivery.mode == 'cadeau' %}Offre cadeau{% else %}Envoi complet habituel{% endif %}
+        {% if not delivery.tracked %}<br><strong>Suivi non enregistré : à vérifier</strong>{% endif %}
+      </td>
+      <td style="padding:8px;border-bottom:1px solid #eee;">{{ delivery.apercus if delivery.tracked and delivery.apercus is not none else '—' }}</td>
+      <td style="padding:8px;border-bottom:1px solid #eee;">{{ delivery.cadeaux if delivery.tracked and delivery.cadeaux is not none else '—' }}</td>
+    </tr>
+    {% else %}
+    <tr><td colspan="5" style="padding:8px;">Aucun envoi réussi.</td></tr>
+    {% endfor %}
+  </tbody>
+</table>
+<p style="font-size:0.85em;color:#666;">Les totaux sont cumulés par compagnie. Les échecs d'envoi ne sont pas comptés.</p>
+{% if errors %}
+<div style="background:#fff3cd;padding:12px;border-radius:8px;">
+  <strong>Erreurs d'envoi :</strong>
+  <ul>{% for error in errors %}<li>{{ error }}</li>{% endfor %}</ul>
+</div>
+{% endif %}
