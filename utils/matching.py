@@ -264,26 +264,6 @@ def _expand_with_parents(specs):
     return specs | parents if parents else specs
 
 
-# Échelle « dès X ans » : sous-option → âge plancher (en années).
-# Sert au matching hiérarchique côté DEMANDE : une demande « dès X ans »
-# accepte tous les spectacles dont l'âge plancher est ≥ X.
-# Ainsi une demande « dès 3 ans » (la plus large) reçoit TOUS les spectacles,
-# tandis qu'une demande « dès 16 ans » ne reçoit que les spectacles « dès 16 ans ».
-# Les sous-options « niveaux scolaires » (creche/mat/elem/ado) en sont
-# volontairement absentes : elles gardent un matching exact.
-_AGE_LADDER = {
-    "fam_pe": 0,
-    "fam_3": 3,
-    "fam_6": 6,
-    "fam_8": 8,
-    "fam_10": 10,
-    "fam_12": 12,
-    "fam_16": 16,
-    "ad_12": 12,
-    "ad_16": 16,
-}
-
-
 def _public_cible_compatible(show, demande):
     """Matching strict Public Cible v2.
 
@@ -292,6 +272,8 @@ def _public_cible_compatible(show, demande):
                         retombera sur l'ancien filtre age_range.
     - compatible=True → au moins 1 catégorie commune ET au moins 1 sous-option
                         commune (parmi les sous-options des catégories communes).
+                        Sans sous-option sur l'un des deux, la catégorie suffit.
+                        Les âges ne sont jamais élargis automatiquement.
     """
     dem_cats = _csv_to_set(getattr(demande, "public_categories", None))
     if not dem_cats:
@@ -324,18 +306,8 @@ def _public_cible_compatible(show, demande):
     # les sous-options de cette catégorie -> match.
     if not show_subs_in_common:
         return True, True
-    # Correspondance exacte (niveaux scolaires ou même âge) : 1 sous-option commune suffit
-    if dem_subs_in_common & show_subs_in_common:
-        return True, True
-    # Échelle « dès X ans » (côté demande) : une demande « dès X ans » accepte
-    # tous les spectacles dont l'âge plancher est supérieur ou égal à X.
-    # Ex. demande « dès 3 ans » → reçoit tous les spectacles (3/6/12/16) ;
-    #     demande « dès 12 ans » → reçoit seulement les spectacles « dès 12/16 ans ».
-    show_ladder = {_AGE_LADDER[s] for s in show_subs_in_common if s in _AGE_LADDER}
-    dem_ladder = {_AGE_LADDER[s] for s in dem_subs_in_common if s in _AGE_LADDER}
-    if show_ladder and dem_ladder and min(show_ladder) >= min(dem_ladder):
-        return True, True
-    return False, True
+    # Correspondance exacte : une seule case commune suffit (logique OU).
+    return bool(dem_subs_in_common & show_subs_in_common), True
 
 
 def _specificity(n_checked, n_total):

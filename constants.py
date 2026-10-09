@@ -59,6 +59,8 @@ SPECIALITES = {
         "Spectacle enfant avec des marionnettes",
         "Spectacle enfant avec des bulles",
         "Spectacle pour enfant avec des ombres",
+        "Spectacle à thème pour enfant",
+        "Spectacle pour enfant d'auteur",
         "Spectacle de Rue",
         "Spectacle de rue pour enfant",
         "Parade de rue / Déambulation",
@@ -522,7 +524,6 @@ PUBLIC_CIBLE_CATEGORIES = [
         "code": "famille",
         "label": "Spectacle ou événement pour la famille (tous événements comprenant un public familial : enfants et adultes — concert, atelier, spectacle de rue, carnaval, parade, défilé, etc.)",
         "icon": "",
-        "single_select": True,  # une seule sous-option (Petite enfance OU Dès 3 ans OU Dès 6 ans)
         "sub_requires": {"fam_pe": "creche"},  # « petite enfance » n'est cochable que si la sous-option « crèche » est aussi cochée
         "sous_options": [
             ("fam_pe", "Petite enfance (0-3 ans accompagnés)"),
@@ -566,7 +567,6 @@ PUBLIC_CIBLE_ORGANISATEUR = [
         "label": "Événement public / familial (enfants et adultes ensemble)",
         "icon": "",
         "hint": "Kermesse, fête de quartier, fête de Noël, marché, concert, spectacle / théâtre, parade, défilé, spectacle de rue…",
-        "single_select": True,
         "sub_requires": {"fam_pe": "creche"},
         "sous_options": [
             ("fam_pe", "Petite enfance (0-3 ans accompagnés)"),

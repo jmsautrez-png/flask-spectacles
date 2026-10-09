@@ -121,7 +121,7 @@
           {# Public Cible v2 (vocabulaire mairie) — accordéon réutilisable #}
           {% set saved_cats = (d.public_categories.split(',') if d and d.public_categories else []) %}
           {% set saved_subs = (d.public_sous_options.split(',') if d and d.public_sous_options else []) %}
-          {{ accordion_public_cible(PUBLIC_CIBLE_ORGANISATEUR, saved_cats, saved_subs, PUBLIC_CIBLE_INCOMPATIBLES, "#4caf50", "#fff", "Public concerné par votre événement", "Choisissez le ou les types d'événement, puis précisez la tranche d'âge concernée.") }}
+          {{ accordion_public_cible(PUBLIC_CIBLE_ORGANISATEUR, saved_cats, saved_subs, PUBLIC_CIBLE_INCOMPATIBLES, "#4caf50", "#fff", "Public concerné par votre événement", "Choisissez le ou les types d'événement, puis les publics d'âge recherchés. Plusieurs cases sont possibles : une case commune avec le spectacle suffit pour le matching.") }}
           {# age_range conservé en hidden pour compat avec validation existante #}
           <input type="hidden" id="age_range" name="age_range" value="{{ d.age_range if d and d.age_range else 'jp_des_3' }}">
           <small class="hint">Cette information aide à proposer les spectacles adaptés à votre public.</small>
@@ -691,4 +691,3 @@
 {{ accordion_checkboxes_js() }}
 {{ public_cible_js() }}
 {% endblock %}
-

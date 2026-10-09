@@ -113,6 +113,19 @@ flask-spectacles/
 - Gestion demandes animations
 - Statistiques
 
+### Matching du public ciblé
+- Les fiches et les demandes permettent de cocher plusieurs âges.
+- Une catégorie commune et une case d'âge commune suffisent (logique OU).
+- Aucun élargissement automatique : une demande « Dès 10 ans » ne reçoit pas
+  un spectacle coché seulement « Dès 12 ans » ou « Dès 16 ans ».
+- Le comportement sans âge précisé est conservé : la catégorie commune suffit
+  si l'un des deux n'a aucune sous-option dans les catégories communes.
+- Les règles de compatibilité entre catégories et de petite enfance restent
+  inchangées. Le matching historique est conservé pour les demandes sans
+  catégories de public.
+- Aucune migration ni modification automatique des fiches existantes :
+  l'admin peut compléter progressivement les âges réellement adaptés.
+
 ## 🌍 URLs Production
 
 - **Site** : https://spectacleanimation.fr
@@ -125,4 +138,3 @@ Pour toute question :
 - Consulter [GUIDE_DEPLOIEMENT_RENDER.md](GUIDE_DEPLOIEMENT_RENDER.md)
 - Voir les logs : Render Dashboard → Logs
 - Vérifier santé : `/health`, `/health/full`, `/health/s3`
-

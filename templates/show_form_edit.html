@@ -295,7 +295,7 @@
     {# Public Cible v2 : catégories + sous-options en CSV (accordéon réutilisable) #}
     {% set saved_cats = (show.public_categories.split(',') if show and show.public_categories else []) %}
     {% set saved_subs = (show.public_sous_options.split(',') if show and show.public_sous_options else []) %}
-    {{ accordion_public_cible(PUBLIC_CIBLE_CATEGORIES, saved_cats, saved_subs, PUBLIC_CIBLE_INCOMPATIBLES, "#4caf50", "#fff", "Public ciblé", "Cochez la ou les catégories de public, puis précisez les tranches d'âge.") }}
+    {{ accordion_public_cible(PUBLIC_CIBLE_CATEGORIES, saved_cats, saved_subs, PUBLIC_CIBLE_INCOMPATIBLES, "#4caf50", "#fff", "Public ciblé", "Cochez la ou les catégories de public, puis tous les publics d'âge auxquels votre spectacle est adapté. Plusieurs cases sont possibles.") }}
     <input type="hidden" name="age_range" value="{{ show.age_range if show and show.age_range else '' }}">
   </label>
 
@@ -1032,4 +1032,3 @@ document.addEventListener('DOMContentLoaded', function() {
       <input type="url" name="site_internet" placeholder="https://spectacleanimation.fr/" value="{{ request.form.get('site_internet', 'https://spectacleanimation.fr/') }}" readonly style="background:#eee; color:#888; cursor:not-allowed;">
     {% endif %}
   </label>
-

@@ -3879,14 +3879,6 @@ def register_routes(app: Flask) -> None:
             # Public ciblé v2 (catégories + sous-options)
             _pc_cats = request.form.getlist("public_categories")
             _pc_subs = request.form.getlist("public_sous_options")
-            # Appliquer single_select : pour chaque catégorie marquée single_select,
-            # ne garder qu'une seule sous-option (la première reçue)
-            for _cat_def in PUBLIC_CIBLE_CATEGORIES:
-                if _cat_def.get("single_select"):
-                    _allowed = [c[0] for c in _cat_def["sous_options"]]
-                    _kept = [_x for _x in _pc_subs if _x in _allowed]
-                    if len(_kept) > 1:
-                        _pc_subs = [_x for _x in _pc_subs if _x not in _allowed] + [_kept[0]]
             # Vérifier les dépendances 'requires'
             _exclusive_checked = False
             for _cat_def in PUBLIC_CIBLE_CATEGORIES:
@@ -5132,14 +5124,6 @@ def register_routes(app: Flask) -> None:
                 )
             _pc_cats = request.form.getlist("public_categories")
             _pc_subs = request.form.getlist("public_sous_options")
-            # Appliquer single_select : pour chaque catégorie marquée single_select,
-            # ne garder qu'une seule sous-option (la première reçue)
-            for _cat_def in PUBLIC_CIBLE_CATEGORIES:
-                if _cat_def.get("single_select"):
-                    _allowed = [c[0] for c in _cat_def["sous_options"]]
-                    _kept = [s for s in _pc_subs if s in _allowed]
-                    if len(_kept) > 1:
-                        _pc_subs = [s for s in _pc_subs if s not in _allowed] + [_kept[0]]
             # Vérifier les dépendances 'requires' (ex: enfants impose famille)
             # Sauf si une sous-option exclusive (ex: creche) est cochée → dispense
             _exclusive_checked = False
@@ -10773,6 +10757,5 @@ def unread_messages_count():
 # -----------------------------------------------------
 if __name__ == "__main__":
     app.run(debug=True, host="127.0.0.1", port=5000)
-
 
 

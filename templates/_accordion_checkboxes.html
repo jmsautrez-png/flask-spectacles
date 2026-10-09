@@ -107,7 +107,7 @@
 
   {% for cat in categories_list %}
   {% set cat_checked = cat.code in saved_cats %}
-  <details class="matching-accordion pc-cat" data-code="{{ cat.code }}" {% if cat.single_select %}data-single-select="1"{% endif %} {% if cat.requires %}data-requires="{{ cat.requires|join(',') }}"{% endif %} {% if cat.exclusive_subs %}data-exclusive-subs="{{ cat.exclusive_subs|join(',') }}"{% endif %} {% if cat.exclusive_compat %}data-exclusive-compat='{{ cat.exclusive_compat|tojson }}'{% endif %} {% if cat_checked %}open{% endif %}
+  <details class="matching-accordion pc-cat" data-code="{{ cat.code }}" {% if cat.requires %}data-requires="{{ cat.requires|join(',') }}"{% endif %} {% if cat.exclusive_subs %}data-exclusive-subs="{{ cat.exclusive_subs|join(',') }}"{% endif %} {% if cat.exclusive_compat %}data-exclusive-compat='{{ cat.exclusive_compat|tojson }}'{% endif %} {% if cat_checked %}open{% endif %}
     style="margin-bottom:6px; border:2px solid {{ color }}40; border-radius:8px; overflow:hidden;">
     <summary style="cursor:pointer; padding:10px 14px; font-weight:600; font-size:0.95rem; background:{{ color }}18; display:flex; align-items:center; justify-content:space-between; user-select:none; color:{{ text_color }}; border-left:4px solid {{ color }};">
       <label style="display:flex; align-items:center; gap:10px; cursor:pointer; margin:0; flex:1;" onclick="event.stopPropagation();">
@@ -351,13 +351,6 @@
           applyExclusiveLock();
           updateCount();
           return;
-        }
-        // Single-select : décocher les autres sous-options de la même catégorie
-        var catEl = sub.closest('.pc-cat');
-        if (catEl && catEl.getAttribute('data-single-select') === '1'){
-          catEl.querySelectorAll('.pc-sub-cb').forEach(function(other){
-            if (other !== sub) other.checked = false;
-          });
         }
         var parentCode = sub.getAttribute('data-parent');
         var parentCb = section.querySelector('.pc-cat-cb[value="'+parentCode+'"]');
