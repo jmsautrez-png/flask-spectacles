@@ -6,6 +6,12 @@
 .service-hero { text-align:center; padding:3rem 1rem; background:linear-gradient(135deg,rgba(109,19,19,.1),rgba(255,193,7,.1)); border-radius:20px; margin-bottom:2rem; }
 .service-hero h1 { font-size:2.5rem; color:var(--primary); margin-bottom:1rem; }
 .service-hero > p { font-size:1.2rem; color:var(--text-muted); max-width:700px; margin:0 auto; }
+.service-stats { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:12px; margin:22px 0; }
+.service-stat { padding:12px; border-radius:10px; background:#ffffff12; text-align:center; }
+.service-stat strong { display:block; color:#ffc107; font-size:1.5rem; line-height:1.2; }
+.service-stat span { display:block; margin-top:5px; font-size:.9rem; }
+.offer-stats { margin:20px 0 24px; }
+@media(max-width:600px) { .service-stats { grid-template-columns:1fr; } }
 .service-navigation { display:flex; justify-content:space-between; gap:16px; flex-wrap:wrap; margin-bottom:24px; }
 .service-navigation a { color:#ffe082; text-underline-offset:3px; }
 .company-offers { max-width:1200px; margin:24px auto; color:#e0e6f6; line-height:1.7; }
@@ -51,7 +57,7 @@
     <div class="audience-choices">
       <a class="audience-choice audience-choice-primary" href="{{ url_for('abonnement_appels_offres') }}">
         <strong>Appels d'offres : au cœur de votre activité</strong>
-        <span>Repérez les demandes des organisateurs, consultez les annonces complètes et contactez-les directement grâce à l'abonnement appels d'offres.</span>
+        <span>1 000 appels d'offres et 2 000 demandes de devis par an, auprès d'une plateforme qui accueille 50 000 visites annuelles : repérez les demandes et contactez directement les organisateurs.</span>
         <span>Découvrir les appels d'offres &rarr;</span>
       </a>
       <a class="audience-choice" href="{{ url_for('secretariat_compagnie') }}">
@@ -131,6 +137,11 @@
     <div style="flex:1;min-width:220px;">
       <span class="offer-tag">LE CŒUR DE LA MISE EN RELATION</span>
       <h1 id="ao-title">Les appels d'offres : au cœur de votre activité sur la plateforme</h1>
+      <div class="service-stats offer-stats" aria-label="La plateforme en chiffres">
+        <div class="service-stat"><strong>1 000</strong><span>appels d'offres par an</span></div>
+        <div class="service-stat"><strong>2 000</strong><span>demandes de devis par an</span></div>
+        <div class="service-stat"><strong>50 000</strong><span>visites par an</span></div>
+      </div>
       <p>Chaque jour, des organisateurs recherchent des spectacles et des animations. Retrouvez leurs demandes et proposez-leur directement votre compagnie.</p>
       <p>Découvrez les demandes des écoles, APE, mairies, médiathèques, CSE, CF et CLSH. L'abonnement vous donne accès aux annonces complètes et aux coordonnées des organisateurs pour les contacter directement.</p>
       <p class="offer-price">49 €</p>

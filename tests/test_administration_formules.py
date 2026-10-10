@@ -39,6 +39,8 @@ def test_company_service_entry_has_two_distinct_pages(client):
     assert links.hrefs.index("/abonnement-compagnie/appels-offres") < links.hrefs.index("/abonnement-compagnie/secretariat")
     assert "La mise en relation avec les organisateurs est au cœur de notre plateforme." in html
     assert "audience-choice-primary" in html
+    assert "1 000 appels d'offres et 2 000 demandes de devis par an" in html
+    assert "50 000 visites annuelles" in html
     assert 'class="pricing-panel"' not in html
     assert 'class="offer-section ao-offer"' not in html
 
@@ -55,6 +57,9 @@ def test_calls_for_offers_page_is_independent(client):
     assert "<strong>Ce qui reste gratuit :</strong> la publication de vos spectacles et la réception de demandes de devis." in html
     assert "sans commission sur votre prix initial" in html
     assert "LE CŒUR DE LA MISE EN RELATION" in html
+    assert "<strong>1 000</strong><span>appels d'offres par an</span>" in html
+    assert "<strong>2 000</strong><span>demandes de devis par an</span>" in html
+    assert "<strong>50 000</strong><span>visites par an</span>" in html
     assert 'class="pricing-panel"' not in html
     assert 'class="payroll-option"' not in html
     links = Links()
@@ -170,6 +175,9 @@ def test_registration_invitation_highlights_free_registration_not_free_subscript
     response = client.get("/register")
     assert response.status_code == 200
     html = response.get_data(as_text=True)
+    assert "2 000 demandes de devis par an" in html
+    assert "1 000 appels d'offres par an" in html
+    assert "50 000 visites par an" in html
     assert 'class="registration-invitation"' in html
     assert "Publiez gratuitement vos spectacles et animations !" in html
     assert "Après inscription, découvrez aussi nos appels d'offres, les annonces complètes et les coordonnées des organisateurs d'événements." in html
