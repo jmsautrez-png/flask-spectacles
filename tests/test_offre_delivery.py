@@ -71,6 +71,50 @@ def assert_masked(html):
         assert value not in html
 
 
+@pytest.mark.parametrize("viewer", ["anonymous", "no-approved-show", "needs-subscription"])
+def test_public_offer_cta_price_preserves_destination(client, offer_setup, viewer):
+    from html.parser import HTMLParser
+    from models import db
+
+    user, admin, show, demande, other = offer_setup
+    if viewer != "anonymous":
+        login(client, user)
+    if viewer == "no-approved-show":
+        show.approved = False
+        user.created_at = datetime(2026, 9, 11)
+        db.session.commit()
+    response = client.get("/demandes-animation")
+    assert response.status_code == 200
+    html = response.get_data(as_text=True)
+    emoji = "🔓" if viewer == "needs-subscription" else "🔒"
+    label = f"{emoji} Appels d'offres illimités : 49 € TTC la première année, puis 99 €/an"
+
+    class PriceLinks(HTMLParser):
+        def __init__(self):
+            super().__init__()
+            self.href = None
+            self.matches = []
+
+        def handle_starttag(self, tag, attrs):
+            if tag == "a":
+                self.href = dict(attrs).get("href")
+
+        def handle_data(self, data):
+            if data == label:
+                self.matches.append(self.href)
+
+    links = PriceLinks()
+    links.feed(html)
+    destination = {
+        "anonymous": "/register",
+        "no-approved-show": "/dashboard",
+        "needs-subscription": "/adhesion",
+    }[viewer]
+    assert links.matches
+    assert all(href == destination for href in links.matches)
+    assert "Publier votre spectacle pour voir l'intitulé complet" not in html
+
+
 @pytest.mark.parametrize("action", ["send_matched", "send"])
 @pytest.mark.parametrize("gift", [False, True])
 def test_admin_send_uses_explicit_gift_only(app, client, offer_setup, monkeypatch, action, gift):

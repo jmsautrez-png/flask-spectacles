@@ -1365,7 +1365,7 @@ h2 {{ color: #1b2a4e; margin-top: 0; }}
     </div>
     <div style="background:linear-gradient(135deg,#d32f2f 0%,#c62828 100%);color:white;padding:20px;border-radius:8px;margin:15px 0;">
         <p style="margin:0 0 10px 0;font-size:1.1em;"><strong>💼 SPECTACLE'MENT VÔTRE VOUS ACCOMPAGNE</strong></p>
-        <p style="margin:0 0 15px 0;font-size:0.95em;">Gestion administrative : URSSAF, DSN, DUE, AEM, fiches de salaire, contrats de cession...</p>
+        <p style="margin:0 0 15px 0;font-size:0.95em;">Accompagnement en interne : contrats de cession et contrats de travail, feuilles de route et suivi des dates, sans paie ni déclarations sociales.</p>
         <p style="text-align:center;margin:0;"><a href="https://spectacleanimation.fr/abonnement-compagnie" style="display:inline-block;background-color:white;color:#d32f2f;padding:12px 28px;border-radius:25px;text-decoration:none;font-weight:bold;">📋 Découvrir nos services</a></p>
     </div>
     <div class="footer"><p><strong>L'équipe Spectacle'ment VØtre</strong><br>contact@spectacleanimation.fr</p></div>
@@ -2060,7 +2060,7 @@ def register_routes(app: Flask) -> None:
                                     <li>de <strong>demandes de devis en direct</strong>, sans commission, de nos partenaires</li>
                                 </ul>
                                 <p style="margin:0 0 12px 0; font-size:15px; color:#333; line-height:1.6;"><strong>Au niveau national</strong>, votre compagnie bénéficie également d'une <strong>visibilité accrue</strong> sur toute la France.</p>
-                                <p style="margin:0; font-size:13px; color:#666; line-height:1.6; font-style:italic;">C'est en accompagnant les compagnies qui le souhaitent sur le volet administratif (URSSAF, DSN, contrats de cession…) et grâce à nos services optionnels annexes que nous pérennisons ce modèle et assurons l'entretien du site.</p>
+                                <p style="margin:0; font-size:13px; color:#666; line-height:1.6; font-style:italic;">C'est en accompagnant les compagnies qui le souhaitent dans l'édition des contrats de cession, des feuilles de route, des contrats de travail et des factures, ainsi que dans le suivi de vos contrats dans leur intégralité, et grâce à nos services optionnels annexes que nous pérennisons ce modèle et assurons l'entretien du site.</p>
                             </div>
                         </td>
                     </tr>
@@ -2117,11 +2117,11 @@ def register_routes(app: Flask) -> None:
                                 <tr>
                                     <td style="padding:20px 24px;">
                                         <p style="margin:0 0 10px 0; color:#6a1b9a; font-size:16px; font-weight:700;">Besoin d'aide pour votre administration ?</p>
-                                        <p style="margin:0 0 12px 0; font-size:14px; color:#4a4a4a; line-height:1.65;">Spectacle'ment VØtre ne se limite pas à la visibilité ! Depuis plus de 30 ans, nous accompagnons les compagnies de spectacle vivant dans la gestion complexe de leur administration artistique et sociale :</p>
+                                        <p style="margin:0 0 12px 0; font-size:14px; color:#4a4a4a; line-height:1.65;">Spectacle'ment VØtre ne se limite pas à la visibilité ! Depuis plus de 30 ans, nous accompagnons les compagnies de spectacle vivant dans leur administration artistique :</p>
                                         <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
-                                            <tr><td width="26" valign="top" style="padding:3px 0; font-size:15px; color:#6a1b9a;"></td><td style="padding:3px 0; font-size:14px; color:#4a4a4a; line-height:1.5;">Gestion URSSAF, DSN, DUE, AEM</td></tr>
-                                            <tr><td width="26" valign="top" style="padding:3px 0; font-size:15px; color:#6a1b9a;"></td><td style="padding:3px 0; font-size:14px; color:#4a4a4a; line-height:1.5;">Fiches de salaire et contrats de cession</td></tr>
-                                            <tr><td width="26" valign="top" style="padding:3px 0; font-size:15px; color:#6a1b9a;"></td><td style="padding:3px 0; font-size:14px; color:#4a4a4a; line-height:1.5;">Administration complète de votre compagnie</td></tr>
+                                            <tr><td width="26" valign="top" style="padding:3px 0; font-size:15px; color:#6a1b9a;"></td><td style="padding:3px 0; font-size:14px; color:#4a4a4a; line-height:1.5;">Contrats de cession et contrats de travail</td></tr>
+                                            <tr><td width="26" valign="top" style="padding:3px 0; font-size:15px; color:#6a1b9a;"></td><td style="padding:3px 0; font-size:14px; color:#4a4a4a; line-height:1.5;">Feuilles de route et suivi des documents</td></tr>
+                                            <tr><td width="26" valign="top" style="padding:3px 0; font-size:15px; color:#6a1b9a;"></td><td style="padding:3px 0; font-size:14px; color:#4a4a4a; line-height:1.5;">Accompagnement en interne, sans paie ni déclarations sociales</td></tr>
                                         </table>
                                         <p style="margin:16px 0 2px 0; text-align:center;">
                                             <a href="https://spectacleanimation.fr/abonnement-compagnie" style="display:inline-block; background-color:#6a1b9a; color:#ffffff; font-size:14px; font-weight:700; line-height:1; padding:13px 26px; border-radius:8px;">Découvrez nos services</a>
@@ -3474,7 +3474,7 @@ def register_routes(app: Flask) -> None:
                         + f"Téléphone: {contact_phone}\n"
                         + "\n\nRappel : La publication de vos spectacles est gratuite.\n"
                         + "Nous sélectionnons des artistes d'excellence pour offrir aux programmateurs des spectacles professionnels de qualité.\n\n"
-                        + "Service d'administration disponible pour les compagnies (gestion URSSAF, DSN, contrats, etc.).\n"
+                        + "Accompagnement administratif en interne : contrats de cession, contrats de travail et suivi des dates, sans paie ni déclarations sociales.\n"
                         + "\nCordialement,\nL'équipe Spectacle'ment VØtre"
                     )
                     msg = MailMessage(subject="Nouvelle annonce à valider", recipients=[to_addr])  # type: ignore[arg-type]
@@ -5597,15 +5597,15 @@ def register_routes(app: Flask) -> None:
                                     <strong>Au niveau national</strong>, votre compagnie bénéficie également d'une <strong>visibilité accrue</strong> sur toute la France.
                                 </p>
                                 <p style="margin: 0; font-size: 13px; color: #666; line-height: 1.6; font-style: italic;">
-                                    C'est en accompagnant les compagnies qui le souhaitent sur le volet administratif (URSSAF, DSN, contrats de cession…) et grâce à nos services optionnels annexes que nous pérennisons ce modèle et assurons l'entretien du site.
+                                    C'est en accompagnant les compagnies qui le souhaitent dans l'édition des contrats de cession, des feuilles de route, des contrats de travail et des factures, ainsi que dans le suivi de vos contrats dans leur intégralité, et grâce à nos services optionnels annexes que nous pérennisons ce modèle et assurons l'entretien du site.
                                 </p>
                             </div>
                             {bloc_ao_offert}
                             <!-- Admin Services -->
                             <div style="background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%); border-radius: 12px; padding: 25px; margin: 25px 0;">
-                                <h3 style="color: #d63031; font-size: 18px; margin: 0 0 12px 0;">Besoin d'aide administrative ?</h3>
+                                <h3 style="color: #d63031; font-size: 18px; margin: 0 0 12px 0;">Un secrétariat pour accompagner votre compagnie</h3>
                                 <p style="font-size: 14px; color: #333; line-height: 1.6; margin: 0 0 15px 0;">
-                                    Spectacle'ment VØtre propose également un service d'administration pour les compagnies (gestion URSSAF, DSN, DUE, fiches de salaire, contrats).
+                                    <strong>Un accompagnement adapté à votre activité :</strong> confiez à notre équipe la préparation des contrats de cession, des feuilles de route et des contrats de travail, l'envoi des factures et le suivi de vos dates.
                                 </p>
                                 <a href="{abonnement_url}" style="display: inline-block; background: #d63031; color: white; text-decoration: none; padding: 12px 28px; border-radius: 25px; font-weight: bold; font-size: 14px;">
                                     Découvrir l'offre premium
@@ -5693,25 +5693,25 @@ def register_routes(app: Flask) -> None:
                 <tr><td style="padding:30px 40px 0;"><hr style="border:none; border-top:1px solid #e0e0e0; margin:0;"></td></tr>
                 <tr>
                     <td style="padding:30px 40px 10px;">
-                        <h2 style="margin:0 0 6px 0; font-size:18px; color:#1a1a2e; font-weight:700;">L'accompagnement administratif complet</h2>
-                        <p style="margin:0 0 12px 0; font-size:14px; color:#666; line-height:1.6;">Au-del&agrave; de la visibilit&eacute;, Spectacle'ment V&Oslash;tre propose un service d'administration complet pour lib&eacute;rer les compagnies de la gestion administrative.</p>
-                        <p style="margin:0 0 20px 0; font-size:14px; color:#666; line-height:1.6;">Nous accompagnons &eacute;galement les <strong>compagnies &eacute;mergentes et artistes en devenir</strong> avec du conseil personnalis&eacute; sur tous les aspects administratifs li&eacute;s &agrave; la vie d'une compagnie : cr&eacute;ation de structure, obligations l&eacute;gales, gestion sociale, strat&eacute;gie de d&eacute;veloppement et bien plus encore.</p>
+                        <h2 style="margin:0 0 6px 0; font-size:18px; color:#1a1a2e; font-weight:700;">L'accompagnement administratif en interne</h2>
+                        <p style="margin:0 0 12px 0; font-size:14px; color:#666; line-height:1.6;">Au-del&agrave; de la visibilit&eacute;, Spectacle'ment V&Oslash;tre propose la pr&eacute;paration des contrats et le suivi des dossiers de dates.</p>
+                        <p style="margin:0 0 20px 0; font-size:14px; color:#666; line-height:1.6;">Les formules sont adapt&eacute;es au nombre de dates de votre compagnie. La paie et les d&eacute;clarations sociales sont disponibles en option sur devis, en suppl&eacute;ment des formules et des dossiers ponctuels.</p>
                     </td>
                 </tr>
                 <tr>
                     <td style="padding:0 40px 10px;">
                         <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
                             <tr>
-                                <td width="50%" style="padding:8px 8px 8px 0; vertical-align:top;"><div style="background:#f8f9fa; border-radius:8px; padding:14px 16px; border-left:3px solid #764ba2;"><span style="font-size:14px; color:#333; font-weight:600;">URSSAF</span><br><span style="font-size:13px; color:#666;">D&eacute;clarations et cotisations</span></div></td>
-                                <td width="50%" style="padding:8px 0 8px 8px; vertical-align:top;"><div style="background:#f8f9fa; border-radius:8px; padding:14px 16px; border-left:3px solid #764ba2;"><span style="font-size:14px; color:#333; font-weight:600;">DSN</span><br><span style="font-size:13px; color:#666;">D&eacute;claration Sociale Nominative</span></div></td>
+                                <td width="50%" style="padding:8px 8px 8px 0; vertical-align:top;"><div style="background:#f8f9fa; border-radius:8px; padding:14px 16px; border-left:3px solid #764ba2;"><span style="font-size:14px; color:#333; font-weight:600;">Contrats de cession</span><br><span style="font-size:13px; color:#666;">Pr&eacute;paration et suivi</span></div></td>
+                                <td width="50%" style="padding:8px 0 8px 8px; vertical-align:top;"><div style="background:#f8f9fa; border-radius:8px; padding:14px 16px; border-left:3px solid #764ba2;"><span style="font-size:14px; color:#333; font-weight:600;">Contrats de travail</span><br><span style="font-size:13px; color:#666;">Pr&eacute;paration des contrats</span></div></td>
                             </tr>
                             <tr>
-                                <td width="50%" style="padding:8px 8px 8px 0; vertical-align:top;"><div style="background:#f8f9fa; border-radius:8px; padding:14px 16px; border-left:3px solid #764ba2;"><span style="font-size:14px; color:#333; font-weight:600;">DUE</span><br><span style="font-size:13px; color:#666;">D&eacute;claration Unique d'Embauche</span></div></td>
-                                <td width="50%" style="padding:8px 0 8px 8px; vertical-align:top;"><div style="background:#f8f9fa; border-radius:8px; padding:14px 16px; border-left:3px solid #764ba2;"><span style="font-size:14px; color:#333; font-weight:600;">AEM</span><br><span style="font-size:13px; color:#666;">Attestation Employeur Mensuelle</span></div></td>
+                                <td width="50%" style="padding:8px 8px 8px 0; vertical-align:top;"><div style="background:#f8f9fa; border-radius:8px; padding:14px 16px; border-left:3px solid #764ba2;"><span style="font-size:14px; color:#333; font-weight:600;">Feuilles de route</span><br><span style="font-size:13px; color:#666;">Informations pratiques de chaque date</span></div></td>
+                                <td width="50%" style="padding:8px 0 8px 8px; vertical-align:top;"><div style="background:#f8f9fa; border-radius:8px; padding:14px 16px; border-left:3px solid #764ba2;"><span style="font-size:14px; color:#333; font-weight:600;">Calendrier</span><br><span style="font-size:13px; color:#666;">Organisation des dates confirm&eacute;es</span></div></td>
                             </tr>
                             <tr>
-                                <td width="50%" style="padding:8px 8px 8px 0; vertical-align:top;"><div style="background:#f8f9fa; border-radius:8px; padding:14px 16px; border-left:3px solid #764ba2;"><span style="font-size:14px; color:#333; font-weight:600;">Fiches de paie</span><br><span style="font-size:13px; color:#666;">&Eacute;dition et gestion</span></div></td>
-                                <td width="50%" style="padding:8px 0 8px 8px; vertical-align:top;"><div style="background:#f8f9fa; border-radius:8px; padding:14px 16px; border-left:3px solid #764ba2;"><span style="font-size:14px; color:#333; font-weight:600;">Contrats de cession</span><br><span style="font-size:13px; color:#666;">R&eacute;daction et suivi</span></div></td>
+                                <td width="50%" style="padding:8px 8px 8px 0; vertical-align:top;"><div style="background:#f8f9fa; border-radius:8px; padding:14px 16px; border-left:3px solid #764ba2;"><span style="font-size:14px; color:#333; font-weight:600;">Fiches techniques</span><br><span style="font-size:13px; color:#666;">Regroupement des documents transmis</span></div></td>
+                                <td width="50%" style="padding:8px 0 8px 8px; vertical-align:top;"><div style="background:#f8f9fa; border-radius:8px; padding:14px 16px; border-left:3px solid #764ba2;"><span style="font-size:14px; color:#333; font-weight:600;">Suivi des documents</span><br><span style="font-size:13px; color:#666;">Envois et retours assur&eacute;s par notre &eacute;quipe</span></div></td>
                             </tr>
                         </table>
                     </td>
@@ -6535,9 +6535,28 @@ Accessibilité: {accessibilite}
     def abonnement_compagnie():
         return render_template("abonnement_compagnie.html")
 
+    @app.route("/abonnement-compagnie/secretariat")
+    def secretariat_compagnie():
+        from constants import ADMINISTRATION_FORMULES, ADMINISTRATION_PONCTUELLE
+        return render_template("abonnement_compagnie.html", service="secretariat",
+                               formules=ADMINISTRATION_FORMULES,
+                               ponctuel=ADMINISTRATION_PONCTUELLE)
+
+    @app.route("/abonnement-compagnie/appels-offres")
+    def abonnement_appels_offres():
+        return render_template("abonnement_compagnie.html", service="appels-offres")
+
     @app.route("/qui-sommes-nous")
     def about():
         return render_template("about.html")
+
+    @app.route("/nos-services/organisateurs")
+    def services_organisateurs():
+        return render_template("about.html", audience="organisateurs")
+
+    @app.route("/nos-services/compagnies")
+    def services_compagnies():
+        return render_template("about.html", audience="compagnies")
 
     @app.route("/soutenir")
     def soutenir():
@@ -6553,6 +6572,13 @@ Accessibilité: {accessibilite}
 
     @app.route("/contact", methods=["GET", "POST"])
     def contact():
+        from constants import ADMINISTRATION_FORMULES, ADMINISTRATION_PONCTUELLE
+        sujet = request.args.get("sujet", "").strip()
+        formule_code = request.args.get("formule", "").strip()
+        formule = next((f for f in [*ADMINISTRATION_FORMULES, ADMINISTRATION_PONCTUELLE]
+                        if f["code"] == formule_code), None)
+        if formule_code and formule is None:
+            abort(400)
         if request.method == "POST":
             nom = request.form.get("nom", "").strip()
             email = request.form.get("email", "").strip()
@@ -6571,9 +6597,8 @@ Accessibilité: {accessibilite}
             except Exception as e:
                 print("[MAIL] Erreur envoi contact:", e)
                 flash(f"Erreur lors de l'envoi du message: {e}", "danger")
-            return render_template("contact.html")
-        sujet = request.args.get("sujet", "").strip()
-        return render_template("contact.html", sujet=sujet)
+            return render_template("contact.html", sujet=sujet, formule=formule)
+        return render_template("contact.html", sujet=sujet, formule=formule)
 
     @app.route("/adhesion", methods=["GET", "POST"])
     @login_required
@@ -8064,7 +8089,7 @@ Accessibilité: {accessibilite}
 
         <div style="background: linear-gradient(135deg, #d32f2f 0%, #c62828 100%); color: white; padding: 20px; border-radius: 8px; margin: 15px 0; box-shadow: 0 4px 12px rgba(211,47,47,0.3);">
             <p style="margin: 0 0 10px 0; font-size: 1.1em;"><strong>SPECTACLE'MENT VÔTRE VOUS ACCOMPAGNE</strong></p>
-            <p style="margin: 0 0 15px 0; font-size: 0.95em;">Gestion administrative complète de votre compagnie : URSSAF, DSN, DUE, AEM, fiches de salaire, contrats de cession, déclarations sociales...</p>
+            <p style="margin: 0 0 15px 0; font-size: 0.95em;">Accompagnement en interne : contrats de cession et contrats de travail, feuilles de route et suivi des dates, sans paie ni déclarations sociales.</p>
             <p style="text-align: center; margin: 0;">
                 <a href="https://spectacleanimation.fr/abonnement-compagnie" style="display: inline-block; background-color: white; color: #d32f2f; padding: 12px 28px; border-radius: 25px; text-decoration: none; font-weight: bold; box-shadow: 0 2px 8px rgba(0,0,0,0.2);">Découvrir nos services</a>
             </p>
@@ -8195,7 +8220,7 @@ Accessibilité: {accessibilite}
 
         <div style="background: linear-gradient(135deg, #d32f2f 0%, #c62828 100%); color: white; padding: 20px; border-radius: 8px; margin: 15px 0; box-shadow: 0 4px 12px rgba(211,47,47,0.3);">
             <p style="margin: 0 0 10px 0; font-size: 1.1em;"><strong>SPECTACLE'MENT VÔTRE VOUS ACCOMPAGNE</strong></p>
-            <p style="margin: 0 0 15px 0; font-size: 0.95em;">Gestion administrative complète de votre compagnie : URSSAF, DSN, DUE, AEM, fiches de salaire, contrats de cession, déclarations sociales...</p>
+            <p style="margin: 0 0 15px 0; font-size: 0.95em;">Accompagnement en interne : contrats de cession et contrats de travail, feuilles de route et suivi des dates, sans paie ni déclarations sociales.</p>
             <p style="text-align: center; margin: 0;">
                 <a href="https://spectacleanimation.fr/abonnement-compagnie" style="display: inline-block; background-color: white; color: #d32f2f; padding: 12px 28px; border-radius: 25px; text-decoration: none; font-weight: bold; box-shadow: 0 2px 8px rgba(0,0,0,0.2);">Découvrir nos services</a>
             </p>
@@ -9398,7 +9423,7 @@ def admin_delete_user(user_id):
         <p style="margin:0 0 8px 0;font-size:14px;line-height:1.6;">Spectacle'ment VØtre fonctionne comme un <strong>annuaire national de référence</strong> : plus il y a de spectacles publiés, plus les <strong>mairies, écoles, CSE, agences et organisateurs</strong> prennent l'habitude d'y chercher leurs animations &mdash; et d'y déposer leurs <strong>appels d'offres</strong>.</p>
         <p style="margin:0 0 8px 0;font-size:14px;line-height:1.6;"><strong>Au niveau local</strong>, votre département gagne en visibilité à mesure que des compagnies de la région s'y inscrivent : les acteurs culturels de chez vous tombent alors sur <strong>votre profil en priorité</strong>.</p>
         <p style="margin:0 0 8px 0;font-size:14px;line-height:1.6;"><strong>Au niveau national</strong>, vous recevrez aussi des appels d'offres venant de <strong>toute la France</strong> &mdash; un complément précieux à votre démarche commerciale régionale, qui vous ouvre des dates et des territoires que vous n'auriez pas prospectés seul.</p>
-        <p style="margin:0;font-size:13px;color:#555;font-style:italic;line-height:1.6;">C'est en accompagnant les compagnies qui le souhaitent sur le volet administratif (URSSAF, DSN, contrats de cession…) et grâce à nos services optionnels annexes que nous assurons la <strong>pérennité</strong> et l'<strong>entretien</strong> du site.</p>
+        <p style="margin:0;font-size:13px;color:#555;font-style:italic;line-height:1.6;">C'est en accompagnant les compagnies qui le souhaitent dans l'édition des contrats de cession, des feuilles de route, des contrats de travail et des factures, ainsi que dans le suivi de vos contrats dans leur intégralité, et grâce à nos services optionnels annexes que nous assurons la <strong>pérennité</strong> et l'<strong>entretien</strong> du site.</p>
       </div>
       <p style="font-size:0.9em;color:#666;">Si vous publiez un spectacle avant cette date, votre compte sera conservé automatiquement.</p>
       <p style="margin-top:24px;">Cordialement,<br><strong>L'équipe Spectacle'ment VØtre</strong><br>contact@spectacleanimation.fr</p>

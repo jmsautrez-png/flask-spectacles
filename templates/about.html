@@ -1,8 +1,9 @@
 {% extends "base.html" %}
-{% block title %}Qui sommes-nous - Spectacle'ment VØtre{% endblock %}
+{% block title %}{% if audience == 'organisateurs' %}Nos services pour les organisateurs{% elif audience == 'compagnies' %}Nos services pour les artistes et compagnies{% else %}Qui sommes-nous ? Nos services{% endif %} - Spectacle'ment VØtre{% endblock %}
 
 {% block content %}
 <style>
+  {% include "_service_choices_style.html" %}
   .about-hero {
     text-align: center;
     padding: 3rem 1rem;
@@ -15,6 +16,24 @@
     font-size: 2.5rem;
     color: var(--primary);
     margin-bottom: 1rem;
+  }
+  .about-title-link {
+    display: inline-block;
+    padding: 12px 20px;
+    border: 1px solid transparent;
+    border-radius: 14px;
+    color: inherit;
+    text-decoration: none;
+    transition: background 0.2s ease, border-color 0.2s ease;
+  }
+  .about-title-link:hover {
+    background: #243b5b;
+    border-color: #ffc107;
+    color: #ffe082;
+  }
+  .about-title-link:focus-visible {
+    outline: 3px solid #ffc107;
+    outline-offset: 4px;
   }
   
   .about-hero .subtitle {
@@ -68,11 +87,6 @@
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
   }
   
-  .value-card .icon {
-    font-size: 2.5rem;
-    margin-bottom: 1rem;
-  }
-  
   .value-card h3 {
     color: var(--primary);
     font-size: 1.2rem;
@@ -86,6 +100,12 @@
   }
   
   .team-section {
+    text-align: center;
+  }
+
+  .values-section > h2,
+  .team-section > h2 {
+    justify-content: center;
     text-align: center;
   }
   
@@ -153,16 +173,34 @@
 </style>
 
 <div class="about-hero">
-  <h1>Qui sommes-nous ?</h1>
+  <h1>{% if audience == 'organisateurs' %}Nos services pour les organisateurs d'événements{% elif audience == 'compagnies' %}<a class="about-title-link" href="{{ url_for('abonnement_compagnie') }}">Nos services pour les artistes et compagnies</a>{% else %}Qui sommes-nous ? Nos services{% endif %}</h1>
   <p class="subtitle">
     <strong>Spectacle'ment VØtre</strong> est une plateforme de mise en relation entre organisateurs d'événements 
     et artistes du spectacle vivant. Notre mission : faciliter l'accès à la culture pour tous.
   </p>
+  {% if not audience %}
+  <div class="audience-choices">
+    <a class="audience-choice" href="{{ url_for('services_organisateurs') }}">
+      <strong>Vous organisez un événement</strong>
+      <span>Mairies, écoles, associations, CSE, médiathèques : trouvez un spectacle et préparez votre demande d'animation.</span>
+      <span>Découvrir les services pour les organisateurs &rarr;</span>
+    </a>
+    <a class="audience-choice" href="{{ url_for('services_compagnies') }}">
+      <strong>Vous êtes artiste ou compagnie</strong>
+      <span>Publication gratuite, visibilité, appels d'offres et secrétariat : découvrez les services adaptés à votre activité.</span>
+      <span>Découvrir les services pour les compagnies &rarr;</span>
+    </a>
+  </div>
+  {% else %}
+  <p style="margin-top:20px;"><a href="{{ url_for('about') }}" style="color:#ffe082;">Revenir à la présentation et choisir votre parcours</a></p>
+  {% endif %}
 </div>
 
+{% if audience %}
 <section class="about-section">
-  <h2>Notre Mission</h2>
+  <h2>{% if audience == 'organisateurs' %}Trouvez le spectacle adapté à votre événement{% else %}Développez votre visibilité et préparez vos dates{% endif %}</h2>
   
+  {% if audience == 'organisateurs' %}
   <!-- POUR LES ORGANISATEURS -->
   <a href="{{ url_for('catalogue') }}" style="display: block; text-decoration: none; color: inherit; margin-top: 20px; padding: 25px; background: rgba(25, 118, 210, 0.1); border: 2px solid rgba(25, 118, 210, 0.3); border-radius: 12px; transition: all 0.3s ease; cursor: pointer;" 
      onmouseover="this.style.transform='scale(1.03)'; this.style.background='rgba(25, 118, 210, 0.2)'; this.style.boxShadow='0 6px 20px rgba(25, 118, 210, 0.3)'; this.style.borderColor='#1976d2';" 
@@ -200,7 +238,14 @@
       Enfin, parce que la scène vit aussi de nouveaux talents, une <strong>jeune pousse</strong> prometteuse pourra être <strong>encouragée et mise en avant</strong> (<strong>badge</strong>, spectacle « à la une », coup de projecteur…).
     </p>
   </a>
+  <div class="cta-buttons" style="margin-top:24px;">
+    <a href="{{ url_for('catalogue') }}" class="cta-btn cta-btn-primary">Rechercher un spectacle</a>
+    <a href="{{ url_for('demande_animation') }}" class="cta-btn cta-btn-secondary">Déposer une demande d'animation</a>
+    <a href="{{ url_for('contact') }}" class="cta-btn cta-btn-secondary">Être accompagné dans mon choix</a>
+  </div>
+  {% endif %}
   
+  {% if audience == 'compagnies' %}
   <!-- POUR LES ARTISTES -->
   <a href="{{ url_for('abonnement_compagnie') }}" style="display: block; text-decoration: none; color: inherit; margin-top: 40px; padding: 25px; background: rgba(255, 193, 7, 0.1); border: 2px solid rgba(255, 193, 7, 0.3); border-radius: 12px; transition: all 0.3s ease; cursor: pointer;" 
      onmouseover="this.style.transform='scale(1.03)'; this.style.background='rgba(255, 193, 7, 0.2)'; this.style.boxShadow='0 6px 20px rgba(255, 193, 7, 0.3)'; this.style.borderColor='#ffc107';" 
@@ -218,10 +263,10 @@
       <li>d'une <strong>visibilité accrue au niveau national</strong> sur toute la France</li>
     </ul>
     <p>
-      Au-delà de cette visibilité, nous proposons un <strong>accompagnement administratif complet</strong>&nbsp;: gestion des DSN (Déclarations Sociales Nominatives), DUE (Déclarations Uniques d'Embauche), AEM (Attestations Employeur Mensuelles), fiches de salaire, contrats de cession.
+      Au-delà de cette visibilité, nous proposons un <strong>secrétariat assuré en interne</strong>&nbsp;: contrats de cession et contrats de travail, suivi des documents, feuilles de route, organisation des dates, ainsi que l'envoi et le suivi de vos factures. La paie et les déclarations sociales sont disponibles en option sur devis.
     </p>
     <p style="margin-bottom: 0;">
-      Ces tâches administratives complexes, chronophages et sources d'erreurs, peuvent être déléguées à notre équipe expérimentée. Vous vous <strong>concentrez sur votre création</strong> pendant que nous sécurisons votre gestion sociale et juridique.
+      Ces tâches administratives peuvent être déléguées à notre équipe expérimentée. Vous vous <strong>concentrez sur votre création</strong> pendant que nous préparons et suivons vos dossiers de dates.
     </p>
   </a>
 
@@ -240,39 +285,46 @@
   <div style="margin-top: 25px; padding: 25px; background: rgba(106, 27, 154, 0.12); border: 2px solid rgba(106, 27, 154, 0.35); border-radius: 12px;">
     <h3 style="color: #ba68c8; margin-top: 0; font-size: 1.4rem;">Besoin d'aide pour votre administration ?</h3>
     <p>
-      Spectacle'ment VØtre ne se limite pas à la visibilité ! Depuis plus de 30 ans, nous accompagnons les compagnies de spectacle vivant dans la gestion complexe de leur administration artistique et sociale&nbsp;:
+      Spectacle'ment VØtre ne se limite pas à la visibilité ! Depuis plus de 30 ans, nous accompagnons les compagnies de spectacle vivant dans leur administration artistique&nbsp;:
     </p>
     <ul style="margin: 0 0 18px 0; padding-left: 22px; line-height: 1.7;">
-      <li>Gestion <strong>URSSAF, DSN, DUE, AEM</strong></li>
-      <li><strong>Fiches de salaire</strong> et <strong>contrats de cession</strong></li>
-      <li><strong>Administration complète</strong> de votre compagnie</li>
+      <li>Préparation des <strong>contrats de cession et contrats de travail</strong></li>
+      <li><strong>Feuilles de route</strong> et suivi des documents</li>
+      <li><strong>Accompagnement en interne</strong>, avec paie et déclarations sociales en option sur devis</li>
     </ul>
     <p style="margin-bottom: 0; text-align: center;">
       <a href="{{ url_for('abonnement_compagnie') }}" style="display: inline-block; background: #6a1b9a; color: #fff; text-decoration: none; padding: 12px 28px; border-radius: 8px; font-weight: 700;">Découvrez nos services</a>
     </p>
   </div>
+  <div class="about-section" style="margin-top:24px;">
+    <h3>Deux services indépendants</h3>
+    <p>La publication de vos spectacles est gratuite. L'abonnement appels d'offres est distinct du secrétariat administratif : 49 € TTC la première année, puis 99 €/an.</p>
+    <div class="cta-buttons">
+      <a href="{{ url_for('register') }}" class="cta-btn cta-btn-primary">Publier gratuitement mes spectacles</a>
+      <a href="{{ url_for('demandes_animation') }}" class="cta-btn cta-btn-secondary">Découvrir les appels d'offres</a>
+      <a href="{{ url_for('secretariat_compagnie') }}" class="cta-btn cta-btn-secondary">Voir les formules de secrétariat</a>
+    </div>
+  </div>
+  {% endif %}
 </section>
+{% endif %}
 
-<section class="about-section">
-  <h2>💎 Nos Valeurs</h2>
+<section class="about-section values-section">
+  <h2>Nos Valeurs</h2>
   <div class="values-grid">
     <div class="value-card">
-      <div class="icon">🎪</div>
       <h3>Diversité Artistique</h3>
       <p>Magiciens, clowns, marionnettistes, conteurs... Nous proposons une grande variété de spectacles pour tous les publics.</p>
     </div>
     <div class="value-card">
-      <div class="icon">🤝</div>
       <h3>Proximité</h3>
       <p>Nous favorisons les rencontres locales entre artistes et organisateurs pour créer des liens durables.</p>
     </div>
     <div class="value-card">
-      <div class="icon">✨</div>
       <h3>Qualité</h3>
       <p>Chaque artiste et compagnie présent sur notre plateforme est sélectionné pour son professionnalisme et sa créativité.</p>
     </div>
     <div class="value-card">
-      <div class="icon">🏫</div>
       <h3>Pédagogie</h3>
       <p>Nous accordons une attention particulière aux interventions pédagogiques en milieu scolaire.</p>
     </div>
@@ -280,7 +332,7 @@
 </section>
 
 <section class="about-section team-section">
-  <h2>👥 Notre Équipe</h2>
+  <h2>Notre Équipe</h2>
   <p class="team-intro">
     Passionnés par le spectacle vivant et les rencontres humaines, nous mettons notre expertise au service 
     des artistes et des organisateurs pour créer des moments magiques et inoubliables.
@@ -292,14 +344,18 @@
 </section>
 
 <section class="cta-section">
-  <h2>🎯 Envie de collaborer ?</h2>
+  <h2>Envie de collaborer ?</h2>
   <p>
     Que vous soyez un organisateur à la recherche du spectacle parfait ou un artiste souhaitant 
     développer votre visibilité, nous sommes là pour vous accompagner.
   </p>
   <div class="cta-buttons">
-    <a href="{{ url_for('contact') }}" class="cta-btn cta-btn-primary">📧 Nous contacter</a>
-    <a href="{{ url_for('catalogue') }}" class="cta-btn cta-btn-secondary">🎭 Découvrir le catalogue</a>
+    <a href="{{ url_for('contact') }}" class="cta-btn cta-btn-primary">Nous contacter</a>
+    {% if audience == 'compagnies' %}
+    <a href="{{ url_for('secretariat_compagnie') }}" class="cta-btn cta-btn-secondary">Découvrir le secrétariat</a>
+    {% else %}
+    <a href="{{ url_for('catalogue') }}" class="cta-btn cta-btn-secondary">Découvrir le catalogue</a>
+    {% endif %}
   </div>
 </section>
 

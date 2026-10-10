@@ -172,11 +172,11 @@
           </p>
           {% endif %}
         {% elif needs_abo %}
-          <a href="{{ url_for('adhesion') }}" style="display:block;margin:0.4rem 0;background:linear-gradient(135deg,#6a1b9a,#8e24aa);color:#fff;padding:10px 16px;border-radius:10px;text-decoration:none;font-weight:700;text-align:center;font-size:0.85rem;">🔓 Abonnez-vous (49 € TTC/an) pour voir l'intitulé complet</a>
+          <a href="{{ url_for('adhesion') }}" style="display:block;margin:0.4rem 0;background:linear-gradient(135deg,#6a1b9a,#8e24aa);color:#fff;padding:10px 16px;border-radius:10px;text-decoration:none;font-weight:700;text-align:center;font-size:0.85rem;">🔓 Appels d'offres illimités : 49 € TTC la première année, puis 99 €/an</a>
         {% elif user %}
-          <a href="{{ url_for('company_dashboard') }}" style="display:block;margin:0.4rem 0;background:linear-gradient(135deg,#7c4dff,#536dfe);color:#fff;padding:10px 16px;border-radius:10px;text-decoration:none;font-weight:700;text-align:center;font-size:0.85rem;">🔒 Publier votre spectacle pour voir l'intitulé complet</a>
+          <a href="{{ url_for('company_dashboard') }}" style="display:block;margin:0.4rem 0;background:linear-gradient(135deg,#7c4dff,#536dfe);color:#fff;padding:10px 16px;border-radius:10px;text-decoration:none;font-weight:700;text-align:center;font-size:0.85rem;">🔒 Appels d'offres illimités : 49 € TTC la première année, puis 99 €/an</a>
         {% else %}
-          <a href="{{ url_for('register') }}" style="display:block;margin:0.4rem 0;background:linear-gradient(135deg,#7c4dff,#536dfe);color:#fff;padding:10px 16px;border-radius:10px;text-decoration:none;font-weight:700;text-align:center;font-size:0.85rem;">🔒 Publier votre spectacle pour voir l'intitulé complet</a>
+          <a href="{{ url_for('register') }}" style="display:block;margin:0.4rem 0;background:linear-gradient(135deg,#7c4dff,#536dfe);color:#fff;padding:10px 16px;border-radius:10px;text-decoration:none;font-weight:700;text-align:center;font-size:0.85rem;">🔒 Appels d'offres illimités : 49 € TTC la première année, puis 99 €/an</a>
         {% endif %}
 
         {% if has_full_access %}

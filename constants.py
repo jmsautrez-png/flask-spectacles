@@ -497,6 +497,15 @@ PUBLICS_LEGACY_LABELS = {
 }
 
 
+ADMINISTRATION_FORMULES = [
+    {"code": "essentiel", "nom": "Essentiel", "prix": 99, "dossiers": 10},
+    {"code": "compagnie", "nom": "Compagnie", "prix": 149, "dossiers": 20},
+    {"code": "pro", "nom": "Pro", "prix": 249, "dossiers": 40},
+]
+ADMINISTRATION_PONCTUELLE = {
+    "code": "ponctuel", "nom": "Sans abonnement", "prix": "9,99", "dossiers": 1,
+}
+
 # ═══════════════════════════════════════════════════════════════════
 # AXE 4-bis — PUBLIC CIBLE v2 (catégories + sous-options) — pour matching
 # Côté ARTISTE : 1 ou plusieurs catégories, avec règle d'incompatibilité

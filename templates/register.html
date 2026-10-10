@@ -4,8 +4,13 @@
 {% block content %}
 <div class="demande-wrap" style="max-width:700px;">
   <h1 style="margin:0 0 8px 0;">Créer un compte <a href="{{ url_for('login') }}" style="color:#ff9800; font-weight:600; text-decoration:none; border-bottom:1px dotted #ff9800; cursor:pointer; padding:2px 6px; border-radius:4px; transition:all 0.3s ease; display:inline-block; position:relative; background:linear-gradient(90deg, transparent 0%, #ff980022 50%, transparent 100%); background-size:200% 100%; background-position:100% 0; font-size:0.85rem;" onmouseover="this.style.backgroundPosition='0 0'; this.style.transform='scale(1.05)'; this.style.color='#000'; this.style.backgroundColor='#ff9800';" onmouseout="this.style.backgroundPosition='100% 0'; this.style.transform='scale(1)'; this.style.color='#ff9800'; this.style.backgroundColor='transparent';" title="Cliquez ici pour vous connecter">(déjà inscrit ?)</a></h1>
-  <p class="text-muted" style="margin:0 0 16px 0;">
-    Inscrivez-vous gratuitement pour publier vos spectacles et animations. Les champs marqués <span style="color:var(--primary); font-weight:700;">*</span> sont obligatoires.
+  <div class="registration-invitation" style="background:linear-gradient(135deg,#243b5b,#162447);border-left:4px solid #ffc107;border-radius:10px;padding:18px 20px;margin:0 0 16px;color:#fff;line-height:1.6;">
+    <p style="margin:0 0 8px;font-size:1.1rem;font-weight:700;color:#ffe082;">Publiez gratuitement vos spectacles et animations !</p>
+    <p style="margin:0 0 8px;">Inscrivez-vous gratuitement pour faire découvrir votre compagnie.</p>
+    <p style="margin:0;font-size:.9rem;color:#dce5ef;">Après inscription, découvrez aussi nos appels d'offres, les annonces complètes et les coordonnées des organisateurs d'événements.</p>
+  </div>
+  <p class="text-muted" style="margin:0 0 16px 0;font-size:.9rem;">
+    Les champs marqués <span style="color:var(--primary); font-weight:700;">*</span> sont obligatoires.
   </p>
 
   <div style="background:#fffde7;border:1px solid #ffe082;padding:14px 18px;margin-bottom:20px;border-radius:10px;font-size:0.95rem;line-height:1.6;color:#795548;">
@@ -19,7 +24,7 @@
     • De <strong>demandes de devis en direct</strong> de nos partenaires (plus de 300 par an).<br>
     • D'un <strong>vivier d'appels d'offres journalier</strong> (plus de 500 par an).<br>
     • <strong>Au niveau national</strong>, votre compagnie bénéficie également d'une <strong>visibilité accrue</strong> sur toute la France.<br><br>
-    <em>C'est en accompagnant les compagnies qui le souhaitent sur le volet administratif (URSSAF, DSN, contrats de cession…) et grâce à nos services optionnels annexes que nous pérennisons ce modèle et assurons l'entretien du site.</em><br><br>
+    <em>C'est en accompagnant les compagnies qui le souhaitent dans l'édition des contrats de cession, des feuilles de route, des contrats de travail et des factures, ainsi que dans le suivi de vos contrats dans leur intégralité, et grâce à nos services optionnels annexes que nous pérennisons ce modèle et assurons l'entretien du site.</em><br><br>
     <strong style="display:block; text-align:center; color:#2e7d32;">✅ Aucun engagement — vous gérez votre désinscription vous-même, à tout moment.</strong><br>
     <em style="display:block; text-align:center; color:#5d4037;">Merci à vous et belle chance sur Spectacle'ment VØtre !</em>
   </div>

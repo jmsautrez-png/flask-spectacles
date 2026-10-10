@@ -100,6 +100,11 @@ flask-spectacles/
 - Pages thématiques (magiciens, clowns, marionnettes...)
 - Formulaire demande d'animation (mairies/écoles)
 - Abonnement compagnie (services administratifs)
+- La page `/qui-sommes-nous` oriente vers deux parcours :
+  `/nos-services/organisateurs` (sélection de spectacles et demande d'animation)
+  et `/nos-services/compagnies` (publication gratuite, visibilité, appels
+  d'offres et secrétariat). Le contenu est partagé dans le template
+  `about.html` et filtré par public, sans changement des droits d'accès.
 
 ### Artistes/Compagnies
 - Inscription gratuite
@@ -112,6 +117,42 @@ flask-spectacles/
 - Validation spectacles
 - Gestion demandes animations
 - Statistiques
+
+### Proposition d'accompagnement administratif
+- La page `/abonnement-compagnie` présente deux grandes cartes de choix,
+  au même design que `/qui-sommes-nous`, vers deux services indépendants :
+  `/abonnement-compagnie/secretariat` et `/abonnement-compagnie/appels-offres`.
+  Chaque page propose un retour au choix et un lien vers l'autre service.
+- La page `/abonnement-compagnie/secretariat` présente trois paliers assurés en interne :
+  Essentiel (10 dossiers/an, 99 € TTC), Compagnie (20 dossiers/an, 149 € TTC),
+  Pro (40 dossiers/an, 249 € TTC). Une date de spectacle compte comme un
+  dossier comprenant un contrat de cession, les contrats de travail associés,
+  une feuille de route et le suivi des factures.
+- Une offre sans abonnement est également présentée à 9,99 € TTC par dossier
+de date traité (un contrat de cession, les contrats de travail associés,
+une feuille de route et le suivi des factures), sans engagement annuel.
+Les prix et limites sont regroupés dans `ADMINISTRATION_FORMULES`
+et `ADMINISTRATION_PONCTUELLE`.
+  Les boutons ouvrent `/contact?sujet=administration&formule=...` avec un
+  message prérempli. Aucun quota, paiement ou abonnement n'est activé.
+- Ces formules sont une proposition à confirmer avant souscription, avec
+  sans appels d'offres, qui restent un service avec abonnement distinct.
+  Un lien de contact sans formule permet de demander un devis ponctuel.
+  La présentation expose le secrétariat et ses six blocs de services
+  sur deux colonnes (une sur mobile), puis les tarifs administratifs et un volet
+  distinct pour l'abonnement appels d'offres. Son tarif reste inchangé :
+  49 € TTC la première année, puis 99 €/an.
+  Son bouton de découverte mène à `/demandes-animation`, accessible aux visiteurs
+  et aux inscrits non abonnés, sans modifier les règles de masquage.
+- Les quatre tarifs administratifs sont présentés dans une grille équilibrée :
+  quatre colonnes sur ordinateur, deux sur tablette et une sur mobile,
+  dans l'ordre À la carte (9,99 €), Essentiel (99 €), Compagnie (149 €), Pro (249 €).
+- La paie et les déclarations sociales sont une option sur devis, en supplément,
+  exclue des formules annuelles et du dossier à 9,99 € TTC. Le contact
+  `sujet=fiche-paie` présente l'option et préremplit une demande de devis,
+  sans anciens tarifs ni activation automatique.
+  Un encart discret présente cette option entre les tarifs de secrétariat
+  et le volet appels d'offres.
 
 ### Matching du public ciblé
 - Les fiches et les demandes permettent de cocher plusieurs âges.
