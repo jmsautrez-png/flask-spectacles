@@ -35,10 +35,10 @@ def test_company_service_entry_has_two_distinct_pages(client):
     html = response.get_data(as_text=True)
     links = Links()
     links.feed(html)
-    assert html.count('class="audience-choice"') == 2
     assert '<a href="/abonnement-compagnie" class="menu-abonnement">Nos services pour les compagnies</a>' in html
-    assert "/abonnement-compagnie/secretariat" in links.hrefs
-    assert "/abonnement-compagnie/appels-offres" in links.hrefs
+    assert links.hrefs.index("/abonnement-compagnie/appels-offres") < links.hrefs.index("/abonnement-compagnie/secretariat")
+    assert "La mise en relation avec les organisateurs est au cœur de notre plateforme." in html
+    assert "audience-choice-primary" in html
     assert 'class="pricing-panel"' not in html
     assert 'class="offer-section ao-offer"' not in html
 
@@ -49,10 +49,12 @@ def test_calls_for_offers_page_is_independent(client):
     html = response.get_data(as_text=True)
     assert '<p class="offer-price">49 €</p>' in html
     assert "TTC la première année &mdash; puis 99 €/an." in html
-    assert "Appels d'offres : un service à part" in html
-    assert "Découvrez les demandes des écoles, APE, mairies, médiathèques, CSE, CF et CLSH, et contactez directement les organisateurs." in html
-    assert "La publication des spectacles reste gratuite. Recevez des demandes de devis gratuitement et vendez vos spectacles sans commission sur votre prix initial." in html
-    assert "ABONNEMENT APPELS D'OFFRES" in html
+    assert "Les appels d'offres : au cœur de votre activité sur la plateforme" in html
+    assert "Découvrez les demandes des écoles, APE, mairies, médiathèques, CSE, CF et CLSH." in html
+    assert "accès aux annonces complètes et aux coordonnées des organisateurs" in html
+    assert "<strong>Ce qui reste gratuit :</strong> la publication de vos spectacles et la réception de demandes de devis." in html
+    assert "sans commission sur votre prix initial" in html
+    assert "LE CŒUR DE LA MISE EN RELATION" in html
     assert 'class="pricing-panel"' not in html
     assert 'class="payroll-option"' not in html
     links = Links()

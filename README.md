@@ -119,9 +119,11 @@ flask-spectacles/
 - Statistiques
 
 ### Proposition d'accompagnement administratif
-- La page `/abonnement-compagnie` présente deux grandes cartes de choix,
-  au même design que `/qui-sommes-nous`, vers deux services indépendants :
+- La page `/abonnement-compagnie` met en avant les appels d'offres comme cœur
+  de la mise en relation, puis présente deux grandes cartes de choix
+  au même design que `/qui-sommes-nous` :
   `/abonnement-compagnie/secretariat` et `/abonnement-compagnie/appels-offres`.
+  La carte appels d'offres est prioritaire; le secrétariat est un complément.
   Chaque page propose un retour au choix et un lien vers l'autre service.
 - La page `/abonnement-compagnie/secretariat` présente trois paliers assurés en interne :
   Essentiel (10 dossiers/an, 99 € TTC), Compagnie (20 dossiers/an, 149 € TTC),
@@ -139,8 +141,8 @@ et `ADMINISTRATION_PONCTUELLE`.
   sans appels d'offres, qui restent un service avec abonnement distinct.
   Un lien de contact sans formule permet de demander un devis ponctuel.
   La présentation expose le secrétariat et ses six blocs de services
-  sur deux colonnes (une sur mobile), puis les tarifs administratifs et un volet
-  distinct pour l'abonnement appels d'offres. Son tarif reste inchangé :
+  sur deux colonnes (une sur mobile), puis les tarifs administratifs.
+  L'abonnement appels d'offres possède sa page dédiée et son tarif reste inchangé :
   49 € TTC la première année, puis 99 €/an.
   Son bouton de découverte mène à `/demandes-animation`, accessible aux visiteurs
   et aux inscrits non abonnés, sans modifier les règles de masquage.

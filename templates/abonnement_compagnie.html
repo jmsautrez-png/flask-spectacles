@@ -47,17 +47,17 @@
   {% if not service %}
   <div class="service-hero">
     <h1>Nos services pour les compagnies</h1>
-    <p>Deux services indépendants : choisissez l'accompagnement adapté à votre activité. La publication de vos spectacles reste gratuite.</p>
+    <p>La mise en relation avec les organisateurs est au cœur de notre plateforme. Découvrez d'abord les appels d'offres, puis nos services de secrétariat en complément. La publication de vos spectacles reste gratuite.</p>
     <div class="audience-choices">
+      <a class="audience-choice audience-choice-primary" href="{{ url_for('abonnement_appels_offres') }}">
+        <strong>Appels d'offres : au cœur de votre activité</strong>
+        <span>Repérez les demandes des organisateurs, consultez les annonces complètes et contactez-les directement grâce à l'abonnement appels d'offres.</span>
+        <span>Découvrir les appels d'offres &rarr;</span>
+      </a>
       <a class="audience-choice" href="{{ url_for('secretariat_compagnie') }}">
         <strong>Secrétariat et accompagnement administratif</strong>
-        <span>Contrats, feuilles de route, envoi et suivi des factures : confiez la préparation et le suivi de vos dossiers à notre équipe.</span>
+        <span>En complément, confiez à notre équipe la préparation des contrats, des feuilles de route et l'envoi et le suivi de vos factures.</span>
         <span>Découvrir les formules de secrétariat &rarr;</span>
-      </a>
-      <a class="audience-choice" href="{{ url_for('abonnement_appels_offres') }}">
-        <strong>Appels d'offres</strong>
-        <span>Découvrez les demandes de spectacles et contactez directement les organisateurs avec un abonnement distinct.</span>
-        <span>Découvrir l'abonnement aux appels d'offres &rarr;</span>
       </a>
     </div>
   </div>
@@ -129,13 +129,13 @@
   {% elif service == 'appels-offres' %}
   <section class="offer-section ao-offer" aria-labelledby="ao-title">
     <div style="flex:1;min-width:220px;">
-      <span class="offer-tag">ABONNEMENT APPELS D'OFFRES</span>
-      <h1 id="ao-title">Appels d'offres : un service à part</h1>
-      <p>Un abonnement distinct, non inclus dans les formules administratives. Vous pouvez choisir ce service indépendamment.</p>
-      <p>Découvrez les demandes des écoles, APE, mairies, médiathèques, CSE, CF et CLSH, et contactez directement les organisateurs.</p>
+      <span class="offer-tag">LE CŒUR DE LA MISE EN RELATION</span>
+      <h1 id="ao-title">Les appels d'offres : au cœur de votre activité sur la plateforme</h1>
+      <p>Chaque jour, des organisateurs recherchent des spectacles et des animations. Retrouvez leurs demandes et proposez-leur directement votre compagnie.</p>
+      <p>Découvrez les demandes des écoles, APE, mairies, médiathèques, CSE, CF et CLSH. L'abonnement vous donne accès aux annonces complètes et aux coordonnées des organisateurs pour les contacter directement.</p>
       <p class="offer-price">49 €</p>
       <p class="offer-period">TTC la première année &mdash; puis 99 €/an.</p>
-      <p>Sans accompagnement administratif. La publication des spectacles reste gratuite. Recevez des demandes de devis gratuitement et vendez vos spectacles sans commission sur votre prix initial.</p>
+      <p><strong>Ce qui reste gratuit :</strong> la publication de vos spectacles et la réception de demandes de devis. Vous échangez avec les organisateurs sans commission sur votre prix initial. Le secrétariat est un service complémentaire, proposé séparément.</p>
     </div>
     <a class="offer-button" href="{{ url_for('demandes_animation') }}">Découvrir les appels d'offres</a>
   </section>
