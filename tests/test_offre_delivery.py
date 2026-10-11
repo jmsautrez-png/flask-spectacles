@@ -150,8 +150,8 @@ def test_admin_send_uses_explicit_gift_only(app, client, offer_setup, monkeypatc
     else:
         assert_masked(sent[0].html + sent[0].subject)
         assert "Je découvre l'abonnement" in sent[0].html
-        assert "Une belle occasion pour votre compagnie !" in sent[0].html
-        assert "Pourquoi ne pas vous abonner" in sent[0].html
+        assert "Cette opportunité pourrait être faite pour vous !" in sent[0].html
+        assert "Abonnez-vous pour découvrir l'annonce complète" in sent[0].html
         assert "🔒" not in sent[0].html
         assert f"/appels-offres/{demande.id}" in sent[0].html
     login(client, user)
@@ -581,3 +581,72 @@ def test_preview_counter_migration_preserves_existing_gifts(app, monkeypatch):
             )).one() == (4, 0)
     finally:
         engine.dispose()
+
+class CountingMail(FakeMail):
+    def __init__(self):
+        super().__init__()
+        self.connections = 0
+
+    def connect(self):
+        self.connections += 1
+        return self
+
+
+def _add_extra_shows(user, count):
+    from models import db
+    from models.models import Show
+
+    shows = [
+        Show(
+            title=f"Extra {i}", user=user, approved=True,
+            specialites="Clown", category="Clown", region="Bretagne",
+            public_categories="famille", public_sous_options="fam_10",
+            contact_email=f"extra{i}@example.test",
+        )
+        for i in range(count)
+    ]
+    db.session.add_all(shows)
+    db.session.commit()
+    return shows
+
+
+def test_admin_send_goes_out_in_batches(app, client, offer_setup, monkeypatch):
+    import app as app_module
+    user, admin, show, demande, other = offer_setup
+    extras = _add_extra_shows(user, 4)
+    mail = CountingMail()
+    monkeypatch.setattr(app, "mail", mail)
+    monkeypatch.setattr(app_module, "_SEND_BATCH_SIZE", 2)
+    login(client, admin)
+    ids = [str(s.id) for s in [show, *extras]]
+    response = client.post(
+        f"/admin/envoyer-demande/{demande.id}",
+        data={"action": "send_matched", "matched_show_ids": ids, "categories": ["Clown"]},
+    )
+    assert response.status_code == 302
+    assert mail.connections == 3
+    recipients = {r for m in mail.messages for r in m.recipients}
+    assert {show.contact_email, *(s.contact_email for s in extras)} <= recipients
+
+
+def test_admin_send_reports_companies_left_when_time_runs_out(app, client, offer_setup, monkeypatch):
+    import app as app_module
+    from models.models import AppelOffreEnvoi
+    user, admin, show, demande, other = offer_setup
+    extras = _add_extra_shows(user, 2)
+    mail = FakeMail()
+    monkeypatch.setattr(app, "mail", mail)
+    monkeypatch.setattr(app_module, "_SEND_TIME_BUDGET_SECONDS", -1)
+    login(client, admin)
+    ids = [str(s.id) for s in [show, *extras]]
+    response = client.post(
+        f"/admin/envoyer-demande/{demande.id}",
+        data={"action": "send_matched", "matched_show_ids": ids, "categories": ["Clown"]},
+    )
+    assert response.status_code == 302
+    assert not [m for m in mail.messages if m.recipients != [admin.email]]
+    assert AppelOffreEnvoi.query.count() == 0
+    recap = next(m for m in mail.messages if m.subject.startswith("[ADMIN]"))
+    for s in [show, *extras]:
+        assert s.contact_email in recap.html
+    assert "à relancer" in recap.html

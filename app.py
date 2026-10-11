@@ -1237,6 +1237,12 @@ def _user_recoit_cadeau(user) -> bool:
     return needs_offer_subscription(user)
 
 
+# Envoi des appels d'offres par lots (voir envoyer_demande_animation)
+_SEND_BATCH_SIZE = 10
+# gunicorn coupe le worker au bout de 300 s (gunicorn_config.py) : on garde de la marge
+_SEND_TIME_BUDGET_SECONDS = 180
+
+
 def _record_appel_offre_delivery(user, demande, gift=False):
     from sqlalchemy.exc import SQLAlchemyError
     from utils.offres import record_offer_delivery
@@ -1286,15 +1292,20 @@ def _bloc_cadeau_html(user):
         '<div style="background:#fff8e1;border:2px solid #ffb300;border-radius:10px;'
         'padding:14px 18px;margin:16px 0;text-align:center;">'
         '<div style="font-size:1.15em;font-weight:700;color:#e65100;margin-bottom:6px;">'
-        "🎁 Cet appel d'offre vous est offert par Spectacle'ment VØtre"
+        "Un petit cadeau pour vous !"
         '</div>'
         '<div style="font-size:0.95em;color:#5d4037;line-height:1.5;">'
-        "Nos appels d'offres sont désormais réservés aux compagnies abonnées "
-        "(<strong>49&nbsp;€ TTC</strong> la 1<sup>re</sup>&nbsp;année, puis 99&nbsp;€/an). "
-        "Celui-ci vous est offert.<br>"
+        "Cet appel d'offres vous est offert avec le sourire de toute l'équipe. "
+        "Si vous souhaitez en recevoir régulièrement, l'abonnement est à "
+        "<strong>49&nbsp;€ TTC</strong> la 1<sup>re</sup>&nbsp;année, puis 99&nbsp;€/an.<br>"
         '<a href="mailto:contact@spectacleanimation.fr?subject=Abonnement%20compagnie" '
-        'style="color:#e65100;font-weight:600;text-decoration:none;">'
-        "👉 Je souhaite m'abonner</a>"
+        'style="display:inline-block;margin-top:8px;background:#e65100;color:#fff;padding:10px 20px;'
+        'border-radius:8px;text-decoration:none;font-weight:700;">'
+        "Découvrir l'abonnement</a>"
+        '</div>'
+        '<div style="font-size:0.9em;color:#5d4037;margin-top:10px;">'
+        "Spectacle'ment Vôtre, c'est <strong>1000 appels d'offres</strong> par an, "
+        "<strong>2000 demandes de devis</strong> et <strong>50000 visites</strong>."
         '</div>'
         '</div>'
     )
@@ -1331,42 +1342,42 @@ h2 {{ color: #1b2a4e; margin-top: 0; }}
     <p>Bonne nouvelle ! Nous avons reçu une demande d'animation pour <strong>{demande.genre_recherche}</strong> qui correspond à votre profil :</p>
     {_bloc_cadeau_html(show.user if show else None)}
     <div class="opportunity-box">
-        <h3>📋 {demande.genre_recherche} à {demande.lieu_ville}</h3>
+        <h3>{demande.genre_recherche} à {demande.lieu_ville}</h3>
         <div class="info-grid">
-            <div class="info-item"><div class="info-label">📍 Lieu</div>{demande.lieu_ville}</div>
-            <div class="info-item"><div class="info-label">�️ Département</div>{demande.departement or 'Non précisé'}</div>
-            <div class="info-item"><div class="info-label">🌍 Région</div>{demande.region or 'Non précisée'}</div>
-            <div class="info-item"><div class="info-label">�📅 Date(s)</div>{demande.dates_horaires}</div>
+            <div class="info-item"><div class="info-label">Lieu</div>{demande.lieu_ville}</div>
+            <div class="info-item"><div class="info-label">Département</div>{demande.departement or 'Non précisé'}</div>
+            <div class="info-item"><div class="info-label">Région</div>{demande.region or 'Non précisée'}</div>
+            <div class="info-item"><div class="info-label">Date(s)</div>{demande.dates_horaires}</div>
             <div class="info-item"><div class="info-label">Type recherché</div>{demande.genre_recherche}</div>
-            <div class="info-item"><div class="info-label">🎭 Spécialités</div>{demande.specialites_recherchees.replace(',', ', ') if demande.specialites_recherchees else 'Non précisées'}</div>
-            <div class="info-item"><div class="info-label">👥 Jauge</div>{demande.jauge}</div>
-            <div class="info-item"><div class="info-label">💰 Budget</div>{demande.budget}</div>
-            <div class="info-item"><div class="info-label">👶 Public</div>{_format_age_label(demande.age_range)}</div>
+            <div class="info-item"><div class="info-label">Spécialités</div>{demande.specialites_recherchees.replace(',', ', ') if demande.specialites_recherchees else 'Non précisées'}</div>
+            <div class="info-item"><div class="info-label">Jauge</div>{demande.jauge}</div>
+            <div class="info-item"><div class="info-label">Budget</div>{demande.budget}</div>
+            <div class="info-item"><div class="info-label">Public</div>{_format_age_label(demande.age_range)}</div>
         </div>
-        <p><strong>🏢 Type d'espace :</strong> {demande.type_espace}</p>
-        <p style="color:#333;"><strong>📝 Intitulé :</strong> {demande.intitule or 'Non précisé'}</p>
-        <p><strong>♿ Accessibilité :</strong> {demande.accessibilite or 'Non précisée'}</p>
+        <p><strong>Type d'espace :</strong> {demande.type_espace}</p>
+        <p style="color:#333;"><strong>Intitulé :</strong> {demande.intitule or 'Non précisé'}</p>
+        <p><strong>Accessibilité :</strong> {demande.accessibilite or 'Non précisée'}</p>
     </div>
     <div class="contact-box">
-        <h3>📞 Coordonnées du demandeur</h3>
+        <h3>Coordonnées du demandeur</h3>
         <p><strong>Structure :</strong> {demande.structure}<br>
         <strong>Contact :</strong> {demande.nom}<br>
         <strong>Email :</strong> <a href="mailto:{demande.contact_email}" style="color:#1b5e20;">{demande.contact_email}</a><br>
         <strong>Téléphone :</strong> {demande.telephone}</p>
-        <p style="text-align:center;"><a href="mailto:{demande.contact_email}" class="btn">✉️ Contacter le demandeur</a></p>
-        <p style="text-align:center;margin-top:8px;"><a href="https://www.spectacleanimation.fr/appels-offres/{demande.id}" style="display:inline-block;padding:10px 24px;background:#1b5e20;color:white;text-decoration:none;border-radius:5px;font-weight:bold;">👁️ Voir l'appel d'offre</a></p>
+        <p style="text-align:center;"><a href="mailto:{demande.contact_email}" class="btn">Contacter le demandeur</a></p>
+        <p style="text-align:center;margin-top:8px;"><a href="https://www.spectacleanimation.fr/appels-offres/{demande.id}" style="display:inline-block;padding:10px 24px;background:#1b5e20;color:white;text-decoration:none;border-radius:5px;font-weight:bold;">Voir l'appel d'offre</a></p>
     </div>
     <div style="background-color:#e8eaf6;padding:15px;border-radius:8px;margin:15px 0;">
-        <p><strong>✨ Votre spectacle concerné :</strong><br>{show.title} - {show.category}</p>
+        <p><strong>Votre spectacle concerné :</strong><br>{show.title} - {show.category}</p>
     </div>
     <div style="background-color:#e3f2fd;padding:15px;border-radius:8px;margin:15px 0;text-align:center;">
         <p><strong>Publiez vos spectacles GRATUITEMENT toute l'année !</strong><br>
-        <a href="https://www.spectacleanimation.fr/submit" style="color:#1b5e20;font-weight:bold;">👉 Publier un spectacle</a></p>
+        <a href="https://www.spectacleanimation.fr/submit" style="color:#1b5e20;font-weight:bold;">Publier un spectacle</a></p>
     </div>
     <div style="background:linear-gradient(135deg,#d32f2f 0%,#c62828 100%);color:white;padding:20px;border-radius:8px;margin:15px 0;">
-        <p style="margin:0 0 10px 0;font-size:1.1em;"><strong>💼 SPECTACLE'MENT VÔTRE VOUS ACCOMPAGNE</strong></p>
-        <p style="margin:0 0 15px 0;font-size:0.95em;">Accompagnement en interne : contrats de cession et contrats de travail, feuilles de route et suivi des dates, sans paie ni déclarations sociales.</p>
-        <p style="text-align:center;margin:0;"><a href="https://spectacleanimation.fr/abonnement-compagnie" style="display:inline-block;background-color:white;color:#d32f2f;padding:12px 28px;border-radius:25px;text-decoration:none;font-weight:bold;">📋 Découvrir nos services</a></p>
+        <p style="margin:0 0 10px 0;font-size:1.1em;"><strong>SPECTACLE'MENT VÔTRE VOUS ACCOMPAGNE</strong></p>
+        <p style="margin:0 0 15px 0;font-size:0.95em;">Accompagnement de votre secrétariat en édition et suivi de vos contrats de cession, contrats de travail, facturation, feuilles de route et suivi des dates.</p>
+        <p style="text-align:center;margin:0;"><a href="https://spectacleanimation.fr/abonnement-compagnie" style="display:inline-block;background-color:white;color:#d32f2f;padding:12px 28px;border-radius:25px;text-decoration:none;font-weight:bold;">Découvrir nos services</a></p>
     </div>
     <div class="footer"><p><strong>L'équipe Spectacle'ment VØtre</strong><br>contact@spectacleanimation.fr</p></div>
 </div>
@@ -7672,43 +7683,72 @@ Accessibilité: {accessibilite}
                 error_count = 0
                 errors_detail = []
                 successful_deliveries = []
-                
-                # OPTIMISATION : une seule connexion SMTP pour tous les emails
-                # Évite handshake TLS répété (cause du WORKER TIMEOUT gunicorn)
-                try:
-                    with current_app.mail.connect() as conn:
-                        for show in shows:
-                            email = show.contact_email
-                            if not email and show.user:
-                                email = show.user.email if hasattr(show.user, 'email') else None
-                            
-                            if email and email not in emails_sent:
-                                emails_sent.add(email)
-                                recipient_user = getattr(show, "user", None)
-                                gift = gift_selected(recipient_user, gift_user_ids)
-                                body_html = _build_appel_offre_email(demande, show, gift=gift)
+
+                # Préparer tous les messages avant tout envoi (lecture seule)
+                pending = []
+                for show in shows:
+                    email = show.contact_email
+                    if not email and show.user:
+                        email = show.user.email if hasattr(show.user, 'email') else None
+                    if email and email not in emails_sent:
+                        emails_sent.add(email)
+                        recipient_user = getattr(show, "user", None)
+                        gift = gift_selected(recipient_user, gift_user_ids)
+                        pending.append({
+                            "email": email,
+                            "show": show,
+                            "user": recipient_user,
+                            "gift": gift,
+                            "body_html": _build_appel_offre_email(demande, show, gift=gift),
+                        })
+
+                # Envoi par lots : une connexion SMTP par lot. Le temps total est borné
+                # pour rester sous le timeout gunicorn ; ce qui n'a pas pu partir est
+                # signalé pour être relancé (les envois réussis sont déjà enregistrés).
+                send_deadline = time.monotonic() + _SEND_TIME_BUDGET_SECONDS
+                not_sent = []
+                for batch_start in range(0, len(pending), _SEND_BATCH_SIZE):
+                    batch = pending[batch_start:batch_start + _SEND_BATCH_SIZE]
+                    batch_num = batch_start // _SEND_BATCH_SIZE + 1
+                    if time.monotonic() > send_deadline:
+                        not_sent.extend(pending[batch_start:])
+                        break
+                    attempted = 0
+                    try:
+                        with current_app.mail.connect() as conn:
+                            for item in batch:
+                                if time.monotonic() > send_deadline:
+                                    break
+                                attempted += 1
+                                email = item["email"]
                                 try:
                                     msg = MailMessage(
-                                        subject=_appel_offre_subject(demande, recipient_user, gift=gift),
+                                        subject=_appel_offre_subject(demande, item["user"], gift=item["gift"]),
                                         recipients=[email]
                                     )
-                                    msg.html = body_html
+                                    msg.html = item["body_html"]
                                     conn.send(msg)
                                     success_count += 1
-                                    tracked = _record_appel_offre_delivery(recipient_user, demande, gift=gift)
+                                    tracked = _record_appel_offre_delivery(item["user"], demande, gift=item["gift"])
                                     successful_deliveries.append(delivery_recap_entry(
-                                        recipient_user, email, show.title,
-                                        gift=gift, show=show, tracked=tracked,
+                                        item["user"], email, item["show"].title,
+                                        gift=item["gift"], show=item["show"], tracked=tracked,
                                     ))
                                     print(f"[DEBUG] ✅ Email envoyé à {email}")
                                 except Exception as e:
                                     error_count += 1
                                     errors_detail.append(f"{email}: {str(e)[:100]}")
                                     print(f"[MAIL] ❌ Erreur envoi à {email}: {e}")
-                except Exception as e:
-                    print(f"[MAIL] ❌ Erreur connexion SMTP : {e}")
-                    error_count += 1
-                    errors_detail.append(f"Connexion SMTP : {str(e)[:120]}")
+                    except Exception as e:
+                        print(f"[MAIL] ❌ Erreur connexion SMTP lot {batch_num} : {e}")
+                        error_count += len(batch) - attempted
+                        errors_detail.append(f"Connexion SMTP lot {batch_num} : {str(e)[:120]}")
+                        continue
+                    not_sent.extend(batch[attempted:])
+
+                for item in not_sent:
+                    errors_detail.append(f"{item['email']}: non envoyé (délai d'envoi atteint, à relancer)")
+                print(f"[DEBUG] Lots terminés : {success_count} envoyé(s), {error_count} erreur(s), {len(not_sent)} non envoyé(s)")
                 
                 # Copie admin
                 admin_email = current_user().email if current_user() and current_user().email else None
@@ -7766,7 +7806,9 @@ Accessibilité: {accessibilite}
                     flash(f"✅ Appel d'offre envoyé à {success_count} compagnie(s) !", "success")
                 if error_count > 0:
                     flash(f"⚠️ {error_count} email(s) en erreur.", "warning")
-                if success_count == 0 and error_count == 0:
+                if not_sent:
+                    flash(f"⏸️ Délai d'envoi atteint : {len(not_sent)} compagnie(s) non contactée(s). Relancez l'envoi pour elles uniquement.", "warning")
+                if success_count == 0 and error_count == 0 and not not_sent:
                     flash("⚠️ Aucun email à envoyer.", "warning")
 
                 return redirect(url_for("admin_demandes_animation"))
