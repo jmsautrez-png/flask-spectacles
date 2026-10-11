@@ -189,6 +189,18 @@ def test_registration_invitation_highlights_free_registration_not_free_subscript
     assert "contrats de travail et suivi des dates, sans paie" not in html
 
 
+def test_home_organizer_block_invites_to_submit_a_free_request(client):
+    response = client.get("/")
+    assert response.status_code == 200
+    html = response.get_data(as_text=True)
+    assert "<span>Mairies, écoles, CSE, associations, festivals</span>" in html
+    assert "Vous organisez un événement pour votre commune, école, comité d'entreprise ou association ?" in html
+    assert "Vous ne cherchez plus, ce sont les artistes qui viennent à vous !" in html
+    assert "Décrivez le spectacle ou l'animation recherché, précisez votre thème et votre budget" in html
+    assert "<h3>Déposez gratuitement votre demande de recherche de spectacle ou d'animation.</h3>" in html
+    assert 'class="btn-bandeau">Publier ma demande en 2 clics →</a>' in html
+
+
 def test_ponctual_contact_requests_quote_without_annual_plan(client):
     response = client.get("/contact?sujet=administration")
     assert response.status_code == 200
@@ -226,7 +238,7 @@ def test_public_presentations_no_longer_promote_payroll(client, path):
     assert "URSSAF" not in html
     assert "fiches de salaire" not in html.lower()
     if path == "/":
-        assert "sans paie" in html
+        assert "sans paie" not in html
     else:
         assert "des contrats de travail et des factures" in html
     assert "CDDU" not in html
@@ -257,6 +269,10 @@ def test_services_pages_separate_audiences(client, path, own, other):
     assert own in html
     assert other not in html
     assert "CDDU" not in html
+    if path.endswith("organisateurs"):
+        assert "Mairies, écoles, CSE, associations et festivals" in html
+        assert "Déposez votre demande gratuitement et recevez des propositions de compagnies adaptées à votre projet." in html
+        assert 'class="cta-btn cta-btn-secondary">Déposer une demande d\'animation</a>' in html
     links = Links()
     links.feed(html)
     assert "/qui-sommes-nous" in links.hrefs
