@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Archives des spectacles 2019</title>
+</head>
+<body>
+  <h1>Archives des spectacles 2019</h1>
+  {% for fiche in fiches %}
+  <section>
+    <h2>{{ fiche }}</h2>
+    <p>Spectacle jeune public, tournée 2019. Région : Bretagne. Jauge : 120 personnes.</p>
+    <p>Contact : contact-{{ loop.index }}-{{ jeton|lower }}@archives.invalid</p>
+    <p>Réf. archive {{ jeton }}-{{ loop.index }}</p>
+  </section>
+  {% endfor %}
+</body>
+</html>

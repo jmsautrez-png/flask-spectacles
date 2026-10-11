@@ -1,5 +1,6 @@
 """Offer previews, explicit gifts, and per-company access (no real SMTP)."""
 
+import re
 from datetime import datetime, timedelta
 
 import pytest
@@ -650,3 +651,48 @@ def test_admin_send_reports_companies_left_when_time_runs_out(app, client, offer
     for s in [show, *extras]:
         assert s.contact_email in recap.html
     assert "à relancer" in recap.html
+
+
+REFERENCE_RE = re.compile(r"Réf\. ([0-9A-F]{4}-[0-9A-F]{4})")
+
+
+def test_appel_offre_reference_is_unique_and_traceable(app, offer_setup):
+    from app import _build_appel_offre_email, retrouver_destinataire_appel_offre, _reference_appel_offre
+    from models import db
+    from models.models import AppelOffreEnvoi
+
+    user, admin, show, demande, other = offer_setup
+    with app.test_request_context():
+        masked = _build_appel_offre_email(demande, show, gift=False)
+        full = _build_appel_offre_email(demande, show, gift=True)
+        ref_masked = REFERENCE_RE.search(masked)
+        ref_full = REFERENCE_RE.search(full)
+        assert ref_masked and ref_full, "référence absente"
+        assert ref_masked.group(1) == ref_full.group(1)
+
+        admin_show = type(show)(
+            title="Admin company", user=admin, approved=True, specialites="Clown",
+            category="Clown", region="Bretagne", public_categories="famille",
+            public_sous_options="fam_10", contact_email=admin.email,
+        )
+        db.session.add(admin_show)
+        db.session.commit()
+        ref_admin = REFERENCE_RE.search(_build_appel_offre_email(demande, admin_show, gift=True)).group(1)
+        assert ref_admin != ref_full.group(1)
+
+        assert _reference_appel_offre(demande.id, user.id) == ref_full.group(1)
+        assert retrouver_destinataire_appel_offre(demande.id, ref_full.group(1)) is None
+
+        db.session.add(AppelOffreEnvoi(user_id=user.id, demande_id=demande.id, offert=True))
+        db.session.commit()
+        found = retrouver_destinataire_appel_offre(demande.id, ref_full.group(1).lower())
+        assert found is not None and found.id == user.id
+        assert retrouver_destinataire_appel_offre(demande.id, "0000-0000") is None
+        assert retrouver_destinataire_appel_offre(other.id, ref_full.group(1)) is None
+
+        no_user = type(show)(
+            title="Orphan", user=None, approved=True, specialites="Clown",
+            category="Clown", region="Bretagne", public_categories="famille",
+            public_sous_options="fam_10", contact_email="orphan@example.test",
+        )
+        assert "Réf." not in _build_appel_offre_email(demande, no_user, gift=True)

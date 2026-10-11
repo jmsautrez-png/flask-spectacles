@@ -1277,9 +1277,31 @@ def _record_offer_consultation(demande, user):
         return False
 
 
-def _appel_offre_apercu(demande):
+def _reference_appel_offre(demande_id, user_id):
+    """Référence discrète, propre à chaque destinataire : permet de retrouver qui a
+    transmis un contenu copié (voir retrouver_destinataire_appel_offre)."""
+    import hashlib
+    import hmac
+    cle = current_app.config["SECRET_KEY"].encode()
+    empreinte = hmac.new(cle, f"{demande_id}:{user_id}".encode(), hashlib.sha256).hexdigest()[:8].upper()
+    return f"{empreinte[:4]}-{empreinte[4:]}"
+
+
+def retrouver_destinataire_appel_offre(demande_id, reference):
+    """Renvoie l'utilisateur destinataire de cette référence pour cet appel d'offre, ou None."""
+    import hmac
+    from models.models import AppelOffreEnvoi
+    reference = (reference or "").strip().upper()
+    for envoi in AppelOffreEnvoi.query.filter_by(demande_id=demande_id).all():
+        if hmac.compare_digest(_reference_appel_offre(demande_id, envoi.user_id), reference):
+            return envoi.user
+    return None
+
+
+def _appel_offre_apercu(demande, user=None):
+    reference = _reference_appel_offre(demande.id, user.id) if user else None
     return render_template(
-        "email_appel_offre_apercu.html", demande=demande,
+        "email_appel_offre_apercu.html", demande=demande, reference=reference,
         offer_url=f"https://www.spectacleanimation.fr/appels-offres/{demande.id}",
         subscription_url="https://www.spectacleanimation.fr/adhesion",
     )
@@ -1323,7 +1345,9 @@ def _bloc_cadeau_html(user):
 def _build_appel_offre_email(demande, show, gift=False):
     """Génère le HTML d'email pour un appel d'offre envoyé à un artiste."""
     if _user_recoit_cadeau(show.user if show else None) and not gift:
-        return _appel_offre_apercu(demande)
+        return _appel_offre_apercu(demande, show.user if show else None)
+    reference = _reference_appel_offre(demande.id, show.user.id) if show and show.user else None
+    ref_html = f'<br><span style="font-size:11px;color:#999;">Réf. {reference}</span>' if reference else ""
     return f"""<!DOCTYPE html>
 <html>
 <head><meta charset="UTF-8">
@@ -1388,7 +1412,7 @@ h2 {{ color: #1b2a4e; margin-top: 0; }}
         <p style="margin:0 0 15px 0;font-size:0.95em;">Accompagnement de votre secrétariat en édition et suivi de vos contrats de cession, contrats de travail, facturation, feuilles de route et suivi des dates.</p>
         <p style="text-align:center;margin:0;"><a href="https://spectacleanimation.fr/abonnement-compagnie" style="display:inline-block;background-color:white;color:#d32f2f;padding:12px 28px;border-radius:25px;text-decoration:none;font-weight:bold;">Découvrir nos services</a></p>
     </div>
-    <div class="footer"><p><strong>L'équipe Spectacle'ment VØtre</strong><br>contact@spectacleanimation.fr</p></div>
+    <div class="footer"><p><strong>L'équipe Spectacle'ment VØtre</strong><br>contact@spectacleanimation.fr{ref_html}</p></div>
 </div>
 </body>
 </html>"""
@@ -1864,6 +1888,33 @@ def _limite_pages_publiques(app: Flask, regle: str):
     if limiter_actif is None:
         return lambda f: f
     return limiter_actif.limit(regle)
+
+
+_FICHES_PIEGE = (
+    "Compagnie Les Lanternes Imaginaires",
+    "Théâtre du Pont Suspendu Fictif",
+    "Les Marionnettes de la Lune Basse",
+    "Atelier Clown Sans Frontière Inventée",
+    "Cirque du Vent Figuré",
+)
+
+
+def _adresse_visiteur() -> str:
+    xff = request.headers.get("X-Forwarded-For", "")
+    if xff:
+        return xff.split(",")[-1].strip()
+    return request.remote_addr or "inconnu"
+
+
+def _jeton_piege(adresse: str, user_agent: str) -> str:
+    """Jeton propre à un visiteur et à un jour : inscrit dans la page piège et dans les logs."""
+    import hashlib
+    import hmac
+    from datetime import datetime as _dt
+    cle = current_app.config["SECRET_KEY"].encode()
+    message = f"{adresse}|{user_agent}|{_dt.utcnow():%Y-%m-%d}".encode()
+    empreinte = hmac.new(cle, b"piege|" + message, hashlib.sha256).hexdigest()[:8].upper()
+    return f"{empreinte[:4]}-{empreinte[4:]}"
 
 
 def register_routes(app: Flask) -> None:
@@ -2838,6 +2889,15 @@ def register_routes(app: Flask) -> None:
     @app.route("/robots.txt")
     def robots_txt():
         return send_from_directory(current_app.static_folder, "robots.txt", mimetype="text/plain")
+
+    @app.route("/archives/spectacles-2019")
+    def archives_piege():
+        # Page piège : lien invisible pour les visiteurs, noindex, absente du robots.txt et du sitemap.
+        adresse = _adresse_visiteur()
+        user_agent = request.headers.get("User-Agent", "")[:200]
+        jeton = _jeton_piege(adresse, user_agent)
+        current_app.logger.warning("[PIEGE] visite archives jeton=%s ip=%s ua=%s", jeton, adresse, user_agent)
+        return render_template("archives_piege.html", fiches=_FICHES_PIEGE, jeton=jeton)
 
     @app.route("/favicon.ico")
     def favicon_ico():
@@ -8305,7 +8365,7 @@ Accessibilité: {accessibilite}
 """
                     gift = gift_selected(user, gift_user_ids)
                     if _user_recoit_cadeau(user) and not gift:
-                        body_html = _appel_offre_apercu(demande)
+                        body_html = _appel_offre_apercu(demande, user)
                     # Ajouter à la liste
                     emails_to_send.append({
                         'email': user.email,
@@ -8757,6 +8817,21 @@ Accessibilité: {accessibilite}
 
 print("🏗️  Création de l'application Flask...")
 app = create_app()
+
+
+import click
+
+
+@app.cli.command("trouver-reference")
+@click.argument("demande_id", type=int)
+@click.argument("reference")
+def trouver_reference(demande_id, reference):
+    """Retrouve le destinataire d'un appel d'offres à partir de la référence du mail."""
+    destinataire = retrouver_destinataire_appel_offre(demande_id, reference)
+    if destinataire:
+        click.echo(f"{destinataire.raison_sociale or destinataire.username} <{destinataire.email}> (user id {destinataire.id})")
+    else:
+        click.echo("Aucun destinataire trouvé pour cette référence.")
 print("✅ Application Flask créée avec succès!")
 print(f"   App name: {app.name}")
 print(f"   Debug: {app.debug}")
