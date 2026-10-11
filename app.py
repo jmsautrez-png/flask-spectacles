@@ -23,6 +23,7 @@ from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Optional, Tuple
 import random
+import functools
 import os
 import logging
 from logging.handlers import RotatingFileHandler
@@ -383,9 +384,16 @@ def create_app() -> Flask:
         app.csrf = None  # type: ignore
     
     # 2. Rate Limiting (protection contre attaques brute force)
+    # Derrière le proxy Render, remote_addr est l'IP du proxy : on prend l'IP cliente
+    # (dernière entrée de X-Forwarded-For ajoutée par le proxy), sinon toutes les limites seraient partagées.
+    def _client_ip():
+        xff = request.headers.get("X-Forwarded-For", "")
+        if xff:
+            return xff.split(",")[-1].strip()
+        return request.remote_addr or "inconnu"
+
     try:
         from flask_limiter import Limiter
-        from flask_limiter.util import get_remote_address
         
         # Limites plus raisonnables et différentes selon l'environnement
         is_production = os.environ.get("FLASK_ENV") == "production"
@@ -399,7 +407,7 @@ def create_app() -> Flask:
         
         limiter = Limiter(
             app=app,
-            key_func=get_remote_address,
+            key_func=_client_ip,
             default_limits=default_limits,
             storage_uri="memory://",
             strategy="moving-window"  # Plus précis que fixed-window
@@ -410,6 +418,7 @@ def create_app() -> Flask:
         app.logger.warning(f"Rate limiting non activé: {e}")
         app.limiter = None  # type: ignore
     
+
     # 3. Headers de sécurité (HTTPS, XSS, etc.)
     if Talisman and os.environ.get("FLASK_ENV") == "production":
         Talisman(
@@ -1849,7 +1858,17 @@ def notify_admin_self_deletion(user_snapshot, shows_info, stats=None):
 # -----------------------------------------------------
 # Routes
 # -----------------------------------------------------
+def _limite_pages_publiques(app: Flask, regle: str):
+    """Limite par IP pour les pages de listing/recherche (anti-aspiration). No-op si le limiteur est inactif."""
+    limiter_actif = getattr(app, "limiter", None)
+    if limiter_actif is None:
+        return lambda f: f
+    return limiter_actif.limit(regle)
+
+
 def register_routes(app: Flask) -> None:
+    limite_pages_publiques = functools.partial(_limite_pages_publiques, app)
+
     # ---------------------------
     # API - Suggestions SEO Intelligence Artificielle
     # ---------------------------
@@ -2599,6 +2618,7 @@ def register_routes(app: Flask) -> None:
         )
 
     @app.route("/catalogue", endpoint="catalogue")
+    @limite_pages_publiques("60 per minute; 1000 per hour")
     def catalogue():
         """Page catalogue avec filtres structurés (spécialité, région, âge) + recherche par nom."""
         from utils.geo import depts_within_radius, DEPT_LABELS
@@ -3610,6 +3630,7 @@ def register_routes(app: Flask) -> None:
         return redirect(url_for("show_detail_seo", slug=show_slug(show)), code=301)
 
     @app.route("/spectacle/<slug>")
+    @limite_pages_publiques("120 per minute; 2000 per hour")
     def show_detail_seo(slug: str):
         """Fiche spectacle — URL SEO (slug + id à la fin, ex : ``france-is-beautiful-565``)."""
         sid = show_id_from_slug(slug)
@@ -3664,6 +3685,7 @@ def register_routes(app: Flask) -> None:
     # Profil public d'une compagnie (SEO local business)
     # ---------------------------
     @app.route("/compagnie/<slug>")
+    @limite_pages_publiques("120 per minute; 2000 per hour")
     def compagnie_profile(slug):
         """Fiche profil public d'une compagnie / artiste.
 
@@ -6178,6 +6200,7 @@ Accessibilité: {accessibilite}
     # Pages thématiques SEO
     # ---------------------------
     @app.route("/spectacles-enfants")
+    @limite_pages_publiques("60 per minute; 1000 per hour")
     def spectacles_enfants():
         shows = Show.query.filter(
             Show.approved.is_(True),
@@ -6213,6 +6236,7 @@ Accessibilité: {accessibilite}
         return render_template("animations_enfants.html", shows=shows, user=current_user())
 
     @app.route("/spectacles-noel")
+    @limite_pages_publiques("60 per minute; 1000 per hour")
     def spectacles_noel():
         shows = Show.query.filter(
             Show.approved.is_(True),
@@ -6295,6 +6319,7 @@ Accessibilité: {accessibilite}
         return render_template("spectacles_fete_municipale.html", shows=shows, user=current_user())
 
     @app.route("/spectacles-associations")
+    @limite_pages_publiques("60 per minute; 1000 per hour")
     def spectacles_associations():
         shows = Show.query.filter(
             Show.approved.is_(True),
@@ -6314,6 +6339,7 @@ Accessibilité: {accessibilite}
 
     # ─── 🗺️ Pages SEO département (96 départements métropolitains) ───
     @app.route("/spectacles-departement/<slug>")
+    @limite_pages_publiques("60 per minute; 1000 per hour")
     def spectacles_departement(slug):
         dept = get_department_by_slug(slug)
         if not dept:
@@ -6497,6 +6523,7 @@ Accessibilité: {accessibilite}
         return None, None
 
     @app.route("/search", methods=["GET"])
+    @limite_pages_publiques("60 per minute; 1000 per hour")
     def search():
         q = request.args.get("q", "").strip()
         addr = request.args.get("address", "").strip()
@@ -8517,6 +8544,7 @@ Accessibilité: {accessibilite}
     # Routes SEO pour les villes
     # ----------------------------
     @app.route("/spectacles-<city_slug>")
+    @limite_pages_publiques("60 per minute; 1000 per hour")
     def city_spectacles(city_slug):
             """Page SEO dédiée pour chaque ville française avec spectacles locaux"""
             # Récupérer les données de la ville
