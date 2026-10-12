@@ -7,7 +7,7 @@ Usage :
 Configuration : variables d'environnement (depuis .env) :
     DATABASE_URL          (postgresql://user:pass@host:port/dbname)
     S3_BUCKET, S3_KEY, S3_SECRET, S3_REGION
-    BACKUP_DIR            (optionnel, défaut: C:\\Users\\utilisateur\\Dropbox\\site spectaclemant distant)
+    BACKUP_DIR            (optionnel, défaut: <dossier utilisateur>\\Dropbox\\site spectaclemant distant)
 
 Prérequis :
     - pg_dump installé (PostgreSQL client tools)  -> https://www.postgresql.org/download/windows/
@@ -42,7 +42,7 @@ except ImportError:
 # ----------------------------------------------------------------------
 # Configuration
 # ----------------------------------------------------------------------
-DEFAULT_BACKUP_DIR = r"C:\Users\utilisateur\Dropbox\site spectaclemant distant"
+DEFAULT_BACKUP_DIR = str(Path.home() / "Dropbox" / "site spectaclemant distant")
 BACKUP_DIR = Path(os.environ.get("BACKUP_DIR", DEFAULT_BACKUP_DIR))
 
 DATABASE_URL = os.environ.get("DATABASE_URL", "").replace("postgres://", "postgresql://", 1)
@@ -84,13 +84,17 @@ def find_pg_dump() -> str | None:
     # 1) PATH
     in_path = shutil.which("pg_dump")
     candidates = []
-    # 2) Installations Windows standard
-    pg_root = Path(r"C:\Program Files\PostgreSQL")
-    if pg_root.exists():
-        for d in pg_root.iterdir():
-            exe = d / "bin" / "pg_dump.exe"
-            if exe.exists() and d.name.isdigit():
-                candidates.append((int(d.name), str(exe)))
+    # 2) Standard machine-wide and per-user Windows installations
+    pg_roots = [
+        Path(r"C:\Program Files\PostgreSQL"),
+        Path.home() / "AppData" / "Local" / "Programs" / "PostgreSQL",
+    ]
+    for pg_root in pg_roots:
+        if pg_root.exists():
+            for d in pg_root.iterdir():
+                exe = d / "bin" / "pg_dump.exe"
+                if exe.exists() and d.name.isdigit():
+                    candidates.append((int(d.name), str(exe)))
     # Trie par numero de version decroissant
     candidates.sort(reverse=True)
     if candidates:

@@ -1,125 +1,73 @@
-# ====================================================================
-# Inscrit la tache planifiee Windows :
-#   - Backup distant (PostgreSQL + photos S3 -> Dropbox)
-#   - Tous les 15 du mois a 15h00
-#
-# Usage (clic droit -> Executer avec PowerShell, OU dans un terminal admin) :
-#   powershell -ExecutionPolicy Bypass -File .\register_backup_task.ps1
-# ====================================================================
+# Installe la tache de sauvegarde (tous les 5 jours a 15 h) pour l'utilisateur Windows courant.
+# Lancer depuis PowerShell : .\register_backup_task.ps1
 
 $ErrorActionPreference = "Stop"
 
-$TaskName    = "BackupDistantSpectacles"
-$ProjectDir  = "C:\Users\utilisateur\Desktop\flask-spectacles-git\flask-spectacles"
-$BatFile     = Join-Path $ProjectDir "backup_distant.bat"
+$TaskName = "BackupDistantSpectacles"
+$ProjectDir = $PSScriptRoot
+$BatFile = Join-Path $ProjectDir "backup_distant.bat"
+$PythonExe = Join-Path $env:LOCALAPPDATA "Packages\PythonSoftwareFoundation.Python.3.12_qbz5n2kfra8p0\LocalCache\Local\flask-spectacles-backup\Scripts\python.exe"
 
 if (-not (Test-Path $BatFile)) {
-    Write-Host "[ERREUR] Fichier introuvable : $BatFile" -ForegroundColor Red
-    exit 1
+    throw "Script de sauvegarde introuvable : $BatFile"
+}
+if (-not (Test-Path $PythonExe)) {
+    throw "Environnement Python de sauvegarde introuvable : $PythonExe"
 }
 
-# Action : lancer le .bat dans le dossier projet
-$Action = New-ScheduledTaskAction `
-    -Execute $BatFile `
-    -WorkingDirectory $ProjectDir
-
-# Declencheur : tous les 15 du mois a 15h00
-# (Trigger mensuel via classe COM car New-ScheduledTaskTrigger ne supporte pas -Monthly)
-$ServiceObj = New-Object -ComObject Schedule.Service
-$ServiceObj.Connect()
-$Definition = $ServiceObj.NewTask(0)
-
-$MonthlyTrigger = $Definition.Triggers.Create(4)  # 4 = TASK_TRIGGER_MONTHLY
-$MonthlyTrigger.StartBoundary  = (Get-Date -Day 15 -Hour 15 -Minute 0 -Second 0).ToString("yyyy-MM-ddTHH:mm:ss")
-$MonthlyTrigger.DaysOfMonth    = 1 -shl (15 - 1)  # bitmask : 15e jour
-$MonthlyTrigger.MonthsOfYear   = 4095             # tous les mois (bitmask 12 bits)
-$MonthlyTrigger.Enabled        = $true
-
-# Parametres : reveille le PC, retente si echec, demarre meme sur batterie
-$Settings = New-ScheduledTaskSettingsSet `
-    -AllowStartIfOnBatteries `
-    -DontStopIfGoingOnBatteries `
-    -StartWhenAvailable `
-    -WakeToRun `
-    -RunOnlyIfNetworkAvailable `
-    -ExecutionTimeLimit (New-TimeSpan -Hours 4)
-
-# Compte utilisateur courant (interactif, pas besoin de mot de passe stocke)
-$Principal = New-ScheduledTaskPrincipal `
-    -UserId "$env:USERDOMAIN\$env:USERNAME" `
-    -LogonType Interactive `
-    -RunLevel Limited
-
-# On utilise Register-ScheduledTask pour l'action + settings + principal,
-# et on remplace ensuite les triggers par notre trigger mensuel COM.
-$Task = New-ScheduledTask `
-    -Action $Action `
-    -Settings $Settings `
-    -Principal $Principal `
-    -Description "Backup mensuel : PostgreSQL Render + photos S3 vers Dropbox (15 du mois a 15h)."
-
-# Supprime l'ancienne tache si elle existe
-$Existing = Get-ScheduledTask -TaskName $TaskName -ErrorAction SilentlyContinue
-if ($Existing) {
-    Write-Host "Suppression de l'ancienne tache '$TaskName'..." -ForegroundColor Yellow
-    Unregister-ScheduledTask -TaskName $TaskName -Confirm:$false
+$NextRun = Get-Date -Hour 15 -Minute 0 -Second 0
+if ($NextRun -le (Get-Date)) {
+    $NextRun = $NextRun.AddDays(1)
 }
 
-# Enregistrement
-Register-ScheduledTask -TaskName $TaskName -InputObject $Task | Out-Null
+$Sid = [Security.Principal.WindowsIdentity]::GetCurrent().User.Value
+$Command = [System.Security.SecurityElement]::Escape($env:ComSpec)
+$Arguments = [System.Security.SecurityElement]::Escape('/d /c ""{0}" --scheduled"' -f $BatFile)
+$WorkingDirectory = [System.Security.SecurityElement]::Escape($ProjectDir)
+$StartBoundary = $NextRun.ToString("yyyy-MM-ddTHH:mm:ss")
 
-# Remplace les triggers par notre trigger mensuel (COM)
-$RegTask = Get-ScheduledTask -TaskName $TaskName
-$XmlPath = Join-Path $env:TEMP "$TaskName.xml"
-Export-ScheduledTask -TaskName $TaskName | Out-File $XmlPath -Encoding Unicode
+$TaskXml = @"
+<?xml version="1.0" encoding="UTF-16"?>
+<Task version="1.4" xmlns="http://schemas.microsoft.com/windows/2004/02/mit/task">
+  <RegistrationInfo>
+    <Description>Sauvegarde PostgreSQL et S3 vers Dropbox, tous les 5 jours a 15 h.</Description>
+  </RegistrationInfo>
+  <Triggers>
+    <CalendarTrigger>
+      <StartBoundary>$StartBoundary</StartBoundary>
+      <Enabled>true</Enabled>
+      <ScheduleByDay>
+        <DaysInterval>5</DaysInterval>
+      </ScheduleByDay>
+    </CalendarTrigger>
+  </Triggers>
+  <Principals>
+    <Principal id="Author">
+      <UserId>$Sid</UserId>
+      <LogonType>InteractiveToken</LogonType>
+      <RunLevel>LeastPrivilege</RunLevel>
+    </Principal>
+  </Principals>
+  <Settings>
+    <MultipleInstancesPolicy>IgnoreNew</MultipleInstancesPolicy>
+    <StartWhenAvailable>true</StartWhenAvailable>
+    <DisallowStartIfOnBatteries>false</DisallowStartIfOnBatteries>
+    <StopIfGoingOnBatteries>false</StopIfGoingOnBatteries>
+    <WakeToRun>true</WakeToRun>
+    <ExecutionTimeLimit>PT4H</ExecutionTimeLimit>
+    <Enabled>true</Enabled>
+  </Settings>
+  <Actions Context="Author">
+    <Exec>
+      <Command>$Command</Command>
+      <Arguments>$Arguments</Arguments>
+      <WorkingDirectory>$WorkingDirectory</WorkingDirectory>
+    </Exec>
+  </Actions>
+</Task>
+"@
 
-[xml]$Xml = Get-Content $XmlPath
-$NsMgr = New-Object System.Xml.XmlNamespaceManager($Xml.NameTable)
-$NsMgr.AddNamespace("t", "http://schemas.microsoft.com/windows/2004/02/mit/task")
-
-$TriggersNode = $Xml.SelectSingleNode("//t:Triggers", $NsMgr)
-$TriggersNode.RemoveAll() | Out-Null
-
-$NewTrigger = $Xml.CreateElement("CalendarTrigger", "http://schemas.microsoft.com/windows/2004/02/mit/task")
-$Start = $Xml.CreateElement("StartBoundary", "http://schemas.microsoft.com/windows/2004/02/mit/task")
-$Start.InnerText = (Get-Date -Day 15 -Hour 15 -Minute 0 -Second 0).ToString("yyyy-MM-ddTHH:mm:ss")
-$NewTrigger.AppendChild($Start) | Out-Null
-
-$Enabled = $Xml.CreateElement("Enabled", "http://schemas.microsoft.com/windows/2004/02/mit/task")
-$Enabled.InnerText = "true"
-$NewTrigger.AppendChild($Enabled) | Out-Null
-
-$Schedule = $Xml.CreateElement("ScheduleByMonth", "http://schemas.microsoft.com/windows/2004/02/mit/task")
-$DaysOfMonth = $Xml.CreateElement("DaysOfMonth", "http://schemas.microsoft.com/windows/2004/02/mit/task")
-$Day = $Xml.CreateElement("Day", "http://schemas.microsoft.com/windows/2004/02/mit/task")
-$Day.InnerText = "15"
-$DaysOfMonth.AppendChild($Day) | Out-Null
-$Schedule.AppendChild($DaysOfMonth) | Out-Null
-
-$Months = $Xml.CreateElement("Months", "http://schemas.microsoft.com/windows/2004/02/mit/task")
-foreach ($m in @("January","February","March","April","May","June","July","August","September","October","November","December")) {
-    $Mn = $Xml.CreateElement($m, "http://schemas.microsoft.com/windows/2004/02/mit/task")
-    $Months.AppendChild($Mn) | Out-Null
-}
-$Schedule.AppendChild($Months) | Out-Null
-$NewTrigger.AppendChild($Schedule) | Out-Null
-
-$TriggersNode.AppendChild($NewTrigger) | Out-Null
-$Xml.Save($XmlPath)
-
-# Re-enregistre la tache avec le XML corrige
-Unregister-ScheduledTask -TaskName $TaskName -Confirm:$false
-Register-ScheduledTask -TaskName $TaskName -Xml (Get-Content $XmlPath -Raw) -User "$env:USERDOMAIN\$env:USERNAME" | Out-Null
-
-Remove-Item $XmlPath -ErrorAction SilentlyContinue
-
-Write-Host ""
-Write-Host "============================================================" -ForegroundColor Green
-Write-Host " Tache planifiee creee : $TaskName" -ForegroundColor Green
-Write-Host " Declenchement : tous les 15 du mois a 15h00" -ForegroundColor Green
-Write-Host " Script execute : $BatFile" -ForegroundColor Green
-Write-Host "============================================================" -ForegroundColor Green
-Write-Host ""
-Write-Host "Verifier :   Get-ScheduledTask -TaskName $TaskName"
-Write-Host "Tester maintenant :  Start-ScheduledTask -TaskName $TaskName"
-Write-Host "Supprimer :  Unregister-ScheduledTask -TaskName $TaskName -Confirm:`$false"
+Register-ScheduledTask -TaskName $TaskName -Xml $TaskXml -Force | Out-Null
+Write-Host "Tache planifiee installee : $TaskName"
+Write-Host "Projet : $ProjectDir"
+Write-Host "Prochaine execution : $StartBoundary (puis tous les 5 jours a 15 h)"
