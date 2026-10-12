@@ -49,8 +49,8 @@ def test_calls_for_offers_page_is_independent(client):
     response = client.get("/abonnement-compagnie/appels-offres")
     assert response.status_code == 200
     html = response.get_data(as_text=True)
-    assert '<p class="offer-price">49 €</p>' in html
-    assert "TTC la première année &mdash; puis 99 €/an." in html
+    assert '<span class="offer-price">49 €</span>' in html
+    assert "par an TTC la première année, puis 99 €/an." in html
     assert "Les appels d'offres : au cœur de votre activité sur la plateforme" in html
     assert "Découvrez les demandes des écoles, APE, mairies, médiathèques, CSE, CF et CLSH." in html
     assert "accès aux annonces complètes et aux coordonnées des organisateurs" in html
@@ -88,7 +88,7 @@ def test_offer_page_has_three_prices_and_real_contact_buttons(client):
     assert "20 dossiers de dates" in html
     assert "40 dossiers de dates" in html
     assert "illimités" not in html
-    assert '<p class="offer-price">49 €</p>' not in html
+    assert '<span class="offer-price">49 €</span>' not in html
     assert "220 €" not in html
     assert "16 € la fiche" not in html
     assert "générés" not in html

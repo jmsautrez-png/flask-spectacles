@@ -28,6 +28,8 @@
 .company-offers .offer-card .offer-tag { font-size:.75rem; padding:4px 8px; }
 .company-offers .offer-price { font-size:1.8rem; font-weight:800; color:#fff; margin:10px 0 0; line-height:1.2; }
 .company-offers .offer-period { margin:4px 0 18px; font-size:.9rem; }
+.company-offers .offer-price-line { display:flex; flex-wrap:wrap; align-items:baseline; gap:4px 12px; margin:10px 0 18px; }
+.company-offers .offer-price-line .offer-price, .company-offers .offer-price-line .offer-period { margin:0; }
 .company-offers .offer-card .offer-period { min-height:3.4em; }
 .company-offers .offer-limit { color:#ffe082; font-weight:700; min-height:3em; }
 .company-offers .offer-button { display:inline-block; text-align:center; text-decoration:none; background:#1976d2; color:#fff; padding:12px 18px; border-radius:10px; font-weight:700; }
@@ -145,8 +147,7 @@
       </div>
       <p>Chaque jour, des organisateurs recherchent des spectacles et des animations. Retrouvez leurs demandes et proposez-leur directement votre compagnie.</p>
       <p>Découvrez les demandes des écoles, APE, mairies, médiathèques, CSE, CF et CLSH. L'abonnement vous donne accès aux annonces complètes et aux coordonnées des organisateurs pour les contacter directement.</p>
-      <p class="offer-price">49 €</p>
-      <p class="offer-period">TTC la première année &mdash; puis 99 €/an.</p>
+      <p class="offer-price-line"><span class="offer-price">49 €</span> <span class="offer-period">par an TTC la première année, puis 99 €/an.</span></p>
       <p><strong>Ce qui reste gratuit :</strong> la publication de vos spectacles et la réception de demandes de devis. Vous échangez avec les organisateurs sans commission sur votre prix initial. Le secrétariat est un service complémentaire, proposé séparément.</p>
     </div>
     <a class="offer-button" href="{{ url_for('demandes_animation') }}">Découvrir les appels d'offres</a>
