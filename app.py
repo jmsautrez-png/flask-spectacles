@@ -10226,13 +10226,12 @@ def _build_adhesion_invoice_html(adh, amount, invoice_number, now_dt, date_debut
           <td style="vertical-align:top;padding:4px 0;color:#666;width:50%;">
             <strong style="color:#333;">ÉMETTEUR</strong><br>
             <strong>Spectacle'ment Vôtre</strong><br>
-            <span style="color:#999;font-size:0.82rem;">Édité par Compagnie ARTEMISIA — Association loi 1901</span><br>
+            <span style="color:#999;font-size:0.82rem;"> — Association loi 1901</span><br>
             SIRET : 434 739 769 00058<br>
-            Maison des Associations<br>
-            3 place Guy Hersant (BAL69) BP 74134<br>
-            31031 Toulouse Cedex 04<br>
+            8 rue du chateau <br> 
+            11170 Villespy<br>
             Tél : 06 76 07 01 79<br>
-            Licence spectacle : PLATESV-R-2025-00046
+             
           </td>
           <td style="vertical-align:top;padding:4px 0;color:#666;padding-left:16px;">
             <strong style="color:#333;">DESTINATAIRE</strong><br>
@@ -10290,7 +10289,7 @@ def _build_adhesion_invoice_html(adh, amount, invoice_number, now_dt, date_debut
         <table style="width:100%;border-collapse:collapse;background:#fff;border-radius:6px;border:1px solid #ce93d8;overflow:hidden;font-size:0.88rem;">
           <tr>
             <td style="padding:8px 12px;color:#666;border-bottom:1px solid #f0e0f5;width:120px;">Titulaire</td>
-            <td style="padding:8px 12px;border-bottom:1px solid #f0e0f5;font-weight:600;">ARTEMISIA ET COMPAGNIE</td>
+            <td style="padding:8px 12px;border-bottom:1px solid #f0e0f5;font-weight:600;">Spectacle'ment Vôtre</td>
           </tr>
           <tr>
             <td style="padding:8px 12px;color:#666;border-bottom:1px solid #f0e0f5;">IBAN</td>
@@ -10326,7 +10325,7 @@ def _build_adhesion_invoice_html(adh, amount, invoice_number, now_dt, date_debut
     </div>
 
     <div style="background:#f5f5f5;padding:12px 28px;font-size:0.72rem;color:#888;text-align:center;line-height:1.5;">
-      Spectacle'ment Vôtre · édité par Compagnie ARTEMISIA · SIRET 434 739 769 00058 · Association loi 1901 non assujettie à la TVA
+      Spectacle'ment Vôtre · SIRET 434 739 769 00058 · Association loi 1901 non assujettie à la TVA
     </div>
   </div>
 </body></html>"""
