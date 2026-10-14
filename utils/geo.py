@@ -413,16 +413,23 @@ def distance_km_approx(
     cp_b: Optional[str],
     dept_a: Optional[str] = None,
     dept_b: Optional[str] = None,
+    obj_a=None,
+    obj_b=None,
 ) -> Tuple[Optional[float], bool]:
     """Distance entre deux points avec fallback departement.
 
     Retourne (km, is_approx).
-    - is_approx=False : calcul base sur les CP (precis).
+    - is_approx=False : calcul base sur les coordonnees ou les CP (precis).
     - is_approx=True  : au moins un cote utilise le centroide du departement.
     - (None, False)   : aucune information geo exploitable.
+    obj_a / obj_b : objets optionnels (lat/lon ou CP) utilises en priorite.
     """
-    a = coords_from_cp(cp_a)
-    b = coords_from_cp(cp_b)
+    a = coords_from_obj(obj_a) if obj_a is not None else None
+    if not a:
+        a = coords_from_cp(cp_a)
+    b = coords_from_obj(obj_b) if obj_b is not None else None
+    if not b:
+        b = coords_from_cp(cp_b)
     approx = False
     if not a:
         a = coords_from_dept(dept_a)

@@ -426,10 +426,9 @@ def compute_score(show, demande):
     if not cie_region:
         cie_region = (getattr(show, "region", None) or "").strip().lower()
 
-    distance = None
-    if dem_cp and cie_cp:
-        # Prioritise lat/lon stockés en base (0 appel réseau). Fallback CP via API.
-        distance = distance_km_objs(demande, show_user if show_user else show)
+    # Lat/lon en base prioritaires (0 appel réseau), sinon CP via API. Pas de condition
+    # sur le CP : une compagnie géolocalisée sans CP doit aussi avoir sa distance.
+    distance = distance_km_objs(demande, show_user if show_user else show)
 
     # Codes departement (depuis champ departement "Nom (XX)" ou CP)
     dem_dept = _dept_code_from(demande)
@@ -439,8 +438,11 @@ def compute_score(show, demande):
     # Si on n'a pas de CP des deux cotes, on tente un fallback centroide departemental.
     distance_display = distance
     distance_approx = False
-    if distance_display is None and (dem_cp or dem_dept) and (cie_cp or cie_dept):
-        d_approx, is_approx = distance_km_approx(dem_cp, cie_cp, dem_dept, cie_dept)
+    if distance_display is None:
+        d_approx, is_approx = distance_km_approx(
+            dem_cp, cie_cp, dem_dept, cie_dept,
+            obj_a=demande, obj_b=show_user if show_user else show,
+        )
         if d_approx is not None:
             distance_display = d_approx
             distance_approx = is_approx
