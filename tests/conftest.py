@@ -6,6 +6,11 @@ import pytest
 # Ensure project root is in path
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
+# Les fixtures font drop_all()/create_all() : les tests ne doivent JAMAIS viser la base du .env
+# (DATABASE_URL, souvent PostgreSQL distant). A fixer avant tout import de l'app : config.py lit
+# l'environnement a l'import et load_dotenv() n'ecrase pas une variable deja definie.
+os.environ["DATABASE_URL"] = "sqlite:///:memory:"
+
 
 @pytest.fixture(scope="session")
 def app():
@@ -24,10 +29,12 @@ def app():
         "SERVER_NAME": "localhost",
     })
 
-    # Force SQLAlchemy to recreate engine with the new sqlite URI
+    # Le moteur est deja SQLite (DATABASE_URL force plus haut) : on repart d'une connexion propre.
     from models import db as _db
     with application.app_context():
         _db.engine.dispose()
+        # Garde-fou : arret immediat sur autre chose que SQLite (drop_all() viderait la base).
+        assert _db.engine.dialect.name == "sqlite", "Les tests doivent tourner sur SQLite uniquement."
 
     yield application
 

@@ -334,6 +334,18 @@
       btn.textContent = open ? '+' : '−';
     });
   });
+
+  // Lien « CP manquant » depuis l'auto-matching : ouvre directement la ligne du compte.
+  var m = /^#details-(\d+)$/.exec(window.location.hash);
+  if (m) {
+    var target = document.getElementById('details-' + m[1]);
+    if (target) {
+      target.style.display = 'table-row';
+      var toggle = document.querySelector('.btn-toggle-details[data-target="details-' + m[1] + '"]');
+      if (toggle) toggle.textContent = '−';
+      target.scrollIntoView({block: 'center'});
+    }
+  }
 })();
 </script>
 

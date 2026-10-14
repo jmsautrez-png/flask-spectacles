@@ -451,6 +451,17 @@ def compute_score(show, demande):
             distance_display = d_approx
             distance_approx = is_approx
 
+    # Cause de l'absence de km (affichee dans la liste admin) : aucune localisation sur le
+    # compte, ou localisation presente mais position introuvable (API geo KO, CP inconnu).
+    distance_reason = None
+    if distance_display is None:
+        company = show_user if show_user else show
+        has_coords = (
+            getattr(company, "latitude", None) is not None
+            and getattr(company, "longitude", None) is not None
+        )
+        distance_reason = "geo_indisponible" if (has_coords or cie_dept) else "cp_manquant"
+
     if show_couvre_france:
         # Le spectacle se deplace partout : score regional max
         region_ratio = 1.0
@@ -522,6 +533,7 @@ def compute_score(show, demande):
         "distance_km": round(distance, 1) if distance is not None else None,
         "distance_km_display": round(distance_display, 1) if distance_display is not None else None,
         "distance_approx": distance_approx,
+        "distance_reason": distance_reason,
         "dem_dept": dem_dept,
         "cie_dept": cie_dept,
         "age_compatible": age_compatible,

@@ -169,6 +169,21 @@ et `ADMINISTRATION_PONCTUELLE`.
 - Aucune migration ni modification automatique des fiches existantes :
   l'admin peut compléter progressivement les âges réellement adaptés.
 
+### Auto-matching : colonne Distance
+- Les km ne sont calculés que si le compte de la compagnie a une localisation :
+  coordonnées enregistrées ou code postal (km exacts), à défaut un département
+  (km « ≈ »). Le code postal n'est demandé à l'inscription que depuis le
+  05/05/2026 : un compte plus ancien n'en a pas tant qu'il ne l'a pas renseigné.
+- Quand la distance manque, la liste affiche la cause. « ⚠ CP manquant » ouvre
+  la ligne du compte dans `/admin/users` (nouvel onglet) pour saisir le code
+  postal ; les coordonnées sont alors enregistrées automatiquement. « Géo
+  indisponible » signale une localisation présente mais une position introuvable
+  (service de géolocalisation indisponible ou code postal inconnu). Recharger la
+  liste après correction.
+- `python backfill_geo.py --dry-run`, puis sans `--dry-run`, enregistre les
+  coordonnées des comptes, spectacles et demandes qui ont un code postal mais
+  pas encore de coordonnées.
+
 ### Envoi des appels d'offres : aperçu ou cadeau
 - Pour les compagnies inscrites à partir du 12/09/2026 et non abonnées,
   l'auto-matching et l'envoi filtré transmettent un aperçu par défaut, sans
