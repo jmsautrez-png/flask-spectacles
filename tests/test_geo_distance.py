@@ -54,6 +54,9 @@ def _geo_isolee(tmp_path, monkeypatch):
     monkeypatch.setattr(geo, "_DEPT_CACHE_LOADED", True)
     monkeypatch.setattr(geo, "_CITY_CACHE_LOADED", True)
     monkeypatch.setattr(geo, "_GEO_DOWN_UNTIL", 0.0)
+    # Table embarquee desactivee par defaut : les tests ci-dessous exercent le chemin API.
+    # La fixture table_embarquee recharge la vraie table pour les tests qui la concernent.
+    monkeypatch.setattr(geo, "_STATIC_CP", {})
     # Jamais de vrai appel reseau, y compris depuis les fixtures (hook de geocodage a l'enregistrement).
     monkeypatch.setattr(geo, "requests", SimpleNamespace(get=_api))
 
@@ -221,3 +224,75 @@ def test_page_utilisateurs_ouvre_la_ligne_ciblee_par_l_ancre(client, offer_setup
     html = client.get("/admin/users").get_data(as_text=True)
     assert f'id="details-{user.id}"' in html
     assert "window.location.hash" in html
+
+
+@pytest.fixture
+def table_embarquee(monkeypatch):
+    """Recharge la vraie table utils/cp_coords.json (desactivee par defaut dans ce fichier)."""
+    monkeypatch.setattr(geo, "_STATIC_CP", None)
+
+
+def _reseau_interdit(*args, **kwargs):
+    raise AssertionError("appel reseau interdit : le CP doit venir de la table embarquee")
+
+
+def test_cp_connu_donne_ses_coordonnees_sans_reseau(table_embarquee):
+    with patch("utils.geo.requests.get", side_effect=_reseau_interdit):
+        dijon = geo.coords_from_cp("21000")
+        km = geo.distance_km("21000", "25000")  # Dijon - Besançon
+    assert dijon == pytest.approx((47.3319, 5.0322), abs=0.001)
+    assert 60 < km < 90
+    assert geo._geo_is_down() is False
+
+
+def test_cp_a_quatre_chiffres_est_complete_avant_la_recherche(table_embarquee):
+    with patch("utils.geo.requests.get", side_effect=_reseau_interdit):
+        assert geo.coords_from_cp("1000") is not None
+        assert geo.coords_from_cp("1000") == geo.coords_from_cp("01000")
+
+
+def test_cp_absent_de_la_table_retombe_sur_l_api(table_embarquee):
+    appels = []
+
+    def api(url, params=None, timeout=None):
+        appels.append(params)
+        return _Resp(200, [{"centre": {"type": "Point", "coordinates": [2.0, 46.0]}}])
+
+    with patch("utils.geo.requests.get", side_effect=api):
+        coords = geo.coords_from_cp("99999")  # n'existe pas dans la table
+    assert coords == (46.0, 2.0)
+    assert appels == [{"codePostal": "99999", "fields": "centre", "format": "json"}]
+
+
+def test_distance_affichee_meme_si_l_api_est_en_panne(table_embarquee):
+    # Cas reel : compte ancien (CP renseigne, aucune coordonnee enregistree), API injoignable.
+    with patch("utils.geo.requests.get", side_effect=_reseau_interdit):
+        score = compute_score(
+            _spectacle(_compagnie(code_postal="21000", region="Bourgogne-Franche-Comté")),
+            _demande(code_postal="25000", departement="Doubs (25)", region="Bourgogne-Franche-Comté"),
+        )
+    assert 60 < score["distance_km_display"] < 90
+    assert score["distance_approx"] is False
+    assert score["distance_reason"] is None
+
+
+def test_table_illisible_retombe_sur_l_api_avec_un_avertissement(monkeypatch, tmp_path, caplog):
+    monkeypatch.setattr(geo, "_STATIC_CP", None)
+    monkeypatch.setattr(geo, "_STATIC_CP_FILE", tmp_path / "absent.json")
+    with caplog.at_level("WARNING"), patch("utils.geo.requests.get", side_effect=_api):
+        assert geo.coords_from_cp("13001") is not None  # obtenu via l'API simulee
+    assert "absent.json" in caplog.text
+
+
+def test_table_embarquee_est_complete_et_coherente(table_embarquee):
+    geo._static_cp_coords("21000")  # force le chargement
+    table = geo._STATIC_CP
+    assert len(table) > 6000
+    for cp in ("01000", "20000", "20200", "75001", "97100", "97400"):
+        assert cp in table
+    for cp, (lat, lon) in table.items():
+        assert len(cp) == 5 and cp.isdigit()
+        if not cp.startswith(("97", "98")):
+            assert 41 < lat < 51.5 and -5.5 < lon < 10, cp
+        else:
+            assert -90 < lat < 90 and -180 < lon < 180, cp

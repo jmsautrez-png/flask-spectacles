@@ -172,8 +172,14 @@ et `ADMINISTRATION_PONCTUELLE`.
 ### Auto-matching : colonne Distance
 - Les km ne sont calculés que si le compte de la compagnie a une localisation :
   coordonnées enregistrées ou code postal (km exacts), à défaut un département
-  (km « ≈ »). Le code postal n'est demandé à l'inscription que depuis le
-  05/05/2026 : un compte plus ancien n'en a pas tant qu'il ne l'a pas renseigné.
+  (km « ≈ »). Les coordonnées sont enregistrées automatiquement à la création
+  ou à la modification d'un compte depuis le 19/09/2026 ; sinon elles sont
+  retrouvées à partir du code postal.
+- Les coordonnées d'un code postal viennent de la table embarquée
+  `utils/cp_coords.json` (environ 6 300 codes postaux, aucun appel réseau). Le
+  service geo.api.gouv.fr n'est interrogé que pour un code postal absent de la
+  table. `python build_cp_table.py` régénère la table (API Découpage
+  administratif, licence ouverte Etalab 2.0) ; à relancer rarement.
 - Quand la distance manque, la liste affiche la cause. « ⚠ CP manquant » ouvre
   la ligne du compte dans `/admin/users` (nouvel onglet) pour saisir le code
   postal ; les coordonnées sont alors enregistrées automatiquement. « Géo

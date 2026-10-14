@@ -1,11 +1,15 @@
 """Geo helpers : Haversine + lookup CP -> (lat, lon).
 
-Utilise l'API gratuite https://geo.api.gouv.fr/communes (sans cle).
-Mise en cache disque dans instance/cp_coords_cache.json.
+Les coordonnees d'un code postal viennent d'abord de la table embarquee
+utils/cp_coords.json (aucun appel reseau ; regeneree par build_cp_table.py).
+Seul un CP absent de la table interroge l'API gratuite
+https://geo.api.gouv.fr/communes (sans cle), avec cache disque dans
+instance/cp_coords_cache.json.
 """
 from __future__ import annotations
 
 import json
+import logging
 import os
 import threading
 import time
@@ -30,6 +34,11 @@ _CACHE_FILE = _INSTANCE_DIR / "cp_coords_cache.json"
 _CITY_CACHE: dict[str, Optional[list[float]]] = {}
 _CITY_CACHE_LOADED = False
 _CITY_CACHE_FILE = _INSTANCE_DIR / "city_coords_cache.json"
+
+# Table embarquee CP -> [lat, lon] : evite tout appel reseau pour un CP connu.
+# None = pas encore chargee ({} = chargement impossible ou table volontairement vide).
+_STATIC_CP_FILE = Path(__file__).resolve().parent / "cp_coords.json"
+_STATIC_CP: Optional[dict[str, list[float]]] = None
 
 
 class _GeoUnavailable(Exception):
@@ -130,14 +139,32 @@ def _normalize_city(city: Optional[str]) -> Optional[str]:
 # ---------------------------------------------------------------------------
 # API publique
 # ---------------------------------------------------------------------------
+def _static_cp_coords(cp: str) -> Optional[Tuple[float, float]]:
+    """Coordonnees d'un CP normalise depuis la table embarquee, ou None si absent."""
+    global _STATIC_CP
+    table = _STATIC_CP
+    if table is None:
+        try:
+            table = json.loads(_STATIC_CP_FILE.read_text(encoding="utf-8"))
+        except Exception as exc:
+            logging.getLogger(__name__).warning("[GEO] table %s illisible : %s", _STATIC_CP_FILE.name, exc)
+            table = {}
+        _STATIC_CP = table
+    v = table.get(cp)
+    return (v[0], v[1]) if v else None
+
+
 def coords_from_cp(cp: Optional[str]) -> Optional[Tuple[float, float]]:
     """Retourne (lat, lon) pour un code postal francais, ou None.
 
-    Resultats mis en cache (memoire + disque).
+    Table embarquee d'abord (sans reseau), puis API avec cache (memoire + disque).
     """
     cp = _normalize_cp(cp)
     if not cp:
         return None
+    static = _static_cp_coords(cp)
+    if static:
+        return static
     _load_cache()
     if cp in _CACHE:
         v = _CACHE[cp]
