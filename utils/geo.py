@@ -8,6 +8,7 @@ from __future__ import annotations
 import json
 import os
 import threading
+import time
 from math import radians, sin, cos, asin, sqrt
 from pathlib import Path
 from typing import Optional, Tuple
@@ -33,6 +34,21 @@ _CITY_CACHE_FILE = _INSTANCE_DIR / "city_coords_cache.json"
 
 class _GeoUnavailable(Exception):
     """API geo injoignable : le resultat ne doit pas etre mis en cache."""
+
+
+# Disjoncteur : apres un echec reseau, on evite de rappeler l'API pendant un moment.
+# Sans ca, chaque spectacle du matching attend le timeout (5 s) et gunicorn coupe le worker.
+_GEO_RETRY_SECONDS = 600
+_GEO_DOWN_UNTIL = 0.0
+
+
+def _geo_is_down() -> bool:
+    return time.monotonic() < _GEO_DOWN_UNTIL
+
+
+def _mark_geo_down() -> None:
+    global _GEO_DOWN_UNTIL
+    _GEO_DOWN_UNTIL = time.monotonic() + _GEO_RETRY_SECONDS
 
 
 def _load_cache() -> None:
@@ -126,9 +142,12 @@ def coords_from_cp(cp: Optional[str]) -> Optional[Tuple[float, float]]:
     if cp in _CACHE:
         v = _CACHE[cp]
         return (v[0], v[1]) if v else None
+    if _geo_is_down():
+        return None
     try:
         coords = _fetch_coords(cp)
     except _GeoUnavailable:
+        _mark_geo_down()
         return None
     with _LOCK:
         _CACHE[cp] = list(coords) if coords else None
@@ -156,9 +175,12 @@ def coords_from_city(
     if cache_key in _CITY_CACHE:
         v = _CITY_CACHE[cache_key]
         return (v[0], v[1]) if v else None
+    if _geo_is_down():
+        return None
     try:
         coords = _fetch_city_coords(city, cp_norm, dept_norm)
     except _GeoUnavailable:
+        _mark_geo_down()
         return None
     with _LOCK:
         _CITY_CACHE[cache_key] = list(coords) if coords else None
@@ -342,9 +364,12 @@ def coords_from_dept(code: Optional[str]) -> Optional[Tuple[float, float]]:
     if code in _DEPT_CACHE:
         v = _DEPT_CACHE[code]
         return (v[0], v[1]) if v else None
+    if _geo_is_down():
+        return None
     try:
         coords = _fetch_dept_coords(code)
     except _GeoUnavailable:
+        _mark_geo_down()
         return None
     with _LOCK:
         _DEPT_CACHE[code] = list(coords) if coords else None
