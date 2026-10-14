@@ -31,6 +31,10 @@ _CITY_CACHE_LOADED = False
 _CITY_CACHE_FILE = _INSTANCE_DIR / "city_coords_cache.json"
 
 
+class _GeoUnavailable(Exception):
+    """API geo injoignable : le resultat ne doit pas etre mis en cache."""
+
+
 def _load_cache() -> None:
     global _CACHE_LOADED
     if _CACHE_LOADED:
@@ -40,7 +44,8 @@ def _load_cache() -> None:
             return
         try:
             if _CACHE_FILE.exists():
-                _CACHE.update(json.loads(_CACHE_FILE.read_text(encoding="utf-8")))
+                # Les None herites d'anciens echecs reseau sont ignores pour etre retentes.
+                _CACHE.update({k: v for k, v in json.loads(_CACHE_FILE.read_text(encoding="utf-8")).items() if v is not None})
         except Exception:
             pass
         _CACHE_LOADED = True
@@ -66,7 +71,7 @@ def _load_city_cache() -> None:
             return
         try:
             if _CITY_CACHE_FILE.exists():
-                _CITY_CACHE.update(json.loads(_CITY_CACHE_FILE.read_text(encoding="utf-8")))
+                _CITY_CACHE.update({k: v for k, v in json.loads(_CITY_CACHE_FILE.read_text(encoding="utf-8")).items() if v is not None})
         except Exception:
             pass
         _CITY_CACHE_LOADED = True
@@ -121,7 +126,10 @@ def coords_from_cp(cp: Optional[str]) -> Optional[Tuple[float, float]]:
     if cp in _CACHE:
         v = _CACHE[cp]
         return (v[0], v[1]) if v else None
-    coords = _fetch_coords(cp)
+    try:
+        coords = _fetch_coords(cp)
+    except _GeoUnavailable:
+        return None
     with _LOCK:
         _CACHE[cp] = list(coords) if coords else None
         _save_cache()
@@ -148,7 +156,10 @@ def coords_from_city(
     if cache_key in _CITY_CACHE:
         v = _CITY_CACHE[cache_key]
         return (v[0], v[1]) if v else None
-    coords = _fetch_city_coords(city, cp_norm, dept_norm)
+    try:
+        coords = _fetch_city_coords(city, cp_norm, dept_norm)
+    except _GeoUnavailable:
+        return None
     with _LOCK:
         _CITY_CACHE[cache_key] = list(coords) if coords else None
         _save_city_cache()
@@ -161,21 +172,24 @@ def _fetch_city_coords(
     dept: Optional[str] = None,
 ) -> Optional[Tuple[float, float]]:
     if requests is None:
-        return None
+        raise _GeoUnavailable("requests absent")
+    params = {
+        "nom": city,
+        "fields": "centre,nom,code,codePostal",
+        "format": "json",
+        "boost": "population",
+    }
+    if cp:
+        params["codePostal"] = cp
+    if dept:
+        params["codeDepartement"] = dept
     try:
-        params = {
-            "nom": city,
-            "fields": "centre,nom,code,codePostal",
-            "format": "json",
-            "boost": "population",
-        }
-        if cp:
-            params["codePostal"] = cp
-        if dept:
-            params["codeDepartement"] = dept
         r = requests.get("https://geo.api.gouv.fr/communes", params=params, timeout=5)
-        if r.status_code != 200:
-            return None
+    except Exception as exc:
+        raise _GeoUnavailable(str(exc)) from exc
+    if r.status_code != 200:
+        raise _GeoUnavailable(f"HTTP {r.status_code}")
+    try:
         data = r.json()
         if not data:
             return None
@@ -191,15 +205,18 @@ def _fetch_city_coords(
 
 def _fetch_coords(cp: str) -> Optional[Tuple[float, float]]:
     if requests is None:
-        return None
+        raise _GeoUnavailable("requests absent")
     try:
         r = requests.get(
             "https://geo.api.gouv.fr/communes",
             params={"codePostal": cp, "fields": "centre", "format": "json"},
             timeout=5,
         )
-        if r.status_code != 200:
-            return None
+    except Exception as exc:
+        raise _GeoUnavailable(str(exc)) from exc
+    if r.status_code != 200:
+        raise _GeoUnavailable(f"HTTP {r.status_code}")
+    try:
         data = r.json()
         if not data:
             return None
@@ -285,7 +302,7 @@ def _load_dept_cache() -> None:
             return
         try:
             if _DEPT_CACHE_FILE.exists():
-                _DEPT_CACHE.update(json.loads(_DEPT_CACHE_FILE.read_text(encoding="utf-8")))
+                _DEPT_CACHE.update({k: v for k, v in json.loads(_DEPT_CACHE_FILE.read_text(encoding="utf-8")).items() if v is not None})
         except Exception:
             pass
         _DEPT_CACHE_LOADED = True
@@ -325,7 +342,10 @@ def coords_from_dept(code: Optional[str]) -> Optional[Tuple[float, float]]:
     if code in _DEPT_CACHE:
         v = _DEPT_CACHE[code]
         return (v[0], v[1]) if v else None
-    coords = _fetch_dept_coords(code)
+    try:
+        coords = _fetch_dept_coords(code)
+    except _GeoUnavailable:
+        return None
     with _LOCK:
         _DEPT_CACHE[code] = list(coords) if coords else None
         _save_dept_cache()
@@ -334,15 +354,18 @@ def coords_from_dept(code: Optional[str]) -> Optional[Tuple[float, float]]:
 
 def _fetch_dept_coords(code: str) -> Optional[Tuple[float, float]]:
     if requests is None:
-        return None
+        raise _GeoUnavailable("requests absent")
     try:
         r = requests.get(
             f"https://geo.api.gouv.fr/departements/{code}/communes",
             params={"fields": "centre", "format": "json"},
             timeout=5,
         )
-        if r.status_code != 200:
-            return None
+    except Exception as exc:
+        raise _GeoUnavailable(str(exc)) from exc
+    if r.status_code != 200:
+        raise _GeoUnavailable(f"HTTP {r.status_code}")
+    try:
         data = r.json()
         if not data:
             return None
