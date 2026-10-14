@@ -17,7 +17,7 @@ _DEPT_CODE_RE = re.compile(r"\((\d{2,3}[A-Z]?)\)")
 def _dept_code_from(obj):
     """Extrait un code departement (str) depuis un objet ayant 'departement' ou 'code_postal'.
 
-    Priorite : champ 'departement' au format 'Nom (XX)' -> CP[:2] (ou [:3] pour DOM 97x).
+    Priorite : champ 'departement' au format 'Nom (XX)' -> CP (2 chiffres ; 3 pour DOM 97x ; 2A/2B pour la Corse).
     Retourne None si rien d'exploitable.
     """
     if obj is None:
@@ -29,8 +29,12 @@ def _dept_code_from(obj):
             return m.group(1).upper()
     cp = (getattr(obj, "code_postal", None) or "").strip()
     if len(cp) >= 5 and cp.isdigit():
-        # DOM : 971..978 -> 3 chiffres ; metropole : 2 chiffres (Corse 2A/2B non geree ici)
-        return cp[:3] if cp.startswith("97") else cp[:2]
+        # DOM : 971..978 -> 3 chiffres. Corse : 2A (20000-20199) ou 2B (20200+), pas de code "20".
+        if cp.startswith("97"):
+            return cp[:3]
+        if cp.startswith("20"):
+            return "2A" if cp[:5] < "20200" else "2B"
+        return cp[:2]
     return None
 
 # Nombre total d'options par axe (calculé une seule fois au chargement)

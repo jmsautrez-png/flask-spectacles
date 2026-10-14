@@ -388,6 +388,9 @@ def _fetch_dept_coords(code: str) -> Optional[Tuple[float, float]]:
         )
     except Exception as exc:
         raise _GeoUnavailable(str(exc)) from exc
+    if r.status_code == 404:
+        # Code departement inconnu (ex. "20" ou "97") : reponse definitive, pas une panne.
+        return None
     if r.status_code != 200:
         raise _GeoUnavailable(f"HTTP {r.status_code}")
     try:
