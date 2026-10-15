@@ -52,6 +52,11 @@
         <a href="{{ url_for('notifications_page') }}" class="btn" style="padding:8px 16px; border-radius:6px; font-weight:600; background:#ff9800; color:#fff; text-decoration:none; border: none;">
             🔔 Notifications
         </a>
+        {% if user and not user.is_admin and user.is_modele_payant and not user.is_subscribed and (shows|selectattr('approved')|list) %}
+        <a href="{{ url_for('adhesion') }}" class="btn" style="padding:8px 16px; border-radius:6px; font-weight:700; background:#6a1b9a; color:#fff; text-decoration:none; border: none;">
+            🔓 S'abonner aux appels d'offres
+        </a>
+        {% endif %}
         <a href="{{ url_for('profil_compte') }}" class="btn" style="padding:8px 16px; border-radius:6px; font-weight:600; background:#00897b; color:#fff; text-decoration:none; border: none;">
             👤 Mes informations
         </a>

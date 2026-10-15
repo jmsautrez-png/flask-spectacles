@@ -1,5 +1,9 @@
 """Tests for authentication routes: login, register, logout."""
+from datetime import datetime
+
 import pytest
+
+from models.models import Show
 
 
 class TestLoginRoute:
@@ -96,3 +100,42 @@ class TestProtectedRoutes:
     def test_admin_can_access_dashboard(self, admin_client):
         resp = admin_client.get("/admin")
         assert resp.status_code == 200
+
+
+class TestCompanyDashboard:
+    def test_dashboard_shows_subscription_button_for_eligible_company(
+        self, logged_in_client, normal_user, db
+    ):
+        normal_user.created_at = datetime(2026, 9, 13)
+        db.session.add(Show(title="Spectacle approuvé", user_id=normal_user.id, approved=True))
+        db.session.commit()
+
+        resp = logged_in_client.get("/dashboard")
+
+        assert resp.status_code == 200
+        html = resp.data.decode("utf-8")
+        assert "S'abonner aux appels d'offres" in html
+        assert 'href="/adhesion"' in html
+
+    def test_dashboard_hides_subscription_button_without_approved_show(
+        self, logged_in_client, normal_user
+    ):
+        normal_user.created_at = datetime(2026, 9, 13)
+
+        resp = logged_in_client.get("/dashboard")
+
+        assert resp.status_code == 200
+        assert "S'abonner aux appels d'offres" not in resp.data.decode("utf-8")
+
+    def test_dashboard_hides_subscription_button_for_subscriber(
+        self, logged_in_client, normal_user, db
+    ):
+        normal_user.created_at = datetime(2026, 9, 13)
+        normal_user.is_subscribed = True
+        db.session.add(Show(title="Spectacle approuvé", user_id=normal_user.id, approved=True))
+        db.session.commit()
+
+        resp = logged_in_client.get("/dashboard")
+
+        assert resp.status_code == 200
+        assert "S'abonner aux appels d'offres" not in resp.data.decode("utf-8")
