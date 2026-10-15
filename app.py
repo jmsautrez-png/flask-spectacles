@@ -6681,15 +6681,19 @@ Accessibilité: {accessibilite}
             nom = request.form.get("nom", "").strip()
             email = request.form.get("email", "").strip()
             message = request.form.get("message", "").strip()
+            destinataire = current_app.config.get("MAIL_DEFAULT_SENDER") or current_app.config.get("MAIL_USERNAME")
+            # Une adresse invalide (ex. avec saut de ligne) ferait échouer l'envoi : on omet alors le Reply-To.
+            reply_to = email if re.fullmatch(r"[^@\s]+@[^@\s]+\.[^@\s]+", email) else None
             try:
-                if hasattr(current_app, "mail") and current_app.mail:
+                if hasattr(current_app, "mail") and current_app.mail and destinataire:
                     msg = MailMessage(
                         subject="Nouveau message de contact",
-                        recipients=["audition_2020@yahoo.fr"],
+                        recipients=[destinataire],
+                        reply_to=reply_to,
                         body=f"Nom: {nom}\nEmail: {email}\nMessage: {message}"
                     )
                     current_app.mail.send(msg)
-                    flash("Votre message a été envoyé à audition_2020@yahoo.fr !", "success")
+                    flash("Votre message a bien été envoyé ! Nous vous répondrons rapidement.", "success")
                 else:
                     flash("Erreur: le service mail n'est pas configuré.", "danger")
             except Exception as e:

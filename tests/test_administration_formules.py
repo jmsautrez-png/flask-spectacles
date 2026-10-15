@@ -1,5 +1,6 @@
 """Local proposal for internally prepared date dossiers."""
 
+from html import unescape
 from html.parser import HTMLParser
 
 import pytest
@@ -305,3 +306,53 @@ def test_selected_plan_message_reaches_internal_contact_without_activation(
     assert "Formule Compagnie 149 EUR, 20 dossiers" in mail.messages[0].body
     assert "Formule Compagnie : 149 € TTC / an" in response.get_data(as_text=True)
     assert Adhesion.query.count() == 0
+
+
+def test_contact_message_goes_to_configured_sender_with_visitor_reply_to(
+    app, client, monkeypatch,
+):
+    from tests.test_offre_delivery import FakeMail
+
+    mail = FakeMail()
+    monkeypatch.setattr(app, "mail", mail)
+    response = client.post("/contact", data={
+        "nom": "Visiteur", "email": "visiteur@example.test", "message": "Bonjour",
+    })
+    assert response.status_code == 200
+    assert len(mail.messages) == 1
+    sent = mail.messages[0]
+    assert sent.recipients == [app.config["MAIL_DEFAULT_SENDER"]]
+    assert sent.reply_to == "visiteur@example.test"
+    html = response.get_data(as_text=True)
+    assert "Votre message a bien été envoyé" in html
+    assert "audition_2020@yahoo.fr" not in html
+
+
+def test_contact_omits_reply_to_for_invalid_visitor_email(app, client, monkeypatch):
+    from tests.test_offre_delivery import FakeMail
+
+    mail = FakeMail()
+    monkeypatch.setattr(app, "mail", mail)
+    response = client.post("/contact", data={
+        "nom": "Visiteur", "email": "x@example.test\nBcc: autre@example.test",
+        "message": "Bonjour",
+    })
+    assert response.status_code == 200
+    assert len(mail.messages) == 1
+    assert mail.messages[0].reply_to is None
+    assert mail.messages[0].recipients == [app.config["MAIL_DEFAULT_SENDER"]]
+
+
+def test_contact_reports_missing_mail_configuration(app, client, monkeypatch):
+    from tests.test_offre_delivery import FakeMail
+
+    mail = FakeMail()
+    monkeypatch.setattr(app, "mail", mail)
+    monkeypatch.setitem(app.config, "MAIL_DEFAULT_SENDER", "")
+    monkeypatch.setitem(app.config, "MAIL_USERNAME", "")
+    response = client.post("/contact", data={
+        "nom": "Visiteur", "email": "visiteur@example.test", "message": "Bonjour",
+    })
+    assert response.status_code == 200
+    assert mail.messages == []
+    assert "le service mail n'est pas configuré" in unescape(response.get_data(as_text=True))

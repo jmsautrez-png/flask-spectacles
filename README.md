@@ -137,6 +137,8 @@ Les prix et limites sont regroupés dans `ADMINISTRATION_FORMULES`
 et `ADMINISTRATION_PONCTUELLE`.
   Les boutons ouvrent `/contact?sujet=administration&formule=...` avec un
   message prérempli. Aucun quota, paiement ou abonnement n'est activé.
+  Le message est envoyé à `MAIL_DEFAULT_SENDER` (repli sur `MAIL_USERNAME`),
+  avec l'e-mail du visiteur en `Reply-To` lorsqu'il est valide.
 - Ces formules sont une proposition à confirmer avant souscription, avec
   sans appels d'offres, qui restent un service avec abonnement distinct.
   Un lien de contact sans formule permet de demander un devis ponctuel.
