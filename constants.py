@@ -22,14 +22,8 @@ MASQUER_COORDONNEES_DIRECTES = True
 # ═══════════════════════════════════════════════════════════════════
 SPECIALITES = {
     "Spectacles": [
-        # Magie / Illusion
-        "Prestidigitateur",
-        "Mentaliste",
-        "Close-up",
         # Humour / Personnages
         "Humoriste et Imitateur",
-        "Sosie",
-        "Ventriloque",
         # Jeunesse / Famille
         "Conteuse Conteur",
         "Conte théâtralisé",
@@ -232,6 +226,11 @@ ANIMATIONS = {
     "Spectacles d'animation": [
         "Spectacle à domicile (goûter d'anniversaire)",
         "Spectacle à domicile pour adulte (anniversaire etc.)",
+        "Prestidigitateur",
+        "Mentaliste",
+        "Close-up",
+        "Sosie",
+        "Ventriloque",
     ],
     # Public seniors : budgets bas, artistes de proximité (accordéon, tour de chant, petits groupes…)
     "Seniors et EHPAD": [
@@ -262,9 +261,7 @@ ANIMATIONS_DOSSIERS_PETIT_BUDGET = (
 # Mentions de prix affichées à côté d'une case, côté demandeurs uniquement. C'est un texte
 # d'affichage : le nom de la case (valeur enregistrée) reste inchangé. Indicatif : chaque
 # artiste fixe son tarif.
-ANIMATIONS_MENTIONS_PRIX = {
-    "Spectacle à domicile (goûter d'anniversaire)": "budget indicatif : moins de 500 €",
-}
+ANIMATIONS_MENTIONS_PRIX = {}
 
 # Liste de budgets du formulaire de demande. Le calcul de compatibilité (utils/matching.py,
 # _parse_budget) lit ces textes : garder la forme « X à Y € », « Moins de X € », « Plus de X € ».

@@ -10,7 +10,7 @@ import pytest
 from constants import ANIMATIONS, SPECIALITES
 from utils.animations import MSG_DEMANDE_MIXTE, autre_secteur, reprise_depuis, sector_of
 
-SPECTACLE = "Prestidigitateur"
+SPECTACLE = "Cirque"
 ANIMATION = "Manège"
 BUDGET_SPECTACLE = "730 à 930 € — Artiste / spectacle local (région / dpt)"
 
@@ -112,7 +112,7 @@ def count_demandes():
     ([""], ""),
     ([SPECTACLE], "spectacle"),
     ([ANIMATION], "animation"),
-    ([SPECTACLE, "Mentaliste"], "spectacle"),
+    ([SPECTACLE, "Humoriste et Imitateur"], "spectacle"),
     ([ANIMATION, " Speaker "], "animation"),
     ([SPECTACLE, ANIMATION], "mixte"),
     (["Magie et Magicien"], "spectacle"),

@@ -119,16 +119,16 @@ def test_no_name_contains_a_comma():
 
 
 def test_home_show_names_replace_the_old_animation_show_names():
-    assert ANIMATIONS["Spectacles d'animation"] == [DOMICILE_ENFANT, DOMICILE_ADULTE]
+    assert ANIMATIONS["Spectacles d'animation"][:2] == [DOMICILE_ENFANT, DOMICILE_ADULTE]
     names = set(flat(SPECIALITES)) | set(ANIMATIONS_LABELS)
     assert "Spectacle d'animation enfant" not in names and "Spectacle d'animation adulte" not in names
 
 
 def test_sector_sizes_and_folder_names():
     assert "Spectacle et Animation" not in SPECIALITES
-    assert len(SPECIALITES["Spectacles"]) == 46
-    assert len(flat(SPECIALITES)) == 131
-    assert len(flat(ANIMATIONS)) == 21
+    assert len(SPECIALITES["Spectacles"]) == 41
+    assert len(flat(SPECIALITES)) == 126
+    assert len(flat(ANIMATIONS)) == 26
     assert len(ANIMATIONS) == 7
 
 
@@ -142,7 +142,7 @@ def test_animation_names_moved_out_of_spectacles():
 def test_spectacle_names_that_stay_in_spectacles():
     spectacles = set(flat(SPECIALITES))
     for name in ("Spectacle thématique de Noël", "Animation Musicale",
-                 "Animation mariage (cérémonie + soirée)", "Close-up", "Sosie"):
+                 "Animation mariage (cérémonie + soirée)", "Cirque", "Humoriste et Imitateur"):
         assert name in spectacles
         assert name not in ANIMATIONS_LABELS
 
@@ -150,7 +150,6 @@ def test_spectacle_names_that_stay_in_spectacles():
 def test_folder_flags_and_price_notes_point_to_existing_entries():
     assert set(ANIMATIONS_DOSSIERS_PETIT_BUDGET) <= set(ANIMATIONS)
     assert set(ANIMATIONS_MENTIONS_PRIX) <= ANIMATIONS_LABELS
-    assert ANIMATIONS_MENTIONS_PRIX[DOMICILE_ENFANT] == "budget indicatif : moins de 500 €"
 
 
 def test_visibility_helper_and_label_detection():
@@ -159,7 +158,7 @@ def test_visibility_helper_and_label_detection():
     assert animations_visibles_demandeurs({}, SimpleNamespace(is_admin=True)) is True
     assert animations_visibles_demandeurs({}, SimpleNamespace(is_admin=False)) is False
     assert contains_animation(["Prestidigitateur", " Manège "]) is True
-    assert contains_animation(["Prestidigitateur"]) is False
+    assert contains_animation(["Cirque"]) is False
     assert contains_animation(None) is False
 
 
@@ -272,7 +271,7 @@ def test_request_form_shows_animations_and_low_tiers_by_default(client):
     assert page.sections.count("animations_recherchees") == 1
     assert [o["value"] for o in page.options if o.get("data-bas") == "1"] == list(BUDGETS_ANIMATION)
     assert [o["value"] for o in page.options if "data-bas" not in o][1:] == list(BUDGETS_SPECTACLE)
-    assert "budget indicatif : moins de 500 €" in html
+    assert "budget indicatif" not in html
     assert note_text(html).startswith("Choisissez d'abord")
 
 

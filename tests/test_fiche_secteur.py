@@ -10,7 +10,7 @@ import pytest
 from tests.test_secteur_demande import SecteurPage
 from utils.animations import MSG_FICHE_MIXTE, fiche_reprise_depuis
 
-SPECTACLE = "Prestidigitateur"
+SPECTACLE = "Cirque"
 ANIMATION = "Manège"
 
 

@@ -10,10 +10,10 @@ from tests.test_fiche_secteur import no_upload, publish
 from tests.test_secteur_demande import fake_mail, valid_form
 from utils.matching import compute_score, find_matching_shows
 
-SPECTACLE = "Prestidigitateur"
+SPECTACLE = "Cirque"
 ANIMATION = "Atelier maquillage"
 NOEL = "Passage du Père Noël"
-DOMICILE_ENFANT, DOMICILE_ADULTE = ANIMATIONS["Spectacles d'animation"]
+DOMICILE_ENFANT, DOMICILE_ADULTE = ANIMATIONS["Spectacles d'animation"][:2]
 BUDGET_SPECTACLE = "730 à 930 € — Artiste / spectacle local (région / dpt)"
 BUDGET_BAS = "Moins de 300 €"
 BUDGET_MOYEN = "300 à 500 €"
