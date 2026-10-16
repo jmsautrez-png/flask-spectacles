@@ -4,7 +4,7 @@ import re
 from datetime import datetime
 
 from constants import (
-    SPECIALITES, EVENEMENTS, LIEUX, REGIONS_FRANCE, REGIONS_VOISINES,
+    SPECIALITES, ANIMATIONS, EVENEMENTS, LIEUX, REGIONS_FRANCE, REGIONS_VOISINES,
     PUBLIC_CIBLE_CODES_VALIDES, LABELS_QUALITE_NEUTRES,
     normalize_lieux_csv, LIEU_TOUT_TERRAIN,
 )
@@ -37,8 +37,12 @@ def _dept_code_from(obj):
         return cp[:2]
     return None
 
-# Nombre total d'options par axe (calculé une seule fois au chargement)
-_TOTAL_SPECS = sum(len(v) for v in SPECIALITES.values())
+# Nombre total d'options par axe (calculé une seule fois au chargement).
+# Les spécialités comptent les deux secteurs : Spectacles (SPECIALITES) et Animations.
+_TOTAL_SPECS = (
+    sum(len(v) for v in SPECIALITES.values())
+    + sum(len(v) for v in ANIMATIONS.values())
+)
 _TOTAL_EVENTS = sum(len(v) for v in EVENEMENTS.values())
 _TOTAL_LIEUX = sum(len(v) for v in LIEUX.values())
 _TOTAL_REGIONS = len(REGIONS_FRANCE)
@@ -49,6 +53,7 @@ _TOTAL_REGIONS = len(REGIONS_FRANCE)
 _NOEL_SPECS = {
     "spectacle de noël",  # ancien libellé conservé pour compatibilité historique
     "spectacle thématique de noël",
+    "passage du père noël",
 }
 _NOEL_MONTHS = {11, 12}
 
@@ -163,6 +168,8 @@ def _age_score(show_age_raw, dem_age_raw):
 # ───────────────────────────────────────────────────────────────────
 # Formats de budget côté demande gérés :
 #   "À partir de 300 € — Ateliers divers, ..."       → (300, 300)
+#   "Moins de 500 €"                                 → (0, 500)
+#   "300 à 500 €"                                    → (300, 500)
 #   "730 à 930 € — Artiste / spectacle local (...)"  → (730, 930)
 #   "Plus de 5000 € — Événement d'envergure"         → (5000, 999999)
 #   "930 à 1200 € — Spectacle standard"              → (930, 1200)
@@ -181,6 +188,8 @@ def _parse_budget(budget_str):
         return (nums[0], nums[0])
     if "plus de" in s:
         return (nums[0], 999_999)
+    if "moins de" in s:
+        return (0, nums[0])
     if " à " in s or " a " in s:
         if len(nums) >= 2:
             return (nums[0], nums[1])

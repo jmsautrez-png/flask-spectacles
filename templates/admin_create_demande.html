@@ -312,6 +312,20 @@
                             10, True, True, True, False, False,
                             item_hints={"Spectacle pour enfant": "Cochez uniquement si la mairie n'a aucune préférence de thème — sinon précisez ci-dessous (magie, cirque, ombres, épée…)."}
                         ) }}
+                        {{ accordion_checkboxes(
+                            "specialites_recherchees",
+                            animations_data,
+                            [],
+                            "🎪",
+                            "Animations recherchées",
+                            "#00897b",
+                            "Animations à petit budget : ateliers, Père Noël, personnages, seniors et EHPAD…",
+                            "#000",
+                            10, True, True, False, False, False,
+                            section_key="animations_recherchees",
+                            item_notes=animations_mentions_prix,
+                            petit_budget_groups=animations_petit_budget
+                        ) }}
                         {{ accordion_checkboxes("lieux_souhaites", lieux_data, [], "📍", "Type de lieu", "#2196f3", "Dans quel type de lieu ?", "#000") }}
                     </div>
 

@@ -78,6 +78,11 @@ class Config:
     S3_REGION = os.environ.get("S3_REGION")
     S3_CUSTOM_DOMAIN = os.environ.get("S3_CUSTOM_DOMAIN")
 
+    # Interrupteur de secours « Animations » : l'accordéon Animations est visible côté demandeurs
+    # (formulaire de demande, catalogue), côté artistes (fiches) et pour l'admin.
+    # Pour le masquer aux demandeurs dans Render : ANIMATIONS_OUVERT_DEMANDEURS=0 (défaut : ouvert).
+    ANIMATIONS_OUVERT_DEMANDEURS = os.environ.get("ANIMATIONS_OUVERT_DEMANDEURS", "1").strip().lower() not in ("0", "false", "no", "non", "off")
+
     # Ajout de toutes les variables du .env pour accès via app.config
     # (si d'autres variables sont ajoutées dans .env, les ajouter ici)
     # Exemple :

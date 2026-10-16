@@ -1,0 +1,26 @@
+{# Raccourci « faire aussi l'autre demande » : un spectacle et une animation font deux demandes.
+   Attend `demande` (la demande qui vient d'être envoyée). N'affiche rien si l'autre secteur n'est pas proposable. #}
+{% set autre = autre_secteur((demande.specialites_recherchees or '').split(','), animations_visibles_demandeurs) %}
+{% if autre %}
+<div style="background:#e3f2fd; border:1px solid #90caf9; border-radius:10px; padding:14px 18px; margin:0 0 22px 0; color:#0d47a1;">
+  {% if autre == 'animation' %}
+  <strong style="font-size:1.05rem;">🎪 Besoin aussi d'une animation ?</strong>
+  <p style="margin:6px 0 12px 0; font-size:0.92rem; line-height:1.5; color:#1a237e;">
+    Père Noël, ateliers, maquillage, déambulation, seniors et EHPAD… Une demande porte sur un seul secteur : faites-en une seconde, vos informations sont reprises.
+  </p>
+  <a href="{{ url_for('demande_animation', secteur='animation', reprise=1) }}"
+     style="display:inline-block; background:#00897b; color:#fff; text-decoration:none; font-weight:700; padding:10px 18px; border-radius:8px;">
+    Faire aussi une demande d'animation →
+  </a>
+  {% else %}
+  <strong style="font-size:1.05rem;">🎭 Besoin aussi d'un spectacle ?</strong>
+  <p style="margin:6px 0 12px 0; font-size:0.92rem; line-height:1.5; color:#1a237e;">
+    Théâtre, magie, concert, danse, cirque… (à partir de 730 €). Une demande porte sur un seul secteur : faites-en une seconde, vos informations sont reprises.
+  </p>
+  <a href="{{ url_for('demande_animation', secteur='spectacle', reprise=1) }}"
+     style="display:inline-block; background:#6a1b9a; color:#fff; text-decoration:none; font-weight:700; padding:10px 18px; border-radius:8px;">
+    Faire aussi une demande de spectacle →
+  </a>
+  {% endif %}
+</div>
+{% endif %}

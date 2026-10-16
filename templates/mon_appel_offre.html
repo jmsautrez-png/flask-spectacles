@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% block title %}Mon appel d'offre - Spectacle'ment VØtre{% endblock %}
+
+{% block content %}
+<div class="container my-4" style="max-width:900px;">
+  <div style="background:linear-gradient(135deg,#1b2a4e 0%,#355c7d 100%); color:#fff; padding:22px 26px; border-radius:12px 12px 0 0;">
+    <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:8px;">
+      <h1 style="margin:0; font-size:1.4rem; font-weight:700;">🎭 {{ demande.intitule or demande.genre_recherche }}</h1>
+      <span style="background:#a5d6a7; color:#1b5e20; padding:5px 14px; border-radius:14px; font-size:0.85rem; font-weight:700;">✅ Publiée</span>
+    </div>
+    <p style="margin:8px 0 0 0; color:rgba(255,255,255,0.85); font-size:0.9rem;">
+      Publiée sur le site · Créée le {{ demande.created_at.strftime('%d/%m/%Y à %H:%M') if demande.created_at else '—' }} · Consultée {{ demande.consultations_count or 0 }} fois
+    </p>
+  </div>
+
+  <div style="background:#fff; border:1px solid #e0e0e0; border-top:none; border-radius:0 0 12px 12px; padding:24px; color:#333;">
+    <h3 style="color:#1b2a4e; margin:0 0 12px 0; font-size:1.1rem;">👤 Vos coordonnées</h3>
+    {% if demande.is_desactivee %}
+    <div style="background:#ffebee; border:1px solid #e57373; border-radius:8px; padding:10px; margin:0 0 16px 0; color:#c62828; font-size:0.9rem;">
+      ⏹️ Annonce désactivée (plus de 10 jours) : les coordonnées ne sont plus affichées aux compagnies.
+    </div>
+    {% else %}
+    <table style="width:100%; border-collapse:collapse; font-size:0.95rem; color:#333; margin-bottom:16px;">
+      <tr><td style="padding:6px 4px; color:#666; width:200px;">👤 Contact</td><td style="padding:6px 4px; color:#222;">{{ demande.nom }}</td></tr>
+      <tr><td style="padding:6px 4px; color:#666;">✉️ Email</td><td style="padding:6px 4px; color:#222; word-break:break-all;">{{ demande.contact_email }}</td></tr>
+      <tr><td style="padding:6px 4px; color:#666;">📞 Téléphone</td><td style="padding:6px 4px; color:#222;">{{ demande.telephone or '—' }}</td></tr>
+    </table>
+    {% endif %}
+
+    <h3 style="color:#1b2a4e; margin:0 0 12px 0; font-size:1.1rem;">📋 Détails de la demande</h3>
+    <table style="width:100%; border-collapse:collapse; font-size:0.95rem; color:#333;">
+      <tr><td style="padding:6px 4px; color:#666; width:200px;">🏛️ Structure</td><td style="padding:6px 4px; font-weight:600; color:#222;">{{ demande.structure }}</td></tr>
+      <tr><td style="padding:6px 4px; color:#666;">📍 Lieu</td><td style="padding:6px 4px; color:#222;">{{ demande.lieu_ville }}{% if demande.code_postal %} ({{ demande.code_postal }}){% endif %}</td></tr>
+      <tr><td style="padding:6px 4px; color:#666;">🗺️ Région</td><td style="padding:6px 4px; color:#222;">{{ demande.region or '—' }}</td></tr>
+      <tr><td style="padding:6px 4px; color:#666;">📅 Date(s)</td><td style="padding:6px 4px; font-weight:600; color:#222;">{{ demande.dates_horaires }}</td></tr>
+      <tr><td style="padding:6px 4px; color:#666;">🏛️ Type d'espace</td><td style="padding:6px 4px; color:#222;">{{ demande.type_espace }}</td></tr>
+      <tr><td style="padding:6px 4px; color:#666;">🎭 Genre recherché</td><td style="padding:6px 4px; font-weight:600; color:#222;">{{ demande.genre_recherche }}</td></tr>
+      <tr><td style="padding:6px 4px; color:#666;">👶 Public visé</td><td style="padding:6px 4px; color:#222;">{{ demande.age_range }}</td></tr>
+      <tr><td style="padding:6px 4px; color:#666;">👥 Jauge</td><td style="padding:6px 4px; color:#222;">{{ demande.jauge }}</td></tr>
+      <tr><td style="padding:6px 4px; color:#666;">💰 Budget</td><td style="padding:6px 4px; font-weight:600; color:#222;">{{ demande.budget }}</td></tr>
+      {% if demande.specialites_recherchees %}
+      <tr><td style="padding:6px 4px; color:#666;">🎨 Spécialités</td><td style="padding:6px 4px; color:#222;">{{ demande.specialites_recherchees.replace(',', ', ') }}</td></tr>
+      {% endif %}
+      {% if demande.contraintes %}
+      <tr><td style="padding:6px 4px; color:#666; vertical-align:top;">⚙️ Contraintes</td><td style="padding:6px 4px; color:#222;">{{ demande.contraintes }}</td></tr>
+      {% endif %}
+    </table>
+
+    <div style="margin-top:20px; display:flex; gap:8px; flex-wrap:wrap;">
+      <a href="{{ url_for('demandes_animation') }}" style="background:#1976d2; color:#fff; padding:8px 16px; border-radius:6px; text-decoration:none; font-weight:600;">Voir la liste publique</a>
+    </div>
+  </div>
+</div>
+{% endblock %}

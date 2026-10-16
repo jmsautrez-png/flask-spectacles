@@ -1517,6 +1517,8 @@ document.addEventListener('DOMContentLoaded', function() {
     const forms = document.querySelectorAll('form[enctype="multipart/form-data"]');
     forms.forEach(form => {
         form.addEventListener('submit', function(e) {
+            // Un autre script a déjà refusé l'envoi (validation) : ne pas bloquer le bouton
+            if (e.defaultPrevented) return;
             const fileInputs = form.querySelectorAll('input[type="file"]');
             let hasFiles = false;
             

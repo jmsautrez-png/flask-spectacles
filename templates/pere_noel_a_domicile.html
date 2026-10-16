@@ -137,7 +137,7 @@
 <div class="cards">
   {% for show in shows %}
   <article class="card">
-    <a href="{{ url_for('demande_animation') }}" class="media-link">
+    <a href="{{ url_for('demande_animation', secteur='animation') }}" class="media-link">
       <div class="media">
         {% if show.has_image() %}
           <img src="{{ thumbnail_url(show.file_name) }}" alt="{{ show.title }}" loading="lazy">
@@ -165,12 +165,12 @@
 {% else %}
 <div style="padding:24px; background:#f8f9fa; border-radius:8px; text-align:center; max-width:700px; margin:0 auto;">
   <p style="margin:0; font-size:16px;">Aucun Père Noël n'est listé pour le moment dans votre zone.</p>
-  <p style="margin:12px 0 0 0;"><a href="{{ url_for('demande_animation') }}" style="color:var(--primary); font-weight:600;">Postez une demande gratuite</a> et recevez plusieurs propositions d'artistes en quelques heures.</p>
+  <p style="margin:12px 0 0 0;"><a href="{{ url_for('demande_animation', secteur='animation') }}" style="color:var(--primary); font-weight:600;">Postez une demande gratuite</a> et recevez plusieurs propositions d'artistes en quelques heures.</p>
 </div>
 {% endif %}
 
 <div style="text-align:center; margin:40px auto; max-width:700px;">
-  <a href="{{ url_for('demande_animation') }}" style="display:inline-block; padding:14px 28px; background:linear-gradient(135deg,#c0392b,#e74c3c); color:#fff; text-decoration:none; border-radius:8px; font-weight:600; font-size:16px;">🎅 Demander un devis Père Noël gratuit</a>
+  <a href="{{ url_for('demande_animation', secteur='animation') }}" style="display:inline-block; padding:14px 28px; background:linear-gradient(135deg,#c0392b,#e74c3c); color:#fff; text-decoration:none; border-radius:8px; font-weight:600; font-size:16px;">🎅 Demander un devis Père Noël gratuit</a>
 </div>
 
 <section class="faq-section" style="max-width:900px; margin:60px auto 40px; padding:0 20px;">

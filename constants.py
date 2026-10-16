@@ -21,19 +21,16 @@ MASQUER_COORDONNEES_DIRECTES = True
 # Utilisé sur : carte spectacle (compagnie) + appel d'offre (mairie)
 # ═══════════════════════════════════════════════════════════════════
 SPECIALITES = {
-    "Spectacle et Animation": [
+    "Spectacles": [
         # Magie / Illusion
         "Prestidigitateur",
         "Mentaliste",
         "Close-up",
         # Humour / Personnages
-        "Clown suiveur",
         "Humoriste et Imitateur",
         "Sosie",
         "Ventriloque",
-        "Mascotte",
         # Jeunesse / Famille
-        "Passage du Père Noël",
         "Conteuse Conteur",
         "Conte théâtralisé",
         "Spectacle tiré d'un livre jeunesse",
@@ -41,9 +38,6 @@ SPECIALITES = {
         "Spectacle de Marionnettes",
         "Spectacle de Marionnettes contemporaines",
         # Types de spectacle
-        "Spectacle d'animation enfant",
-        "Spectacle d'animation EHPAD",
-        "Spectacle d'animation adulte",
         "Spectacle pour adulte",
         "Spectacle adulte clownesque",
         "Spectacle pour enfant",
@@ -63,7 +57,6 @@ SPECIALITES = {
         "Spectacle pour enfant d'auteur",
         "Spectacle de Rue",
         "Spectacle de rue pour enfant",
-        "Parade de rue / Déambulation",
         "Spectacle en roulotte",
         "Spectacle Médiéval",
         "Spectacle Animalier",
@@ -79,19 +72,8 @@ SPECIALITES = {
         "Cirque nouveau",
         "Cracheur de feu",
         "Spectacle de feu",
-        "Échassier",
-        "Sculpteur de ballons",
-        "Caricaturistes et Silhouettiste",
-        "Cascadeur",
-        # Ateliers / Animations
-        "Atelier maquillage",
-        "Atelier divers",
-        # Stands / Fête
-        "Manège",
         # Noël
         "Spectacle thématique de Noël",
-        # Autres
-        "Speaker",
     ],
     "Théâtre": [
         # Classique / Sérieux
@@ -205,6 +187,103 @@ SPECIALITES = {
         "Tribute",
     ],
 }
+
+# ═══════════════════════════════════════════════════════════════════
+# AXE 1 bis — ANIMATIONS (secteur « bas coût » : ateliers, stands, personnages,
+# Père Noël, animations seniors / EHPAD…)
+# Second accordéon à côté de SPECIALITES (secteur « Spectacles »). Les cases des
+# deux listes sont enregistrées dans les MÊMES champs (Show.specialites,
+# DemandeAnimation.specialites_recherchees) : le matching, le catalogue et les
+# pages thématiques fonctionnent donc sur l'union des deux listes.
+# RÈGLES POUR AJOUTER UNE SPÉCIALITÉ :
+#   • Un nom de case n'apparaît qu'UNE seule fois, SPECIALITES et ANIMATIONS confondues
+#     (contrôlé par tests/test_animations.py).
+#   • Ajouter plutôt que renommer : le nom est la valeur enregistrée dans les fiches
+#     et les demandes. Le nom d'un DOSSIER, lui, n'est jamais enregistré (modifiable).
+#   • Pas de virgule dans un nom de case : les valeurs sont enregistrées en liste séparée
+#     par des virgules (contrôlé par tests/test_animations.py).
+#   • Règles optionnelles par case : saison (_NOEL_SPECS dans utils/matching.py),
+#     exclusivité (MATCHING_SOLO dans _accordion_checkboxes.html), mention de prix
+#     (ANIMATIONS_MENTIONS_PRIX ci-dessous), page thématique (utils/seo.py).
+# ═══════════════════════════════════════════════════════════════════
+ANIMATIONS = {
+    "Noël et Père Noël": [
+        "Passage du Père Noël",
+    ],
+    "Ateliers et stands créatifs": [
+        "Atelier maquillage",
+        "Atelier divers",
+        "Sculpteur de ballons",
+        "Caricaturistes et Silhouettiste",
+    ],
+    "Déambulation, personnages et démonstrations": [
+        "Parade de rue / Déambulation",
+        "Échassier",
+        "Mascotte",
+        "Cascadeur",
+        "Clown suiveur",
+    ],
+    "Fête et jeux": [
+        "Manège",
+    ],
+    "Animation micro et présentation": [
+        "Speaker",
+    ],
+    "Spectacles d'animation": [
+        "Spectacle à domicile (goûter d'anniversaire)",
+        "Spectacle à domicile pour adulte (anniversaire etc.)",
+    ],
+    # Public seniors : budgets bas, artistes de proximité (accordéon, tour de chant, petits groupes…)
+    "Seniors et EHPAD": [
+        "Spectacle d'animation EHPAD",
+        "Accordéoniste (seniors)",
+        "Chanteur / chanteuse (tour de chant)",
+        "Musicien solo ou duo (seniors)",
+        "Petit groupe musical ponctuel (2 à 4 musiciens)",
+        "Imitateur / Humoriste (seniors)",
+        "Thé dansant / après-midi dansant (seniors)",
+    ],
+}
+
+# Dossiers d'ANIMATIONS « petit budget » : quand seules des cases de ces dossiers sont cochées
+# dans une demande, la liste de budgets propose en plus les tarifs bas (BUDGETS_ANIMATION).
+# Un futur dossier d'animations plus chères se crée simplement SANS figurer ici
+# (liste explicite = sûr par défaut).
+ANIMATIONS_DOSSIERS_PETIT_BUDGET = (
+    "Noël et Père Noël",
+    "Ateliers et stands créatifs",
+    "Déambulation, personnages et démonstrations",
+    "Fête et jeux",
+    "Animation micro et présentation",
+    "Spectacles d'animation",
+    "Seniors et EHPAD",
+)
+
+# Mentions de prix affichées à côté d'une case, côté demandeurs uniquement. C'est un texte
+# d'affichage : le nom de la case (valeur enregistrée) reste inchangé. Indicatif : chaque
+# artiste fixe son tarif.
+ANIMATIONS_MENTIONS_PRIX = {
+    "Spectacle à domicile (goûter d'anniversaire)": "budget indicatif : moins de 500 €",
+}
+
+# Liste de budgets du formulaire de demande. Le calcul de compatibilité (utils/matching.py,
+# _parse_budget) lit ces textes : garder la forme « X à Y € », « Moins de X € », « Plus de X € ».
+# Les textes de BUDGETS_SPECTACLE sont enregistrés dans les demandes existantes : ne pas les modifier.
+BUDGETS_SPECTACLE = (
+    "730 à 930 € — Artiste / spectacle local (région / dpt)",
+    "930 à 1200 € — Spectacle standard",
+    "1200 à 1600 € — Spectacle plus élaboré",
+    "1600 à 2000 € — Spectacle premium",
+    "2000 à 3000 € — Grand spectacle",
+    "3000 à 5000 € — Grand spectacle / plusieurs artistes",
+    "Plus de 5000 € — Événement d'envergure",
+)
+# Tarifs bas, ajoutés quand seules des animations « petit budget » sont cochées.
+BUDGETS_ANIMATION = (
+    "Moins de 300 €",
+    "300 à 500 €",
+    "500 à 730 €",
+)
 
 # ═══════════════════════════════════════════════════════════════════
 # AXE 2 — TYPES D'ÉVÉNEMENTS ("Pour quel événement")

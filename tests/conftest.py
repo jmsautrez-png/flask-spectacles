@@ -10,6 +10,22 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 # (DATABASE_URL, souvent PostgreSQL distant). A fixer avant tout import de l'app : config.py lit
 # l'environnement a l'import et load_dotenv() n'ecrase pas une variable deja definie.
 os.environ["DATABASE_URL"] = "sqlite:///:memory:"
+# L'accordéon Animations est ouvert aux demandeurs par défaut : on neutralise un éventuel .env local qui l'aurait fermé.
+os.environ["ANIMATIONS_OUVERT_DEMANDEURS"] = "1"
+
+
+# Le .env local contient les identifiants SMTP réels : sans garde-fou, publier une fiche ou déposer un avis
+# dans un test enverrait un vrai e-mail à l'admin. Toute connexion SMTP directe est donc refusée pour la
+# session de tests (les tests qui vérifient un envoi remplacent app.mail par un faux, cf. FakeMail).
+import smtplib
+
+
+class _SmtpRefuse:
+    def __init__(self, *args, **kwargs):
+        raise RuntimeError("Les tests n'envoient jamais de vrais e-mails.")
+
+
+smtplib.SMTP = smtplib.SMTP_SSL = _SmtpRefuse
 
 
 @pytest.fixture(scope="session")
@@ -28,6 +44,12 @@ def app():
         "SQLALCHEMY_DATABASE_URI": "sqlite:///:memory:",
         "SERVER_NAME": "localhost",
     })
+
+    # Flask-Mail fige « suppress » à l'initialisation (avant TESTING=True) : on le force pour ne jamais envoyer de vrai e-mail.
+    application.config["MAIL_SUPPRESS_SEND"] = True
+    mail_state = application.extensions.get("mail")
+    if mail_state is not None:
+        mail_state.suppress = True
 
     # Le moteur est deja SQLite (DATABASE_URL force plus haut) : on repart d'une connexion propre.
     from models import db as _db

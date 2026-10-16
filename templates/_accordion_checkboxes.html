@@ -5,19 +5,23 @@
      {{ accordion_checkboxes("specialites", specialites_data, current_values, "🎭", "Spécialités artistiques") }}
    ═══════════════════════════════════════════════════════════════════ #}
 
-{% macro accordion_checkboxes(field_name, categories_dict, current_values, icon, title, color="#6a1b9a", description="", text_color="#000", max_checked=0, show_counter=True, show_tip=True, show_toggle_buttons=True, enable_solo=True, open_by_default=False, item_hints={}) %}
+{% macro accordion_checkboxes(field_name, categories_dict, current_values, icon, title, color="#6a1b9a", description="", text_color="#000", max_checked=0, show_counter=True, show_tip=True, show_toggle_buttons=True, enable_solo=True, open_by_default=False, item_hints={}, section_key="", item_notes={}, petit_budget_groups=[]) %}
+{# section_key : identifiant propre à cet accordéon quand un même champ en a plusieurs (ex. Spectacles + Animations).
+   item_notes : {case: texte} affiché à côté de la case (affichage seul, la valeur enregistrée ne change pas).
+   petit_budget_groups : dossiers dont les cases portent data-petit-budget="1" (liste de budgets de la demande). #}
+{% set skey = section_key or field_name %}
 <style>
   .matching-cb-hint { display: none; }
   .matching-cb-label.has-hint:hover + .matching-cb-hint,
   .matching-cb-label.has-hint:focus-within + .matching-cb-hint { display: block; }
 </style>
-<div class="matching-accordion-section" style="margin:18px 0;" data-field="{{ field_name }}"{% if max_checked > 0 %} data-max="{{ max_checked }}"{% endif %} data-solo-enabled="{{ '1' if enable_solo else '0' }}">
+<div class="matching-accordion-section" style="margin:18px 0;" data-field="{{ field_name }}" data-key="{{ skey }}"{% if max_checked > 0 %} data-max="{{ max_checked }}"{% endif %} data-solo-enabled="{{ '1' if enable_solo else '0' }}">
   <h3 style="color:{{ color }}; margin:0 0 6px 0; font-size:1.05rem; display:flex; align-items:center; gap:8px;">
     {% if icon %}{{ icon }} {% endif %}{{ title }}
     {% if show_counter %}
-    <span class="matching-count" id="count-{{ field_name }}" style="background:{{ color }}; color:#fff; border-radius:12px; padding:2px 10px; font-size:0.8rem; font-weight:600;">0</span>
+    <span class="matching-count" id="count-{{ skey }}" style="background:{{ color }}; color:#fff; border-radius:12px; padding:2px 10px; font-size:0.8rem; font-weight:600;">0</span>
     {% else %}
-    <span class="matching-count" id="count-{{ field_name }}" style="display:none;">0</span>
+    <span class="matching-count" id="count-{{ skey }}" style="display:none;">0</span>
     {% endif %}
     {% if max_checked > 0 %}<span style="font-size:0.8rem; color:{{ text_color }}; opacity:0.6;">({{ max_checked }} max)</span>{% endif %}
   </h3>
@@ -34,23 +38,24 @@
     {% endif %}
   </div>
   {% endif %}
-  <div id="limit-{{ field_name }}" style="display:none; color:#ff1744; font-weight:600; margin:0 0 8px 8px; font-size:0.9em;"></div>
+  <div id="limit-{{ skey }}" style="display:none; color:#ff1744; font-weight:600; margin:0 0 8px 8px; font-size:0.9em;"></div>
 
   {% for group_name, items in categories_dict.items() %}
   <details class="matching-accordion"{% if open_by_default %} open{% endif %} style="margin-bottom:6px; border:2px solid {{ color }}40; border-radius:8px; overflow:hidden;">
     <summary style="cursor:pointer; padding:10px 14px; font-weight:600; font-size:0.95rem; background:{{ color }}18; display:flex; align-items:center; justify-content:space-between; user-select:none; color:{{ text_color }}; border-left:4px solid {{ color }};">
       <span>{{ group_name }}</span>
-      <span class="accordion-group-count" id="gcount-{{ field_name }}-{{ loop.index }}" style="background:{{ color }}30; border-radius:10px; padding:1px 8px; font-size:0.8rem; min-width:20px; text-align:center; color:{{ text_color }};">0</span>
+      <span class="accordion-group-count" id="gcount-{{ skey }}-{{ loop.index }}" style="background:{{ color }}30; border-radius:10px; padding:1px 8px; font-size:0.8rem; min-width:20px; text-align:center; color:{{ text_color }};">0</span>
     </summary>
     <div style="padding:8px 14px; display:grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap:4px;">
       {% for item in items %}
       {% set has_hint = item_hints and item in item_hints %}
       <label style="display:flex; align-items:center; padding:5px 8px; border-radius:5px; cursor:pointer; transition:background 0.15s;" class="matching-cb-label{% if has_hint %} has-hint{% endif %}"{% if has_hint %} title="{{ item_hints[item] }}"{% endif %} onmouseover="this.style.background='rgba(128,128,128,0.1)'" onmouseout="this.style.background='transparent'">
-        <input type="checkbox" name="{{ field_name }}" value="{{ item }}"
+        <input type="checkbox" name="{{ field_name }}" value="{{ item }}"{% if group_name in petit_budget_groups %} data-petit-budget="1"{% endif %}
           {% if item in current_values %}checked{% endif %}
           onchange="checkMatchingLimit('{{ field_name }}', this); updateMatchingCounts('{{ field_name }}', {{ categories_dict | length }})"
           style="margin-right:8px; width:16px; height:16px; cursor:pointer; accent-color:{{ color }};">
         <span style="font-size:0.9rem; color:{{ text_color }};">{{ item }}</span>
+        {% if item_notes and item in item_notes %}<span class="matching-cb-note" style="margin-left:8px; font-size:0.78rem; font-style:italic; opacity:0.8; color:{{ text_color }};">· {{ item_notes[item] }}</span>{% endif %}
       </label>
       {% if has_hint %}
       <div class="matching-cb-hint" style="grid-column:1/-1; margin:-2px 0 6px 32px; font-size:0.78rem; color:{{ text_color }}; opacity:0.9; font-style:italic; line-height:1.35;">💡 {{ item_hints[item] }}</div>
@@ -437,20 +442,18 @@
 {% macro accordion_checkboxes_js() %}
 <script>
 function updateMatchingCounts(fieldName, groupCount) {
-  // Total
-  var total = document.querySelectorAll('input[name="' + fieldName + '"]:checked').length;
-  var el = document.getElementById('count-' + fieldName);
-  if (el) el.textContent = total;
-
-  // Par groupe
+  // Un champ peut avoir plusieurs accordéons (ex. Spectacles + Animations) : chacun a sa clé.
   var accordions = document.querySelectorAll('.matching-accordion-section');
   accordions.forEach(function(section) {
     var inputs = section.querySelectorAll('input[name="' + fieldName + '"]');
     if (inputs.length === 0) return;
+    var key = section.getAttribute('data-key') || fieldName;
+    var el = document.getElementById('count-' + key);
+    if (el) el.textContent = section.querySelectorAll('input[name="' + fieldName + '"]:checked').length;
     var details = section.querySelectorAll('details.matching-accordion');
     details.forEach(function(det, idx) {
       var checked = det.querySelectorAll('input[name="' + fieldName + '"]:checked').length;
-      var counter = document.getElementById('gcount-' + fieldName + '-' + (idx + 1));
+      var counter = document.getElementById('gcount-' + key + '-' + (idx + 1));
       if (counter) {
         counter.textContent = checked;
         counter.style.background = checked > 0 ? '#4caf50' : 'rgba(128,128,128,0.2)';
@@ -490,8 +493,14 @@ function _isSoloValue(val) {
   return MATCHING_SOLO.indexOf(val) !== -1;
 }
 
-function _showSoloMessage(fieldName, msg) {
-  var limitDiv = document.getElementById('limit-' + fieldName);
+function _limitDivFor(fieldName, cb) {
+  var sec = cb && cb.closest ? cb.closest('.matching-accordion-section') : null;
+  var key = sec ? (sec.getAttribute('data-key') || fieldName) : fieldName;
+  return document.getElementById('limit-' + key) || document.getElementById('limit-' + fieldName);
+}
+
+function _showSoloMessage(fieldName, msg, cb) {
+  var limitDiv = _limitDivFor(fieldName, cb);
   if (!limitDiv) return;
   limitDiv.textContent = msg;
   limitDiv.style.color = '#e65100';
@@ -524,10 +533,12 @@ function checkMatchingLimit(fieldName, cb) {
   // Determiner si la regle SOLO est active pour ce champ (via data-attribute pose par la macro)
   // Cote compagnie (submit/edit spectacle) : SOLO ACTIF (comportement historique)
   // Cote demande d'animation / admin / catalogue : SOLO DESACTIVE (l'organisateur cumule librement)
-  var _soloSection = null;
-  document.querySelectorAll('.matching-accordion-section').forEach(function(s) {
-    if (s.getAttribute('data-field') === fieldName) _soloSection = s;
-  });
+  var _soloSection = cb.closest ? cb.closest('.matching-accordion-section') : null;
+  if (!_soloSection) {
+    document.querySelectorAll('.matching-accordion-section').forEach(function(s) {
+      if (s.getAttribute('data-field') === fieldName) _soloSection = s;
+    });
+  }
   var _soloEnabled = !_soloSection || _soloSection.getAttribute('data-solo-enabled') !== '0';
 
   // Regle SOLO : une specialite "solo" doit etre seule cochee (uniquement si activee)
@@ -543,7 +554,7 @@ function checkMatchingLimit(fieldName, cb) {
       });
       if (decoched > 0) {
         _showSoloMessage(fieldName,
-          'ℹ️ "' + cb.value + '" est une spécialité exclusive : les autres choix ont été décochés.');
+          'ℹ️ "' + cb.value + '" est une spécialité exclusive : les autres choix ont été décochés.', cb);
       }
     } else {
       // On coche une case normale => decocher toutes les cases SOLO qui seraient cochees
@@ -556,7 +567,7 @@ function checkMatchingLimit(fieldName, cb) {
       });
       if (soloDecoched) {
         _showSoloMessage(fieldName,
-          'ℹ️ "' + soloDecoched + '" a été décoché (spécialité exclusive incompatible avec d\'autres choix).');
+          'ℹ️ "' + soloDecoched + '" a été décoché (spécialité exclusive incompatible avec d\'autres choix).', cb);
       }
     }
   }
@@ -566,7 +577,7 @@ function checkMatchingLimit(fieldName, cb) {
   var maxVal = parseInt(section.getAttribute('data-max') || '0', 10);
   if (maxVal <= 0) return;
   var checked = document.querySelectorAll('input[name="' + fieldName + '"]:checked').length;
-  var limitDiv = document.getElementById('limit-' + fieldName);
+  var limitDiv = _limitDivFor(fieldName, cb);
   if (checked > maxVal) {
     cb.checked = false;
     if (limitDiv) {
@@ -574,9 +585,13 @@ function checkMatchingLimit(fieldName, cb) {
       limitDiv.style.color = '#ff1744';
       limitDiv.style.display = 'block';
     }
-  } else if (limitDiv && limitDiv.style.color === 'rgb(255, 23, 68)') {
-    // Efface uniquement le message d'erreur "max", pas le message SOLO
-    limitDiv.style.display = 'none';
+  } else {
+    // Efface uniquement les messages d'erreur "max" (pas les messages SOLO), dans tous les accordéons du champ
+    document.querySelectorAll('.matching-accordion-section').forEach(function(s) {
+      if (s.getAttribute('data-field') !== fieldName) return;
+      var d = document.getElementById('limit-' + (s.getAttribute('data-key') || fieldName));
+      if (d && d.style.color === 'rgb(255, 23, 68)') d.style.display = 'none';
+    });
   }
 }
 

@@ -1,0 +1,146 @@
+{# ═══════════════════════════════════════════════════════════════════
+   Une fiche = un secteur (Spectacle OU Animation) : cartes de choix et script de bascule,
+   partagés par les formulaires compagnie (publication et modification de fiche).
+   Usage :
+     importer fiche_secteur_cartes et fiche_secteur_js depuis ce fichier ;
+     appeler fiche_secteur_cartes(secteur_init) juste avant les accordéons de spécialités (secteur_init : spectacle, animation ou vide) ;
+     entourer chaque accordéon de spécialités d'un div portant data-secteur-bloc="spectacle" ou "animation" (hidden si non choisi) ;
+     appeler fiche_secteur_js() après les accordéons.
+   Sans bloc data-secteur-bloc (ancienne fiche mixte : « mode libre »), le script ne fait rien.
+   ═══════════════════════════════════════════════════════════════════ #}
+
+{% macro fiche_secteur_cartes(secteur_init) %}
+<style>
+  .secteur-choix .secteur-cards { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+  .secteur-choix .secteur-card { position:relative; }
+  .secteur-choix .secteur-card input[type="radio"] { position:absolute; opacity:0; width:1px; height:1px; padding:0; border:0; margin:0; }
+  .secteur-choix .secteur-card label {
+    display:flex; flex-direction:column; height:100%; gap:6px; padding:16px 18px; cursor:pointer; box-sizing:border-box;
+    border-radius:12px; border:2px solid rgba(255,255,255,0.25); background:rgba(255,255,255,0.05);
+    transition:border-color 0.2s, background 0.2s, box-shadow 0.2s;
+  }
+  .secteur-choix .secteur-card label:hover { background:rgba(255,255,255,0.1); border-color:rgba(255,255,255,0.55); }
+  .secteur-choix .secteur-spectacle input:checked + label { border-color:#ba68c8; background:rgba(186,104,200,0.2); box-shadow:0 0 0 3px rgba(186,104,200,0.35); }
+  .secteur-choix .secteur-animation input:checked + label { border-color:#26a69a; background:rgba(38,166,154,0.2); box-shadow:0 0 0 3px rgba(38,166,154,0.35); }
+  .secteur-choix .secteur-card input:focus-visible + label { outline:3px solid #ffc107; outline-offset:2px; }
+  .secteur-choix .secteur-titre { font-size:1.15rem; font-weight:800; color:#fff; }
+  .secteur-choix .secteur-ex { font-size:0.85rem; color:#cfd8ee; line-height:1.4; }
+  .secteur-choix .secteur-consigne { font-weight:400; font-size:0.85rem; color:#ffe082; }
+  /* Invitation à cliquer : au survol ou au clavier ; toujours visible sans souris ; masquée sur la carte choisie */
+  .secteur-choix .secteur-cta { margin-top:auto; padding-top:4px; font-size:0.85rem; font-weight:700; color:#ffc107; opacity:0; transition:opacity 0.2s; }
+  .secteur-choix .secteur-card label:hover .secteur-cta,
+  .secteur-choix .secteur-card input:focus-visible + label .secteur-cta { opacity:1; }
+  .secteur-choix .secteur-card input:checked + label .secteur-cta { visibility:hidden; }
+  @media (hover: none) { .secteur-choix .secteur-cta { opacity:1; } }
+  @media (max-width: 640px) { .secteur-choix .secteur-cards { grid-template-columns:1fr; } }
+</style>
+<fieldset class="demande-section secteur-choix" id="secteur-choix">
+  <legend>Que présente votre fiche ? <span class="secteur-consigne">(cliquer sur l'un ou l'autre suivant votre choix)</span></legend>
+  <div class="secteur-cards">
+    <div class="secteur-card secteur-spectacle">
+      <input type="radio" id="secteur-spectacle" name="secteur" value="spectacle"{% if secteur_init == 'spectacle' %} checked{% endif %}>
+      <label for="secteur-spectacle">
+        <span class="secteur-titre">Un spectacle</span>
+        <span class="secteur-ex">Théâtre, magie, concert, danse, cirque, marionnettes, spectacle de Noël…</span>
+        <span class="secteur-cta" aria-hidden="true">Cliquez pour choisir</span>
+      </label>
+    </div>
+    <div class="secteur-card secteur-animation">
+      <input type="radio" id="secteur-animation" name="secteur" value="animation"{% if secteur_init == 'animation' %} checked{% endif %}>
+      <label for="secteur-animation">
+        <span class="secteur-titre">Une animation</span>
+        <span class="secteur-ex">Père Noël, ateliers, maquillage, ballons, déambulation, mascottes, animation seniors et EHPAD…</span>
+        <span class="secteur-cta" aria-hidden="true">Cliquez pour choisir</span>
+      </label>
+    </div>
+  </div>
+  <small style="display:block; margin-top:12px; color:var(--muted); font-size:0.85rem; line-height:1.5;">Une fiche porte sur un seul secteur : elle a un seul prix « à partir de » et une seule vitrine. Si vous proposez les deux, créez deux fiches : après la publication, un bouton reprend vos informations.</small>
+  <div id="secteur-info" role="status" style="display:none; margin-top:10px; padding:8px 14px; border-radius:8px; background:rgba(255,193,7,0.15); border:1px solid #ffc107; color:#ffe082; font-size:0.9rem;"></div>
+  <div id="secteur-error" role="alert" style="display:none; color:#ff5252; background:rgba(255,82,82,0.1); border:1px solid #ff5252; border-radius:8px; padding:10px 16px; margin-top:10px; font-weight:500;">
+    ⚠️ Choisissez d'abord ce que présente votre fiche : un spectacle ou une animation.
+  </div>
+  <noscript><style>[data-secteur-bloc] { display:block !important; }</style></noscript>
+</fieldset>
+{% endmacro %}
+
+{% macro fiche_secteur_js() %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  var blocs = document.querySelectorAll('[data-secteur-bloc]');
+  if (!blocs.length) return;
+  var cases = 'input[name="specialites"]';
+  var errSecteur = document.getElementById('secteur-error');
+  var infoSecteur = document.getElementById('secteur-info');
+  var errSpec = document.getElementById('specialites-error');
+  var prix = document.querySelector('input[name="prix_min"]');
+  var prixAide = document.getElementById('prix-aide');
+  var PRIX = {
+    spectacle: { exemple: 'Ex : 800', aide: "Prix de ce spectacle, à partir duquel vous acceptez une demande." },
+    animation: { exemple: 'Ex : 250', aide: "Prix de cette animation, à partir duquel vous acceptez une demande (les animations sont demandées à petit budget)." }
+  };
+
+  function secteur() {
+    var r = document.querySelector('input[name="secteur"]:checked');
+    return r ? r.value : '';
+  }
+
+  function afficherBlocs() {
+    var s = secteur();
+    blocs.forEach(function(b) { b.hidden = (b.getAttribute('data-secteur-bloc') !== s); });
+  }
+
+  // Changer de secteur décoche les cases de l'autre : une fiche ne mélange pas les deux
+  function decocherAutreSecteur(s) {
+    var n = 0;
+    blocs.forEach(function(b) {
+      if (b.getAttribute('data-secteur-bloc') === s) return;
+      b.querySelectorAll(cases + ':checked').forEach(function(cb) {
+        cb.checked = false;
+        cb.dispatchEvent(new Event('change', { bubbles: true }));
+        n++;
+      });
+    });
+    return n;
+  }
+
+  function majTextes() {
+    var s = secteur();
+    var texte = errSpec ? errSpec.getAttribute('data-text-' + s) : '';
+    if (texte) errSpec.textContent = texte;
+    var p = PRIX[s] || PRIX.spectacle;
+    if (prix) prix.placeholder = p.exemple;
+    if (prixAide) prixAide.textContent = s ? p.aide : '';
+  }
+
+  // Appelée à l'envoi par le script du formulaire : true si aucun secteur n'est choisi
+  window.ficheSecteurManquant = function() {
+    if (secteur()) return false;
+    if (errSecteur) {
+      errSecteur.style.display = 'block';
+      errSecteur.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+    return true;
+  };
+
+  document.querySelectorAll('input[name="secteur"]').forEach(function(r) {
+    r.addEventListener('change', function() {
+      var n = decocherAutreSecteur(secteur());
+      afficherBlocs();
+      if (errSecteur) errSecteur.style.display = 'none';
+      if (infoSecteur) {
+        infoSecteur.textContent = n ? "Les choix de l'autre secteur ont été décochés." : '';
+        infoSecteur.style.display = n ? 'block' : 'none';
+      }
+      majTextes();
+    });
+  });
+
+  document.addEventListener('change', function(e) {
+    if (e.target && e.target.name === 'specialites' && e.isTrusted && infoSecteur) infoSecteur.style.display = 'none';
+  });
+
+  afficherBlocs();
+  majTextes();
+});
+</script>
+{% endmacro %}

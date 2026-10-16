@@ -113,6 +113,10 @@
       {% if not s.approved %}
         <p class="meta" style="color:#ffb347;">(En attente de validation)</p>
       {% endif %}
+      {% set autre_fiche = autre_secteur((s.specialites or '').split(','), True) %}
+      {% if autre_fiche %}
+        <p class="meta" style="margin:6px 0 0 0;"><a href="{{ url_for('submit_show', secteur=autre_fiche, reprise=s.id) }}" style="font-size:0.82rem;">➕ Créer aussi une fiche {% if autre_fiche == 'animation' %}d'animation{% else %}de spectacle{% endif %}</a></p>
+      {% endif %}
     </div>
 
     <div class="actions">

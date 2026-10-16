@@ -1,7 +1,12 @@
 ﻿{% extends "base.html" %}
 {% from "_accordion_checkboxes.html" import accordion_checkboxes, regions_checkboxes, accordion_checkboxes_js, accordion_public_cible, public_cible_js %}
+{% from "_fiche_secteur.html" import fiche_secteur_cartes, fiche_secteur_js %}
 {% block title %}Compléter le spectacle - Spectacle'ment VØtre{% endblock %}
 {% block content %}
+{# Une fiche = un secteur (spectacle OU animation). Ancienne fiche mixte : « mode libre » (les deux accordéons, sans cartes). #}
+{% set secteur_saved = sector_of((show.specialites or "").split(",")) %}
+{% set mode_secteur = secteur_saved != 'mixte' %}
+{% set secteur_init = secteur_saved if secteur_saved in ('spectacle', 'animation') else '' %}
 <h2>Compléter le spectacle</h2>
 
 {% if user and user.is_admin %}
@@ -332,6 +337,7 @@
         <input type="number" name="prix_min" min="0" max="99999" step="10"
                placeholder="Ex : 800" value="{{ show.prix_min if show.prix_min is not none else '' }}">
       </label>
+      <small id="prix-aide" style="display:block; margin-top:4px; color:#b0bec5; font-size:0.8rem;"></small>
     </div>
   </div>
 
@@ -577,6 +583,9 @@
     </div>
   </div>
 
+  {# Choix du secteur : juste avant les accordéons de spécialités qu'il commande #}
+  {% if mode_secteur %}{{ fiche_secteur_cartes(secteur_init) }}{% endif %}
+
   {# ═══ SECTION MATCHING : Spécialités + Événements + Lieux + Régions ════ #}
   <div style="background: linear-gradient(135deg, rgba(76,175,80,0.1) 0%, rgba(67,160,71,0.1) 100%); border: 2px solid #4caf50; border-radius:12px; padding:20px; margin-bottom:20px;">
     <h3 style="color: #4caf50; margin:0 0 8px 0; font-size:1.1rem;">Profil de matching</h3>
@@ -585,8 +594,15 @@
     {% set current_lieux = (show.lieux_intervention or "") | normalize_lieux %}
     {% set current_regions = (show.regions_intervention or "").split(",") | map('trim') | select | list %}
 
-    <div id="specialites-error" style="display:none; color:#ff1744; font-weight:600; margin:0 0 4px 8px; font-size:0.95em;">⚠️ Veuillez cocher au moins une spécialité artistique.</div>
+    <div id="specialites-error" style="display:none; color:#ff1744; font-weight:600; margin:0 0 4px 8px; font-size:0.95em;"
+         data-text-spectacle="⚠️ Veuillez cocher au moins une spécialité de spectacle."
+         data-text-animation="⚠️ Veuillez cocher au moins une animation.">⚠️ Veuillez cocher au moins une spécialité artistique.</div>
+    <div{% if mode_secteur %} data-secteur-bloc="spectacle"{% if secteur_init != 'spectacle' %} hidden{% endif %}{% endif %}>
     {{ accordion_checkboxes("specialites", specialites_data, current_specialites, "", "Vos spécialités artistiques", "#6a1b9a", "", "#fff", 5) }}
+    </div>
+    <div{% if mode_secteur %} data-secteur-bloc="animation"{% if secteur_init != 'animation' %} hidden{% endif %}{% endif %}>
+    {{ accordion_checkboxes("specialites", animations_data, current_specialites, "", "Vos animations (petit budget)", "#00897b", "Cochez vos animations (5 maximum) : ateliers, Père Noël, personnages, seniors et EHPAD… Animation musicale, DJ, mariage : choisissez plutôt « Un spectacle » (dossier « Musique — Formats de prestation »).", "#fff", 5, section_key="animations") }}
+    </div>
 
     <div style="background:rgba(103,58,183,0.10); border:1px solid rgba(103,58,183,0.40); border-radius:10px; padding:14px 16px; margin:14px 0;">
       <strong style="color:#b39ddb; font-size:0.95rem; display:block; margin-bottom:10px;">Nombre d'intervenants pour votre spectacle <span style="color:#ff6b6b;">*</span></strong>
@@ -893,6 +909,11 @@
 
   document.querySelectorAll("form").forEach(form => {
     form.addEventListener("submit", e => {
+      // Secteur (spectacle / animation) non choisi : message dédié, géré par le script des cartes
+      if (window.ficheSecteurManquant && window.ficheSecteurManquant()) {
+        e.preventDefault();
+        return;
+      }
       // Compte les mots en texte brut (sans HTML ni NBSP) pour rester
       // coherent avec le compteur visible.
       const plainSubmit = htmlToPlain(ta.value);
@@ -1007,6 +1028,7 @@ document.addEventListener('DOMContentLoaded', function() {
 </script>
 {{ accordion_checkboxes_js() }}
 {{ public_cible_js() }}
+{{ fiche_secteur_js() }}
 {% endblock %}
 
   <label>Email de contact <span style="font-size:0.85rem;font-weight:normal;color:var(--muted);">(Modifiable uniquement par l'admin)</span>

@@ -2,23 +2,38 @@
 {% extends "base.html" %}
 {% from "_accordion_checkboxes.html" import accordion_checkboxes, accordion_checkboxes_js, accordion_public_cible, public_cible_js %}
 {% set d = demande if demande is defined and demande else none %}
+{% set reprise = reprise is defined and reprise %}
+{% set editing = d and not reprise %}
 {% set is_dup = request.args.get('dup') == '1' %}
-{% block title %}{% if is_dup %}Dupliquer l'appel d'offre{% elif d %}Modifier l'appel d'offre{% else %}Demander une animation pour anniversaire, entreprise, école{% endif %} - Spectacle'ment Vôtre{% endblock %}
+{% block title %}{% if is_dup %}Dupliquer l'appel d'offre{% elif editing %}Modifier l'appel d'offre{% else %}Demander une animation pour anniversaire, entreprise, école{% endif %} - Spectacle'ment Vôtre{% endblock %}
 
 {% block content %}
+{# Une demande porte sur UN secteur : spectacle OU animation (cartes de choix en haut du formulaire).
+   Mode « libre » (les deux accordéons, sans cartes) : interrupteur de secours fermé, ou ancienne demande mixte. #}
+{% set saved_specs = request.form.getlist("specialites_recherchees") or ((d.specialites_recherchees or '').split(',') if d else []) %}
+{% set show_animations = animations_visibles_demandeurs or has_animation_labels(saved_specs) %}
+{% set secteur_saved = sector_of(saved_specs) %}
+{% set mode_secteur = show_animations and secteur_saved != 'mixte' %}
+{% set secteur_choisi = secteur_saved if secteur_saved in ('spectacle', 'animation') else (request.form.get('secteur') or request.args.get('secteur') or '') %}
+{% set secteur_init = secteur_choisi if (mode_secteur and secteur_choisi in ('spectacle', 'animation')) else '' %}
 <div style="margin-bottom:18px; font-size:1.15em; color:#fff; font-weight:600; text-align:center;">
   Spectacle'ment Vôtre la plateforme qui connecte facilement les organisateurs d'événements avec des artistes et compagnies de spectacle vivant.
 </div>
 <div class="demande-wrap" style="background:linear-gradient(135deg,#1b2a4e 0%,#355c7d 100%); border:2px solid #355c7d; border-radius:16px; padding:32px; margin-bottom:32px; position:relative; overflow:hidden; box-shadow:0 4px 16px #355c7d22; color:#fff;">
   <div style="background:linear-gradient(90deg,#1b2a4e 0%,#355c7d 100%); color:#fff; border-radius:10px; padding:14px 18px; margin-bottom:18px; text-align:center; font-size:1.18em; font-weight:700; box-shadow:0 2px 8px #1b2a4e33; letter-spacing:0.1px;">
-    {% if is_dup %}📋 Dupliquer l'appel d'offre — copie #{{ d.id }}{% elif d %}Modifier l'appel d'offre #{{ d.id }}{% else %}Faire un appel d'offre animation, spectacle et autres{% endif %}
+    {% if is_dup %}📋 Dupliquer l'appel d'offre — copie #{{ d.id }}{% elif editing %}Modifier l'appel d'offre #{{ d.id }}{% else %}Faire un appel d'offre animation, spectacle et autres{% endif %}
   </div>
   {% if is_dup %}
   <div style="background:#f3e5f5; border:1px solid #ce93d8; color:#4a148c; border-radius:10px; padding:12px 16px; margin-bottom:18px; text-align:center; font-size:0.95rem;">
     📋 <strong>Duplication</strong> — modifiez les champs souhaités puis enregistrez. La copie sera republiée en attente de validation.
   </div>
   {% endif %}
-  {% if not d %}
+  {% if reprise %}
+  <div style="background:#e3f2fd; border:1px solid #90caf9; color:#0d47a1; border-radius:10px; padding:12px 16px; margin-bottom:18px; text-align:center; font-size:0.95rem;">
+    📋 <strong>Seconde demande</strong> — vos coordonnées, le lieu, les dates et le public de votre demande précédente sont repris. Choisissez ce que vous recherchez, puis complétez.
+  </div>
+  {% endif %}
+  {% if not editing %}
   <div style="background:#e8f5e9; border:1px solid #a5d6a7; border-radius:10px; padding:14px 18px; margin-bottom:18px; text-align:center;">
     <p style="margin:0 0 6px 0; font-size:1.05rem; color:#2e7d32; font-weight:700;">Publiez gratuitement votre demande de recherche de spectacle, d'animation, votre appel d'offre, etc.</p>
     <p style="margin:0; font-size:0.95rem; color:#388e3c;">Vous ne cherchez plus, ce sont les artistes qui viennent à vous !</p>
@@ -111,7 +126,7 @@
 
     <!-- SECTION: Type de spectacle recherché -->
     <fieldset class="demande-section">
-      <legend>2) Type de spectacle recherché</legend>
+      <legend>2) Public concerné</legend>
 
       <!-- genre_recherche est auto-rempli depuis les checkboxes spécialités -->
       <input type="hidden" id="genre_recherche" name="genre_recherche" value="">
@@ -130,14 +145,48 @@
 
     </fieldset>
 
+    {% if mode_secteur %}
+    <fieldset class="demande-section secteur-choix" id="secteur-choix">
+      <legend>Que recherchez-vous ? <span class="secteur-consigne">(cliquer sur l'un ou l'autre suivant votre choix)</span></legend>
+      <div class="secteur-cards">
+        <div class="secteur-card secteur-spectacle">
+          <input type="radio" id="secteur-spectacle" name="secteur" value="spectacle"{% if secteur_init == 'spectacle' %} checked{% endif %}>
+          <label for="secteur-spectacle">
+            <span class="secteur-titre">Un spectacle</span>
+            <span class="secteur-prix">À partir de 730 € · artistes professionnels</span>
+            <span class="secteur-ex">Théâtre, magie, concert, danse, cirque, marionnettes, spectacle de Noël…</span>
+            <span class="secteur-cta" aria-hidden="true">Cliquez pour choisir</span>
+          </label>
+        </div>
+        <div class="secteur-card secteur-animation">
+          <input type="radio" id="secteur-animation" name="secteur" value="animation"{% if secteur_init == 'animation' %} checked{% endif %}>
+          <label for="secteur-animation">
+            <span class="secteur-titre">Une animation</span>
+            <span class="secteur-prix">Petit budget · moins de 730 € possible</span>
+            <span class="secteur-ex">Père Noël, ateliers, maquillage, ballons, déambulation, mascottes, seniors et EHPAD…</span>
+            <span class="secteur-cta" aria-hidden="true">Cliquez pour choisir</span>
+          </label>
+        </div>
+      </div>
+      <small class="hint" style="display:block; margin-top:12px;">Une demande porte sur un seul secteur. Pour les deux (un spectacle <em>et</em> une animation), faites deux demandes : après l'envoi, un bouton reprend vos informations.</small>
+      <div id="secteur-info" role="status" style="display:none; margin-top:10px; padding:8px 14px; border-radius:8px; background:rgba(255,193,7,0.15); border:1px solid #ffc107; color:#ffe082; font-size:0.9rem;"></div>
+      <div id="secteur-error" role="alert" style="display:none; color:#ff5252; background:rgba(255,82,82,0.1); border:1px solid #ff5252; border-radius:8px; padding:10px 16px; margin-top:10px; font-weight:500;">
+        ⚠️ Choisissez d'abord ce que vous recherchez : un spectacle ou une animation.
+      </div>
+      <noscript><style>[data-secteur-bloc] { display:block !important; }</style></noscript>
+    </fieldset>
+    {% endif %}
+
     <!-- SECTION: Spécialités recherchées + Événements + Lieux -->
     <fieldset class="demande-section" style="background: linear-gradient(135deg, rgba(76,175,80,0.1) 0%, rgba(67,160,71,0.1) 100%); border: 2px solid #4caf50;">
       <legend style="color: #4caf50;">Détails de votre recherche</legend>
 
+      {# Un accordéon par secteur ; avec les cartes de choix, seul celui du secteur choisi est affiché #}
+      <div{% if mode_secteur %} data-secteur-bloc="spectacle"{% if secteur_init != 'spectacle' %} hidden{% endif %}{% endif %}>
       {{ accordion_checkboxes(
           "specialites_recherchees",
           specialites_data,
-          request.form.getlist("specialites_recherchees") or ((d.specialites_recherchees or '').split(',') if d else []),
+          saved_specs,
           "",
           "Type de spectacle recherché",
           "#6a1b9a",
@@ -146,8 +195,29 @@
           4, True, True, True, False, False,
           item_hints={"Spectacle pour enfant": "Cochez uniquement si vous n'avez aucune préférence de thème — sinon précisez ci-dessous (magie, cirque, ombres, épée…)."}
       ) }}
-      <div id="specialites-error" style="display:none; color:#ff5252; background:rgba(255,82,82,0.1); border:1px solid #ff5252; border-radius:8px; padding:10px 16px; margin-top:8px; font-weight:500;">
-        ⚠️ Veuillez cocher au moins un type de spectacle recherché.
+      </div>
+      {% if show_animations %}
+      <div{% if mode_secteur %} data-secteur-bloc="animation"{% if secteur_init != 'animation' %} hidden{% endif %}{% endif %}>
+      {{ accordion_checkboxes(
+          "specialites_recherchees",
+          animations_data,
+          saved_specs,
+          "",
+          "Type d'animation recherchée",
+          "#00897b",
+          "Animations à petit budget : ateliers, Père Noël, personnages, seniors et EHPAD… Pour une animation musicale, un DJ ou un mariage, choisissez plutôt « Un spectacle » (dossier « Musique — Formats de prestation »).",
+          "#fff",
+          4, True, False, False, False, False,
+          section_key="animations_recherchees",
+          item_notes=animations_mentions_prix,
+          petit_budget_groups=animations_petit_budget
+      ) }}
+      </div>
+      {% endif %}
+      <div id="specialites-error" style="display:none; color:#ff5252; background:rgba(255,82,82,0.1); border:1px solid #ff5252; border-radius:8px; padding:10px 16px; margin-top:8px; font-weight:500;"
+           data-text-spectacle="⚠️ Veuillez cocher au moins un type de spectacle recherché."
+           data-text-animation="⚠️ Veuillez cocher au moins un type d'animation recherchée.">
+        {% if secteur_init == 'animation' %}⚠️ Veuillez cocher au moins un type d'animation recherchée.{% elif secteur_init == 'spectacle' %}⚠️ Veuillez cocher au moins un type de spectacle recherché.{% else %}⚠️ Veuillez cocher au moins un type de spectacle{% if show_animations %} ou d'animation{% endif %} recherché.{% endif %}
       </div>
 
       {{ accordion_checkboxes("lieux_souhaites", lieux_data, request.form.getlist("lieux_souhaites") or ((d.lieux_souhaites or '').split(',') if d else []), "🏛️", "Type d'espace mis à disposition", "#2e7d32", "Sélectionnez le ou les types d'espaces disponibles.", "#fff", open_by_default=True) }}
@@ -172,29 +242,31 @@
         <label>
           <span class="label-text">
             Budget indicatif <span class="req">*</span>
-            <button type="button" onclick="var b=document.getElementById('budget-info-anim');b.style.display=(b.style.display==='block'?'none':'block');" aria-label="Aide sur les budgets" title="Aide sur les budgets"
-                    style="display:inline-flex; align-items:center; justify-content:center; width:22px; height:22px; padding:0; margin-left:6px; border-radius:50%; border:none; background:#ffc107; color:#222; font-weight:800; font-size:0.85rem; cursor:pointer; line-height:1; vertical-align:middle;">
-              i
-            </button>
           </span>
           {% set v_budget = request.form.get('budget','') or (d.budget if d else '') %}
+          {% set budgets_proposes = (budgets_animation if show_animations else ()) + budgets_spectacle %}
           <select id="budget" name="budget" required>
-            <option value="">-- Fourchette de budget --</option>
-            <option value="À partir de 300 € — Ateliers divers, maquillage, ballons, déambulation, Père Noël, etc." {% if v_budget == 'À partir de 300 € — Ateliers divers, maquillage, ballons, déambulation, Père Noël, etc.' %}selected{% endif %}>À partir de 300 € — Ateliers divers, maquillage, ballons, déambulation, Père Noël, etc.</option>
-            <option value="730 à 930 € — Artiste / spectacle local (région / dpt)" {% if v_budget == '730 à 930 € — Artiste / spectacle local (région / dpt)' %}selected{% endif %}>730 à 930 € — Artiste / spectacle local (région / dpt)</option>
-            <option value="930 à 1200 € — Spectacle standard" {% if v_budget == '930 à 1200 € — Spectacle standard' %}selected{% endif %}>930 à 1200 € — Spectacle standard</option>
-            <option value="1200 à 1600 € — Spectacle plus élaboré" {% if v_budget == '1200 à 1600 € — Spectacle plus élaboré' %}selected{% endif %}>1200 à 1600 € — Spectacle plus élaboré</option>
-            <option value="1600 à 2000 € — Spectacle premium" {% if v_budget == '1600 à 2000 € — Spectacle premium' %}selected{% endif %}>1600 à 2000 € — Spectacle premium</option>
-            <option value="2000 à 3000 € — Grand spectacle" {% if v_budget == '2000 à 3000 € — Grand spectacle' %}selected{% endif %}>2000 à 3000 € — Grand spectacle</option>
-            <option value="3000 à 5000 € — Grand spectacle / plusieurs artistes" {% if v_budget == '3000 à 5000 € — Grand spectacle / plusieurs artistes' %}selected{% endif %}>3000 à 5000 € — Grand spectacle / plusieurs artistes</option>
-            <option value="Plus de 5000 € — Événement d'envergure" {% if v_budget == 'Plus de 5000 € — Événement d\'envergure' %}selected{% endif %}>Plus de 5000 € — Événement d'envergure</option>
+            <option value="" id="budget-placeholder">-- Fourchette de budget --</option>
+            {% if show_animations %}
+            {% for b in budgets_animation %}
+            <option value="{{ b }}" data-bas="1" {% if v_budget == b %}selected{% endif %}>{{ b }}</option>
+            {% endfor %}
+            {% endif %}
+            {% for b in budgets_spectacle %}
+            <option value="{{ b }}" {% if v_budget == b %}selected{% endif %}>{{ b }}</option>
+            {% endfor %}
+            {% if v_budget and v_budget not in budgets_proposes %}
+            <option value="{{ v_budget }}" selected>{{ v_budget }}</option>
+            {% endif %}
           </select>
-          <div id="budget-info-anim" role="note" style="display:none; margin-top:8px; padding:10px 12px; background:#fff8e1; border-left:3px solid #ffc107; border-radius:6px; font-size:0.85rem; color:#5d4037; line-height:1.5;">
-            <strong style="color:#f57f17;">ℹ️ À savoir :</strong>
-            moins de <strong>730 €</strong> = animations, ateliers ou Père Noël uniquement.
-            À partir de <strong>730 €</strong>, un spectacle est possible mais à ce tarif seuls les artistes <strong>locaux (région / dpt)</strong> peuvent répondre.
-            Plus votre budget monte, plus les artistes peuvent venir de loin — mais les <strong>artistes locaux restent toujours disponibles</strong> à tous les tarifs.
-          </div>
+          {% set note_spectacle = "Spectacles professionnels : à partir de 730 €. À ce tarif, seuls les artistes locaux (région / dpt) peuvent répondre ; plus votre budget monte, plus les artistes peuvent venir de loin, et les artistes locaux restent disponibles à tous les tarifs." %}
+          {% set note_none = "Choisissez d'abord ce que vous recherchez (un spectacle ou une animation) : les tarifs proposés en dépendent." if mode_secteur else "Cochez d'abord le type de spectacle ou d'animation recherché : les tarifs proposés en dépendent." %}
+          {% set note_animation = "Animations : petits budgets possibles (moins de 300 € à 730 €), les tarifs habituels restent proposés. Pour un spectacle (à partir de 730 €), faites une demande « spectacle » : après l'envoi, un bouton reprend vos informations." if mode_secteur else "Animations : des tarifs bas sont possibles. Pour un spectacle en plus, cochez-le dans « Type de spectacle recherché » : les tarifs à partir de 730 € s'afficheront." %}
+          <div id="budget-note" role="note"
+               data-note-none="{{ note_none }}"
+               data-note-spectacle="{{ note_spectacle }}"
+               data-note-animation="{{ note_animation }}"
+               style="margin-top:8px; padding:10px 12px; background:#fff8e1; border-left:3px solid #ffc107; border-radius:6px; font-size:0.85rem; color:#5d4037; line-height:1.5;">{{ note_none if (show_animations and not secteur_init) else (note_animation if secteur_init == 'animation' else note_spectacle) }}</div>
           <div style="display:flex; align-items:center; gap:8px; margin-top:10px; font-size:0.92rem;">
             <input type="checkbox" id="pref-local-anim" name="preference_local" value="1" {% if request.form.get('preference_local') %}checked{% endif %} style="width:18px; height:18px; accent-color:#f57f17; cursor:pointer;">
             <label for="pref-local-anim" style="cursor:pointer; margin:0;">
@@ -295,9 +367,9 @@
 
     <div class="demande-actions">
       <button type="submit" class="publish-btn" style="width:100%; padding:14px; font-size:1rem;">
-        {{ 'Sauvegarder les modifications' if d else 'Envoyer la demande' }}
+        {{ 'Sauvegarder les modifications' if editing else 'Envoyer la demande' }}
       </button>
-      {% if not d %}
+      {% if not editing %}
       <span style="display:block; margin-top:10px; font-size:0.95em; color:#b0b8d8; text-align:center;">Réponse rapide - vous serez contacté par e-mail / téléphone.</span>
       {% endif %}
     </div>
@@ -436,6 +508,11 @@
     var formEl = document.querySelector('.demande-form');
     if (formEl) {
       formEl.addEventListener('submit', function(e) {
+        // Secteur (spectacle / animation) non choisi : message dédié, géré par le script des cartes
+        if (window.demandeSecteurManquant && window.demandeSecteurManquant()) {
+          e.preventDefault();
+          return false;
+        }
         var checked = document.querySelectorAll('input[name="specialites_recherchees"]:checked');
         if (checked.length === 0) {
           e.preventDefault();
@@ -599,6 +676,33 @@
     }
   main.container .seo-block { display: none; }
 
+  /* Cartes de choix du secteur (spectacle / animation) */
+  .demande-form .secteur-cards { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+  .demande-form .secteur-card { position:relative; }
+  .demande-form .secteur-card input[type="radio"] {
+    position:absolute; opacity:0; width:1px; height:1px; padding:0; border:0; margin:0;
+  }
+  .demande-form .secteur-card label {
+    height:100%; gap:6px; padding:16px 18px; cursor:pointer; box-sizing:border-box;
+    border-radius:12px; border:2px solid rgba(255,255,255,0.25); background:rgba(255,255,255,0.05);
+    transition:border-color 0.2s, background 0.2s, box-shadow 0.2s;
+  }
+  .demande-form .secteur-card label:hover { background:rgba(255,255,255,0.1); border-color:rgba(255,255,255,0.55); }
+  .demande-form .secteur-spectacle input:checked + label { border-color:#ba68c8; background:rgba(186,104,200,0.2); box-shadow:0 0 0 3px rgba(186,104,200,0.35); }
+  .demande-form .secteur-animation input:checked + label { border-color:#26a69a; background:rgba(38,166,154,0.2); box-shadow:0 0 0 3px rgba(38,166,154,0.35); }
+  .demande-form .secteur-card input:focus-visible + label { outline:3px solid #ffc107; outline-offset:2px; }
+  .secteur-titre { font-size:1.15rem; font-weight:800; color:#fff; }
+  .secteur-prix { font-size:0.9rem; font-weight:700; color:#ffc107; }
+  .secteur-ex { font-size:0.85rem; color:#cfd8ee; line-height:1.4; }
+  .secteur-consigne { font-weight:400; font-size:0.85rem; color:#ffe082; }
+  /* Invitation à cliquer : au survol ou au clavier ; toujours visible sans souris ; masquée sur la carte choisie */
+  .secteur-cta { margin-top:auto; padding-top:4px; font-size:0.85rem; font-weight:700; color:#ffc107; opacity:0; transition:opacity 0.2s; }
+  .demande-form .secteur-card label:hover .secteur-cta,
+  .demande-form .secteur-card input:focus-visible + label .secteur-cta { opacity:1; }
+  .demande-form .secteur-card input:checked + label .secteur-cta { visibility:hidden; }
+  @media (hover: none) { .secteur-cta { opacity:1; } }
+  @media (max-width: 640px) { .demande-form .secteur-cards { grid-template-columns:1fr; } }
+
   .une-card {
     transition: transform 0.3s ease, box-shadow 0.3s ease;
     height: 100%;
@@ -687,6 +791,130 @@
     {% endfor %}
   </div>
 </div>
+{% endif %}
+{% if show_animations %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  var select = document.getElementById('budget');
+  if (!select) return;
+  var note = document.getElementById('budget-note');
+  var placeholder = document.getElementById('budget-placeholder');
+  var placeholderText = placeholder ? placeholder.textContent : '';
+  var tiersBas = select.querySelectorAll('option[data-bas="1"]');
+  var blocs = document.querySelectorAll('[data-secteur-bloc]');
+  var avecCartes = blocs.length > 0;
+  var errSecteur = document.getElementById('secteur-error');
+  var infoSecteur = document.getElementById('secteur-info');
+  var errSpec = document.getElementById('specialites-error');
+  var cases = 'input[name="specialites_recherchees"]';
+
+  // Secteur choisi avec les cartes : 'spectacle', 'animation' ou '' (aucun, ou mode libre sans cartes)
+  function secteur() {
+    var r = document.querySelector('input[name="secteur"]:checked');
+    return r ? r.value : '';
+  }
+
+  function toutesPetitBudget() {
+    var cochees = document.querySelectorAll(cases + ':checked');
+    for (var i = 0; i < cochees.length; i++) {
+      if (cochees[i].getAttribute('data-petit-budget') !== '1') return false;
+    }
+    return true;
+  }
+
+  // 'none' : rien de choisi ; 'animation' : tarifs bas proposés ; 'spectacle' : tarifs habituels seuls
+  function mode() {
+    if (avecCartes) {
+      var s = secteur();
+      if (!s) return 'none';
+      if (s === 'spectacle') return 'spectacle';
+      return toutesPetitBudget() ? 'animation' : 'spectacle';
+    }
+    if (!document.querySelectorAll(cases + ':checked').length) return 'none';
+    return toutesPetitBudget() ? 'animation' : 'spectacle';
+  }
+
+  function apply(initial) {
+    var m = mode();
+    var avant = select.value;
+    tiersBas.forEach(function(o) {
+      // Au chargement, un tarif bas déjà enregistré reste proposé
+      var visible = (m === 'animation') || (initial && o.selected);
+      o.hidden = !visible;
+      o.disabled = !visible;
+    });
+    var courante = select.options[select.selectedIndex];
+    if (m === 'none' || (courante && courante.disabled)) select.value = '';
+    select.disabled = (m === 'none');
+    if (placeholder) {
+      placeholder.textContent = (m === 'none')
+        ? (avecCartes ? "Choisissez d'abord un spectacle ou une animation" : "Cochez d'abord un type de spectacle ou d'animation")
+        : placeholderText;
+    }
+    if (note) note.textContent = note.getAttribute('data-note-' + m) || '';
+    if (select.value !== avant) select.dispatchEvent(new Event('input', { bubbles: true }));
+  }
+
+  function afficherBlocs() {
+    var s = secteur();
+    blocs.forEach(function(b) { b.hidden = (b.getAttribute('data-secteur-bloc') !== s); });
+  }
+
+  // Changer de secteur décoche les cases de l'autre : une demande ne mélange pas les deux
+  function decocherAutreSecteur(s) {
+    var n = 0;
+    blocs.forEach(function(b) {
+      if (b.getAttribute('data-secteur-bloc') === s) return;
+      b.querySelectorAll(cases + ':checked').forEach(function(cb) {
+        cb.checked = false;
+        cb.dispatchEvent(new Event('change', { bubbles: true }));
+        n++;
+      });
+    });
+    return n;
+  }
+
+  function majTexteErreur() {
+    var texte = errSpec ? errSpec.getAttribute('data-text-' + secteur()) : '';
+    if (texte) errSpec.textContent = texte;
+  }
+
+  // Appelée à l'envoi (script du formulaire) : true si aucun secteur n'est choisi
+  window.demandeSecteurManquant = function() {
+    if (!avecCartes || secteur()) return false;
+    if (errSecteur) {
+      errSecteur.style.display = 'block';
+      errSecteur.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+    return true;
+  };
+
+  document.querySelectorAll('input[name="secteur"]').forEach(function(r) {
+    r.addEventListener('change', function() {
+      var s = secteur();
+      var n = decocherAutreSecteur(s);
+      afficherBlocs();
+      if (errSecteur) errSecteur.style.display = 'none';
+      if (infoSecteur) {
+        infoSecteur.textContent = n ? "Les choix de l'autre secteur ont été décochés." : '';
+        infoSecteur.style.display = n ? 'block' : 'none';
+      }
+      majTexteErreur();
+      apply(false);
+    });
+  });
+
+  document.addEventListener('change', function(e) {
+    if (e.target && e.target.name === 'specialites_recherchees') {
+      if (infoSecteur && e.isTrusted) infoSecteur.style.display = 'none';
+      apply(false);
+    }
+  });
+
+  if (avecCartes) { afficherBlocs(); majTexteErreur(); }
+  apply(true);
+});
+</script>
 {% endif %}
 {{ accordion_checkboxes_js() }}
 {{ public_cible_js() }}

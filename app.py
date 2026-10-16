@@ -40,6 +40,7 @@ socket.setdefaulttimeout(15)
 print("✓ Imports standards OK")
 
 import uuid
+import secrets
 import html
 import requests  # Pour l'API de géolocalisation
 
@@ -101,7 +102,8 @@ from utils.security import (
 )
 from utils.search import normalize_search_text, generate_search_patterns
 from utils.seo import SEO_CATEGORIES, optimize_title_seo, company_slug, company_id_from_slug, show_slug, show_id_from_slug
-from constants import SPECIALITES, EVENEMENTS, LIEUX, LIEUX_ORGANISATEUR, REGIONS_FRANCE, REGIONS_VOISINES, PUBLICS, PUBLIC_CIBLE_CATEGORIES, PUBLIC_CIBLE_ORGANISATEUR, PUBLIC_CIBLE_ADMIN, PUBLIC_CIBLE_INCOMPATIBLES, PUBLIC_CIBLE_CODES_VALIDES, LABELS_QUALITE, LABELS_QUALITE_CODES, LABELS_QUALITE_NEUTRES, LABELS_QUALITE_LABELS, LABELS_QUALITE_DESCRIPTIONS, MASQUER_COORDONNEES_DIRECTES, MAX_DESCRIPTION_WORDS, normalize_lieux_csv
+from utils.animations import animations_visibles_demandeurs, autre_secteur, contains_animation, fiche_reprise_depuis, reprise_depuis, sector_of, MSG_DEMANDE_MIXTE, MSG_FICHE_MIXTE
+from constants import SPECIALITES, ANIMATIONS, ANIMATIONS_DOSSIERS_PETIT_BUDGET, ANIMATIONS_MENTIONS_PRIX, BUDGETS_ANIMATION, BUDGETS_SPECTACLE, EVENEMENTS, LIEUX, LIEUX_ORGANISATEUR, REGIONS_FRANCE, REGIONS_VOISINES, PUBLICS, PUBLIC_CIBLE_CATEGORIES, PUBLIC_CIBLE_ORGANISATEUR, PUBLIC_CIBLE_ADMIN, PUBLIC_CIBLE_INCOMPATIBLES, PUBLIC_CIBLE_CODES_VALIDES, LABELS_QUALITE, LABELS_QUALITE_CODES, LABELS_QUALITE_NEUTRES, LABELS_QUALITE_LABELS, LABELS_QUALITE_DESCRIPTIONS, MASQUER_COORDONNEES_DIRECTES, MAX_DESCRIPTION_WORDS, normalize_lieux_csv
 
 print("✓ Config, models et utils importés")
 
@@ -972,6 +974,21 @@ def create_app() -> Flask:
         }
 
     @app.context_processor
+    def inject_animations():
+        """Secteur Animations : listes, mentions de prix, tarifs et interrupteur d'ouverture aux demandeurs."""
+        return {
+            'animations_data': ANIMATIONS,
+            'animations_petit_budget': list(ANIMATIONS_DOSSIERS_PETIT_BUDGET),
+            'animations_mentions_prix': ANIMATIONS_MENTIONS_PRIX,
+            'budgets_spectacle': BUDGETS_SPECTACLE,
+            'budgets_animation': BUDGETS_ANIMATION,
+            'animations_visibles_demandeurs': animations_visibles_demandeurs(current_app.config, current_user()),
+            'has_animation_labels': contains_animation,
+            'sector_of': sector_of,
+            'autre_secteur': autre_secteur,
+        }
+
+    @app.context_processor
     def inject_company_slug():
         """Expose la fonction company_slug() dans tous les templates.
         Usage : {{ url_for('compagnie_profile', slug=company_slug(show.user)) }}"""
@@ -1074,6 +1091,7 @@ def _run_critical_migrations(app: Flask) -> None:
         ("demande_animation", "latitude", "DOUBLE PRECISION", "REAL", None),
         ("demande_animation", "longitude", "DOUBLE PRECISION", "REAL", None),
         ("demande_animation", "consultations_count", "INTEGER DEFAULT 0", "INTEGER DEFAULT 0", "0"),
+        ("demande_animation", "access_token", "VARCHAR(64)", "VARCHAR(64)", None),
         # ── users ──
         ("users", "pending_deletion_at", "TIMESTAMP", "DATETIME", None),
         ("users", "is_organisateur", "BOOLEAN DEFAULT FALSE", "BOOLEAN DEFAULT 0", "FALSE"),
@@ -1121,6 +1139,16 @@ def _run_critical_migrations(app: Flask) -> None:
                             app.logger.info(f"[MIGRATION] ✓ {table}.{column} ajoutée (SQLite)")
                 except Exception as col_err:
                     app.logger.warning(f"[MIGRATION] {table}.{column}: {col_err}")
+
+            # Lien privé pour les demandes déjà publiées avant l'existence du jeton
+            for demande_id, approved in conn.execute(text(
+                "SELECT id, approved FROM demande_animation WHERE access_token IS NULL"
+            )).fetchall():
+                if approved:
+                    conn.execute(text(
+                        "UPDATE demande_animation SET access_token = :t WHERE id = :i"
+                    ), {"t": secrets.token_urlsafe(32), "i": demande_id})
+            conn.commit()
 
     except Exception as e:
         app.logger.warning(f"[MIGRATION] Erreur générale: {e}")
@@ -2848,6 +2876,8 @@ def register_routes(app: Flask) -> None:
 
         # -- Liste de toutes les spécialités pour les tags (avec comptage) --
         all_specialites = [s for group in SPECIALITES.values() for s in group]
+        if animations_visibles_demandeurs(current_app.config, current_user()):
+            all_specialites += [s for group in ANIMATIONS.values() for s in group]
 
         # -- H1 SEO dynamique --
         h1_title = "Spectacles et animations pour mairies, écoles et CSE partout en France"
@@ -3414,6 +3444,10 @@ def register_routes(app: Flask) -> None:
             if len(specialites_list) > 5:
                 flash("Maximum 5 spécialités autorisées.", "danger")
                 return redirect(request.url)
+            # Une fiche porte sur un seul secteur : spectacle OU animation (l'admin reste libre)
+            if sector_of(specialites_list) == "mixte" and not (u and u.is_admin):
+                flash(MSG_FICHE_MIXTE, "danger")
+                return redirect(request.url)
 
             if not regions_list:
                 flash("Veuillez cocher au moins une région d'intervention.", "danger")
@@ -3584,10 +3618,20 @@ def register_routes(app: Flask) -> None:
                     current_app.logger.warning("[MAIL] ⚠ MAIL_PASSWORD non défini - Email non envoyé")
 
             flash("Annonce envoyée ! Elle sera visible après validation.", "success")
-            # Afficher uniquement le message flash après création
-            return render_template("flash_only_child.html", user=u)
+            # Afficher uniquement le message flash après création (+ raccourci « créer aussi l'autre fiche »)
+            return render_template("flash_only_child.html", user=u, show=show)
 
-        return render_template("submit_form.html", user=current_user(),
+        # « Créer aussi l'autre fiche » : reprend les informations d'une fiche de la même compagnie
+        # (réservé à son propriétaire ou à l'admin ; sinon ignoré).
+        reprise = None
+        reprise_id = request.args.get("reprise", type=int)
+        if reprise_id:
+            source = Show.query.get(reprise_id)
+            demandeur = current_user()
+            if source and demandeur and (source.user_id == demandeur.id or demandeur.is_admin):
+                reprise = fiche_reprise_depuis(source)
+
+        return render_template("submit_form.html", user=current_user(), reprise=reprise,
                                specialites_data=SPECIALITES, evenements_data=EVENEMENTS,
                                lieux_data=LIEUX, regions_data=REGIONS_FRANCE)
 
@@ -3982,6 +4026,10 @@ def register_routes(app: Flask) -> None:
                 return redirect(request.url)
             if len(spec_list) > 5:
                 flash("Maximum 5 spécialités autorisées.", "danger")
+                return redirect(request.url)
+            # Une fiche porte sur un seul secteur : spectacle OU animation (l'admin reste libre)
+            if sector_of(spec_list) == "mixte" and not (u and u.is_admin):
+                flash(MSG_FICHE_MIXTE, "danger")
                 return redirect(request.url)
             if not reg_list:
                 flash("Veuillez cocher au moins une région d'intervention.", "danger")
@@ -5998,6 +6046,11 @@ def register_routes(app: Flask) -> None:
 
             # Matching fields (accordions)
             specialites_recherchees = ",".join(request.form.getlist("specialites_recherchees"))
+            # Une demande porte sur un seul secteur : spectacle OU animation (formulaire admin : libre)
+            if sector_of(request.form.getlist("specialites_recherchees")) == "mixte":
+                flash(MSG_DEMANDE_MIXTE, "danger")
+                return render_template("demande_animation.html", user=current_user(),
+                                       specialites_data=SPECIALITES, evenements_data=EVENEMENTS, lieux_data=LIEUX_ORGANISATEUR), 400
             evenements_contexte = ",".join(request.form.getlist("evenements_contexte"))
             lieux_souhaites = ",".join(request.form.getlist("lieux_souhaites"))
 
@@ -6112,6 +6165,8 @@ Accessibilité: {accessibilite}
             )
             db.session.add(demande)
             db.session.commit()
+            # Mémorise la demande envoyée (session du demandeur) : sert au bouton « faire aussi l'autre demande »
+            session["derniere_demande_id"] = demande.id
 
             # Email d'accusé de réception à l'auteur de la demande
             if getattr(current_app, "mail", None) and current_app.config.get("MAIL_USERNAME"):
@@ -6232,6 +6287,9 @@ Accessibilité: {accessibilite}
             # Si l'utilisateur est déjà connecté (organisateur ou compagnie) → home avec flash
             # Sinon → écran de proposition de création de compte, avec la demande stockée en session
             if _u_current:
+                # Page de confirmation avec le raccourci vers l'autre secteur (si pertinent) ; sinon retour à l'accueil
+                if autre_secteur(specialites_recherchees.split(","), animations_visibles_demandeurs(current_app.config, _u_current)):
+                    return redirect(url_for("demande_envoyee"))
                 flash("✅ Votre demande a bien été envoyée ! Elle sera publiée après validation par notre équipe (sous 24h).", "success")
                 return redirect(url_for("home"))
             else:
@@ -6245,8 +6303,29 @@ Accessibilité: {accessibilite}
             Show.category.ilike('%Spectacle à la une%')
         ).order_by(Show.created_at.desc()).limit(8).all()
 
+        # « Faire aussi l'autre demande » : reprend les informations de la dernière demande envoyée
+        # dans cette session (jamais celles d'un autre visiteur).
+        reprise = None
+        if request.args.get("reprise") == "1" and session.get("derniere_demande_id"):
+            from models.models import DemandeAnimation
+            derniere = DemandeAnimation.query.get(session["derniere_demande_id"])
+            reprise = reprise_depuis(derniere) if derniere else None
+
         return render_template("demande_animation.html", user=current_user(), spectacles_une=spectacles_une,
+                               demande=reprise, reprise=bool(reprise),
+                               form_action=url_for("demande_animation") if reprise else None,
                                specialites_data=SPECIALITES, evenements_data=EVENEMENTS, lieux_data=LIEUX_ORGANISATEUR)
+
+    @app.route("/demande/envoyee")
+    def demande_envoyee():
+        """Confirmation après l'envoi d'une demande par un compte connecté, avec le raccourci vers
+        l'autre secteur. N'affiche que la dernière demande créée dans cette session."""
+        from models.models import DemandeAnimation
+        derniere_id = session.get("derniere_demande_id")
+        demande = DemandeAnimation.query.get(derniere_id) if derniere_id else None
+        if not demande:
+            return redirect(url_for("home"))
+        return render_template("demande_envoyee.html", demande=demande)
 
     @app.route("/informations-legales")
     def legal():
@@ -6267,6 +6346,8 @@ Accessibilité: {accessibilite}
             or_(
                 # Champs structurés (matching)
                 Show.age_range.in_(['enfant', 'enfant_2_6', 'enfant_5_10', 'enfants_2_10', 'familial', 'tout public']),
+                # Case « Spectacle à domicile (goûter d'anniversaire) » (secteur Animations)
+                Show.specialites.ilike('%goûter%'),
                 # Fallback texte libre
                 Show.category.ilike('%enfant%'),
                 Show.category.ilike('%jeune public%'),
@@ -6285,6 +6366,7 @@ Accessibilité: {accessibilite}
                 Show.specialites.ilike('%Conte%'),
                 Show.specialites.ilike('%Marionnettes%'),
                 Show.specialites.ilike('%Clown%'),
+                Show.specialites.ilike('%goûter%'),
                 Show.age_range.in_(['enfant', 'enfant_2_6', 'enfant_5_10', 'enfants_2_10', 'familial']),
                 # Fallback texte libre
                 Show.category.ilike('%animation%'),
@@ -7074,6 +7156,19 @@ Accessibilité: {accessibilite}
         )
         return render_template("mes_demandes.html", user=user, demandes=demandes)
 
+    @app.route("/mon-appel-doffre/<token>")
+    def mon_appel_offre(token):
+        """Consultation de son propre appel d'offre via le lien reçu par e-mail (sans compte).
+        Non indexable : le jeton donne accès aux coordonnées du demandeur."""
+        from models.models import DemandeAnimation
+        demande = DemandeAnimation.query.filter_by(access_token=token).first()
+        if demande is None or not demande.approved or demande.is_private:
+            abort(404)
+        response = current_app.make_response(render_template("mon_appel_offre.html", demande=demande))
+        response.headers["X-Robots-Tag"] = "noindex, nofollow"
+        response.headers["Cache-Control"] = "private, no-store"
+        return response
+
     def _get_my_demande_or_403(demande_id):
         """Récupère une demande et vérifie que le user connecté en est propriétaire (ou admin)."""
         from models.models import DemandeAnimation
@@ -7102,6 +7197,18 @@ Accessibilité: {accessibilite}
             return redirect(url_for("mes_demandes"))
 
         if request.method == "POST":
+            # Une demande porte sur un seul secteur : spectacle OU animation
+            if sector_of(request.form.getlist("specialites_recherchees")) == "mixte":
+                flash(MSG_DEMANDE_MIXTE, "danger")
+                return render_template(
+                    "demande_animation.html",
+                    demande=demande,
+                    user=current_user(),
+                    specialites_data=SPECIALITES,
+                    evenements_data=EVENEMENTS,
+                    lieux_data=LIEUX_ORGANISATEUR,
+                    form_action=url_for("edit_ma_demande", demande_id=demande.id),
+                ), 400
             demande.structure = request.form.get("structure", demande.structure)
             demande.telephone = request.form.get("telephone", demande.telephone)
             demande.lieu_ville = fix_mojibake(request.form.get("lieu_ville", demande.lieu_ville))
@@ -7319,6 +7426,7 @@ Accessibilité: {accessibilite}
 
         # Approuver la demande
         demande.approved = True
+        demande.ensure_access_token()
         db.session.commit()
 
         admin_email = "contact@spectacleanimation.fr"
@@ -7388,10 +7496,11 @@ Accessibilité: {accessibilite}
         </div>
 
         <p style="text-align: center;">
-            <a href="https://www.spectacleanimation.fr/demandes-animation" class="btn" style="display:inline-block;padding:14px 28px;background:#1b5e20;color:white;text-decoration:none;border-radius:8px;font-weight:700;font-size:1rem;">Voir mon appel d'offre publié</a>
+            <a href="https://www.spectacleanimation.fr/mon-appel-doffre/{demande.access_token}" class="btn" style="display:inline-block;padding:14px 28px;background:#1b5e20;color:white;text-decoration:none;border-radius:8px;font-weight:700;font-size:1rem;">Voir mon appel d'offre publié</a>
         </p>
 
         <p>Les compagnies de spectacle correspondant à votre recherche vont pouvoir consulter votre demande et vous contacter directement à l'adresse <strong>{demande.contact_email}</strong>.</p>
+        <p>Conservez ce lien : il vous permet de retrouver votre appel d'offre à tout moment, sans compte.</p>
 
         <div class="footer">
             <p><strong>L'équipe Spectacle'ment Vôtre</strong><br>

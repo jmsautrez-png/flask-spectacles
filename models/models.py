@@ -1,4 +1,5 @@
 # models/models.py
+import secrets
 from datetime import datetime
 from werkzeug.security import generate_password_hash, check_password_hash
 from . import db
@@ -39,6 +40,7 @@ class DemandeAnimation(db.Model):
 
     # ── Matching : axes de correspondance (CSV) ──
     consultations_count = db.Column(db.Integer, nullable=False, default=0, server_default="0")
+    access_token = db.Column(db.String(64), nullable=True)  # Lien privé du demandeur (consultation sans compte)
     specialites_recherchees = db.Column(db.Text, nullable=True)  # "Clown,Magie et Magicien"
     evenements_contexte = db.Column(db.Text, nullable=True)       # "Fête de village / Fête locale"
     lieux_souhaites = db.Column(db.Text, nullable=True)           # "Salle des fêtes,Parc / Jardin public"
@@ -65,6 +67,11 @@ class DemandeAnimation(db.Model):
         if not self.created_at:
             return False
         return (datetime.utcnow() - self.created_at).days >= self.DESACTIVATION_JOURS
+
+    def ensure_access_token(self) -> str:
+        if not self.access_token:
+            self.access_token = secrets.token_urlsafe(32)
+        return self.access_token
 
 
 # Comptes créés à partir de cette date (UTC) = soumis au modèle payant (abonnement pour consulter les appels d'offres).

@@ -108,7 +108,7 @@
 <div class="cards">
   {% for show in shows %}
   <article class="card">
-    <a href="{{ url_for('demande_animation') }}" class="media-link">
+    <a href="{{ url_for('demande_animation', secteur='animation') }}" class="media-link">
       <div class="media">
         {% set images = show.get_all_images() %}
         {% if images|length > 1 %}
@@ -159,7 +159,7 @@
 {% else %}
 <div style="padding:24px; background:#f8f9fa; border-radius:8px; text-align:center;">
   <p style="margin:0; font-size:16px;">Aucune animation pour anniversaires n'est disponible pour le moment.</p>
-  <p style="margin:12px 0 0 0;">N'hésitez pas à <a href="{{ url_for('demande_animation') }}" style="color:var(--primary); font-weight:600;">nous contacter</a> pour vos besoins spécifiques ou consultez nos <a href="{{ url_for('home') }}" style="color:var(--primary); font-weight:600;">autres spectacles</a>.</p>
+  <p style="margin:12px 0 0 0;">N'hésitez pas à <a href="{{ url_for('demande_animation', secteur='animation') }}" style="color:var(--primary); font-weight:600;">nous contacter</a> pour vos besoins spécifiques ou consultez nos <a href="{{ url_for('home') }}" style="color:var(--primary); font-weight:600;">autres spectacles</a>.</p>
 </div>
 
 {% endif %}

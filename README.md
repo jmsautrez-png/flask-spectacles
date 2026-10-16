@@ -31,6 +31,9 @@ S3_BUCKET="votre-bucket"
 S3_KEY="AKIA..."
 S3_SECRET="votre-secret"
 S3_REGION="eu-west-1"
+
+# Animations : interrupteur de secours (0 = masquer l'accordéon « Animations » aux demandeurs ; défaut 1 = ouvert)
+ANIMATIONS_OUVERT_DEMANDEURS="1"
 ```
 
 ## 🏃 Lancer en Développement
@@ -68,6 +71,18 @@ python list_tables.py
 python migrate_add_photos.py
 python migrate_all.py
 ```
+
+### Tests
+
+```bash
+python -m pytest tests
+```
+
+La suite tourne sur SQLite en mémoire et n'envoie **jamais de vrai e-mail**, même si le `.env`
+local contient les identifiants SMTP : `tests/conftest.py` désactive l'envoi de Flask-Mail et
+refuse toute connexion SMTP directe (contrôlé par `tests/test_no_real_mail.py`). Un test qui
+vérifie un envoi remplace `app.mail` par un faux (voir `FakeMail` dans
+`tests/test_offre_delivery.py`).
 
 ## 📁 Structure Projet
 
@@ -157,6 +172,72 @@ et `ADMINISTRATION_PONCTUELLE`.
   sans anciens tarifs ni activation automatique.
   Un encart discret présente cette option entre les tarifs de secrétariat
   et le volet appels d'offres.
+
+### Secteurs Spectacles et Animations
+- Les spécialités sont réparties en deux secteurs, chacun avec son accordéon :
+  **Spectacles** (`SPECIALITES` dans `constants.py` : spectacles, théâtre, danse,
+  musique) et **Animations** (`ANIMATIONS` : ateliers, stands, personnages, Père Noël,
+  seniors et EHPAD…, budgets bas). Les cases des deux secteurs sont enregistrées dans
+  les mêmes champs (`Show.specialites`, `DemandeAnimation.specialites_recherchees`) :
+  le matching, le catalogue et les pages thématiques travaillent sur l'union des deux
+  listes.
+- Ajouter une spécialité : une ligne dans le bon dossier de `constants.py`. Un nom de
+  case n'existe qu'une fois (tous secteurs confondus), sans virgule (les valeurs sont
+  enregistrées en liste séparée par des virgules), et ne se renomme pas une fois
+  utilisé, car c'est la valeur enregistrée ; le nom d'un dossier, lui, n'est pas
+  enregistré. `tests/test_animations.py` contrôle l'unicité et l'absence de virgule.
+  Les pages thématiques filtrent aussi sur des mots du nom de la case ou de la
+  catégorie (première case cochée) : voir `spectacles_enfants` et `animations_enfants`
+  dans `app.py` avant d'ajouter ou de renommer un nom de case.
+- Règles optionnelles par case : saison de Noël (`_NOEL_SPECS` dans
+  `utils/matching.py`), exclusivité (`MATCHING_SOLO` dans `_accordion_checkboxes.html`),
+  mention de prix côté demandeurs (`ANIMATIONS_MENTIONS_PRIX`), page thématique
+  (`utils/seo.py`).
+- Budget de la demande : avec le secteur « animation », la liste ajoute les tarifs bas
+  (`BUDGETS_ANIMATION`) aux tarifs habituels à partir de 730 € (`BUDGETS_SPECTACLE`),
+  tant que toutes les cases cochées sont des dossiers « petit budget »
+  (`ANIMATIONS_DOSSIERS_PETIT_BUDGET`) ; avec le secteur « spectacle », seuls les tarifs
+  habituels sont proposés. Un futur dossier d'animations plus chères se crée sans
+  figurer dans cette liste.
+- Une demande = un secteur (formulaire public `/demande_animation` et modification par le
+  demandeur) : deux cartes en haut du formulaire, « Un spectacle » ou « Une animation ».
+  Seul l'accordéon du secteur choisi est affiché, avec son budget ; changer de carte
+  décoche les cases de l'autre secteur. Le secteur n'est pas enregistré : il se déduit des
+  cases cochées (`sector_of` dans `utils/animations.py`), donc aucun changement en base. Le
+  serveur refuse une demande qui mélange les deux secteurs (message + code 400). Le
+  formulaire admin « créer une demande » et la modification par l'admin restent libres
+  (une ancienne demande mixte s'ouvre sans cartes, avec les deux accordéons).
+- Lien `?secteur=animation` (ou `spectacle`) : ouvre le formulaire avec la carte déjà
+  choisie ; utilisé par les pages Anniversaire et Père Noël à domicile.
+- « Faire aussi l'autre demande » : après l'envoi, la page de confirmation propose une
+  seconde demande dans l'autre secteur (`/demande/proposition-compte` pour un visiteur,
+  `/demande/envoyee` pour un compte connecté). Le lien `?reprise=1` reprend le contact, le
+  lieu, les dates, la jauge, le public et l'accessibilité de la dernière demande envoyée
+  dans cette session du navigateur (`session["derniere_demande_id"]`), jamais ceux d'un
+  autre visiteur ; les cases, le budget, l'intitulé et les contraintes restent vides.
+- Côté compagnies, même règle : une fiche = un secteur (publication `/submit` et
+  modification `/my/shows/<id>/edit`). Une fiche n'a qu'un seul prix « à partir de » et une
+  seule vitrine (titre, description, photos) : deux cartes placées juste avant les accordéons
+  de spécialités (après les photos), un seul accordéon affiché, changer de carte décoche
+  l'autre secteur, et l'exemple du champ prix (sous les accordéons de spécialités, sur le
+  formulaire de publication) s'adapte (800 pour un spectacle, 250 pour une
+  animation). Le serveur refuse une fiche
+  mixte (publication et modification par la compagnie) ; l'admin reste libre, et une ancienne
+  fiche mixte s'ouvre sans cartes, avec les deux accordéons. Aucun changement en base.
+  Une compagnie qui fait les deux crée deux fiches.
+- « Créer aussi l'autre fiche » : après la publication, et sur chaque fiche du tableau de
+  bord, un bouton ouvre `/submit?secteur=<autre>&reprise=<id de la fiche>`. Il reprend la
+  raison sociale, le contact, la localisation, les régions et lieux d'intervention et le
+  public ; le titre, la description, les photos, le prix, les spécialités et les
+  intervenants restent à saisir. La reprise n'est possible que pour le propriétaire de la
+  fiche (ou l'admin) ; sinon le paramètre est ignoré.
+- Ouverture : l'accordéon Animations est visible pour tout le monde : artistes
+  (publication et modification de fiche), demandeurs (formulaire de demande, filtre du
+  catalogue) et admin. Interrupteur de secours : `ANIMATIONS_OUVERT_DEMANDEURS=0` (variable
+  d'environnement, par exemple dans Render) le masque aux demandeurs : le formulaire de
+  demande revient alors à l'accordéon Spectacles seul, sans cartes ; il reste visible
+  pour les artistes et l'admin. Une demande déjà enregistrée avec des cases d'animation
+  garde le bloc visible quand on la modifie.
 
 ### Matching du public ciblé
 - Les fiches et les demandes permettent de cocher plusieurs âges.
