@@ -66,6 +66,9 @@ SPECIALITES = {
         "Cirque nouveau",
         "Cracheur de feu",
         "Spectacle de feu",
+        # Sport / Catch
+        "Show de catch",
+        "Spectacle sportif",
         # Noël
         "Spectacle thématique de Noël",
     ],
