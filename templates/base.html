@@ -246,6 +246,31 @@
       border: 2px solid rgba(255, 255, 255, 0.3);
     }
     
+    /* Deux actions principales : demandeur (doré) et artiste (bordeaux, liseré doré) */
+    .hamburger-menu a.menu-demande {
+      background: linear-gradient(135deg, #ffd54f, #ffc107);
+      border: 2px solid rgba(255, 255, 255, 0.3);
+      color: #3b1f00;
+    }
+
+    .hamburger-menu a.menu-demande:hover {
+      background: linear-gradient(135deg, #ffe082, #ffca28);
+      transform: scale(1.03);
+      box-shadow: 0 4px 15px rgba(255, 193, 7, 0.5);
+      color: #2a1500;
+    }
+
+    .hamburger-menu a.menu-publier {
+      background: linear-gradient(135deg, #c62828, #8b1e1e);
+      border: 2px solid rgba(255, 193, 7, 0.6);
+    }
+
+    .hamburger-menu a.menu-publier:hover {
+      background: linear-gradient(135deg, #d32f2f, #a32424);
+      transform: scale(1.03);
+      box-shadow: 0 4px 15px rgba(198, 40, 40, 0.5);
+    }
+
     .hamburger-menu a.menu-catalogue {
       background: linear-gradient(135deg, #ff5722, #ff9800);
       border: 2px solid rgba(255, 255, 255, 0.3);
@@ -1283,6 +1308,8 @@
     <span class="locked-link menu-mes-appels" data-tooltip="🔒 Publiez et faites valider un spectacle pour accéder à vos appels d'offres">🔒 Mes appels d'offres</span>
     {% endif %}
     {% endif %}
+    <a href="{{ url_for('demande_animation') }}" class="menu-demande">Déposer une demande de spectacle</a>
+    <a href="{{ url_for('submit_show') }}" class="menu-publier">Publier mon spectacle</a>
     <a href="{{ url_for('catalogue') }}" class="menu-catalogue">Catalogue</a>
     <a href="{{ url_for('evenements') }}" class="menu-evenements">🎪 Événements</a>
     {% if user_edition_libre_only %}
