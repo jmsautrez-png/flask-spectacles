@@ -59,6 +59,8 @@ class TestStaticPages:
     def test_legal_page(self, client):
         resp = client.get("/informations-legales")
         assert resp.status_code == 200
+        assert b'href="/contact" class="menu-contact">Contact</a>' in resp.data
+        assert b'href="mailto:contact@spectacleanimation.fr"' not in resp.data
 
     def test_abonnement_page(self, client):
         resp = client.get("/abonnement-compagnie")
