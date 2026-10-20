@@ -296,6 +296,20 @@ def test_editing_a_request_keeps_a_saved_budget_that_is_no_longer_proposed(admin
     assert selected == [LEGACY_BUDGET]
 
 
+def test_request_edit_form_shows_low_budget_note_next_to_home_birthday_show(admin_client):
+    demande = make_demande(specialites_recherchees=DOMICILE_ENFANT)
+    html = admin_client.get(f"/demandes-animation/edit/{demande.id}").get_data(as_text=True)
+    page = Page(html)
+    checked = [b["value"] for b in page.boxes if b.get("name") == "specialites_recherchees" and "checked" in b]
+    assert checked == [DOMICILE_ENFANT]
+    assert "· spectacle ou animation petit budget" in html
+
+
+def test_publish_form_has_no_requester_price_note(logged_in_client):
+    html = logged_in_client.get("/submit").get_data(as_text=True)
+    assert "spectacle ou animation petit budget" not in html
+
+
 def test_admin_creation_form_offers_animations_and_keeps_its_own_budgets(admin_client):
     html = admin_client.get("/admin/demande-animation/new").get_data(as_text=True)
     page = Page(html)
