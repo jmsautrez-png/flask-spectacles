@@ -234,6 +234,7 @@ ANIMATIONS = {
         "Close-up",
         "Sosie",
         "Ventriloque",
+        "Spectacle ou animation petit budget",
     ],
     # Public seniors : budgets bas, artistes de proximité (accordéon, tour de chant, petits groupes…)
     "Seniors et EHPAD": [
@@ -264,9 +265,7 @@ ANIMATIONS_DOSSIERS_PETIT_BUDGET = (
 # Mentions de prix affichées à côté d'une case, côté demandeurs uniquement. C'est un texte
 # d'affichage : le nom de la case (valeur enregistrée) reste inchangé. Indicatif : chaque
 # artiste fixe son tarif.
-ANIMATIONS_MENTIONS_PRIX = {
-    "Spectacle à domicile (goûter d'anniversaire)": "spectacle ou animation petit budget",
-}
+ANIMATIONS_MENTIONS_PRIX = {}
 
 # Liste de budgets du formulaire de demande. Le calcul de compatibilité (utils/matching.py,
 # _parse_budget) lit ces textes : garder la forme « X à Y € », « Moins de X € », « Plus de X € ».

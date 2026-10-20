@@ -27,6 +27,7 @@ LEGACY_BUDGET = "À partir de 300 € — Ateliers divers, maquillage, ballons, 
 
 DOMICILE_ENFANT = "Spectacle à domicile (goûter d'anniversaire)"
 DOMICILE_ADULTE = "Spectacle à domicile pour adulte (anniversaire etc.)"
+PETIT_BUDGET = "Spectacle ou animation petit budget"
 
 MOVED = [
     "Passage du Père Noël",
@@ -128,7 +129,7 @@ def test_sector_sizes_and_folder_names():
     assert "Spectacle et Animation" not in SPECIALITES
     assert len(SPECIALITES["Spectacles"]) == 43
     assert len(flat(SPECIALITES)) == 128
-    assert len(flat(ANIMATIONS)) == 26
+    assert len(flat(ANIMATIONS)) == 27
     assert len(ANIMATIONS) == 7
 
 
@@ -228,8 +229,9 @@ def test_publish_form_offers_both_accordions_with_each_name_once(logged_in_clien
     page = Page(logged_in_client.get("/submit").get_data(as_text=True))
     values = page.values("specialites")
     assert page.sections.count("specialites") == 1 and page.sections.count("animations") == 1
-    assert len(values) == len(set(values)) == 154
+    assert len(values) == len(set(values)) == 155
     assert set(MOVED + NEW_SENIORS) <= set(values)
+    assert PETIT_BUDGET in values
 
 
 def test_edit_form_prechecks_animation_names(logged_in_client, normal_user):
@@ -296,18 +298,25 @@ def test_editing_a_request_keeps_a_saved_budget_that_is_no_longer_proposed(admin
     assert selected == [LEGACY_BUDGET]
 
 
-def test_request_edit_form_shows_low_budget_note_next_to_home_birthday_show(admin_client):
-    demande = make_demande(specialites_recherchees=DOMICILE_ENFANT)
+def test_request_edit_form_offers_the_generic_low_budget_case_as_a_checkbox(admin_client):
+    demande = make_demande(specialites_recherchees=PETIT_BUDGET)
     html = admin_client.get(f"/demandes-animation/edit/{demande.id}").get_data(as_text=True)
-    page = Page(html)
-    checked = [b["value"] for b in page.boxes if b.get("name") == "specialites_recherchees" and "checked" in b]
-    assert checked == [DOMICILE_ENFANT]
-    assert "· spectacle ou animation petit budget" in html
+    boxes = [b for b in Page(html).boxes
+             if b.get("name") == "specialites_recherchees" and b["value"] == PETIT_BUDGET]
+    assert len(boxes) == 1
+    assert "checked" in boxes[0]
+    assert boxes[0].get("data-petit-budget") == "1"
 
 
-def test_publish_form_has_no_requester_price_note(logged_in_client):
-    html = logged_in_client.get("/submit").get_data(as_text=True)
-    assert "spectacle ou animation petit budget" not in html
+def test_generic_low_budget_case_ends_the_spectacles_d_animation_folder():
+    assert ANIMATIONS["Spectacles d'animation"][-1] == PETIT_BUDGET
+    assert PETIT_BUDGET in ANIMATIONS_LABELS
+    assert PETIT_BUDGET not in flat(SPECIALITES)
+
+
+def test_generic_low_budget_case_is_used_by_the_matching():
+    score = matching.compute_score(_show(PETIT_BUDGET), _demande(PETIT_BUDGET, "15/07/2027"))
+    assert score["specialites"] > 0
 
 
 def test_admin_creation_form_offers_animations_and_keeps_its_own_budgets(admin_client):
