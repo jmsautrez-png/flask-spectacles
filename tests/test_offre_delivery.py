@@ -88,7 +88,7 @@ def test_public_offer_cta_price_preserves_destination(client, offer_setup, viewe
     assert response.status_code == 200
     html = response.get_data(as_text=True)
     emoji = "🔓" if viewer == "needs-subscription" else "🔒"
-    label = f"{emoji} Appels d'offres illimités : 49 € TTC la première année, puis 99 €/an (Appels d'offres réels et vérifiables)"
+    label = f"{emoji} Appels d'offres illimités : 49 € TTC la première année, puis 99 €/an (Plus de 600 appels d'offres réels et vérifiables par an)"
 
     class PriceLinks(HTMLParser):
         def __init__(self):
