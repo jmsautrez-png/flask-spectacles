@@ -88,21 +88,31 @@ def test_public_offer_cta_price_preserves_destination(client, offer_setup, viewe
     assert response.status_code == 200
     html = response.get_data(as_text=True)
     emoji = "🔓" if viewer == "needs-subscription" else "🔒"
-    label = f"{emoji} Appels d'offres illimités : 49 € TTC la première année, puis 99 €/an"
+    label = f"{emoji} Appels d'offres illimités : 49 € TTC la première année, puis 99 €/an (Appels d'offres réels et vérifiables)"
 
     class PriceLinks(HTMLParser):
         def __init__(self):
             super().__init__()
             self.href = None
+            self.text = None
             self.matches = []
 
         def handle_starttag(self, tag, attrs):
             if tag == "a":
                 self.href = dict(attrs).get("href")
+                self.text = ""
+            elif tag == "br" and self.text is not None:
+                self.text += " "
 
         def handle_data(self, data):
-            if data == label:
-                self.matches.append(self.href)
+            if self.text is not None:
+                self.text += data
+
+        def handle_endtag(self, tag):
+            if tag == "a" and self.text is not None:
+                if " ".join(self.text.split()) == label:
+                    self.matches.append(self.href)
+                self.text = None
 
     links = PriceLinks()
     links.feed(html)
