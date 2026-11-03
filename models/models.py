@@ -505,6 +505,22 @@ class Adhesion(db.Model):
         }.get(self.statut, self.statut)
 
 
+class InactiveAccountPurgeNotice(db.Model):
+    """Audit record for the one-time 48-hour inactive-account purge."""
+
+    __tablename__ = "inactive_account_purge_notices"
+
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, nullable=False, unique=True, index=True)
+    email = db.Column(db.String(255), nullable=True)
+    notified_at = db.Column(db.DateTime, nullable=False)
+    delete_after = db.Column(db.DateTime, nullable=False, index=True)
+    status = db.Column(db.String(20), nullable=False, default="pending", index=True)
+    completed_at = db.Column(db.DateTime, nullable=True)
+    attempts = db.Column(db.Integer, nullable=False, default=0)
+    last_error = db.Column(db.Text, nullable=True)
+
+
 # ─────────────────────────────────────────────────────────────
 # Auto-géocodage : populate latitude/longitude depuis code_postal au save.
 # Évite les 150+ appels API HTTP au chargement de /admin/envoyer-demande.

@@ -53,6 +53,22 @@ services:
       - key: SECRET_KEY
         sync: false
 
+  # Supprime uniquement les comptes du lot revu, après leur préavis de 48 h.
+  # La ressource cron peut devoir être créée manuellement dans le dashboard Render.
+  - type: cron
+    name: purge-notified-inactive-accounts
+    env: python
+    schedule: "0 * * * *"  # vérifie chaque heure les échéances arrivées
+    buildCommand: "pip install -r requirements.txt"
+    startCommand: "python purge_notified_inactive_accounts.py --process-due --confirm-delete"
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: flask-spectacles-db
+          property: connectionString
+      - key: SECRET_KEY
+        sync: false
+
 databases:
   - name: flask-spectacles-db
     databaseName: flask_spectacles

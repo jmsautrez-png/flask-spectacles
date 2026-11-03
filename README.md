@@ -61,6 +61,13 @@ Voir le guide complet : **[GUIDE_DEPLOIEMENT_RENDER.md](GUIDE_DEPLOIEMENT_RENDER
 # Vérifier environnement production
 python check_production.py
 
+# Préavis ciblé de 48 h (dry-run par défaut)
+python purge_notified_inactive_accounts.py --send-notices
+# Après vérification, envoyer les avis et enregistrer les échéances
+python purge_notified_inactive_accounts.py --send-notices --confirm-notices
+# Annuler un préavis si l'admin décide de conserver le compte
+python purge_notified_inactive_accounts.py --cancel-notice USER_ID --confirm-cancel
+
 # Initialiser base de données
 python init_db.py
 
@@ -71,6 +78,10 @@ python list_tables.py
 python migrate_add_photos.py
 python migrate_all.py
 ```
+
+Le cron Render `purge-notified-inactive-accounts` vérifie ensuite chaque heure les échéances
+et supprime uniquement les comptes du lot explicitement défini dans le script. Il recontrôle
+avant suppression qu'aucun spectacle ou aucune demande d'animation n'est associé au compte.
 
 ### Tests
 
