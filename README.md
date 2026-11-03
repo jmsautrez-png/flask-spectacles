@@ -79,9 +79,52 @@ python migrate_add_photos.py
 python migrate_all.py
 ```
 
-Le cron Render `purge-notified-inactive-accounts` vérifie ensuite chaque heure les échéances
-et supprime uniquement les comptes du lot explicitement défini dans le script. Il recontrôle
-avant suppression qu'aucun spectacle ou aucune demande d'animation n'est associé au compte.
+### Nettoyage mensuel avec préavis de 48 heures
+
+Le cron `purge-notified-inactive-accounts` tourne chaque heure (`0 * * * *`, UTC).
+Le **5 de chaque mois**, il sélectionne les comptes sans aucun spectacle et envoie les
+nouveaux préavis. Il conserve les admins, les organisateurs, les comptes liés à une demande
+d'animation (par ID ou email), les sept comptes sans spectacle les plus récemment inscrits
+et les comptes explicitement protégés lors du premier lot. Les spectacles non approuvés
+protègent aussi le compte. Les préavis standard déjà en cours sont exclus.
+
+Chaque heure, il traite les échéances passées, jamais avant **48 heures complètes après
+l'acceptation SMTP**, et recontrôle toutes ces protections. Les 24 avis du premier lot
+restent valables et ne sont pas renvoyés. Un avis annulé manuellement n'est jamais réémis
+par le cycle mensuel. Les échecs SMTP sont signalés et peuvent être retentés le 5 ;
+un envoi dont la confirmation en base a échoué reste `sending`, sans suppression ni
+renvoi automatique : il faut vérifier cet incident manuellement.
+
+**Le push Git seul n'active pas nécessairement le cron dans Render.** Après déploiement :
+
+1. Depuis le Shell du **service Web réel**, enregistrer l'identité non secrète de sa base :
+   `python purge_notified_inactive_accounts.py --register-database`.
+   Vérifier les compteurs d'utilisateurs et de préavis affichés.
+2. Créer/configurer le cron sur la même branche déployée, avec **la même base `DATABASE_URL`
+   que le service Web**, son `SECRET_KEY` et sa configuration `MAIL_*`. Ne pas déduire
+   la bonne base de son seul nom : un ancien environnement peut porter le même nom.
+3. Renseigner `PURGE_EXPECTED_DATABASE_ID` sur le cron avec l'identité retournée à l'étape 1.
+   Ce marqueur n'est pas un mot de passe ; ne jamais publier `DATABASE_URL` ou les secrets mail.
+4. Commande de construction : `pip install -r requirements.txt`.
+   Planning : `0 * * * *`.
+   Commande active :
+   `python purge_notified_inactive_accounts.py --automatic --confirm-notices --confirm-delete`.
+5. Pour vérifier le branchement sans envoyer ni supprimer, lancer temporairement
+   `python purge_notified_inactive_accounts.py --automatic` via **Trigger Run** :
+   les logs doivent afficher `Base vérifiée` avec la même identité et les bons compteurs.
+   Rétablir ensuite la commande active et vérifier la prochaine exécution réussie.
+
+Si l'identité ne correspond pas, le cron s'arrête en erreur avant tout envoi ou suppression.
+Un verrou PostgreSQL empêche deux cycles automatiques de traiter le lot simultanément.
+La maintenance web historique n'interfère pas avec les avis `sending` ou `pending`.
+
+Commandes de diagnostic (lecture seule) :
+
+```bash
+python purge_notified_inactive_accounts.py --database-status
+python purge_notified_inactive_accounts.py --monthly-notices
+python purge_notified_inactive_accounts.py --process-due
+```
 
 ### Tests
 

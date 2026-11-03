@@ -1,11 +1,10 @@
-"""Send a 48-hour warning and safely purge the explicitly reviewed account batch.
-
-The notification and deletion modes are dry-runs by default. The delete mode is
-limited to the fixed, reviewed account IDs and rechecks every exclusion at run time.
-"""
+"""Monthly 48-hour notices and deletion after rechecking account eligibility."""
 import argparse
-from datetime import datetime, timedelta
+import os
+from contextlib import contextmanager
+from datetime import datetime, timedelta, timezone
 from html import escape
+from uuid import uuid4
 
 from sqlalchemy import func, or_
 
@@ -13,6 +12,7 @@ from app import app, db, notify_admin_show_deletion
 from models.models import (
     Adhesion,
     DemandeAnimation,
+    InactiveAccountPurgeDatabase,
     InactiveAccountPurgeNotice,
     User,
     VisitorLog,
@@ -31,6 +31,47 @@ TARGET_USER_IDS = (
 )
 PROTECTED_USER_IDS = frozenset({1, 489, 488, 487, 486, 483, 482, 481})
 NOTICE_DURATION = timedelta(hours=48)
+
+
+def _utcnow():
+    return datetime.now(timezone.utc).replace(tzinfo=None)
+
+
+def _latest_ids():
+    return {
+        user.id for user in User.query.filter(~User.shows.any()).order_by(
+            User.created_at.desc(), User.id.desc()
+        ).limit(7).all()
+    }
+
+
+def database_status(register=False):
+    with app.app_context():
+        marker = db.session.get(InactiveAccountPurgeDatabase, 1)
+        if marker is None and register:
+            marker = InactiveAccountPurgeDatabase(id=1, identity=str(uuid4()))
+            db.session.add(marker)
+            db.session.commit()
+        print(f"Utilisateurs : {User.query.count()}")
+        print(f"Préavis en attente : {InactiveAccountPurgeNotice.query.filter_by(status='pending').count()}")
+        print(f"Identité de base : {marker.identity if marker else '(non enregistrée)'}")
+        if register:
+            print("Aucun email envoyé, aucun compte supprimé.")
+        return 0
+
+
+@contextmanager
+def _automatic_lock():
+    """Keep a dedicated PostgreSQL session lock across per-account commits."""
+    with db.engine.connect() as connection:
+        acquired = connection.execute(
+            db.text("SELECT pg_try_advisory_lock(785041925)")
+        ).scalar_one()
+        try:
+            yield acquired
+        finally:
+            if acquired:
+                connection.execute(db.text("SELECT pg_advisory_unlock(785041925)"))
 
 
 def _normalized_email(email):
@@ -81,6 +122,8 @@ def _validate_targets():
             errors.append(f"ID {user.id} fait partie des comptes à préserver.")
         if user.is_admin:
             errors.append(f"ID {user.id} est administrateur.")
+        if user.is_organisateur:
+            errors.append(f"ID {user.id} est organisateur.")
         if user.shows:
             errors.append(f"ID {user.id} possède maintenant au moins un spectacle.")
         if user.id in requester_ids:
@@ -104,8 +147,8 @@ def _notice_message(username, deadline):
   <div style="max-width:600px;margin:0 auto;background:#fff;border-radius:10px;padding:28px;color:#333;line-height:1.6;">
     <h2>Préavis concernant votre compte Spectacle'ment VØtre</h2>
     <p>Bonjour <strong>{safe_username}</strong>,</p>
-    <p>Votre compte ne comporte actuellement aucun spectacle. Nous prévoyons sa suppression le
-       <strong>{deadline_text}</strong>, soit dans 48 heures.</p>
+    <p>Votre compte ne comporte actuellement aucun spectacle. Sa suppression est prévue
+       à partir du <strong>{deadline_text}</strong>, et jamais avant 48 heures après cet envoi.</p>
     <p>Pour conserver votre compte, publiez un spectacle ou contactez-nous avant cette échéance
        si ce compte est utilisé comme organisateur ou si vous avez besoin d'aide.</p>
     <p>Vous pouvez répondre à ce message ou écrire à contact@spectacleanimation.fr.</p>
@@ -120,9 +163,32 @@ def _notice_message(username, deadline):
     )
 
 
-def send_notices(confirm):
+def _monthly_targets():
+    protected = _latest_ids() | PROTECTED_USER_IDS
+    users = User.query.filter(
+        User.is_admin.is_(False),
+        User.is_organisateur.is_(False),
+        ~User.shows.any(),
+        User.created_at.isnot(None),
+        User.pending_deletion_at.is_(None),
+        ~User.id.in_(protected),
+    ).order_by(User.created_at.asc(), User.id.asc()).all()
+    requesters = _requester_ids(users) if users else set()
+    selected = []
+    for user in users:
+        notice = InactiveAccountPurgeNotice.query.filter_by(user_id=user.id).first()
+        if user.id in requesters:
+            continue
+        # A cancelled notice is an explicit protection, not a new monthly candidate.
+        if notice is not None and notice.status != "notice_failed":
+            continue
+        selected.append(user)
+    return selected
+
+
+def send_notices(confirm, monthly=False):
     with app.app_context():
-        users, errors = _validate_targets()
+        users, errors = (_monthly_targets(), []) if monthly else _validate_targets()
         if errors:
             print("ARRÊT : vérification des candidats échouée.")
             for error in errors:
@@ -131,7 +197,7 @@ def send_notices(confirm):
 
         print(f"Candidats vérifiés : {len(users)}")
         for user in users:
-            deadline = datetime.utcnow() + NOTICE_DURATION
+            deadline = _utcnow() + NOTICE_DURATION
             print(
                 f"{user.id} | {user.username} | {user.email} | "
                 f"échéance {deadline.strftime('%d/%m/%Y %H:%M UTC')}"
@@ -141,11 +207,16 @@ def send_notices(confirm):
             print("DRY-RUN : aucun email envoyé, aucun préavis enregistré.")
             return 0
 
+        if not users:
+            print("Aucun nouveau compte à prévenir.")
+            return 0
         if (
             MailMessage is None
             or not getattr(app, "mail", None)
             or not app.config.get("MAIL_USERNAME")
             or not app.config.get("MAIL_PASSWORD")
+            or app.config.get("MAIL_SUPPRESS_SEND")
+            or getattr(app.extensions.get("mail"), "suppress", False)
         ):
             print("ERREUR : configuration email absente; aucun avis envoyé.")
             return 1
@@ -153,25 +224,57 @@ def send_notices(confirm):
         sent = 0
         errors = 0
         for user in users:
+            user_id = user.id
+            notice_id = None
             try:
+                if not user.email or "@" not in user.email or any(c.isspace() for c in user.email):
+                    raise ValueError(f"Adresse email inexploitable pour l'ID {user_id}.")
+                notice = InactiveAccountPurgeNotice.query.filter_by(
+                    user_id=user_id
+                ).populate_existing().with_for_update().first()
+                if notice is not None and notice.status != "notice_failed":
+                    print(f"[IGNORÉ] ID {user_id} : préavis déjà traité ou en cours.")
+                    db.session.rollback()
+                    continue
+                started = _utcnow()
+                deadline = started + NOTICE_DURATION
+                if notice is None:
+                    notice = InactiveAccountPurgeNotice(
+                        user_id=user_id,
+                        email=user.email,
+                        notified_at=started,
+                        delete_after=deadline,
+                        status="sending",
+                    )
+                    db.session.add(notice)
+                else:
+                    notice.status = "sending"
+                    notice.email = user.email
+                db.session.commit()
+                notice_id = notice.id
                 message = _notice_message(user.username, deadline)
                 message.recipients = [user.email]
-                app.mail.send(message)
-                notice = InactiveAccountPurgeNotice(
-                    user_id=user.id,
-                    email=user.email,
-                    notified_at=datetime.utcnow(),
-                    delete_after=deadline,
-                    status="pending",
-                )
-                db.session.add(notice)
+                try:
+                    app.mail.send(message)
+                except Exception:
+                    notice.status = "notice_failed"
+                    db.session.commit()
+                    raise
+                notice.notified_at = _utcnow()
+                notice.delete_after = notice.notified_at + NOTICE_DURATION
+                notice.status = "pending"
+                notice.last_error = None
                 db.session.commit()
                 sent += 1
-                print(f"[OK] Préavis envoyé à l'ID {user.id} ({user.email}).")
+                print(f"[OK] Préavis envoyé à l'ID {user_id} ({user.email}).")
             except Exception as exc:
                 db.session.rollback()
                 errors += 1
-                print(f"[ERREUR] ID {user.id}, email/préavis non confirmé : {exc}")
+                if notice_id is not None:
+                    notice = db.session.get(InactiveAccountPurgeNotice, notice_id)
+                    notice.last_error = str(exc)
+                    db.session.commit()
+                print(f"[ERREUR] ID {user_id}, email/préavis non confirmé : {exc}")
 
         print(f"Préavis enregistrés : {sent}/{len(users)}; erreurs : {errors}.")
         return 1 if errors else 0
@@ -194,7 +297,7 @@ def _linked_demand_exists(user, notice):
 
 def process_due(confirm):
     with app.app_context():
-        now = datetime.utcnow()
+        now = _utcnow()
         notices = InactiveAccountPurgeNotice.query.filter(
             InactiveAccountPurgeNotice.status == "pending",
             InactiveAccountPurgeNotice.delete_after <= now,
@@ -212,14 +315,25 @@ def process_due(confirm):
         errors = 0
         deleted = 0
         for notice in notices:
+            notice_id = notice.id
+            user_id = notice.user_id
+            notice = InactiveAccountPurgeNotice.query.filter_by(
+                id=notice_id, status="pending"
+            ).populate_existing().with_for_update().first()
+            if notice is None:
+                continue
+            if notice.delete_after > now or notice.notified_at + NOTICE_DURATION > now:
+                print(f"[ATTENTE] ID {user_id} : délai complet de 48 heures non écoulé.")
+                db.session.rollback()
+                continue
             user = User.query.filter_by(id=notice.user_id).with_for_update().first()
             reason = None
-            if notice.user_id not in TARGET_USER_IDS:
-                reason = "ID hors du lot explicitement autorisé"
-            elif user is None:
+            if user is None:
                 reason = "compte déjà absent"
-            elif user.id in PROTECTED_USER_IDS or user.is_admin:
+            elif user.id in PROTECTED_USER_IDS or user.id in _latest_ids() or user.is_admin:
                 reason = "compte protégé ou administrateur"
+            elif user.is_organisateur:
+                reason = "compte organisateur"
             elif user.shows:
                 reason = "un spectacle est désormais associé au compte"
             elif _linked_demand_exists(user, notice):
@@ -255,8 +369,6 @@ def process_due(confirm):
                 except Exception as exc:
                     print(f"[ERREUR] Récapitulatif admin pour ID {notice.user_id} : {exc}")
             except Exception as exc:
-                notice_id = notice.id
-                user_id = notice.user_id
                 db.session.rollback()
                 errors += 1
                 retry_notice = db.session.get(
@@ -280,7 +392,7 @@ def cancel_notice(user_id, confirm):
         notice = InactiveAccountPurgeNotice.query.filter_by(
             user_id=user_id,
             status="pending",
-        ).first()
+        ).with_for_update().first()
         if notice is None:
             print(f"Aucun préavis en attente pour l'ID {user_id}.")
             return 1
@@ -292,12 +404,38 @@ def cancel_notice(user_id, confirm):
             return 0
 
         notice.status = "cancelled"
-        notice.completed_at = datetime.utcnow()
+        notice.completed_at = _utcnow()
         notice.last_error = "Préavis annulé manuellement."
         notice.email = None
         db.session.commit()
         print(f"Préavis annulé pour l'ID {user_id}.")
         return 0
+
+
+def run_automatic(confirm_notices=False, confirm_delete=False):
+    with app.app_context():
+        marker = db.session.get(InactiveAccountPurgeDatabase, 1)
+        expected = os.environ.get("PURGE_EXPECTED_DATABASE_ID", "")
+        if not expected or marker is None or marker.identity != expected:
+            print("ARRÊT : identité de base absente ou différente de PURGE_EXPECTED_DATABASE_ID.")
+            return 1
+        if db.engine.dialect.name != "postgresql":
+            print("ARRÊT : le cron automatique nécessite PostgreSQL.")
+            return 1
+        print(f"Base vérifiée : {marker.identity}")
+        print(f"Utilisateurs : {User.query.count()}")
+        print(f"Préavis en attente : {InactiveAccountPurgeNotice.query.filter_by(status='pending').count()}")
+        db.session.rollback()
+        with _automatic_lock() as acquired:
+            if not acquired:
+                print("Maintenance déjà en cours : aucun traitement concurrent.")
+                return 0
+            result = process_due(confirm_delete)
+            if _utcnow().day == 5:
+                result = max(result, send_notices(confirm_notices, monthly=True))
+            else:
+                print("Préavis mensuels : prochain passage le 5 (UTC).")
+            return result
 
 
 def main():
@@ -333,21 +471,33 @@ def main():
         action="store_true",
         help="Confirmer l'annulation du préavis sélectionné.",
     )
+    parser.add_argument("--monthly-notices", action="store_true",
+                        help="Sélectionner les nouveaux candidats mensuels (dry-run).")
+    parser.add_argument("--automatic", action="store_true",
+                        help="Traiter les échéances et envoyer les préavis le 5 (UTC).")
+    parser.add_argument("--database-status", action="store_true",
+                        help="Afficher l'identité non secrète de la base et les compteurs.")
+    parser.add_argument("--register-database", action="store_true",
+                        help="Enregistrer l'identité depuis le Shell du service Web.")
     args = parser.parse_args()
 
     selected_modes = sum((
         args.send_notices,
         args.process_due,
         args.cancel_notice is not None,
+        args.monthly_notices,
+        args.automatic,
+        args.database_status,
+        args.register_database,
     ))
     if selected_modes != 1:
         parser.error(
-            "Choisissez une seule action : --send-notices, --process-due ou --cancel-notice."
+            "Choisissez exactement une action."
         )
-    if args.confirm_notices and not args.send_notices:
-        parser.error("--confirm-notices nécessite --send-notices.")
-    if args.confirm_delete and not args.process_due:
-        parser.error("--confirm-delete nécessite --process-due.")
+    if args.confirm_notices and not (args.send_notices or args.monthly_notices or args.automatic):
+        parser.error("--confirm-notices nécessite une action d'envoi.")
+    if args.confirm_delete and not (args.process_due or args.automatic):
+        parser.error("--confirm-delete nécessite --process-due ou --automatic.")
     if args.confirm_cancel and args.cancel_notice is None:
         parser.error("--confirm-cancel nécessite --cancel-notice.")
 
@@ -355,6 +505,12 @@ def main():
         return send_notices(args.confirm_notices)
     if args.process_due:
         return process_due(args.confirm_delete)
+    if args.monthly_notices:
+        return send_notices(args.confirm_notices, monthly=True)
+    if args.automatic:
+        return run_automatic(args.confirm_notices, args.confirm_delete)
+    if args.database_status or args.register_database:
+        return database_status(args.register_database)
     return cancel_notice(args.cancel_notice, args.confirm_cancel)
 
 

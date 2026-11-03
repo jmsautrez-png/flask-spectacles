@@ -9192,7 +9192,14 @@ def _send_inactive_final_email(username: str, email: str) -> None:
 @admin_required
 def admin_run_inactive_users_maintenance():
     """Exécute manuellement le cycle auto en mode court (par lots) pour éviter les timeouts web."""
-    from models.models import ShowView, Review, Conversation, Message, Notification
+    from models.models import (
+        ShowView, Review, Conversation, Message, Notification,
+        InactiveAccountPurgeNotice,
+    )
+
+    separate_notices = db.session.query(InactiveAccountPurgeNotice.user_id).filter(
+        InactiveAccountPurgeNotice.status.in_(("sending", "pending")),
+    )
 
     if request.method == "GET":
         flash("Cette action doit être lancée depuis le bouton admin (POST).", "warning")
@@ -9218,6 +9225,7 @@ def admin_run_inactive_users_maintenance():
             User.is_admin.is_(False),
             User.pending_deletion_at.is_(None),
             User.created_at <= seuil_inscription,
+            ~User.id.in_(separate_notices),
         ).order_by(User.created_at.asc()).limit(max_flag).all()
 
         for u in candidates:
@@ -9236,6 +9244,7 @@ def admin_run_inactive_users_maintenance():
             User.is_admin.is_(False),
             User.pending_deletion_at.is_(None),
             User.created_at <= seuil_inscription,
+            ~User.id.in_(separate_notices),
         ).count()
     except Exception as e:
         db.session.rollback()
@@ -9248,6 +9257,7 @@ def admin_run_inactive_users_maintenance():
         User.pending_deletion_at.isnot(None),
         User.pending_deletion_at <= now,
         User.is_admin.is_(False),
+        ~User.id.in_(separate_notices),
     ).order_by(User.pending_deletion_at.asc()).limit(max_delete).all()
 
     for u in due_users:
@@ -9316,6 +9326,7 @@ def admin_run_inactive_users_maintenance():
         User.pending_deletion_at.isnot(None),
         User.pending_deletion_at <= now,
         User.is_admin.is_(False),
+        ~User.id.in_(separate_notices),
     ).count()
 
     flash(

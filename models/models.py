@@ -506,7 +506,7 @@ class Adhesion(db.Model):
 
 
 class InactiveAccountPurgeNotice(db.Model):
-    """Audit record for the one-time 48-hour inactive-account purge."""
+    """Audit record for a 48-hour inactive-account notice."""
 
     __tablename__ = "inactive_account_purge_notices"
 
@@ -519,6 +519,15 @@ class InactiveAccountPurgeNotice(db.Model):
     completed_at = db.Column(db.DateTime, nullable=True)
     attempts = db.Column(db.Integer, nullable=False, default=0)
     last_error = db.Column(db.Text, nullable=True)
+
+
+class InactiveAccountPurgeDatabase(db.Model):
+    """Non-secret database identity checked by the maintenance cron."""
+
+    __tablename__ = "inactive_account_purge_database"
+
+    id = db.Column(db.Integer, primary_key=True)
+    identity = db.Column(db.String(36), nullable=False, unique=True)
 
 
 # ─────────────────────────────────────────────────────────────
