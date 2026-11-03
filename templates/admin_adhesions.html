@@ -152,6 +152,14 @@
                 <button type="submit" style="width:100%; background:#c62828; color:#fff; padding:5px 8px; border:none; border-radius:5px; font-weight:600; cursor:pointer; font-size:0.8rem;">🔴 Rejeter</button>
               </form>
               {% endif %}
+              {% if adh.can_delete %}
+              <form method="post" action="{{ url_for('admin_adhesion_delete', adhesion_id=adh.id) }}" style="margin:0;"
+                    onsubmit="return confirm('Supprimer définitivement cette demande d’adhésion ? Le compte utilisateur et ses spectacles seront conservés.');">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                <button type="submit" style="width:100%; background:#b71c1c; color:#fff; padding:5px 8px; border:none; border-radius:5px; font-weight:600; cursor:pointer; font-size:0.8rem;"
+                        title="Supprimer uniquement la demande interne, sans supprimer le compte">Supprimer la demande</button>
+              </form>
+              {% endif %}
               <details style="margin-top:2px;">
                 <summary style="cursor:pointer; font-size:0.75rem; color:#666;">📝 Notes</summary>
                 <form method="post" action="{{ url_for('admin_adhesion_notes', adhesion_id=adh.id) }}" style="margin-top:4px;">

@@ -10279,6 +10279,34 @@ def admin_adhesion_statut(adhesion_id):
     flash(f"Statut mis à jour : {adh.statut_label}", "success")
     return redirect(request.referrer or url_for("admin_adhesions"))
 
+@app.route("/admin/adhesions/<int:adhesion_id>/delete", methods=["POST"])
+@login_required
+@admin_required
+def admin_adhesion_delete(adhesion_id):
+    """Supprime uniquement une demande jamais activée et non facturée."""
+    adh = Adhesion.query.filter_by(id=adhesion_id).with_for_update().first_or_404()
+    if not adh.can_delete:
+        db.session.rollback()
+        flash("Suppression impossible : cette demande a été activée ou facturée.", "warning")
+        return redirect(url_for("admin_adhesions"))
+
+    try:
+        db.session.delete(adh)
+        db.session.commit()
+    except Exception:
+        db.session.rollback()
+        current_app.logger.exception("[ADHESION] Échec suppression demande %s", adhesion_id)
+        flash("Erreur lors de la suppression de la demande d'adhésion.", "danger")
+        return redirect(url_for("admin_adhesions"))
+
+    current_app.logger.info(
+        "[ADHESION] Demande %s supprimée par admin %s",
+        adhesion_id, current_user().id,
+    )
+    flash("Demande d'adhésion supprimée. Le compte utilisateur est conservé.", "success")
+    return redirect(url_for("admin_adhesions"))
+
+
 @app.route("/admin/adhesions/<int:adhesion_id>/notes", methods=["POST"])
 @login_required
 @admin_required

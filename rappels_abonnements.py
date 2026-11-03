@@ -34,7 +34,7 @@ IMPORTANT : pour cibler la base de PRODUCTION, positionner DATABASE_URL AVANT le
 import argparse
 from datetime import datetime, timedelta
 
-from app import app, db
+from app import app, db, ADHESION_TARIF_RENOUVELLEMENT
 from models.models import User
 
 try:
@@ -44,7 +44,7 @@ except Exception:
 
 
 PAYPAL_URL = "https://paypal.me/SpectaclementVotre"
-TARIF_RENOUVELLEMENT = 99  # €
+TARIF_RENOUVELLEMENT = ADHESION_TARIF_RENOUVELLEMENT
 WEBSITE_URL = "https://www.spectacleanimation.fr"
 
 

@@ -75,7 +75,7 @@ class DemandeAnimation(db.Model):
 
 
 # Comptes créés à partir de cette date (UTC) = soumis au modèle payant (abonnement pour consulter les appels d'offres).
-# Test lancement 13/09/2026 : 49 € TTC 1re année, puis 99 €/an. Activation manuelle (contact → PayPal → facture).
+# Tarifs actuels : 49 € TTC 1re année, puis 99 €/an. Activation manuelle (contact → PayPal → facture).
 # Reculée au 12/09 pour englober les 2 inscriptions du 12/09 soir (Saltimbanques, Stephax) dans le nouveau modèle.
 MODELE_PAYANT_DEBUT = datetime(2026, 9, 12)
 
@@ -494,6 +494,15 @@ class Adhesion(db.Model):
     contacted_at = db.Column(db.DateTime, nullable=True)
     activated_at = db.Column(db.DateTime, nullable=True)
     rejected_at = db.Column(db.DateTime, nullable=True)
+
+    @property
+    def can_delete(self) -> bool:
+        return (
+            self.statut in ("pending", "contacted", "rejected")
+            and self.activated_at is None
+            and self.invoice_number is None
+            and self.invoice_sent_at is None
+        )
 
     @property
     def statut_label(self) -> str:

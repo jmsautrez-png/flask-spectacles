@@ -57,6 +57,11 @@ Voir le guide complet : **[GUIDE_DEPLOIEMENT_RENDER.md](GUIDE_DEPLOIEMENT_RENDER
 
 ## 🛠️ Scripts Utiles
 
+Sur la page admin des adhésions AO, « Supprimer la demande » retire uniquement une
+demande jamais activée et sans facture émise. Une confirmation est requise ; le compte,
+ses spectacles et son abonnement ne sont pas modifiés. Les demandes facturées ou déjà
+activées restent conservées pour l'historique.
+
 ```bash
 # Vérifier environnement production
 python check_production.py
@@ -214,7 +219,7 @@ et `ADMINISTRATION_PONCTUELLE`.
   La présentation expose le secrétariat et ses six blocs de services
   sur deux colonnes (une sur mobile), puis les tarifs administratifs.
   L'abonnement appels d'offres possède sa page dédiée et son tarif reste inchangé :
-  49 € TTC la première année, puis 99 €/an.
+  49 € TTC la première année, puis 99 € TTC/an dès la deuxième année, renouvellements existants compris.
   Son bouton de découverte mène à `/demandes-animation`, accessible aux visiteurs
   et aux inscrits non abonnés, sans modifier les règles de masquage.
 - Les quatre tarifs administratifs sont présentés dans une grille équilibrée :
