@@ -21,9 +21,10 @@ MASQUER_COORDONNEES_DIRECTES = True
 # Utilisé sur : carte spectacle (compagnie) + appel d'offre (mairie)
 # ═══════════════════════════════════════════════════════════════════
 SPECIALITES = {
-    "Spectacles": [
+    "Spectacles divers": [
         # Humour / Personnages
         "Humoriste et Imitateur",
+        "Transformiste / Drag queen",
         # Jeunesse / Famille
         "Conteuse Conteur",
         "Conte théâtralisé",

@@ -127,8 +127,9 @@ def test_home_show_names_replace_the_old_animation_show_names():
 
 def test_sector_sizes_and_folder_names():
     assert "Spectacle et Animation" not in SPECIALITES
-    assert len(SPECIALITES["Spectacles"]) == 43
-    assert len(flat(SPECIALITES)) == 128
+    assert "Spectacles" not in SPECIALITES
+    assert len(SPECIALITES["Spectacles divers"]) == 44
+    assert len(flat(SPECIALITES)) == 129
     assert len(flat(ANIMATIONS)) == 27
     assert len(ANIMATIONS) == 7
 
@@ -229,9 +230,40 @@ def test_publish_form_offers_both_accordions_with_each_name_once(logged_in_clien
     page = Page(logged_in_client.get("/submit").get_data(as_text=True))
     values = page.values("specialites")
     assert page.sections.count("specialites") == 1 and page.sections.count("animations") == 1
-    assert len(values) == len(set(values)) == 155
+    assert len(values) == len(set(values)) == 156
     assert set(MOVED + NEW_SENIORS) <= set(values)
     assert PETIT_BUDGET in values
+
+
+def test_spectacles_labels_preserve_existing_puppet_selection(logged_in_client, normal_user):
+    from models import db
+    from models.models import Show
+
+    show = Show(
+        title="Marionnettes", user_id=normal_user.id,
+        specialites="Spectacle de Marionnettes,Transformiste / Drag queen",
+    )
+    db.session.add(show)
+    db.session.commit()
+    for path in ("/submit", f"/my/shows/{show.id}/edit"):
+        html = logged_in_client.get(path).get_data(as_text=True)
+        assert ">Spectacle pour enfant avec de la marionnette</span>" in html
+        assert ">Spectacle de Marionnettes</span>" not in html
+        assert "Spectacle de Marionnettes contemporaines" in html
+        page = Page(html)
+        assert "Transformiste / Drag queen" in page.values("specialites")
+        if path != "/submit":
+            checked = {
+                box["value"] for box in page.boxes
+                if box.get("name") == "specialites" and "checked" in box
+            }
+            assert checked == {"Spectacle de Marionnettes", "Transformiste / Drag queen"}
+
+
+def test_request_form_offers_updated_spectacles_labels(client):
+    html = client.get("/demande_animation").get_data(as_text=True)
+    assert ">Spectacle pour enfant avec de la marionnette</span>" in html
+    assert "Transformiste / Drag queen" in Page(html).values("specialites_recherchees")
 
 
 def test_edit_form_prechecks_animation_names(logged_in_client, normal_user):

@@ -234,12 +234,16 @@ et `ADMINISTRATION_PONCTUELLE`.
 
 ### Secteurs Spectacles et Animations
 - Les spécialités sont réparties en deux secteurs, chacun avec son accordéon :
-  **Spectacles** (`SPECIALITES` dans `constants.py` : spectacles, théâtre, danse,
+  **Spectacles divers** (`SPECIALITES` dans `constants.py` : spectacles, théâtre, danse,
   musique) et **Animations** (`ANIMATIONS` : ateliers, stands, personnages, Père Noël,
   seniors et EHPAD…, budgets bas). Les cases des deux secteurs sont enregistrées dans
   les mêmes champs (`Show.specialites`, `DemandeAnimation.specialites_recherchees`) :
   le matching, le catalogue et les pages thématiques travaillent sur l'union des deux
   listes.
+- Le dossier Spectacles propose « Transformiste / Drag queen ». Dans les accordéons,
+  « Spectacle de Marionnettes » s'affiche comme « Spectacle pour enfant avec de la
+  marionnette » ; sa valeur enregistrée reste inchangée pour préserver les sélections
+  existantes et le matching.
 - Ajouter une spécialité : une ligne dans le bon dossier de `constants.py`. Un nom de
   case n'existe qu'une fois (tous secteurs confondus), sans virgule (les valeurs sont
   enregistrées en liste séparée par des virgules), et ne se renomme pas une fois

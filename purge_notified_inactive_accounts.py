@@ -144,20 +144,36 @@ def _notice_message(username, deadline):
     body = f"""<!DOCTYPE html>
 <html><head><meta charset="utf-8"></head>
 <body style="font-family:Arial,sans-serif;background:#f4f6fa;margin:0;padding:20px;">
-  <div style="max-width:600px;margin:0 auto;background:#fff;border-radius:10px;padding:28px;color:#333;line-height:1.6;">
-    <h2>Préavis concernant votre compte Spectacle'ment VØtre</h2>
-    <p>Bonjour <strong>{safe_username}</strong>,</p>
-    <p>Votre compte ne comporte actuellement aucun spectacle. Sa suppression est prévue
-       à partir du <strong>{deadline_text}</strong>, et jamais avant 48 heures après cet envoi.</p>
-    <p>Pour conserver votre compte, publiez un spectacle ou contactez-nous avant cette échéance
-       si ce compte est utilisé comme organisateur ou si vous avez besoin d'aide.</p>
-    <p>Vous pouvez répondre à ce message ou écrire à contact@spectacleanimation.fr.</p>
-    <p><a href="https://www.spectacleanimation.fr/login">Me connecter</a></p>
-    <p>Cordialement,<br>L'équipe Spectacle'ment VØtre</p>
+  <div style="max-width:600px;margin:0 auto;background:#fff;border-radius:10px;overflow:hidden;box-shadow:0 2px 12px rgba(0,0,0,0.08);">
+    <div style="background:linear-gradient(135deg,#ff9800,#f57c00);color:#fff;padding:24px;text-align:center;">
+      <h2 style="margin:0;">Préavis de suppression</h2>
+    </div>
+    <div style="padding:28px;color:#333;line-height:1.6;">
+      <p>Bonjour <strong>{safe_username}</strong>,</p>
+      <p>Nous avons remarqué qu'<strong>aucun spectacle n'a encore été publié</strong> sur votre compte Spectacle'ment VØtre.</p>
+      <p>Sans publication de votre part, votre compte sera <strong>automatiquement supprimé à partir du {deadline_text}</strong>, jamais avant <strong>48 heures après cet envoi</strong>.</p>
+      <div style="background:#e8f5e9;border-left:4px solid #2e7d32;padding:16px 18px;border-radius:6px;margin:20px 0;">
+        <p style="margin:0;"><strong>Comment conserver votre compte ?</strong></p>
+        <p style="margin:8px 0 0 0;">Connectez-vous et publiez votre premier spectacle. C'est <strong>gratuit</strong> et cela prend quelques minutes.</p>
+        <p style="text-align:center;margin:16px 0 0 0;">
+          <a href="https://www.spectacleanimation.fr/login" style="display:inline-block;padding:12px 26px;background:#1b5e20;color:#fff;text-decoration:none;border-radius:6px;font-weight:700;">Me connecter et publier</a>
+        </p>
+      </div>
+      <div style="background:#f3e5f5;border-left:4px solid #6a1b9a;padding:16px 18px;border-radius:6px;margin:20px 0;">
+        <p style="margin:0 0 8px 0;"><strong>Pourquoi c'est efficace ?</strong></p>
+        <p style="margin:0 0 8px 0;font-size:14px;line-height:1.6;">Spectacle'ment VØtre fonctionne comme un <strong>annuaire national de référence</strong> : plus il y a de spectacles publiés, plus les <strong>mairies, écoles, CSE, agences et organisateurs</strong> prennent l'habitude d'y chercher leurs animations &mdash; et d'y déposer leurs <strong>appels d'offres</strong>.</p>
+        <p style="margin:0 0 8px 0;font-size:14px;line-height:1.6;"><strong>Au niveau local</strong>, votre département gagne en visibilité à mesure que des compagnies de la région s'y inscrivent : les acteurs culturels de chez vous tombent alors sur <strong>votre profil en priorité</strong>.</p>
+        <p style="margin:0 0 8px 0;font-size:14px;line-height:1.6;"><strong>Au niveau national</strong>, vous recevrez aussi des appels d'offres venant de <strong>toute la France</strong> &mdash; un complément précieux à votre démarche commerciale régionale, qui vous ouvre des dates et des territoires que vous n'auriez pas prospectés seul.</p>
+        <p style="margin:0;font-size:13px;color:#555;font-style:italic;line-height:1.6;">C'est en accompagnant les compagnies qui le souhaitent dans l'édition des contrats de cession, des feuilles de route, des contrats de travail et des factures, ainsi que dans le suivi de vos contrats dans leur intégralité, et grâce à nos services optionnels annexes que nous assurons la <strong>pérennité</strong> et l'<strong>entretien</strong> du site.</p>
+      </div>
+      <p style="font-size:0.9em;color:#666;">Si vous publiez un spectacle avant cette échéance, votre compte sera conservé automatiquement, même si ce spectacle attend encore son approbation.</p>
+      <p>Si ce compte est utilisé comme organisateur ou si vous avez besoin d'aide, répondez à ce message ou contactez contact@spectacleanimation.fr avant cette échéance.</p>
+      <p style="margin-top:24px;">Cordialement,<br><strong>L'équipe Spectacle'ment VØtre</strong><br>contact@spectacleanimation.fr</p>
+    </div>
   </div>
 </body></html>"""
     return MailMessage(
-        subject="Préavis : votre compte sera supprimé dans 48 heures",
+        subject="Votre compte Spectacle'ment VØtre sera supprimé dans 48 heures",
         recipients=[],
         html=body,
     )

@@ -10,6 +10,8 @@
    item_notes : {case: texte} affiché à côté de la case (affichage seul, la valeur enregistrée ne change pas).
    petit_budget_groups : dossiers dont les cases portent data-petit-budget="1" (liste de budgets de la demande). #}
 {% set skey = section_key or field_name %}
+{# Le libellé évolue sans modifier la valeur CSV utilisée par les fiches et le matching. #}
+{% set display_labels = {"Spectacle de Marionnettes": "Spectacle pour enfant avec de la marionnette"} %}
 <style>
   .matching-cb-hint { display: none; }
   .matching-cb-label.has-hint:hover + .matching-cb-hint,
@@ -54,7 +56,7 @@
           {% if item in current_values %}checked{% endif %}
           onchange="checkMatchingLimit('{{ field_name }}', this); updateMatchingCounts('{{ field_name }}', {{ categories_dict | length }})"
           style="margin-right:8px; width:16px; height:16px; cursor:pointer; accent-color:{{ color }};">
-        <span style="font-size:0.9rem; color:{{ text_color }};">{{ item }}</span>
+        <span style="font-size:0.9rem; color:{{ text_color }};">{{ display_labels.get(item, item) }}</span>
         {% if item_notes and item in item_notes %}<span class="matching-cb-note" style="margin-left:8px; font-size:0.78rem; font-style:italic; opacity:0.8; color:{{ text_color }};">· {{ item_notes[item] }}</span>{% endif %}
       </label>
       {% if has_hint %}

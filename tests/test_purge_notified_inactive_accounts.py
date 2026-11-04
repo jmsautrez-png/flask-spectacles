@@ -78,6 +78,15 @@ def test_notice_email_escapes_username(app):
     assert "<script>" not in message.html
     assert "&lt;script&gt;" in message.html
     assert "48 heures" in message.subject
+    assert "48 heures après cet envoi" in message.html
+    assert "05/11/2026 à 12:00 UTC" in message.html
+    assert "annuaire national de référence" in message.html
+    assert "Au niveau local" in message.html
+    assert "Au niveau national" in message.html
+    assert "contrats de cession" in message.html
+    assert "Me connecter et publier" in message.html
+    assert "attend encore son approbation" in message.html
+    assert "7 jours" not in message.html
 
 
 def _notice(db, user, age=timedelta(hours=49), **overrides):
