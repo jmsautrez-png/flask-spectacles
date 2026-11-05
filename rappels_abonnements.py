@@ -85,7 +85,7 @@ def _html_rappel_j30(user, date_fin):
           Renouveler pour {TARIF_RENOUVELLEMENT} € avec PayPal
         </a>
       </div>
-      <p style="font-size:0.88rem;color:#666;">Ou contactez-nous à <a href="mailto:contact@spectacleanimation.fr">contact@spectacleanimation.fr</a> pour un virement bancaire.</p>
+      <p style="font-size:0.88rem;color:#666;">Ou contactez-nous à <a href="mailto:laureline@spectacleanimation.fr">laureline@spectacleanimation.fr</a> pour un virement bancaire.</p>
       <p>Après paiement, votre abonnement sera prolongé automatiquement par notre équipe sous 24h.</p>
       <p style="margin-top:20px;color:#555;">Cordialement,<br>L'équipe <strong>Spectacle'ment Vôtre</strong></p>
     </div>
@@ -115,7 +115,7 @@ def _html_rappel_j7(user, date_fin):
           Renouveler maintenant — {TARIF_RENOUVELLEMENT} €
         </a>
       </div>
-      <p style="font-size:0.88rem;color:#666;">Besoin d'aide ? Contactez-nous à <a href="mailto:contact@spectacleanimation.fr">contact@spectacleanimation.fr</a>.</p>
+      <p style="font-size:0.88rem;color:#666;">Besoin d'aide ? Contactez-nous à <a href="mailto:laureline@spectacleanimation.fr">laureline@spectacleanimation.fr</a>.</p>
       <p style="margin-top:20px;color:#555;">Cordialement,<br>L'équipe <strong>Spectacle'ment Vôtre</strong></p>
     </div>
   </div>
@@ -142,7 +142,7 @@ def _html_rappel_expired(user, date_fin):
         </a>
       </div>
       <p>Notre équipe réactivera votre accès sous 24h après réception du paiement.</p>
-      <p style="font-size:0.88rem;color:#666;">Pour un virement bancaire ou toute question : <a href="mailto:contact@spectacleanimation.fr">contact@spectacleanimation.fr</a>.</p>
+      <p style="font-size:0.88rem;color:#666;">Pour un virement bancaire ou toute question : <a href="mailto:laureline@spectacleanimation.fr">laureline@spectacleanimation.fr</a>.</p>
       <p style="margin-top:20px;color:#555;">Cordialement,<br>L'équipe <strong>Spectacle'ment Vôtre</strong></p>
     </div>
   </div>

@@ -167,8 +167,8 @@ def _notice_message(username, deadline):
         <p style="margin:0;font-size:13px;color:#555;font-style:italic;line-height:1.6;">C'est en accompagnant les compagnies qui le souhaitent dans l'édition des contrats de cession, des feuilles de route, des contrats de travail et des factures, ainsi que dans le suivi de vos contrats dans leur intégralité, et grâce à nos services optionnels annexes que nous assurons la <strong>pérennité</strong> et l'<strong>entretien</strong> du site.</p>
       </div>
       <p style="font-size:0.9em;color:#666;">Si vous publiez un spectacle avant cette échéance, votre compte sera conservé automatiquement, même si ce spectacle attend encore son approbation.</p>
-      <p>Si ce compte est utilisé comme organisateur ou si vous avez besoin d'aide, répondez à ce message ou contactez contact@spectacleanimation.fr avant cette échéance.</p>
-      <p style="margin-top:24px;">Cordialement,<br><strong>L'équipe Spectacle'ment VØtre</strong><br>contact@spectacleanimation.fr</p>
+      <p>Si ce compte est utilisé comme organisateur ou si vous avez besoin d'aide, répondez à ce message ou contactez laureline@spectacleanimation.fr avant cette échéance.</p>
+      <p style="margin-top:24px;">Cordialement,<br><strong>L'équipe Spectacle'ment VØtre</strong><br>laureline@spectacleanimation.fr</p>
     </div>
   </div>
 </body></html>"""

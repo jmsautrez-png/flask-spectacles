@@ -66,7 +66,7 @@ def _send_final_email(username, email):
           <a href="https://www.spectacleanimation.fr/register" style="display:inline-block;padding:12px 26px;background:#1b5e20;color:#fff;text-decoration:none;border-radius:6px;font-weight:700;">Cr&eacute;er un nouveau compte</a>
         </p>
       </div>
-      <p style="margin-top:24px;">Cordialement,<br>L'&eacute;quipe Spectacle'ment V&Oslash;tre<br>contact@spectacleanimation.fr</p>
+      <p style="margin-top:24px;">Cordialement,<br>L'&eacute;quipe Spectacle'ment V&Oslash;tre<br>laureline@spectacleanimation.fr</p>
     </div>
   </div>
 </body></html>"""

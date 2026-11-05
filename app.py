@@ -1357,7 +1357,7 @@ def _bloc_cadeau_html(user):
         "Cet appel d'offres vous est offert avec le sourire de toute l'équipe. "
         "Si vous souhaitez en recevoir régulièrement, l'abonnement est à "
         "<strong>49&nbsp;€ TTC</strong> la 1<sup>re</sup>&nbsp;année, puis 99&nbsp;€/an.<br>"
-        '<a href="mailto:contact@spectacleanimation.fr?subject=Abonnement%20compagnie" '
+        '<a href="mailto:laureline@spectacleanimation.fr?subject=Abonnement%20compagnie" '
         'style="display:inline-block;margin-top:8px;background:#e65100;color:#fff;padding:10px 20px;'
         'border-radius:8px;text-decoration:none;font-weight:700;">'
         "Découvrir l'abonnement</a>"
@@ -1440,7 +1440,7 @@ h2 {{ color: #1b2a4e; margin-top: 0; }}
         <p style="margin:0 0 15px 0;font-size:0.95em;">Accompagnement de votre secrétariat en édition et suivi de vos contrats de cession, contrats de travail, facturation, feuilles de route et suivi des dates.</p>
         <p style="text-align:center;margin:0;"><a href="https://spectacleanimation.fr/abonnement-compagnie" style="display:inline-block;background-color:white;color:#d32f2f;padding:12px 28px;border-radius:25px;text-decoration:none;font-weight:bold;">Découvrir nos services</a></p>
     </div>
-    <div class="footer"><p><strong>L'équipe Spectacle'ment VØtre</strong><br>contact@spectacleanimation.fr{ref_html}</p></div>
+    <div class="footer"><p><strong>L'équipe Spectacle'ment VØtre</strong><br>laureline@spectacleanimation.fr{ref_html}</p></div>
 </div>
 </body>
 </html>"""
@@ -1613,13 +1613,13 @@ def _send_recap_to_organisateur(demande, shows_contactes, admin_email_extra=None
     <p style="text-align:center;margin-top:22px;color:#888;font-size:0.85em;">
       Spectacle'ment Vôtre<br>
       <a href="https://www.spectacleanimation.fr" style="color:#8b1e1e;text-decoration:none;">spectacleanimation.fr</a>
-      &nbsp;·&nbsp;<a href="mailto:contact@spectacleanimation.fr" style="color:#8b1e1e;text-decoration:none;">contact@spectacleanimation.fr</a>
+      &nbsp;·&nbsp;<a href="mailto:laureline@spectacleanimation.fr" style="color:#8b1e1e;text-decoration:none;">laureline@spectacleanimation.fr</a>
     </p>
   </div>
 </body>
 </html>"""
 
-        admin_email = current_app.config.get("MAIL_USERNAME", "contact@spectacleanimation.fr")
+        admin_email = current_app.config.get("MAIL_USERNAME", "laureline@spectacleanimation.fr")
         msg = MailMessage(
             subject=f"Votre demande a été transmise à {nb} artiste{'s' if nb > 1 else ''}",
             recipients=[demande.contact_email],
@@ -2265,7 +2265,7 @@ def register_routes(app: Flask) -> None:
                     <tr>
                         <td bgcolor="#1b2a4e" style="background-color:#1b2a4e; padding:24px 30px; text-align:center;">
                             <p style="margin:0 0 4px 0; font-size:15px; font-weight:700; color:#ffffff;">L'équipe Spectacle'ment VØtre</p>
-                            <p style="margin:0; font-size:13px;"><a href="mailto:contact@spectacleanimation.fr" style="color:#c9b6e4; font-weight:600;">contact@spectacleanimation.fr</a></p>
+                            <p style="margin:0; font-size:13px;"><a href="mailto:laureline@spectacleanimation.fr" style="color:#c9b6e4; font-weight:600;">laureline@spectacleanimation.fr</a></p>
                         </td>
                     </tr>
 
@@ -5005,7 +5005,7 @@ def register_routes(app: Flask) -> None:
             current_app.logger.error(f"[SELF-DELETE] Échec suppression '{username}' (id={user_id}): {e}")
             flash(
                 "Une erreur est survenue lors de la suppression de votre compte. "
-                "Merci de contacter le support (contact@spectacleanimation.fr).",
+                "Merci de contacter le support (laureline@spectacleanimation.fr).",
                 "danger",
             )
             return redirect(url_for("delete_own_account"))
@@ -5046,7 +5046,7 @@ def register_routes(app: Flask) -> None:
         </p>
       </div>
       <p>Merci pour votre passage sur notre plateforme, et bonne continuation dans vos projets&nbsp;!</p>
-      <p style=\"margin-top:24px;\">L'&eacute;quipe Spectacle'ment V&Oslash;tre<br>contact@spectacleanimation.fr</p>
+      <p style=\"margin-top:24px;\">L'&eacute;quipe Spectacle'ment V&Oslash;tre<br>laureline@spectacleanimation.fr</p>
     </div>
   </div>
 </body></html>"""
@@ -5485,7 +5485,7 @@ def register_routes(app: Flask) -> None:
                         f"L'équipe Spectacle'ment VØtre"
                     )
                     msg = MailMessage(subject=subject, recipients=[to_addr])  # type: ignore[arg-type]
-                    admin_email = "contact@spectacleanimation.fr"
+                    admin_email = "laureline@spectacleanimation.fr"
                     if to_addr != admin_email:
                         msg.bcc = [admin_email]  # type: ignore[assignment]
                     msg.html = body_html  # type: ignore[assignment]
@@ -5572,7 +5572,7 @@ def register_routes(app: Flask) -> None:
                         "L'équipe Spectacle'ment VØtre"
                     )
                     msg = MailMessage(subject=subject, recipients=[to_addr])  # type: ignore[arg-type]
-                    admin_email = "contact@spectacleanimation.fr"
+                    admin_email = "laureline@spectacleanimation.fr"
                     if to_addr != admin_email:
                         msg.bcc = [admin_email]  # type: ignore[assignment]
                     msg.html = body_html_prestige  # type: ignore[assignment]
@@ -5661,7 +5661,7 @@ def register_routes(app: Flask) -> None:
                         "L'équipe Spectacle'ment VØtre"
                     )
                     msg = MailMessage(subject=subject, recipients=[to_addr])  # type: ignore[arg-type]
-                    admin_email = "contact@spectacleanimation.fr"
+                    admin_email = "laureline@spectacleanimation.fr"
                     if to_addr != admin_email:
                         msg.bcc = [admin_email]  # type: ignore[assignment]
                     msg.html = body_html_evenement  # type: ignore[assignment]
@@ -5890,7 +5890,7 @@ def register_routes(app: Flask) -> None:
                 msg = MailMessage(subject=subject, recipients=[to_addr])  # type: ignore[arg-type]
                 
                 # Ajouter l'admin en copie cachée pour suivi
-                admin_email = "contact@spectacleanimation.fr"
+                admin_email = "laureline@spectacleanimation.fr"
                 if to_addr != admin_email:  # Éviter duplication si l'utilisateur EST l'admin
                     msg.bcc = [admin_email]  # type: ignore[assignment]
                 
@@ -6264,7 +6264,7 @@ Accessibilité: {accessibilite}
                     <td style="background:linear-gradient(135deg,#667eea 0%,#764ba2 100%); padding:30px 40px; text-align:center;">
                         <p style="margin:0 0 4px 0; font-size:14px; color:#fff; font-weight:600;">Spectaclement v&ocirc;tre,</p>
                         <p style="margin:0 0 8px 0; font-size:13px; color:rgba(255,255,255,0.65);">L'&eacute;quipe Spectacle'ment V&Oslash;tre</p>
-                        <p style="margin:0; font-size:12px; color:rgba(255,255,255,0.5);">contact@spectacleanimation.fr</p>
+                        <p style="margin:0; font-size:12px; color:rgba(255,255,255,0.5);">laureline@spectacleanimation.fr</p>
                     </td>
                 </tr>
             </table>
@@ -7429,7 +7429,7 @@ Accessibilité: {accessibilite}
         demande.ensure_access_token()
         db.session.commit()
 
-        admin_email = "contact@spectacleanimation.fr"
+        admin_email = "laureline@spectacleanimation.fr"
 
         # Notification admin seule (aucun email à l'auteur)
         if notify == "admin":
@@ -7504,7 +7504,7 @@ Accessibilité: {accessibilite}
 
         <div class="footer">
             <p><strong>L'équipe Spectacle'ment Vôtre</strong><br>
-            contact@spectacleanimation.fr</p>
+            laureline@spectacleanimation.fr</p>
         </div>
     </div>
 </body>
@@ -7979,7 +7979,7 @@ Accessibilité: {accessibilite}
 <tr><td style="padding:3px 0;"><strong>Région :</strong></td><td>{demande.region or '—'}</td></tr>
 </table>
 {delivery_summary}
-<p style="text-align:center;margin-top:16px;color:#888;font-size:0.85em;">Spectacle'ment Vôtre — contact@spectacleanimation.fr</p>
+<p style="text-align:center;margin-top:16px;color:#888;font-size:0.85em;">Spectacle'ment Vôtre — laureline@spectacleanimation.fr</p>
 </div></body></html>"""
                         admin_msg = MailMessage(
                             subject=f"[ADMIN] Appel d'offre envoyé : {demande.genre_recherche} à {demande.lieu_ville} ({success_count} cie)",
@@ -8339,7 +8339,7 @@ Accessibilité: {accessibilite}
 
         <div class="footer">
             <p><strong>L'équipe Spectacle'ment VØtre</strong><br>
-            contact@spectacleanimation.fr</p>
+            laureline@spectacleanimation.fr</p>
         </div>
     </div>
 </body>
@@ -8470,7 +8470,7 @@ Accessibilité: {accessibilite}
 
         <div class="footer">
             <p><strong>L'équipe Spectacle'ment VØtre</strong><br>
-            contact@spectacleanimation.fr</p>
+            laureline@spectacleanimation.fr</p>
         </div>
     </div>
 </body>
@@ -9695,7 +9695,7 @@ def admin_delete_user(user_id):
         <p style="margin:0;font-size:13px;color:#555;font-style:italic;line-height:1.6;">C'est en accompagnant les compagnies qui le souhaitent dans l'édition des contrats de cession, des feuilles de route, des contrats de travail et des factures, ainsi que dans le suivi de vos contrats dans leur intégralité, et grâce à nos services optionnels annexes que nous assurons la <strong>pérennité</strong> et l'<strong>entretien</strong> du site.</p>
       </div>
       <p style="font-size:0.9em;color:#666;">Si vous publiez un spectacle avant cette date, votre compte sera conservé automatiquement.</p>
-      <p style="margin-top:24px;">Cordialement,<br><strong>L'équipe Spectacle'ment VØtre</strong><br>contact@spectacleanimation.fr</p>
+      <p style="margin-top:24px;">Cordialement,<br><strong>L'équipe Spectacle'ment VØtre</strong><br>laureline@spectacleanimation.fr</p>
     </div>
   </div>
 </body></html>"""
@@ -9778,7 +9778,7 @@ def admin_delete_user(user_id):
         </p>
       </div>
       <p>Merci de l'intérêt que vous avez porté à notre plateforme.</p>
-      <p style="margin-top:24px;">À très bientôt peut-être,<br><strong>L'équipe Spectacle'ment VØtre</strong><br>contact@spectacleanimation.fr</p>
+      <p style="margin-top:24px;">À très bientôt peut-être,<br><strong>L'équipe Spectacle'ment VØtre</strong><br>laureline@spectacleanimation.fr</p>
     </div>
   </div>
 </body></html>"""
@@ -10471,7 +10471,7 @@ def _build_adhesion_invoice_html(adh, amount, invoice_number, now_dt, date_debut
       </div>
 
       <p style="margin-top:24px;color:#555;font-size:0.88rem;line-height:1.5;">
-        En cas de question, contactez-nous à <a href="mailto:contact@spectacleanimation.fr" style="color:#1976d2;">contact@spectacleanimation.fr</a> ou au <strong>06 76 07 01 79</strong>.
+        En cas de question, contactez-nous à <a href="mailto:laureline@spectacleanimation.fr" style="color:#1976d2;">laureline@spectacleanimation.fr</a> ou au <strong>06 76 07 01 79</strong>.
       </p>
       <p style="color:#333;font-size:0.92rem;">Cordialement,<br>L'équipe <strong>Spectacle'ment Vôtre</strong></p>
     </div>

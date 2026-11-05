@@ -42,10 +42,10 @@ class Config:
     MAIL_PORT = int(os.environ.get("MAIL_PORT", 587))
     MAIL_USE_TLS = os.environ.get("MAIL_USE_TLS", "True") == "True"
     MAIL_USE_SSL = os.environ.get("MAIL_USE_SSL", "False") == "True"
-    MAIL_USERNAME = os.environ.get("MAIL_USERNAME", "contact@spectacleanimation.fr")
+    MAIL_USERNAME = os.environ.get("MAIL_USERNAME", "laureline@spectacleanimation.fr")
     # SÉCURITÉ : Ne JAMAIS mettre de mot de passe par défaut
     MAIL_PASSWORD = os.environ.get("MAIL_PASSWORD")
-    MAIL_DEFAULT_SENDER = os.environ.get("MAIL_DEFAULT_SENDER", "contact@spectacleanimation.fr")
+    MAIL_DEFAULT_SENDER = os.environ.get("MAIL_DEFAULT_SENDER", "laureline@spectacleanimation.fr")
     # Timeout SMTP en secondes : évite qu'une connexion bloquée fige le worker gunicorn
     MAIL_TIMEOUT = int(os.environ.get("MAIL_TIMEOUT", 15))
     # Affichage de l'adresse email utilisée pour l'envoi des mails

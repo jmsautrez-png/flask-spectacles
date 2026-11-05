@@ -1033,9 +1033,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
   <label>Email de contact <span style="font-size:0.85rem;font-weight:normal;color:var(--muted);">(Modifiable uniquement par l'admin)</span>
     {% if user and user.is_admin %}
-      <input type="email" name="contact_email" value="{{ request.form.get('contact_email', 'contact@spectacleanimation.fr') }}">
+      <input type="email" name="contact_email" value="{{ request.form.get('contact_email', 'laureline@spectacleanimation.fr') }}">
     {% else %}
-      <input type="email" name="contact_email" value="{{ request.form.get('contact_email', 'contact@spectacleanimation.fr') }}" readonly style="background:#eee; color:#888; cursor:not-allowed;">
+      <input type="email" name="contact_email" value="{{ request.form.get('contact_email', 'laureline@spectacleanimation.fr') }}" readonly style="background:#eee; color:#888; cursor:not-allowed;">
     {% endif %}
   </label>
 
