@@ -6,6 +6,26 @@ from datetime import datetime, timedelta
 import pytest
 
 
+@pytest.fixture(autouse=True)
+def synchronous_bulk_send(monkeypatch):
+    import threading
+    import app as app_module
+
+    monkeypatch.setattr(app_module, "_SEND_PACE_SECONDS", 0)
+    original = app_module._lancer_envoi_arriere_plan
+
+    def run_and_wait(*args, **kwargs):
+        started = original(*args, **kwargs)
+        for thread in threading.enumerate():
+            if thread.name.startswith("envoi-"):
+                thread.join(timeout=10)
+        from models import db
+        db.session.expire_all()
+        return started
+
+    monkeypatch.setattr(app_module, "_lancer_envoi_arriere_plan", run_and_wait)
+
+
 @pytest.fixture
 def offer_setup(app, client, normal_user, admin_user):
     from models import db
@@ -311,13 +331,7 @@ def test_gift_persistence_failure_is_reported(app, client, offer_setup, monkeypa
         raise SQLAlchemyError("Simulated persistence failure")
 
     monkeypatch.setattr(offres, "record_offer_delivery", fail)
-    with app.test_request_context():
-        app_module._record_appel_offre_delivery(user, demande, gift=True)
-        from flask import get_flashed_messages
-        assert any(
-            "n'a pas pu être enregistré" in message
-            for message in get_flashed_messages()
-        )
+    assert app_module._record_appel_offre_delivery(user, demande, gift=True) is False
 
 
 def test_delivery_rows_removed_with_offer(offer_setup):
@@ -640,27 +654,25 @@ def test_admin_send_goes_out_in_batches(app, client, offer_setup, monkeypatch):
     assert {show.contact_email, *(s.contact_email for s in extras)} <= recipients
 
 
-def test_admin_send_reports_companies_left_when_time_runs_out(app, client, offer_setup, monkeypatch):
+def test_second_send_is_refused_while_one_is_running(app, client, offer_setup, monkeypatch):
     import app as app_module
-    from models.models import AppelOffreEnvoi
-    user, admin, show, demande, other = offer_setup
-    extras = _add_extra_shows(user, 2)
+    user, admin, show, demande, _ = offer_setup
     mail = FakeMail()
     monkeypatch.setattr(app, "mail", mail)
-    monkeypatch.setattr(app_module, "_SEND_TIME_BUDGET_SECONDS", -1)
     login(client, admin)
-    ids = [str(s.id) for s in [show, *extras]]
-    response = client.post(
-        f"/admin/envoyer-demande/{demande.id}",
-        data={"action": "send_matched", "matched_show_ids": ids, "categories": ["Clown"]},
-    )
+    cle = f"appel-{demande.id}"
+    with app_module._envois_verrou:
+        app_module._envois_en_cours.add(cle)
+    try:
+        response = client.post(
+            f"/admin/envoyer-demande/{demande.id}",
+            data={"action": "send_matched", "matched_show_ids": [str(show.id)], "categories": ["Clown"]},
+        )
+    finally:
+        with app_module._envois_verrou:
+            app_module._envois_en_cours.discard(cle)
     assert response.status_code == 302
-    assert not [m for m in mail.messages if m.recipients != [admin.email]]
-    assert AppelOffreEnvoi.query.count() == 0
-    recap = next(m for m in mail.messages if m.subject.startswith("[ADMIN]"))
-    for s in [show, *extras]:
-        assert s.contact_email in recap.html
-    assert "à relancer" in recap.html
+    assert mail.messages == []
 
 
 REFERENCE_RE = re.compile(r"Réf\. ([0-9A-F]{4}-[0-9A-F]{4})")

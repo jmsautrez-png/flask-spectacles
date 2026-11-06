@@ -1274,10 +1274,12 @@ def _user_recoit_cadeau(user) -> bool:
     return needs_offer_subscription(user)
 
 
-# Envoi des appels d'offres par lots (voir envoyer_demande_animation)
+# Envoi des appels d'offres en arrière-plan (voir _lancer_envoi_arriere_plan)
 _SEND_BATCH_SIZE = 10
-# gunicorn coupe le worker au bout de 300 s (gunicorn_config.py) : on garde de la marge
-_SEND_TIME_BUDGET_SECONDS = 180
+# OVH limite une boîte MX Plan à ~200 mails/heure : 1 mail toutes les 20 s reste sous ce plafond
+_SEND_PACE_SECONDS = 20
+_envois_en_cours = set()
+_envois_verrou = threading.Lock()
 
 
 def _record_appel_offre_delivery(user, demande, gift=False):
@@ -1289,8 +1291,243 @@ def _record_appel_offre_delivery(user, demande, gift=False):
     except SQLAlchemyError:
         db.session.rollback()
         current_app.logger.exception("Email transmis mais accès à l'offre non enregistré")
-        flash("Email transmis, mais l'accès à l'offre n'a pas pu être enregistré. Réessayez l'envoi.", "danger")
         return False
+
+
+def _lancer_envoi_arriere_plan(app, cle, demande_id, jobs, recap, base_url):
+    """Lance l'envoi d'un appel d'offre dans un thread.
+
+    Retourne False si un envoi est déjà en cours pour cette clé (évite les doubles envois).
+    """
+    with _envois_verrou:
+        if cle in _envois_en_cours:
+            return False
+        _envois_en_cours.add(cle)
+    try:
+        threading.Thread(
+            target=_envoyer_lots,
+            args=(app, cle, demande_id, jobs, recap, base_url),
+            name=f"envoi-{cle}",
+            daemon=True,
+        ).start()
+    except Exception:
+        with _envois_verrou:
+            _envois_en_cours.discard(cle)
+        raise
+    return True
+
+
+def _envoyer_lots(app, cle, demande_id, jobs, recap, base_url):
+    """Envoie les mails par lots, espacés de _SEND_PACE_SECONDS, puis appelle recap.
+
+    Tourne hors requête HTTP : le worker gunicorn coupe les requêtes au bout de 300 s.
+    Les jobs ne contiennent que des valeurs simples ; les objets ORM sont rechargés ici.
+    """
+    from models.models import DemandeAnimation
+    from utils.offres import delivery_recap_entry
+    succes = 0
+    erreurs = []
+    envois = []
+    traites = 0
+    try:
+        with app.app_context(), app.test_request_context(base_url=base_url):
+            demande = db.session.get(DemandeAnimation, demande_id)
+            for debut in range(0, len(jobs), _SEND_BATCH_SIZE):
+                lot = jobs[debut:debut + _SEND_BATCH_SIZE]
+                avant = traites
+                try:
+                    with app.mail.connect() as conn:
+                        for job in lot:
+                            if traites:
+                                time.sleep(_SEND_PACE_SECONDS)
+                            traites += 1
+                            try:
+                                user = db.session.get(User, job["user_id"]) if job["user_id"] else None
+                                show = db.session.get(Show, job["show_id"]) if job["show_id"] else None
+                                msg = MailMessage(subject=job["subject"], recipients=[job["email"]])
+                                msg.html = job["body_html"]
+                                conn.send(msg)
+                                succes += 1
+                                suivi = _record_appel_offre_delivery(user, demande, gift=job["gift"])
+                                envois.append(delivery_recap_entry(
+                                    user, job["email"], job["title"],
+                                    gift=job["gift"], show=show, tracked=suivi,
+                                ))
+                                print(f"[DEBUG] ✅ Email envoyé à {job['email']} ({succes}/{len(jobs)})")
+                            except Exception as e:
+                                erreurs.append(f"{job['email']}: {str(e)[:100]}")
+                                print(f"[MAIL] ❌ Erreur envoi à {job['email']}: {e}")
+                except Exception as e:
+                    print(f"[MAIL] ❌ Erreur connexion SMTP lot : {e}")
+                    erreurs.append(f"Connexion SMTP : {str(e)[:120]}")
+                    for job in lot[traites - avant:]:
+                        erreurs.append(f"{job['email']}: non envoyé (connexion SMTP, à relancer)")
+                    traites = avant + len(lot)
+            try:
+                recap(demande, succes, envois, erreurs)
+            except Exception as e:
+                print(f"[MAIL] ⚠️ Récapitulatif admin non envoyé : {e}")
+    except Exception:
+        app.logger.exception("Envoi d'appel d'offre interrompu (demande %s)", demande_id)
+    finally:
+        with _envois_verrou:
+            _envois_en_cours.discard(cle)
+
+
+def _recap_appel_offre(demande, succes, envois, erreurs, admin_email, copie):
+    """Copie admin et copie artiste à la fin d'un envoi d'appel d'offre (hors requête)."""
+    if not admin_email:
+        return
+    try:
+        delivery_summary = render_template(
+            "_admin_offre_envois_recap.html",
+            deliveries=envois,
+            errors=erreurs,
+        )
+        admin_body = f"""<!DOCTYPE html><html><head><meta charset="UTF-8"></head><body style="font-family:Arial,sans-serif;max-width:650px;margin:0 auto;color:#333;">
+<div style="text-align:center;margin:16px 0;"><img src="https://www.spectacleanimation.fr/static/img/logo_spectaclement_votre.png" alt="Logo" style="max-width:180px;"></div>
+<div style="background:#1b2a4e;color:#fff;padding:14px 20px;border-radius:8px 8px 0 0;text-align:center;font-weight:700;font-size:1.1em;">COPIE ADMIN — Auto-matching envoyé à {succes} compagnie(s)</div>
+<div style="background:#f9f9f9;padding:18px;border-radius:0 0 8px 8px;">
+<h3 style="margin:0 0 10px 0;color:#6a1b9a;">{demande.genre_recherche} à {demande.lieu_ville}</h3>
+<table style="width:100%;font-size:0.9em;margin:8px 0;" cellpadding="0" cellspacing="0">
+<tr><td style="padding:3px 0;"><strong>Intitulé :</strong></td><td>{demande.intitule or 'Non précisé'}</td></tr>
+<tr><td style="padding:3px 0;"><strong>Dates :</strong></td><td>{demande.dates_horaires}</td></tr>
+<tr><td style="padding:3px 0;"><strong>Structure :</strong></td><td>{demande.structure}</td></tr>
+<tr><td style="padding:3px 0;"><strong>Contact :</strong></td><td>{demande.nom} — {demande.telephone}</td></tr>
+<tr><td style="padding:3px 0;"><strong>Email :</strong></td><td>{demande.contact_email}</td></tr>
+<tr><td style="padding:3px 0;"><strong>Jauge :</strong></td><td>{demande.jauge}</td></tr>
+<tr><td style="padding:3px 0;"><strong>Budget :</strong></td><td>{demande.budget}</td></tr>
+<tr><td style="padding:3px 0;"><strong>Public :</strong></td><td>{_format_age_label(demande.age_range)}</td></tr>
+<tr><td style="padding:3px 0;"><strong>Espace :</strong></td><td>{demande.type_espace}</td></tr>
+<tr><td style="padding:3px 0;"><strong>Région :</strong></td><td>{demande.region or '—'}</td></tr>
+</table>
+{delivery_summary}
+<p style="text-align:center;margin-top:16px;color:#888;font-size:0.85em;">Spectacle'ment Vôtre — laureline@spectacleanimation.fr</p>
+</div></body></html>"""
+        admin_msg = MailMessage(
+            subject=f"[ADMIN] Appel d'offre envoyé : {demande.genre_recherche} à {demande.lieu_ville} ({succes} cie)",
+            recipients=[admin_email]
+        )
+        admin_msg.html = admin_body
+        current_app.mail.send(admin_msg)
+        if copie:
+            sample_show = db.session.get(Show, copie["show_id"])
+            artist_copy = MailMessage(
+                subject=f"[ADMIN COPIE ARTISTE] Nouvelle Opportunité - {demande.genre_recherche} à {demande.lieu_ville}",
+                recipients=[admin_email]
+            )
+            artist_copy.html = _build_appel_offre_email(demande, sample_show, gift=copie["gift"])
+            current_app.mail.send(artist_copy)
+    except Exception as e:
+        print(f"[MAIL] ⚠️ Erreur copie admin: {e}")
+
+
+def _recap_region_offre(demande, succes, envois, erreurs, admin_email):
+    """Copie admin et récap organisateur à la fin d'un envoi régional (hors requête)."""
+    if admin_email:
+        try:
+            delivery_summary = render_template(
+                "_admin_offre_envois_recap.html",
+                deliveries=envois,
+                errors=erreurs,
+            )
+            admin_body_html = f"""
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <style>
+        body {{ font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; }}
+        .logo {{ text-align: center; margin: 20px 0; }}
+        .logo img {{ max-width: 200px; height: auto; }}
+        .content {{ padding: 20px; background-color: #f9f9f9; border-radius: 8px; }}
+        h2 {{ color: #1b2a4e; margin-top: 0; }}
+        .admin-notice {{ background: linear-gradient(135deg, #1b2a4e 0%, #355c7d 100%); color: white; padding: 15px; border-radius: 8px; margin: 20px 0; text-align: center; font-weight: bold; }}
+        .opportunity-box {{ background: #e8f5e9; border: 1px solid #a5d6a7; color: #1b5e20; padding: 20px; border-radius: 8px; margin: 20px 0; }}
+        .opportunity-box h3 {{ margin-top: 0; color: white; }}
+        .info-grid {{ display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 15px 0; }}
+        .info-item {{ background-color: rgba(255,255,255,0.1); padding: 10px; border-radius: 5px; }}
+        .info-label {{ font-weight: bold; font-size: 0.9em; }}
+        .footer {{ text-align: center; margin-top: 20px; color: #666; font-size: 0.9em; }}
+    </style>
+</head>
+<body>
+    <div class="logo">
+        <img src="https://www.spectacleanimation.fr/static/img/logo_spectaclement_votre.png" alt="Spectacle'ment Vôtre">
+    </div>
+    <div class="content">
+        <div class="admin-notice">
+            COPIE ADMIN - Appel d'offre envoyé à {succes} compagnie(s)
+        </div>
+        {delivery_summary}
+        <p style="font-size:0.95em; color:#444; margin:0 0 16px 0;"><strong>Appel d'offre :</strong> {demande.intitule or 'Demande d\'animation'}</p>
+
+        <div class="opportunity-box">
+            <h3>{demande.genre_recherche} à {demande.lieu_ville}</h3>
+            <div class="info-grid">
+                <div class="info-item">
+                    <div class="info-label">Lieu</div>
+                    {demande.lieu_ville}
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Date(s)</div>
+                    {demande.dates_horaires}
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Type recherché</div>
+                    {demande.genre_recherche}
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Spécialités</div>
+                    {demande.specialites_recherchees.replace(',', ', ') if demande.specialites_recherchees else 'Non précisées'}
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Jauge</div>
+                    {demande.jauge}
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Budget</div>
+                    {demande.budget} €
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Public</div>
+                    {_format_age_label(demande.age_range)}
+                </div>
+            </div>
+            <p><strong>Type d'espace :</strong> {demande.type_espace}</p>
+            <p style="color: #333;"><strong>Intitulé de la mission :</strong> {demande.intitule or 'Non précisé'}</p>
+            <p><strong>Accessibilité :</strong> {demande.accessibilite or 'Non précisée'}</p>
+        </div>
+
+        <p><strong>Structure :</strong> {demande.structure}<br>
+        <strong>Contact :</strong> {demande.nom}<br>
+        <strong>Email :</strong> {demande.contact_email}<br>
+        <strong>Téléphone :</strong> {demande.telephone}</p>
+
+        <div class="footer">
+            <p><strong>L'équipe Spectacle'ment Vôtre</strong></p>
+        </div>
+    </div>
+</body>
+</html>
+"""
+            admin_msg = MailMessage(
+                subject=f"[ADMIN] Appel d'offre envoyé : {demande.genre_recherche} à {demande.lieu_ville}",
+                recipients=[admin_email]
+            )
+            admin_msg.html = admin_body_html
+            current_app.mail.send(admin_msg)
+            print(f"[DEBUG] ✅ Copie admin envoyée à {admin_email}")
+        except Exception as e:
+            print(f"[MAIL] ⚠️ Erreur envoi copie admin à {admin_email}: {e}")
+    else:
+        print("[WARNING] Aucun email admin configuré - pas de copie envoyée")
+
+    if succes > 0:
+        shows_recap = [e['show'] for e in envois if e.get('show')]
+        recap_ok, recap_err = _send_recap_to_organisateur(demande, shows_recap, admin_email_extra=admin_email)
+        if not recap_ok:
+            print(f"[MAIL] ⚠️ Récap non transmis à l'organisateur : {recap_err or 'voir logs.'}")
 
 
 def _record_offer_consultation(demande, user):
@@ -7821,7 +8058,6 @@ Accessibilité: {accessibilite}
             action = request.form.get("action", "preview")
             print(f"[DEBUG] Action: {action}")
             from utils.offres import gift_selected
-            from utils.offres import delivery_recap_entry
             try:
                 gift_user_ids = {int(uid) for uid in request.form.getlist("gift_user_ids")}
             except ValueError:
@@ -7877,12 +8113,7 @@ Accessibilité: {accessibilite}
                     flash("❌ Erreur : le service email n'est pas configuré.", "danger")
                     return redirect(url_for("admin_demandes_animation"))
                 
-                import time
                 emails_sent = set()
-                success_count = 0
-                error_count = 0
-                errors_detail = []
-                successful_deliveries = []
 
                 # Préparer tous les messages avant tout envoi (lecture seule)
                 pending = []
@@ -7902,114 +8133,35 @@ Accessibilité: {accessibilite}
                             "body_html": _build_appel_offre_email(demande, show, gift=gift),
                         })
 
-                # Envoi par lots : une connexion SMTP par lot. Le temps total est borné
-                # pour rester sous le timeout gunicorn ; ce qui n'a pas pu partir est
-                # signalé pour être relancé (les envois réussis sont déjà enregistrés).
-                send_deadline = time.monotonic() + _SEND_TIME_BUDGET_SECONDS
-                not_sent = []
-                for batch_start in range(0, len(pending), _SEND_BATCH_SIZE):
-                    batch = pending[batch_start:batch_start + _SEND_BATCH_SIZE]
-                    batch_num = batch_start // _SEND_BATCH_SIZE + 1
-                    if time.monotonic() > send_deadline:
-                        not_sent.extend(pending[batch_start:])
-                        break
-                    attempted = 0
-                    try:
-                        with current_app.mail.connect() as conn:
-                            for item in batch:
-                                if time.monotonic() > send_deadline:
-                                    break
-                                attempted += 1
-                                email = item["email"]
-                                try:
-                                    msg = MailMessage(
-                                        subject=_appel_offre_subject(demande, item["user"], gift=item["gift"]),
-                                        recipients=[email]
-                                    )
-                                    msg.html = item["body_html"]
-                                    conn.send(msg)
-                                    success_count += 1
-                                    tracked = _record_appel_offre_delivery(item["user"], demande, gift=item["gift"])
-                                    successful_deliveries.append(delivery_recap_entry(
-                                        item["user"], email, item["show"].title,
-                                        gift=item["gift"], show=item["show"], tracked=tracked,
-                                    ))
-                                    print(f"[DEBUG] ✅ Email envoyé à {email}")
-                                except Exception as e:
-                                    error_count += 1
-                                    errors_detail.append(f"{email}: {str(e)[:100]}")
-                                    print(f"[MAIL] ❌ Erreur envoi à {email}: {e}")
-                    except Exception as e:
-                        print(f"[MAIL] ❌ Erreur connexion SMTP lot {batch_num} : {e}")
-                        error_count += len(batch) - attempted
-                        errors_detail.append(f"Connexion SMTP lot {batch_num} : {str(e)[:120]}")
-                        continue
-                    not_sent.extend(batch[attempted:])
+                if not pending:
+                    flash("⚠️ Aucun email à envoyer.", "warning")
+                    return redirect(url_for("admin_demandes_animation"))
 
-                for item in not_sent:
-                    errors_detail.append(f"{item['email']}: non envoyé (délai d'envoi atteint, à relancer)")
-                print(f"[DEBUG] Lots terminés : {success_count} envoyé(s), {error_count} erreur(s), {len(not_sent)} non envoyé(s)")
-                
-                # Copie admin
+                jobs = [
+                    {
+                        "email": item["email"],
+                        "user_id": item["user"].id if item["user"] else None,
+                        "show_id": item["show"].id,
+                        "title": item["show"].title,
+                        "gift": item["gift"],
+                        "subject": _appel_offre_subject(demande, item["user"], gift=item["gift"]),
+                        "body_html": item["body_html"],
+                    }
+                    for item in pending
+                ]
                 admin_email = current_user().email if current_user() and current_user().email else None
                 if not admin_email:
                     admin_email = current_app.config.get("MAIL_DEFAULT_SENDER") or current_app.config.get("MAIL_USERNAME")
-                if admin_email:
-                    try:
-                        delivery_summary = render_template(
-                            "_admin_offre_envois_recap.html",
-                            deliveries=successful_deliveries,
-                            errors=errors_detail,
-                        )
-                        admin_body = f"""<!DOCTYPE html><html><head><meta charset="UTF-8"></head><body style="font-family:Arial,sans-serif;max-width:650px;margin:0 auto;color:#333;">
-<div style="text-align:center;margin:16px 0;"><img src="https://www.spectacleanimation.fr/static/img/logo_spectaclement_votre.png" alt="Logo" style="max-width:180px;"></div>
-<div style="background:#1b2a4e;color:#fff;padding:14px 20px;border-radius:8px 8px 0 0;text-align:center;font-weight:700;font-size:1.1em;">COPIE ADMIN — Auto-matching envoyé à {success_count} compagnie(s)</div>
-<div style="background:#f9f9f9;padding:18px;border-radius:0 0 8px 8px;">
-<h3 style="margin:0 0 10px 0;color:#6a1b9a;">{demande.genre_recherche} à {demande.lieu_ville}</h3>
-<table style="width:100%;font-size:0.9em;margin:8px 0;" cellpadding="0" cellspacing="0">
-<tr><td style="padding:3px 0;"><strong>Intitulé :</strong></td><td>{demande.intitule or 'Non précisé'}</td></tr>
-<tr><td style="padding:3px 0;"><strong>Dates :</strong></td><td>{demande.dates_horaires}</td></tr>
-<tr><td style="padding:3px 0;"><strong>Structure :</strong></td><td>{demande.structure}</td></tr>
-<tr><td style="padding:3px 0;"><strong>Contact :</strong></td><td>{demande.nom} — {demande.telephone}</td></tr>
-<tr><td style="padding:3px 0;"><strong>Email :</strong></td><td>{demande.contact_email}</td></tr>
-<tr><td style="padding:3px 0;"><strong>Jauge :</strong></td><td>{demande.jauge}</td></tr>
-<tr><td style="padding:3px 0;"><strong>Budget :</strong></td><td>{demande.budget}</td></tr>
-<tr><td style="padding:3px 0;"><strong>Public :</strong></td><td>{_format_age_label(demande.age_range)}</td></tr>
-<tr><td style="padding:3px 0;"><strong>Espace :</strong></td><td>{demande.type_espace}</td></tr>
-<tr><td style="padding:3px 0;"><strong>Région :</strong></td><td>{demande.region or '—'}</td></tr>
-</table>
-{delivery_summary}
-<p style="text-align:center;margin-top:16px;color:#888;font-size:0.85em;">Spectacle'ment Vôtre — laureline@spectacleanimation.fr</p>
-</div></body></html>"""
-                        admin_msg = MailMessage(
-                            subject=f"[ADMIN] Appel d'offre envoyé : {demande.genre_recherche} à {demande.lieu_ville} ({success_count} cie)",
-                            recipients=[admin_email]
-                        )
-                        admin_msg.html = admin_body
-                        current_app.mail.send(admin_msg)
-                        # Copie de l'email artiste (tel que reçu par les compagnies)
-                        if shows:
-                            sample_show = shows[0]
-                            artist_copy = MailMessage(
-                                subject=f"[ADMIN COPIE ARTISTE] Nouvelle Opportunité - {demande.genre_recherche} à {demande.lieu_ville}",
-                                recipients=[admin_email]
-                            )
-                            artist_copy.html = _build_appel_offre_email(
-                                demande, sample_show,
-                                gift=gift_selected(sample_show.user, gift_user_ids),
-                            )
-                            current_app.mail.send(artist_copy)
-                    except Exception as e:
-                        print(f"[MAIL] ⚠️ Erreur copie admin: {e}")
+                copie = {"show_id": shows[0].id, "gift": gift_selected(shows[0].user, gift_user_ids)} if shows else None
+                recap = functools.partial(_recap_appel_offre, admin_email=admin_email, copie=copie)
 
-                if success_count > 0:
-                    flash(f"✅ Appel d'offre envoyé à {success_count} compagnie(s) !", "success")
-                if error_count > 0:
-                    flash(f"⚠️ {error_count} email(s) en erreur.", "warning")
-                if not_sent:
-                    flash(f"⏸️ Délai d'envoi atteint : {len(not_sent)} compagnie(s) non contactée(s). Relancez l'envoi pour elles uniquement.", "warning")
-                if success_count == 0 and error_count == 0 and not not_sent:
-                    flash("⚠️ Aucun email à envoyer.", "warning")
+                if _lancer_envoi_arriere_plan(current_app._get_current_object(), f"appel-{demande.id}",
+                                              demande.id, jobs, recap, request.host_url):
+                    minutes = max(1, round(len(jobs) * _SEND_PACE_SECONDS / 60))
+                    flash(f"📧 Envoi lancé pour {len(jobs)} compagnie(s) : environ {minutes} min "
+                          f"(1 mail toutes les {_SEND_PACE_SECONDS} s). Le récapitulatif sera envoyé par email à la fin.", "info")
+                else:
+                    flash("⚠️ Un envoi est déjà en cours pour cet appel d'offre. Attendez la fin avant de relancer.", "warning")
 
                 return redirect(url_for("admin_demandes_animation"))
 
@@ -8105,10 +8257,7 @@ Accessibilité: {accessibilite}
             print(f"[DEBUG] {len(shows)} spectacles trouvés")
             # Récupérer les emails uniques des utilisateurs
             emails_sent = set()
-            success_count = 0
-            error_count = 0
-            errors_detail = []  # Liste des erreurs détaillées
-            
+
             # Vérifier si mail est configuré
             if not getattr(current_app, "mail", None):
                 print("[DEBUG ERREUR] Flask-Mail n'est pas configuré !")
@@ -8491,192 +8640,38 @@ Accessibilité: {accessibilite}
             
             print(f"[DEBUG] Phase 1 terminée : {len(emails_to_send)} emails à envoyer")
             
-            # === PHASE 2 : ENVOI PAR BATCH AVEC PROGRESSION ===
-            BATCH_SIZE = 20  # Nombre d'emails par batch
-            PAUSE_SECONDS = 2  # Pause entre les batchs
-            
-            success_count = 0
-            error_count = 0
-            errors_detail = []
-            
             total_emails = len(emails_to_send)
             if total_emails == 0:
                 flash("⚠️ Aucun email à envoyer. Aucun spectacle correspondant trouvé.", "warning")
                 return redirect(url_for("admin_demandes_animation"))
-            
-            print(f"[DEBUG] Phase 2 : Envoi par batchs de {BATCH_SIZE} emails...")
-            successful_deliveries = []
-            
-            # Découper en batchs
-            for i in range(0, total_emails, BATCH_SIZE):
-                batch = emails_to_send[i:i+BATCH_SIZE]
-                batch_num = (i // BATCH_SIZE) + 1
-                total_batchs = (total_emails + BATCH_SIZE - 1) // BATCH_SIZE
-                
-                print(f"[BATCH {batch_num}/{total_batchs}] Envoi de {len(batch)} emails...")
-                
-                # OPTIMISATION : une seule connexion SMTP par batch (évite WORKER TIMEOUT)
-                try:
-                    with current_app.mail.connect() as conn:
-                        for email_data in batch:
-                            try:
-                                msg = MailMessage(
-                                    subject=_appel_offre_subject(demande, email_data.get('user'), gift=email_data['gift']),
-                                    recipients=[email_data['email']]
-                                )
-                                msg.html = email_data['body_html']
-                                conn.send(msg)
-                                success_count += 1
-                                tracked = _record_appel_offre_delivery(email_data.get('user'), demande, gift=email_data['gift'])
-                                successful_deliveries.append(delivery_recap_entry(
-                                    email_data.get('user'), email_data['email'],
-                                    email_data['show_title'], gift=email_data['gift'],
-                                    show=email_data.get('show'), tracked=tracked,
-                                ))
-                                print(f"[DEBUG] ✅ Email envoyé à {email_data['email']} ({success_count}/{total_emails})")
-                            except Exception as e:
-                                error_msg = str(e)
-                                error_count += 1
-                                errors_detail.append(f"{email_data['email']}: {error_msg[:100]}")
-                                print(f"[MAIL] ❌ Erreur envoi à {email_data['email']}: {error_msg}")
-                except Exception as e:
-                    print(f"[MAIL] ❌ Erreur connexion SMTP batch {batch_num}: {e}")
-                    error_count += len(batch)
-                    errors_detail.append(f"Batch {batch_num} : {str(e)[:120]}")
-                
-                # Pause entre les batchs (sauf pour le dernier)
-                if i + BATCH_SIZE < total_emails:
-                    print(f"[BATCH] Pause de {PAUSE_SECONDS}s avant le prochain batch...")
-                    time.sleep(PAUSE_SECONDS)
-            
-            # === PHASE 3 : ENVOYER COPIE ADMIN ===
-            # L'admin reçoit TOUJOURS une copie récapitulative, même si son email était dans les destinataires
+
+            jobs = [
+                {
+                    "email": email_data['email'],
+                    "user_id": email_data['user'].id if email_data.get('user') else None,
+                    "show_id": email_data['show'].id if email_data.get('show') else None,
+                    "title": email_data['show_title'],
+                    "gift": email_data['gift'],
+                    "subject": _appel_offre_subject(demande, email_data.get('user'), gift=email_data['gift']),
+                    "body_html": email_data['body_html'],
+                }
+                for email_data in emails_to_send
+            ]
             admin_email = current_user().email if current_user() and current_user().email else None
             if not admin_email:
                 admin_email = current_app.config.get("MAIL_DEFAULT_SENDER") or current_app.config.get("MAIL_USERNAME")
-            if admin_email:
-                try:
-                    delivery_summary = render_template(
-                        "_admin_offre_envois_recap.html",
-                        deliveries=successful_deliveries,
-                        errors=errors_detail,
-                    )
-                    admin_body_html = f"""
-<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="UTF-8">
-    <style>
-        body {{ font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; }}
-        .logo {{ text-align: center; margin: 20px 0; }}
-        .logo img {{ max-width: 200px; height: auto; }}
-        .content {{ padding: 20px; background-color: #f9f9f9; border-radius: 8px; }}
-        h2 {{ color: #1b2a4e; margin-top: 0; }}
-        .admin-notice {{ background: linear-gradient(135deg, #1b2a4e 0%, #355c7d 100%); color: white; padding: 15px; border-radius: 8px; margin: 20px 0; text-align: center; font-weight: bold; }}
-        .opportunity-box {{ background: #e8f5e9; border: 1px solid #a5d6a7; color: #1b5e20; padding: 20px; border-radius: 8px; margin: 20px 0; }}
-        .opportunity-box h3 {{ margin-top: 0; color: white; }}
-        .info-grid {{ display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 15px 0; }}
-        .info-item {{ background-color: rgba(255,255,255,0.1); padding: 10px; border-radius: 5px; }}
-        .info-label {{ font-weight: bold; font-size: 0.9em; }}
-        .footer {{ text-align: center; margin-top: 20px; color: #666; font-size: 0.9em; }}
-    </style>
-</head>
-<body>
-    <div class="logo">
-        <img src="https://www.spectacleanimation.fr/static/img/logo_spectaclement_votre.png" alt="Spectacle'ment Vôtre">
-    </div>
-    <div class="content">
-        <div class="admin-notice">
-            COPIE ADMIN - Appel d'offre envoyé à {success_count} compagnie(s)
-        </div>
-        {delivery_summary}
-        <p style="font-size:0.95em; color:#444; margin:0 0 16px 0;"><strong>Appel d'offre :</strong> {demande.intitule or 'Demande d\'animation'}</p>
+            recap = functools.partial(_recap_region_offre, admin_email=admin_email)
 
-        <div class="opportunity-box">
-            <h3>{demande.genre_recherche} à {demande.lieu_ville}</h3>
-            <div class="info-grid">
-                <div class="info-item">
-                    <div class="info-label">Lieu</div>
-                    {demande.lieu_ville}
-                </div>
-                <div class="info-item">
-                    <div class="info-label">Date(s)</div>
-                    {demande.dates_horaires}
-                </div>
-                <div class="info-item">
-                    <div class="info-label">Type recherché</div>
-                    {demande.genre_recherche}
-                </div>
-                <div class="info-item">
-                    <div class="info-label">Spécialités</div>
-                    {demande.specialites_recherchees.replace(',', ', ') if demande.specialites_recherchees else 'Non précisées'}
-                </div>
-                <div class="info-item">
-                    <div class="info-label">Jauge</div>
-                    {demande.jauge}
-                </div>
-                <div class="info-item">
-                    <div class="info-label">Budget</div>
-                    {demande.budget} €
-                </div>
-                <div class="info-item">
-                    <div class="info-label">Public</div>
-                    {_format_age_label(demande.age_range)}
-                </div>
-            </div>
-            <p><strong>Type d'espace :</strong> {demande.type_espace}</p>
-            <p style="color: #333;"><strong>Intitulé de la mission :</strong> {demande.intitule or 'Non précisé'}</p>
-            <p><strong>Accessibilité :</strong> {demande.accessibilite or 'Non précisée'}</p>
-        </div>
-
-        <p><strong>Structure :</strong> {demande.structure}<br>
-        <strong>Contact :</strong> {demande.nom}<br>
-        <strong>Email :</strong> {demande.contact_email}<br>
-        <strong>Téléphone :</strong> {demande.telephone}</p>
-
-        <div class="footer">
-            <p><strong>L'équipe Spectacle'ment Vôtre</strong></p>
-        </div>
-    </div>
-</body>
-</html>
-"""
-                    admin_msg = MailMessage(
-                        subject=f"[ADMIN] Appel d'offre envoyé : {demande.genre_recherche} à {demande.lieu_ville}",
-                        recipients=[admin_email]
-                    )
-                    admin_msg.html = admin_body_html
-                    current_app.mail.send(admin_msg)
-                    print(f"[DEBUG] ✅ Copie admin envoyée à {admin_email}")
-                except Exception as e:
-                    print(f"[MAIL] ⚠️ Erreur envoi copie admin à {admin_email}: {e}")
+            if _lancer_envoi_arriere_plan(current_app._get_current_object(), f"region-{demande.id}",
+                                          demande.id, jobs, recap, request.host_url):
+                minutes = max(1, round(total_emails * _SEND_PACE_SECONDS / 60))
+                flash(f"📧 Envoi lancé pour {total_emails} utilisateur(s) : environ {minutes} min "
+                      f"(1 mail toutes les {_SEND_PACE_SECONDS} s). Le récapitulatif sera envoyé par email à la fin.", "info")
             else:
-                print(f"[WARNING] Aucun email admin configuré - pas de copie envoyée")
+                flash("⚠️ Un envoi est déjà en cours pour cet appel d'offre. Attendez la fin avant de relancer.", "warning")
 
-            # === RÉCAP ORGANISATEUR ===
-            # Envoi auto d'un récap court à l'organisateur avec les liens des fiches contactées
-            if success_count > 0:
-                shows_recap = [e['show'] for e in successful_deliveries if e.get('show')]
-                recap_ok, recap_err = _send_recap_to_organisateur(demande, shows_recap, admin_email_extra=admin_email)
-                if not recap_ok:
-                    flash(f"⚠️ Récap non transmis à l'organisateur : {recap_err or 'voir logs.'}", "warning")
-
-            print(f"[DEBUG] Envoi terminé - Succès: {success_count}, Erreurs: {error_count}")
-            if success_count > 0:
-                copie_msg = f" + copie admin envoyée à {admin_email}" if admin_email else ""
-                flash(f"✅ Demande envoyée à {success_count} utilisateur(s){copie_msg} !", "success")
-            if error_count > 0:
-                flash(f"⚠️ {error_count} email(s) n'ont pas pu être envoyé(s) (domaines invalides ou boîtes pleines).", "warning")
-                # Logger les détails des erreurs sans crasher
-                for err_detail in errors_detail[:5]:  # Limiter à 5 pour ne pas surcharger les logs
-                    print(f"[MAIL ERROR DETAIL] {err_detail}")
-            
-            if success_count == 0 and error_count == 0:
-                flash("⚠️ Aucun email n'a été envoyé. Aucun spectacle correspondant trouvé.", "warning")
-
-            # Retourner à la page admin des demandes
             return redirect(url_for("admin_demandes_animation"))
-        
+
         # GET : afficher le formulaire de sélection
         # Auto-matching basé sur les nouveaux champs
         from utils.matching import find_matching_shows
