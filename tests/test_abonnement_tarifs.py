@@ -53,20 +53,21 @@ def test_invoice_preview_keeps_issued_amount(client, admin_user, normal_user):
 
     response = client.get(f"/admin/adhesions/{adhesion.id}/preview-invoice")
     assert response.status_code == 200
-    assert "/49EUR" in response.get_data(as_text=True)
+    assert "/52EUR" in response.get_data(as_text=True)
     db.session.refresh(adhesion)
     assert adhesion.invoice_amount == 49
 
 
 @pytest.mark.parametrize("kind", ["j30", "j7", "expired"])
-def test_renewal_emails_and_payment_links_use_99(app, normal_user, kind):
+def test_renewal_emails_virement_99_paypal_104(app, normal_user, kind):
     import rappels_abonnements as reminders
 
     html = getattr(reminders, f"_html_rappel_{kind}")(
         normal_user, datetime(2026, 12, 1),
     )
     assert "99 €" in html
-    assert "/99EUR" in html
+    assert "/104EUR" in html
+    assert "/99EUR" not in html
     assert "/149EUR" not in html
 
 

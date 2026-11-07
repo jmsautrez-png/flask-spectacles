@@ -1101,12 +1101,16 @@ def _run_critical_migrations(app: Flask) -> None:
         ("users", "renewal_j30_sent_for", "TIMESTAMP", "DATETIME", None),
         ("users", "renewal_j7_sent_for", "TIMESTAMP", "DATETIME", None),
         ("users", "renewal_expired_sent_for", "TIMESTAMP", "DATETIME", None),
+        ("users", "fin_gratuite_alerte_sent_for", "TIMESTAMP", "DATETIME", None),
         ("users", "cadeaux_offerts_count", "INTEGER DEFAULT 0", "INTEGER DEFAULT 0", "0"),
         ("users", "apercus_envoyes_count", "INTEGER DEFAULT 0", "INTEGER DEFAULT 0", "0"),
         # ── Facturation Adhésions (envoi auto facture + PayPal) ──
         ("adhesion", "invoice_number", "VARCHAR(50)", "VARCHAR(50)", None),
         ("adhesion", "invoice_sent_at", "TIMESTAMP", "DATETIME", None),
         ("adhesion", "invoice_amount", "INTEGER", "INTEGER", None),
+        ("adhesion", "relance_j3_sent_for", "TIMESTAMP", "DATETIME", None),
+        ("adhesion", "relance_j7_sent_for", "TIMESTAMP", "DATETIME", None),
+        ("adhesion", "alerte_admin_j10_sent_for", "TIMESTAMP", "DATETIME", None),
         # ── Infos légales (privées, auto-attribution Cie Pro) ──
         ("users", "siret", "VARCHAR(14)", "VARCHAR(14)", None),
         ("users", "licence_spectacle", "VARCHAR(100)", "VARCHAR(100)", None),
@@ -7033,6 +7037,19 @@ Accessibilité: {accessibilite}
             flash("Pour demander un abonnement, vous devez d'abord avoir au moins un spectacle approuvé.", "warning")
             return redirect(url_for("company_dashboard"))
 
+        adh_en_cours = None
+        if not user.is_admin:
+            adh_en_cours = (
+                Adhesion.query
+                .filter(Adhesion.user_id == user.id, Adhesion.statut.in_(["pending", "contacted"]))
+                .order_by(Adhesion.created_at.desc())
+                .first()
+            )
+
+        if request.method == "POST" and adh_en_cours:
+            flash("Vous avez déjà une demande d'adhésion en cours. La facture vous sera envoyée par email.", "info")
+            return redirect(url_for("adhesion"))
+
         if request.method == "POST":
             nom = (request.form.get("nom") or "").strip()[:200]
             telephone = (request.form.get("telephone") or "").strip()[:50]
@@ -7089,7 +7106,7 @@ Accessibilité: {accessibilite}
             except Exception as e:
                 current_app.logger.error(f"[ADHESION] Erreur mail admin: {e}")
 
-            flash("Merci ! Votre demande a bien été enregistrée. Nous vous rappelons rapidement pour activer votre abonnement.", "success")
+            flash("Merci ! Votre demande a bien été enregistrée. Vous recevrez par email la facture avec les moyens de paiement.", "success")
             return redirect(url_for("adhesion"))
 
         prefill_email = user.email if user else ""
@@ -7101,6 +7118,7 @@ Accessibilité: {accessibilite}
             telephone="",
             email=prefill_email,
             message="",
+            adh_en_cours=adh_en_cours,
         )
 
     def _user_can_view_demandes_map(user):
@@ -10317,6 +10335,15 @@ def admin_adhesion_notes(adhesion_id):
 # Tarifs abonnement AO (euros TTC, TVA non applicable)
 ADHESION_TARIF_PREMIERE_ANNEE = 49
 ADHESION_TARIF_RENOUVELLEMENT = 99
+# Frais ajoutés pour un règlement par PayPal uniquement (le virement ne les paie pas)
+ADHESION_FRAIS_PAYPAL = 3
+ADHESION_FRAIS_PAYPAL_RENOUVELLEMENT = 5
+# Liens de paiement Stripe (publics, à créer dans le tableau de bord Stripe) par montant.
+# Un montant sans lien renseigné n'affiche pas le bloc carte.
+STRIPE_LIENS_PAR_MONTANT = {
+    49: "https://buy.stripe.com/cNi8wPcyWfkm6Em5sucEw01",
+    99: "https://buy.stripe.com/eVq5kD7eC5JMe6O8EGcEw02",
+}
 
 
 def _is_adhesion_renewal(adh):
@@ -10355,8 +10382,34 @@ def _default_adhesion_amount(adh):
     return ADHESION_TARIF_PREMIERE_ANNEE
 
 
+def _adhesion_frais_paypal(adh):
+    """Frais PayPal ajoutés au montant : 3 € en 1re année, 5 € pour un renouvellement."""
+    return ADHESION_FRAIS_PAYPAL_RENOUVELLEMENT if _is_adhesion_renewal(adh) else ADHESION_FRAIS_PAYPAL
+
+
 def _build_adhesion_invoice_html(adh, amount, invoice_number, now_dt, date_debut, date_fin, paypal_email, cgu_url):
     """Construit le HTML de la facture d'adhésion (réutilisé par preview et envoi)."""
+    frais_paypal = _adhesion_frais_paypal(adh)
+    paypal_amount = amount + frais_paypal
+    lien_stripe = STRIPE_LIENS_PAR_MONTANT.get(amount, "")
+
+    bloc_stripe = ""
+    if lien_stripe:
+        bloc_stripe = f"""
+      <div style="background:#e8f5e9;border-left:4px solid #2e7d32;padding:16px 18px;border-radius:6px;margin:18px 0;">
+        <strong style="color:#1b5e20;display:block;margin-bottom:8px;">💳 Règlement par carte bancaire (sécurisé)</strong>
+        <p style="margin:0 0 12px 0;font-size:0.92rem;color:#333;">Réglez <strong>{amount} €</strong> par carte, sans frais supplémentaires :</p>
+        <div style="text-align:center;margin:14px 0;">
+          <a href="{lien_stripe}" target="_blank" rel="noopener"
+             style="display:inline-block;background:#2e7d32;color:#fff;padding:14px 32px;border-radius:30px;text-decoration:none;font-weight:700;font-size:1.05rem;">
+            Payer {amount} € par carte
+          </a>
+        </div>
+        <p style="margin:12px 0 0 0;font-size:0.82rem;color:#555;text-align:center;">
+          Pensez à indiquer la référence <strong>{invoice_number} — {adh.nom}</strong> dans le libellé.
+        </p>
+      </div>
+"""
     return f"""<!DOCTYPE html>
 <html lang="fr"><head><meta charset="UTF-8"></head>
 <body style="font-family:Arial,Helvetica,sans-serif;background:#f4f6fa;margin:0;padding:20px;color:#333;">
@@ -10415,24 +10468,25 @@ def _build_adhesion_invoice_html(adh, amount, invoice_number, now_dt, date_debut
         </tbody>
       </table>
 
+      {bloc_stripe}
       <div style="background:#e3f2fd;border-left:4px solid #1976d2;padding:16px 18px;border-radius:6px;margin:18px 0;">
         <strong style="color:#1565c0;display:block;margin-bottom:8px;">💳 Règlement par PayPal (le plus rapide — 1 clic)</strong>
-        <p style="margin:0 0 12px 0;font-size:0.92rem;color:#333;">Cliquez sur le bouton ci-dessous pour régler <strong>{amount} €</strong> en 1 clic. Le montant est pré-rempli automatiquement.</p>
+        <p style="margin:0 0 12px 0;font-size:0.92rem;color:#333;">Cliquez sur le bouton ci-dessous pour régler <strong>{paypal_amount} €</strong> en 1 clic : {amount} € + {frais_paypal} € de frais PayPal. Le montant est pré-rempli automatiquement.</p>
         <div style="text-align:center;margin:14px 0;">
-          <a href="https://paypal.me/SpectaclementVotre/{amount}EUR" target="_blank" rel="noopener"
+          <a href="https://paypal.me/SpectaclementVotre/{paypal_amount}EUR" target="_blank" rel="noopener"
              style="display:inline-block;background:linear-gradient(135deg,#003087,#009cde);color:#fff;padding:14px 32px;border-radius:30px;text-decoration:none;font-weight:700;font-size:1.05rem;box-shadow:0 3px 10px rgba(0,48,135,0.3);">
-            Payer {amount} € avec <span style="font-style:italic;letter-spacing:-0.5px;">PayPal</span>
+            Payer {paypal_amount} € avec <span style="font-style:italic;letter-spacing:-0.5px;">PayPal</span>
           </a>
         </div>
         <p style="margin:12px 0 0 0;font-size:0.82rem;color:#555;text-align:center;">
-          Lien direct : <a href="https://paypal.me/SpectaclementVotre/{amount}EUR" target="_blank" rel="noopener" style="color:#1565c0;">paypal.me/SpectaclementVotre/{amount}EUR</a><br>
+          Lien direct : <a href="https://paypal.me/SpectaclementVotre/{paypal_amount}EUR" target="_blank" rel="noopener" style="color:#1565c0;">paypal.me/SpectaclementVotre/{paypal_amount}EUR</a><br>
           Pensez à indiquer la référence <strong>{invoice_number} — {adh.nom}</strong> dans le libellé.
         </p>
       </div>
 
       <div style="background:#f3e5f5;border-left:4px solid #6a1b9a;padding:16px 18px;border-radius:6px;margin:18px 0;">
         <strong style="color:#4a148c;display:block;margin-bottom:8px;">🏦 Règlement par virement bancaire</strong>
-        <p style="margin:0 0 10px 0;font-size:0.92rem;color:#333;">Vous pouvez également régler <strong>{amount} €</strong> par virement SEPA sur notre compte :</p>
+        <p style="margin:0 0 10px 0;font-size:0.92rem;color:#333;">Vous pouvez également régler <strong>{amount} €</strong> par virement SEPA sur notre compte (sans frais PayPal) :</p>
         <table style="width:100%;border-collapse:collapse;background:#fff;border-radius:6px;border:1px solid #ce93d8;overflow:hidden;font-size:0.88rem;">
           <tr>
             <td style="padding:8px 12px;color:#666;border-bottom:1px solid #f0e0f5;width:120px;">Titulaire</td>
@@ -10452,13 +10506,14 @@ def _build_adhesion_invoice_html(adh, amount, invoice_number, now_dt, date_debut
           </tr>
         </table>
         <p style="margin:10px 0 0 0;font-size:0.82rem;color:#555;">Merci d'indiquer la référence <strong>{invoice_number} — {adh.nom}</strong> dans le libellé du virement.</p>
+        <p style="margin:8px 0 0 0;font-size:0.82rem;color:#555;">⏱️ Un virement peut prendre <strong>jusqu'à 48 h</strong> avant d'apparaître sur notre compte. Dès que vous l'avez effectué, merci de nous prévenir par e-mail à <a href="mailto:laureline@spectacleanimation.fr" style="color:#6a1b9a;">laureline@spectacleanimation.fr</a> en indiquant la référence.</p>
       </div>
 
       <div style="background:#fff3e0;border-left:4px solid #ff9800;padding:14px 18px;border-radius:6px;margin:18px 0;font-size:0.88rem;color:#555;line-height:1.6;">
         <strong style="color:#e65100;display:block;margin-bottom:6px;">📜 Conditions essentielles</strong>
         <ul style="margin:0;padding-left:18px;">
           <li>Abonnement de <strong>12 mois</strong> à compter de la réception du paiement.</li>
-          <li>Service activé <strong>sous 24 h</strong> après encaissement.</li>
+          <li>Service activé <strong>sous 24 h</strong> après encaissement (comptez jusqu'à <strong>48 h</strong> pour un virement).</li>
           <li>Accès complet aux appels d'offres déposés par les organisateurs (mairies, écoles, CSE…).</li>
           <li>Résiliation libre à tout moment (pas de reconduction tacite automatique).</li>
           <li>Conditions complètes : <a href="{cgu_url}" style="color:#1976d2;">{cgu_url}</a></li>

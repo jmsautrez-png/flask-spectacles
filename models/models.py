@@ -142,6 +142,8 @@ class User(db.Model):
     renewal_j30_sent_for = db.Column(db.DateTime, nullable=True)
     renewal_j7_sent_for = db.Column(db.DateTime, nullable=True)
     renewal_expired_sent_for = db.Column(db.DateTime, nullable=True)
+    # Alerte admin « fin de l'accès gratuit d'un an » (comptes d'avant MODELE_PAYANT_DEBUT) : date de fin alertée.
+    fin_gratuite_alerte_sent_for = db.Column(db.DateTime, nullable=True)
     # Nombre d'appels d'offres « cadeau » (bloc `_bloc_cadeau_html`) envoyés à cet utilisateur depuis MODELE_PAYANT_DEBUT.
     cadeaux_offerts_count = db.Column(db.Integer, nullable=False, default=0, server_default="0")
     apercus_envoyes_count = db.Column(db.Integer, nullable=False, default=0, server_default="0")
@@ -489,6 +491,11 @@ class Adhesion(db.Model):
     invoice_number = db.Column(db.String(50), nullable=True, index=True)
     invoice_sent_at = db.Column(db.DateTime, nullable=True)
     invoice_amount = db.Column(db.Integer, nullable=True)  # en euros (TTC, sans TVA)
+    # Relances de paiement : valeur = invoice_sent_at de la facture relancée (idempotence,
+    # une nouvelle émission de facture remet automatiquement les relances à zéro).
+    relance_j3_sent_for = db.Column(db.DateTime, nullable=True)
+    relance_j7_sent_for = db.Column(db.DateTime, nullable=True)
+    alerte_admin_j10_sent_for = db.Column(db.DateTime, nullable=True)
 
     created_at = db.Column(db.DateTime, default=datetime.utcnow, index=True)
     contacted_at = db.Column(db.DateTime, nullable=True)
