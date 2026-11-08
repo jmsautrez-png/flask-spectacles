@@ -107,6 +107,7 @@ def offer_view(demande, user, gifts):
     values = {col.name: getattr(demande, col.name) for col in demande.__table__.columns}
     values.pop("consultations_count", None)
     values["telephone_renseigne"] = bool(demande.telephone)
+    values["structure_titre"] = demande.structure
     if restricted:
         for name in (
             "nom", "telephone", "contact_email", "code_postal", "intitule",

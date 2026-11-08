@@ -83,13 +83,14 @@ def login(client, user):
         session["username"] = user.username
 
 
-def assert_masked(html):
+def assert_masked(html, structure_visible=False):
     for value in (
         "SECRET_NAME", "SECRET_PHONE", "secret-contact@example.test",
-        "SECRET_CITY", "SECRET_STRUCTURE", "99991", "SECRET_DESCRIPTION",
+        "SECRET_CITY", "99991", "SECRET_DESCRIPTION",
         "SECRET_CONSTRAINT", "SECRET_ACCESS", "SECRET_SPACE", "SECRET_DATE_TEXT",
     ):
         assert value not in html
+    assert ("SECRET_STRUCTURE" in html) == structure_visible
 
 
 @pytest.mark.parametrize("viewer", ["anonymous", "no-approved-show", "needs-subscription"])
@@ -227,7 +228,7 @@ def test_listing_masks_source_and_unlocks_only_gift(client, offer_setup, path):
     login(client, user)
     response = client.get(path)
     assert response.status_code == 200
-    assert_masked(response.get_data(as_text=True))
+    assert_masked(response.get_data(as_text=True), structure_visible=path == "/demandes-animation")
     record_offer_delivery(user, demande, gift=True)
     html = client.get(path).get_data(as_text=True)
     assert "secret-contact@example.test" in html
@@ -460,7 +461,7 @@ def test_preview_search_uses_region_not_hidden_city(client, offer_setup, path, c
     login(client, user)
     html = client.get(path, query_string={"region": "Bretagne"}).get_data(as_text=True)
     assert f'id="{card_id}{demande.id}"' in html
-    assert_masked(html)
+    assert_masked(html, structure_visible=path == "/demandes-animation")
     html = client.get(path, query_string={"region": "SECRET_CITY"}).get_data(as_text=True)
     assert f'id="{card_id}{demande.id}"' not in html
 
