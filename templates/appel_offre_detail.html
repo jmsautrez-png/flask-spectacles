@@ -23,14 +23,14 @@
       <p>Annonce désactivée : coordonnées masquées.</p>
     {% else %}
       <p><strong>Contact :</strong> {{ demande.nom }}</p>
-      <p><strong>Téléphone :</strong> {{ demande.telephone }}</p>
+      {% if demande.telephone_renseigne %}<p><strong>Téléphone :</strong> {% if demande.acces_telephone %}{{ demande.telephone }}{% else %}<a href="{{ url_for('adhesion') }}" style="color:inherit; text-decoration:none;"><span style="filter:blur(4px); user-select:none;">06 12 34 56 78</span></a>{% endif %}</p>{% endif %}
       <p><strong>Email :</strong> <a href="mailto:{{ demande.contact_email }}">{{ demande.contact_email }}</a></p>
     {% endif %}
   {% else %}
     <div style="background:#fff8ed;border:1px solid #f0d7b0;padding:24px;border-radius:14px;color:#483624;line-height:1.6;">
       <h2 style="margin:0 0 12px;color:#75451f;font-size:1.25rem;">Une belle occasion pour votre compagnie !</h2>
       <p>Cet appel d'offres pourrait vous intéresser. Pourquoi ne pas vous abonner pour découvrir l'annonce complète et contacter directement l'organisateur ?</p>
-      <p><strong>49 € TTC la première année, puis 99 €/an.</strong></p>
+  <p><strong>49 € TTC la première année, puis 99 €/an</strong> (coordonnées sans téléphone) · <strong>99 € TTC la première année, puis 179 €/an</strong> (téléphone inclus).</p>
       <a href="{{ url_for('adhesion') }}" style="display:inline-block;background:#75451f;color:#fff;padding:12px 20px;border-radius:8px;text-decoration:none;font-weight:700;">Je découvre l'abonnement</a>
     </div>
   {% endif %}

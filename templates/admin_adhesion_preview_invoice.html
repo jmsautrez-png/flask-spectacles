@@ -32,6 +32,13 @@
         <span style="color:#999; margin-left:8px;">· BCC → <code style="background:#f5f5f5;padding:1px 6px;border-radius:4px;font-size:0.85em;">laureline@spectacleanimation.fr</code></span>
       </div>
       <form method="get" action="{{ url_for('admin_adhesion_preview_invoice', adhesion_id=adh.id) }}" style="margin:0; display:flex; gap:8px; align-items:center;">
+        <label style="font-weight:600; color:#333; font-size:0.9rem; margin:0;">Formule :</label>
+        <select name="formule" onchange="this.form.amount.value=this.options[this.selectedIndex].dataset.montant"
+                style="padding:7px; border:1px solid #ccc; border-radius:6px; font-size:0.9rem;">
+          {% for code, f in formules.items() %}
+          <option value="{{ code }}" data-montant="{{ montants_formules[code] }}" {% if code == formule %}selected{% endif %}>{{ f.libelle }}</option>
+          {% endfor %}
+        </select>
         <label style="font-weight:600; color:#333; font-size:0.9rem; margin:0;">Montant (€) :</label>
         <input type="number" name="amount" value="{{ amount }}" min="1" max="10000" step="1"
                style="width:90px; padding:7px; border:1px solid #ccc; border-radius:6px; font-size:0.95rem; text-align:center;">
@@ -44,6 +51,7 @@
             onsubmit="return confirm('⚠️ Envoyer définitivement la facture n° {{ invoice_number }} à {{ adh.email|e }} ({{ amount }} €) ?\n\nLe numéro sera figé et le statut passera à « contacté ».');">
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
         <input type="hidden" name="amount" value="{{ amount }}"/>
+        <input type="hidden" name="formule" value="{{ formule }}"/>
         <button type="submit" style="background:#2e7d32; color:#fff; padding:11px 24px; border:none; border-radius:8px; font-weight:700; cursor:pointer; font-size:0.95rem; box-shadow:0 2px 6px rgba(46,125,50,0.3);">
           📨 Envoyer définitivement
         </button>

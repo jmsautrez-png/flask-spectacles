@@ -131,13 +131,13 @@
         <span style="font-size:0.7rem; padding:2px 6px; border-radius:4px; font-weight:600; {% if demande.portee_nationale %}background:#e3f2fd; color:#1565c0;{% else %}background:#fff3e0; color:#e65100;{% endif %}">{% if demande.portee_nationale %}🇫🇷 France{% else %}📍 Régional{% endif %}</span>
         {% endif %}
       </div>
-      <h3 style="color:#1976d2; margin:0 0 0.2rem 0; font-size:1rem; line-height:1.2;">{{ demande.structure }}</h3>
+      <h3 style="color:#1976d2; margin:0 0 0.2rem 0; font-size:1rem; line-height:1.2;"><span {% if not has_full_access %}style="filter:blur(4px); user-select:none;"{% endif %}>{{ demande.structure }}</span></h3>
       {% if demande.specialites_recherchees %}
       <p style="margin:0 0 0.2rem 0; line-height:1.5;">{% for s in demande.specialites_recherchees.split(',') %}{% if s.strip() %}<span style="display:inline-block;background:#6a1b9a22;color:#6a1b9a;border-radius:10px;padding:2px 10px;font-size:0.8em;margin:2px 3px 2px 0;font-weight:600;">{{ s.strip() }}</span>{% endif %}{% endfor %}</p>
       {% else %}
       <p style="margin:0 0 0.2rem 0;"><span style="color:#1976d2; font-weight:600;">{{ demande.genre_recherche }}</span></p>
       {% endif %}
-      <p style="margin:0 0 0.2rem 0;"><strong>📍</strong> {% if user %}{% if demande.created_at and demande.created_at >= masquage_ville_seuil and not user.is_admin and not user.is_subscribed and not demande.offert %}<span style="color:#888; font-style:italic;">[Ville masquée]</span>{% else %}{{ demande.lieu_ville }}{% endif %}{% if demande.code_postal %} ({{ demande.code_postal }}){% endif %}{% if demande.region %} · {{ demande.region }}{% endif %}{% else %}<a href="{{ url_for('register') }}" style="color:#7c4dff; font-style:italic; text-decoration:underline;">[Lieu masqué]</a>{% endif %}</p>
+      <p style="margin:0 0 0.2rem 0;"><strong>📍</strong> {% if user %}{% if not has_full_access %}<span style="color:#888; font-style:italic;">[Ville masquée]</span>{% else %}{{ demande.lieu_ville }}{% endif %}{% if has_full_access and demande.code_postal %} ({{ demande.code_postal }}){% endif %}{% if demande.region %} · {{ demande.region }}{% endif %}{% else %}<a href="{{ url_for('register') }}" style="color:#7c4dff; font-style:italic; text-decoration:underline;">[Lieu masqué]</a>{% endif %}</p>
       <p style="margin:0 0 0.4rem 0;"><strong>💶</strong> <span style="color:#28a745; font-weight:700;">{{ demande.budget }}</span> · <strong>👥</strong> {{ demande.jauge }} pers.</p>
 
       <!-- Bouton voir détails -->
@@ -149,7 +149,7 @@
         <p style="font-size:0.85em;color:#888; margin:0.3rem 0 0.2rem 0;">🕒 Créée le {{ demande.created_at.strftime('%d/%m/%Y %H:%M') }}</p>
         <p style="font-size:0.85em;color:#444; margin:0.1rem 0;">bonjour nous sommes un(e)</p>
         <div style="display:flex; align-items:center; gap:0.5rem; margin-bottom:0.2rem;">
-          {% if user and (user.is_admin or demande.offert) %}<strong style="color:#1976d2;">{{ demande.structure }}</strong>
+          {% if has_full_access %}<strong style="color:#1976d2;">{{ demande.structure }}</strong>
           <span style="color:#1976d2; font-weight:700;">{{ demande.nom }}</span>{% else %}<strong style="color:#1976d2;">[Structure masquée]</strong>
           <span style="color:#1976d2; font-weight:700;"><a href="{{ url_for('register') }}" style="color:#7c4dff; font-style:italic; text-decoration:underline;">[Nom masqué]</a></span>{% endif %}
         </div>
@@ -172,7 +172,7 @@
           </p>
           {% endif %}
         {% elif needs_abo %}
-          <a href="{{ url_for('adhesion') }}" style="display:block;margin:0.4rem 0;background:linear-gradient(135deg,#6a1b9a,#8e24aa);color:#fff;padding:10px 16px;border-radius:10px;text-decoration:none;font-weight:700;text-align:center;font-size:0.85rem;">🔓 Appels d'offres illimités : 49 € TTC           la première année,                               puis 99 €/an<br><em>(Appels d'offres réels et vérifiables)</em></a>
+          <a href="{{ url_for('adhesion') }}" style="display:block;margin:0.4rem 0;background:linear-gradient(135deg,#6a1b9a,#8e24aa);color:#fff;padding:10px 16px;border-radius:10px;text-decoration:none;font-weight:700;text-align:center;font-size:0.85rem;">          🔓 S'abonner : 49 € la 1ʳᵉ année, puis 99 €/an<br><em>(Appels d'offres réels et vérifiables)</em></a>
         {% elif user %}
           <a href="{{ url_for('company_dashboard') }}" style="display:block;margin:0.4rem 0;background:linear-gradient(135deg,#7c4dff,#536dfe);color:#fff;padding:10px 16px;border-radius:10px;text-decoration:none;font-weight:700;text-align:center;font-size:0.85rem;">                    🔒 Appels d'offres illimités : 49 € TTC           la première année,                               puis 99 €/an<br>          <em>(Appels d'offres réels et vérifiables)</em></a>
         {% else %}
@@ -192,7 +192,7 @@
             </div>
             {% else %}
             <p style="margin:0.2rem 0;"><strong>👤 Contact :</strong> {{ demande.nom }}</p>
-            <p style="margin:0.2rem 0;"><strong>📞 Téléphone :</strong> {{ demande.telephone }}</p>
+            {% if demande.telephone_renseigne %}<p style="margin:0.2rem 0;"><strong>📞 Téléphone :</strong> {% if demande.acces_telephone %}{{ demande.telephone }}{% else %}<a class="tel-verrou" href="{{ url_for('adhesion') }}" style="color:inherit; text-decoration:none;"><span style="filter:blur(4px); user-select:none;">06 12 34 56 78</span><span class="tel-btn">🔓 Débloquer les coordonnées téléphoniques</span></a>{% endif %}</p>{% endif %}
             <p style="margin:0.2rem 0;"><strong>✉️ Email :</strong> <span style="word-break:break-all;font-weight:600;color:#0d47a1;">{{ demande.contact_email }}</span></p>
             <div style="display:flex;gap:6px;flex-wrap:wrap;margin:0.2rem 0;">
               <a href="mailto:{{ demande.contact_email }}" style="background:#1976d2;color:#fff;padding:4px 12px;border-radius:6px;text-decoration:none;font-weight:600;font-size:0.85rem;">✉️ Répondre</a>
@@ -211,11 +211,16 @@
           {% endif %}
           <div style="background:#f3e5f5; padding:8px; border-radius:8px; margin:0.4rem 0; border:1px solid #ce93d8;">
             <p style="margin:0.2rem 0;"><strong>👤 Contact :</strong> <span style="filter:blur(4px); user-select:none;">Dupont Marie</span></p>
-            <p style="margin:0.2rem 0;"><strong>📞 Téléphone :</strong> <span style="filter:blur(4px); user-select:none;">06 12 34 56 78</span></p>
+            {% if demande.telephone_renseigne %}<p style="margin:0.2rem 0;"><strong>📞 Téléphone :</strong> <span style="filter:blur(4px); user-select:none;">06 12 34 56 78</span></p>{% endif %}
             <p style="margin:0.2rem 0;"><strong>✉️ Email :</strong> <span style="filter:blur(4px); user-select:none;">contact@organisateur.fr</span></p>
-            <a href="{{ url_for('adhesion') }}" style="display:block;margin:0.4rem 0 0.1rem 0;background:linear-gradient(135deg,#6a1b9a,#8e24aa);color:#fff;padding:8px 12px;border-radius:8px;text-decoration:none;font-weight:700;text-align:center;font-size:0.85rem;">🔓 Débloquer les coordonnées — 49 € TTC la première année, puis 99 €/an</a>
+            <a href="{{ url_for('adhesion') }}" style="display:block;margin:0.4rem 0 0.1rem 0;background:linear-gradient(135deg,#6a1b9a,#8e24aa);color:#fff;padding:8px 12px;border-radius:8px;text-decoration:none;font-weight:700;text-align:center;font-size:0.85rem;">🔓 Débloquer les coordonnées téléphoniques</a>
           </div>
-          <p style="margin:0.2rem 0;">🔒 Localisation disponible avec l'abonnement</p>
+          <div style="margin:0.4rem 0; position:relative; border-radius:10px; overflow:hidden;">
+            <div style="height:140px; background:linear-gradient(135deg,#cfd8dc,#eceff1); filter:blur(6px);"></div>
+            <div style="position:absolute;top:0;left:0;right:0;bottom:0;display:flex;align-items:center;justify-content:center;text-align:center;">
+              <div style="background:rgba(0,0,0,0.55);color:#fff;padding:10px 16px;border-radius:8px;font-weight:700;font-size:0.85em;">🔒 Localisation disponible avec l'abonnement</div>
+            </div>
+          </div>
         {% elif user %}
           {% if demande.region %}<p style="margin:0.2rem 0;"><strong>🗺️ Région :</strong> <span style="color:#aaa;">{{ demande.region }}</span></p>{% endif %}
           {% if demande.portee_nationale is defined %}
@@ -226,7 +231,7 @@
           <p style="margin:0.2rem 0;"><strong>✉️ Email :</strong> <a href="{{ url_for('company_dashboard') }}" style="color:#7c4dff; font-style:italic; text-decoration:underline;font-size:0.85em;">Publier votre manifestation pour accéder aux appels d'offre gratuit</a></p>
           <p style="margin:0.2rem 0;"><strong>📍 Lieu/Ville :</strong> <a href="{{ url_for('register') }}" style="color:#7c4dff; font-style:italic; text-decoration:underline;font-size:0.85em;">[Lieu masqué]</a></p>
           <div style="margin:0.4rem 0; position:relative; border-radius:10px; overflow:hidden;">
-            <iframe width="100%" height="140" style="border-radius:10px;border:1px solid #ccc;filter:blur(6px);pointer-events:none;" frameborder="0" src="https://www.google.com/maps?q={{ demande.lieu_ville|urlencode }}&output=embed"></iframe>
+                      <div style="height:140px; background:linear-gradient(135deg,#cfd8dc,#eceff1); filter:blur(6px);"></div>
             <div style="position:absolute;top:0;left:0;right:0;bottom:0;background:rgba(255,255,255,0.30);display:flex;align-items:center;justify-content:center;text-align:center;border-radius:10px;">
               <div style="background:rgba(0,0,0,0.55);color:#fff;padding:10px 16px;border-radius:8px;font-weight:700;font-size:0.85em;">🔒 Localisation disponible après publication de votre spectacle</div>
             </div>
@@ -241,7 +246,7 @@
           <p style="margin:0.2rem 0;"><strong>✉️ Email :</strong> <a href="{{ url_for('register') }}" style="color:#7c4dff; font-style:italic; text-decoration:underline;font-size:0.85em;">Publier votre manifestation pour accéder aux appels d'offre gratuit</a></p>
           <p style="margin:0.2rem 0;"><strong>📍 Lieu/Ville :</strong> <a href="{{ url_for('register') }}" style="color:#7c4dff; font-style:italic; text-decoration:underline;font-size:0.85em;">[Lieu masqué]</a></p>
           <div style="margin:0.4rem 0; position:relative; border-radius:10px; overflow:hidden;">
-            <iframe width="100%" height="140" style="border-radius:10px;border:1px solid #ccc;filter:blur(6px);pointer-events:none;" frameborder="0" src="https://www.google.com/maps?q={{ demande.lieu_ville|urlencode }}&output=embed"></iframe>
+                      <div style="height:140px; background:linear-gradient(135deg,#cfd8dc,#eceff1); filter:blur(6px);"></div>
             <div style="position:absolute;top:0;left:0;right:0;bottom:0;background:rgba(255,255,255,0.30);display:flex;align-items:center;justify-content:center;text-align:center;border-radius:10px;">
               <div style="background:rgba(0,0,0,0.55);color:#fff;padding:10px 16px;border-radius:8px;font-weight:700;font-size:0.85em;">🔒 Localisation disponible après publication de votre spectacle</div>
             </div>
@@ -380,6 +385,20 @@
   }
   .card:hover img {
     transform: scale(1.05);
+  }
+  .tel-btn {
+    display: none;
+    margin-left: 6px;
+    background: linear-gradient(135deg,#6a1b9a,#8e24aa);
+    color: #fff;
+    padding: 2px 10px;
+    border-radius: 6px;
+    font-size: 0.8rem;
+    font-weight: 700;
+    white-space: nowrap;
+  }
+  .tel-verrou:hover .tel-btn {
+    display: inline-block;
   }
 </style>
 {% endif %}

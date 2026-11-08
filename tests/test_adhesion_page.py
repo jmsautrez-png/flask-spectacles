@@ -144,6 +144,33 @@ def test_rejected_request_does_not_block_new_request(client, normal_user):
     page = client.get("/adhesion").get_data(as_text=True)
     assert 'name="telephone"' in page
     client.post("/adhesion", data={
-        "nom": "Nouveau", "telephone": "0600000000", "email": "a@b.fr",
+        "nom": "Nouveau", "telephone": "0600000000", "email": "a@b.fr", "formule": "49",
     })
     assert Adhesion.query.filter_by(user_id=normal_user.id, statut="pending").count() == 1
+
+
+def test_adhesion_request_without_formule_is_refused(client, normal_user):
+    from models import db
+    from models.models import Adhesion
+
+    approved_show(db, normal_user)
+    login(client, normal_user)
+    response = client.post("/adhesion", data={
+        "nom": "Sans formule", "telephone": "0600000000", "email": "a@b.fr",
+    })
+    assert response.status_code == 200
+    assert "choisir une formule" in response.get_data(as_text=True)
+    assert Adhesion.query.filter_by(user_id=normal_user.id).count() == 0
+
+
+def test_adhesion_request_saves_chosen_formule(client, normal_user):
+    from models import db
+    from models.models import Adhesion
+
+    approved_show(db, normal_user)
+    login(client, normal_user)
+    client.post("/adhesion", data={
+        "nom": "Avec téléphone", "telephone": "0600000000", "email": "a@b.fr", "formule": "99",
+    })
+    adh = Adhesion.query.filter_by(user_id=normal_user.id).one()
+    assert adh.formule_abonnement == "99"

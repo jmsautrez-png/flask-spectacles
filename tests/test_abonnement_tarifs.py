@@ -81,4 +81,4 @@ def test_public_subscription_prices(client, admin_user, path):
     html = response.get_data(as_text=True)
     assert "49 €" in html
     assert "99 €" in html
-    assert "79 € TTC" not in html
+    assert "79 € TTC" not in html.replace("179 € TTC", "")

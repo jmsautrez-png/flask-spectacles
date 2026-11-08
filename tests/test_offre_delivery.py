@@ -108,7 +108,10 @@ def test_public_offer_cta_price_preserves_destination(client, offer_setup, viewe
     assert response.status_code == 200
     html = response.get_data(as_text=True)
     emoji = "🔓" if viewer == "needs-subscription" else "🔒"
-    label = f"{emoji} Appels d'offres illimités : 49 € TTC la première année, puis 99 €/an (Appels d'offres réels et vérifiables)"
+    if viewer == "needs-subscription":
+        label = "🔓 S'abonner : 49 € la 1ʳᵉ année, puis 99 €/an (Appels d'offres réels et vérifiables)"
+    else:
+        label = f"{emoji} Appels d'offres illimités : 49 € TTC la première année, puis 99 €/an (Appels d'offres réels et vérifiables)"
 
     class PriceLinks(HTMLParser):
         def __init__(self):
@@ -176,7 +179,7 @@ def test_admin_send_uses_explicit_gift_only(app, client, offer_setup, monkeypatc
     assert AppelOffreEnvoi.query.filter_by(demande_id=other.id).count() == 0
     if gift:
         assert "secret-contact@example.test" in sent[0].html
-        assert "SECRET_PHONE" in sent[0].html
+        assert "SECRET_PHONE" not in sent[0].html
         assert "offert" in sent[0].html
     else:
         assert_masked(sent[0].html + sent[0].subject)

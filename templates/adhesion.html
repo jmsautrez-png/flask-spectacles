@@ -9,17 +9,22 @@
       Accès illimité aux coordonnées des organisateurs et à toutes les annonces publiées sur Spectacle'ment Vôtre.
     </p>
     <div style="display:flex; gap:12px; flex-wrap:wrap; margin-top:12px;">
-      <div style="background:rgba(255,255,255,0.15); padding:10px 14px; border-radius:10px; flex:1; min-width:180px;">
-        <div style="font-size:0.85rem; opacity:0.9;">1ʳᵉ année</div>
-        <div style="font-size:1.6rem; font-weight:800; line-height:1.1;">49 € TTC</div>
+      <div style="background:rgba(255,255,255,0.15); padding:10px 14px; border-radius:10px; flex:1; min-width:220px;">
+        <div style="font-size:0.85rem; opacity:0.9;">Formule 49 €</div>
+        <div style="font-size:1.6rem; font-weight:800; line-height:1.1;">49 € TTC <span style="font-size:0.9rem; font-weight:600;">la 1ʳᵉ année</span></div>
+        <div style="font-size:0.9rem; margin-top:4px;">puis 99 € TTC/an · coordonnées sans numéro de téléphone</div>
       </div>
-      <div style="background:rgba(255,255,255,0.10); padding:10px 14px; border-radius:10px; flex:1; min-width:180px;">
-        <div style="font-size:0.85rem; opacity:0.9;">Puis chaque année</div>
-        <div style="font-size:1.6rem; font-weight:800; line-height:1.1;">99 € TTC</div>
+      <div style="background:rgba(255,255,255,0.15); padding:10px 14px; border-radius:10px; flex:1; min-width:220px;">
+        <div style="font-size:0.85rem; opacity:0.9;">Formule avec téléphone</div>
+        <div style="font-size:1.6rem; font-weight:800; line-height:1.1;">99 € TTC <span style="font-size:0.9rem; font-weight:600;">la 1ʳᵉ année</span></div>
+        <div style="font-size:0.9rem; margin-top:4px;">puis 179 € TTC/an · numéro de téléphone inclus</div>
       </div>
     </div>
+    <p style="margin:12px 0 0 0; font-size:0.9rem; line-height:1.5;">
+      📞 Téléphone : <span style="filter:blur(4px); user-select:none;">06 12 34 56 78</span>
+    </p>
     <p style="margin:14px 0 0 0; font-size:0.9rem; opacity:0.95; line-height:1.5;">
-      ✅ Consultez toutes les coordonnées &nbsp;·&nbsp; ✅ Postulez librement &nbsp;·&nbsp; ✅ Facture PDF envoyée par email<br>
+      ✅ Consultez les coordonnées &nbsp;·&nbsp; ✅ Postulez librement &nbsp;·&nbsp; ✅ Facture PDF envoyée par email<br>
       ✅ <strong>Aucun engagement l'année suivante</strong> — vous choisissez de renouveler ou non<br>
       ✅ <strong>Paiement sécurisé</strong> par carte, PayPal ou virement, après réception de la facture par email<br>
       La présence dans l'annuaire, la publication de vos spectacles et les demandes de devis en direct restent <strong>gratuites</strong>.
@@ -72,6 +77,18 @@
       <textarea id="adh_msg" name="message" rows="4" maxlength="5000"
                 placeholder="Une question, un créneau préférentiel pour être rappelé..."
                 style="width:100%; padding:11px 13px; border:1.5px solid #ccc; border-radius:8px; font-size:0.95rem; box-sizing:border-box; font-family:inherit; resize:vertical;">{{ message|default('', true) }}</textarea>
+
+      <fieldset style="border:none; padding:0; margin:16px 0 0 0;">
+        <legend style="font-weight:600; margin:0 0 6px 0; color:#333;">Formule choisie <span style="color:#d32f2f;">*</span></legend>
+        <label style="display:flex; gap:8px; align-items:flex-start; margin:6px 0; cursor:pointer; color:#333;">
+          <input type="radio" name="formule" value="49" required {% if formule == '49' %}checked{% endif %} style="margin-top:4px;">
+          <span><strong>49 € TTC la 1ʳᵉ année</strong>, puis 99 €/an · coordonnées sans numéro de téléphone</span>
+        </label>
+        <label style="display:flex; gap:8px; align-items:flex-start; margin:6px 0; cursor:pointer; color:#333;">
+          <input type="radio" name="formule" value="99" required {% if formule == '99' %}checked{% endif %} style="margin-top:4px;">
+          <span><strong>99 € TTC la 1ʳᵉ année</strong>, puis 179 €/an · numéro de téléphone inclus</span>
+        </label>
+      </fieldset>
 
       <div style="margin-top:18px; display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
         <button type="submit"

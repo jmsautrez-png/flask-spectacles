@@ -82,7 +82,7 @@ print("✓ Flask importé")
 
 from config import Config
 from models import db
-from models.models import User, Show, PageVisit, VisitorLog, Review, Conversation, Message, ShowView, Notification, PresignedUrlCache, Adhesion
+from models.models import User, Show, PageVisit, VisitorLog, Review, Conversation, Message, ShowView, Notification, PresignedUrlCache, Adhesion, FORMULES_ABONNEMENT, FORMULE_ABO_DEFAUT
 from seo_cities import FRENCH_CITIES, get_city_by_slug, get_all_city_slugs, get_neighbor_cities, get_city_seo_data, get_category_seo_data
 from seo_departments import FRENCH_DEPARTMENTS, get_department_by_slug, get_all_department_slugs
 
@@ -1097,6 +1097,7 @@ def _run_critical_migrations(app: Flask) -> None:
         ("users", "is_organisateur", "BOOLEAN DEFAULT FALSE", "BOOLEAN DEFAULT 0", "FALSE"),
         ("users", "bloque_appels_offres", "BOOLEAN DEFAULT FALSE", "BOOLEAN DEFAULT 0", "FALSE"),
         ("users", "subscribed_until", "TIMESTAMP", "DATETIME", None),
+        ("users", "formule_abonnement", "VARCHAR(4)", "VARCHAR(4)", None),
         # ── Tracking des rappels d'expiration abonnement (idempotence du cron quotidien) ──
         ("users", "renewal_j30_sent_for", "TIMESTAMP", "DATETIME", None),
         ("users", "renewal_j7_sent_for", "TIMESTAMP", "DATETIME", None),
@@ -1108,6 +1109,7 @@ def _run_critical_migrations(app: Flask) -> None:
         ("adhesion", "invoice_number", "VARCHAR(50)", "VARCHAR(50)", None),
         ("adhesion", "invoice_sent_at", "TIMESTAMP", "DATETIME", None),
         ("adhesion", "invoice_amount", "INTEGER", "INTEGER", None),
+        ("adhesion", "formule_abonnement", "VARCHAR(4)", "VARCHAR(4)", None),
         ("adhesion", "relance_j3_sent_for", "TIMESTAMP", "DATETIME", None),
         ("adhesion", "relance_j7_sent_for", "TIMESTAMP", "DATETIME", None),
         ("adhesion", "alerte_admin_j10_sent_for", "TIMESTAMP", "DATETIME", None),
@@ -1617,6 +1619,11 @@ def _build_appel_offre_email(demande, show, gift=False):
         return _appel_offre_apercu(demande, show.user if show else None)
     reference = _reference_appel_offre(demande.id, show.user.id) if show and show.user else None
     ref_html = f'<br><span style="font-size:11px;color:#999;">Réf. {reference}</span>' if reference else ""
+    from utils.offres import telephone_visible
+    telephone_html = (
+        f"<br>\n        <strong>Téléphone :</strong> {demande.telephone}"
+        if demande.telephone and telephone_visible(show.user if show else None) else ""
+    )
     return f"""<!DOCTYPE html>
 <html>
 <head><meta charset="UTF-8">
@@ -1664,10 +1671,9 @@ h2 {{ color: #1b2a4e; margin-top: 0; }}
         <h3>Coordonnées du demandeur</h3>
         <p><strong>Structure :</strong> {demande.structure}<br>
         <strong>Contact :</strong> {demande.nom}<br>
-        <strong>Email :</strong> <a href="mailto:{demande.contact_email}" style="color:#1b5e20;">{demande.contact_email}</a><br>
-        <strong>Téléphone :</strong> {demande.telephone}</p>
+        <strong>Email :</strong> <a href="mailto:{demande.contact_email}" style="color:#1b5e20;">{demande.contact_email}</a>{telephone_html}</p>
         <p style="text-align:center;"><a href="mailto:{demande.contact_email}" class="btn">Contacter le demandeur</a></p>
-        <p style="text-align:center;margin-top:8px;"><a href="https://www.spectacleanimation.fr/appels-offres/{demande.id}" style="display:inline-block;padding:10px 24px;background:#1b5e20;color:white;text-decoration:none;border-radius:5px;font-weight:bold;">Voir l'appel d'offre</a></p>
+        <p style="text-align:center;margin-top:8px;"><a href="https://www.spectacleanimation.fr/appels-offres/{demande.id}" style="display:inline-block;padding:10px 24px;background:#1b5e20;color:white;text-decoration:none;border-radius:5px;font-weight:bold;">Voir l'appel d'offre</a></p>
     </div>
     <div style="background-color:#e8eaf6;padding:15px;border-radius:8px;margin:15px 0;">
         <p><strong>Votre spectacle concerné :</strong><br>{show.title} - {show.category}</p>
@@ -4022,9 +4028,11 @@ def register_routes(app: Flask) -> None:
         if reviews:
             avg_rating = round(sum(r.rating for r in reviews) / len(reviews), 1)
         
+        from utils.offres import telephone_visible
         return render_template("show_detail.html", show=show, user=u, admin_email=admin_email,
                                spectacles_une=spectacles_une, view_count=view_count,
-                               reviews=reviews, avg_rating=avg_rating, review_count=len(reviews))
+                               reviews=reviews, avg_rating=avg_rating, review_count=len(reviews),
+                               tel_visible=telephone_visible(u))
 
     # ---------------------------
     # Profil public d'une compagnie (SEO local business)
@@ -7055,10 +7063,11 @@ Accessibilité: {accessibilite}
             telephone = (request.form.get("telephone") or "").strip()[:50]
             email = (request.form.get("email") or "").strip()[:255]
             message = (request.form.get("message") or "").strip()[:5000]
+            formule = (request.form.get("formule") or "").strip()
 
-            if not nom or not telephone or not email:
-                flash("Merci de renseigner votre nom, téléphone et email.", "warning")
-                return render_template("adhesion.html", user=user, nom=nom, telephone=telephone, email=email, message=message)
+            if not nom or not telephone or not email or formule not in FORMULES_ABONNEMENT:
+                flash("Merci de renseigner votre nom, téléphone, email et de choisir une formule.", "warning")
+                return render_template("adhesion.html", user=user, nom=nom, telephone=telephone, email=email, message=message, formule=formule)
 
             try:
                 adh = Adhesion(
@@ -7067,6 +7076,7 @@ Accessibilité: {accessibilite}
                     telephone=telephone,
                     email=email,
                     message=message or None,
+                    formule_abonnement=formule,
                     statut="pending",
                 )
                 db.session.add(adh)
@@ -7075,7 +7085,7 @@ Accessibilité: {accessibilite}
                 db.session.rollback()
                 current_app.logger.error(f"[ADHESION] Erreur enregistrement: {e}")
                 flash("Une erreur est survenue, merci de réessayer ou de nous contacter directement.", "danger")
-                return render_template("adhesion.html", user=user, nom=nom, telephone=telephone, email=email, message=message)
+                return render_template("adhesion.html", user=user, nom=nom, telephone=telephone, email=email, message=message, formule=formule)
 
             try:
                 if hasattr(current_app, "mail") and current_app.mail:
@@ -7086,6 +7096,7 @@ Accessibilité: {accessibilite}
                         f"Nom: {nom}\n"
                         f"Téléphone: {telephone}\n"
                         f"Email: {email}\n"
+                        f"Formule choisie: {FORMULES_ABONNEMENT[formule]['libelle']}\n"
                         f"Utilisateur connecté: {user.username if user else '(non connecté)'}\n"
                         f"Message:\n{message or '(aucun)'}\n"
                         f"---\n"
@@ -7188,13 +7199,12 @@ Accessibilité: {accessibilite}
         elif user:
             has_show = Show.query.filter(Show.user_id == user.id, Show.approved.is_(True)).count() > 0
         
-        masquage_ville_seuil = datetime(2026, 9, 12)
         from utils.offres import offered_ids, offer_view
         gifts = offered_ids(user)
         demandes = [offer_view(d, user, gifts) for d in demandes]
         if _user_recoit_cadeau(user):
             regions = [r[0] for r in db.session.query(DemandeAnimation.region).distinct().all() if r[0]]
-        return render_template("demandes_animation.html", demandes=demandes, page=page, nb_pages=nb_pages, total=total, per_page=per_page, user=user, has_show=has_show, categories=categories, regions=regions, categorie=categorie, region=region, spectacles_une=spectacles_une, masquage_ville_seuil=masquage_ville_seuil, can_view_demandes_map=_user_can_view_demandes_map(user))
+        return render_template("demandes_animation.html", demandes=demandes, page=page, nb_pages=nb_pages, total=total, per_page=per_page, user=user, has_show=has_show, categories=categories, regions=regions, categorie=categorie, region=region, spectacles_une=spectacles_une, can_view_demandes_map=_user_can_view_demandes_map(user))
 
 
     @app.route("/demandes-animation/carte")
@@ -9487,6 +9497,8 @@ def admin_toggle_is_subscribed(user_id):
         user.is_subscribed = not bool(user.is_subscribed)
         if user.is_subscribed:
             user.subscribed_until = datetime.utcnow() + timedelta(days=365)
+            if not user.formule_abonnement:
+                user.formule_abonnement = FORMULE_ABO_DEFAUT
             # Reset des flags de rappel pour la nouvelle période
             user.renewal_j30_sent_for = None
             user.renewal_j7_sent_for = None
@@ -10214,6 +10226,8 @@ def admin_adhesions():
         stats=stats,
         statut_filter=statut_filter,
         suggested_amount=_default_adhesion_amount,
+        formule_adhesion=_formule_adhesion,
+        formules=FORMULES_ABONNEMENT,
     )
 
 @app.route("/admin/adhesions/<int:adhesion_id>/statut", methods=["POST"])
@@ -10240,6 +10254,10 @@ def admin_adhesion_statut(adhesion_id):
             return redirect(request.referrer or url_for("admin_adhesions"))
 
     premiere_activation = nouveau == "activated" and adh.statut != "activated"
+    formule_activation = None
+    if nouveau == "activated":
+        formule_activation = _formule_choisie(adh, (request.form.get("formule") or "").strip())
+        adh.formule_abonnement = formule_activation
     adh.statut = nouveau
     now = datetime.utcnow()
     if nouveau == "contacted" and not adh.contacted_at:
@@ -10251,6 +10269,7 @@ def admin_adhesion_statut(adhesion_id):
             if u and not u.is_admin:
                 u.is_subscribed = True
                 u.subscribed_until = now + timedelta(days=365)
+                u.formule_abonnement = formule_activation
                 u.renewal_j30_sent_for = None
                 u.renewal_j7_sent_for = None
                 u.renewal_expired_sent_for = None
@@ -10333,8 +10352,8 @@ def admin_adhesion_notes(adhesion_id):
 
 
 # Tarifs abonnement AO (euros TTC, TVA non applicable)
-ADHESION_TARIF_PREMIERE_ANNEE = 49
-ADHESION_TARIF_RENOUVELLEMENT = 99
+ADHESION_TARIF_PREMIERE_ANNEE = FORMULES_ABONNEMENT[FORMULE_ABO_DEFAUT]["premiere_annee"]
+ADHESION_TARIF_RENOUVELLEMENT = FORMULES_ABONNEMENT[FORMULE_ABO_DEFAUT]["renouvellement"]
 # Frais ajoutés pour un règlement par PayPal uniquement (le virement ne les paie pas)
 ADHESION_FRAIS_PAYPAL = 3
 ADHESION_FRAIS_PAYPAL_RENOUVELLEMENT = 5
@@ -10343,7 +10362,17 @@ ADHESION_FRAIS_PAYPAL_RENOUVELLEMENT = 5
 STRIPE_LIENS_PAR_MONTANT = {
     49: "https://buy.stripe.com/cNi8wPcyWfkm6Em5sucEw01",
     99: "https://buy.stripe.com/eVq5kD7eC5JMe6O8EGcEw02",
+    179: "https://buy.stripe.com/aFaeVdeH4a02e6O5sucEw04",
 }
+# Montants Stripe qui correspondent à un abonnement (et non à un paiement ponctuel)
+STRIPE_MONTANTS_ABONNEMENT = {179}
+
+
+def _libelle_carte(montant):
+    """Libellé du bouton de paiement par carte selon qu'il s'agit d'un abonnement ou d'un paiement."""
+    if montant in STRIPE_MONTANTS_ABONNEMENT:
+        return f"Souscrire à l'abonnement ({montant} €/an) par carte"
+    return f"Payer {montant} € par carte"
 
 
 def _is_adhesion_renewal(adh):
@@ -10375,11 +10404,28 @@ def _is_adhesion_renewal(adh):
     return False
 
 
-def _default_adhesion_amount(adh):
-    """Montant suggéré pour la facture d'adhésion (automatique mais éditable)."""
+def _formule_adhesion(adh):
+    """Formule de la demande : celle saisie sur l'adhésion, sinon celle du compte, sinon par défaut."""
+    for code in (adh.formule_abonnement, adh.user.formule_abonnement if adh.user else None):
+        if code in FORMULES_ABONNEMENT:
+            return code
+    return FORMULE_ABO_DEFAUT
+
+
+def _formule_choisie(adh, code):
+    """Formule envoyée par le formulaire admin, ou celle de la demande si invalide."""
+    return code if code in FORMULES_ABONNEMENT else _formule_adhesion(adh)
+
+
+def _default_adhesion_amount(adh, formule=None):
+    """Montant suggéré pour la facture d'adhésion (automatique mais éditable).
+
+    1re année = tarif de la formule ; renouvellement = tarif de renouvellement de la formule.
+    """
+    tarifs = FORMULES_ABONNEMENT[formule if formule in FORMULES_ABONNEMENT else _formule_adhesion(adh)]
     if _is_adhesion_renewal(adh):
-        return ADHESION_TARIF_RENOUVELLEMENT
-    return ADHESION_TARIF_PREMIERE_ANNEE
+        return tarifs["renouvellement"]
+    return tarifs["premiere_annee"]
 
 
 def _adhesion_frais_paypal(adh):
@@ -10398,11 +10444,11 @@ def _build_adhesion_invoice_html(adh, amount, invoice_number, now_dt, date_debut
         bloc_stripe = f"""
       <div style="background:#e8f5e9;border-left:4px solid #2e7d32;padding:16px 18px;border-radius:6px;margin:18px 0;">
         <strong style="color:#1b5e20;display:block;margin-bottom:8px;">💳 Règlement par carte bancaire (sécurisé)</strong>
-        <p style="margin:0 0 12px 0;font-size:0.92rem;color:#333;">Réglez <strong>{amount} €</strong> par carte, sans frais supplémentaires :</p>
+        <p style="margin:0 0 12px 0;font-size:0.92rem;color:#333;">{'Souscrivez à l’abonnement annuel' if amount in STRIPE_MONTANTS_ABONNEMENT else 'Réglez'} <strong>{amount} €</strong> par carte{'' if amount in STRIPE_MONTANTS_ABONNEMENT else ', sans frais supplémentaires'} :</p>
         <div style="text-align:center;margin:14px 0;">
           <a href="{lien_stripe}" target="_blank" rel="noopener"
              style="display:inline-block;background:#2e7d32;color:#fff;padding:14px 32px;border-radius:30px;text-decoration:none;font-weight:700;font-size:1.05rem;">
-            Payer {amount} € par carte
+            {_libelle_carte(amount)}
           </a>
         </div>
         <p style="margin:12px 0 0 0;font-size:0.82rem;color:#555;text-align:center;">
@@ -10546,7 +10592,8 @@ def _next_invoice_number(now_dt):
 def admin_adhesion_preview_invoice(adhesion_id):
     """Affiche l'aperçu de la facture avant envoi (prévisualisation)."""
     adh = Adhesion.query.get_or_404(adhesion_id)
-    default_amount = _default_adhesion_amount(adh)
+    formule = _formule_choisie(adh, (request.args.get("formule") or "").strip())
+    default_amount = _default_adhesion_amount(adh, formule)
     try:
         amount_raw = (request.args.get("amount") or "").strip()
         amount = int(amount_raw) if amount_raw else (adh.invoice_amount or default_amount)
@@ -10571,6 +10618,9 @@ def admin_adhesion_preview_invoice(adhesion_id):
         "admin_adhesion_preview_invoice.html",
         adh=adh,
         amount=amount,
+        formule=formule,
+        formules=FORMULES_ABONNEMENT,
+        montants_formules={code: _default_adhesion_amount(adh, code) for code in FORMULES_ABONNEMENT},
         invoice_number=invoice_number,
         invoice_number_is_temporary=(not adh.invoice_number),
         invoice_html=invoice_html,
@@ -10717,7 +10767,8 @@ def admin_adhesion_send_invoice(adhesion_id):
     - BCC vers l'admin pour archivage.
     """
     adh = Adhesion.query.get_or_404(adhesion_id)
-    default_amount = _default_adhesion_amount(adh)
+    formule = _formule_choisie(adh, (request.form.get("formule") or "").strip())
+    default_amount = _default_adhesion_amount(adh, formule)
 
     try:
         amount_raw = (request.form.get("amount") or "").strip()
@@ -10734,6 +10785,7 @@ def admin_adhesion_send_invoice(adhesion_id):
         adh.invoice_number = _next_invoice_number(now)
 
     adh.invoice_amount = amount
+    adh.formule_abonnement = formule
     adh.invoice_sent_at = now
 
     date_debut = now

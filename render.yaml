@@ -85,6 +85,116 @@ services:
       - key: MAIL_DEFAULT_SENDER
         sync: false
 
+  # Relances des factures d'adhésion AO impayées (J+3, J+7, alerte admin J+10).
+  # Doit utiliser la même base et les mêmes MAIL_* que le service web.
+  - type: cron
+    name: relances-factures-adhesion
+    env: python
+    schedule: "0 8 * * *"  # tous les jours à 08h00 UTC
+    buildCommand: "pip install -r requirements.txt"
+    startCommand: "python relances_factures.py --apply"
+    envVars:
+      - key: DATABASE_URL
+        sync: false
+      - key: SECRET_KEY
+        sync: false
+      - key: MAIL_USERNAME
+        sync: false
+      - key: MAIL_PASSWORD
+        sync: false
+      - key: MAIL_SERVER
+        sync: false
+      - key: MAIL_PORT
+        sync: false
+      - key: MAIL_USE_TLS
+        sync: false
+      - key: MAIL_USE_SSL
+        sync: false
+      - key: MAIL_DEFAULT_SENDER
+        sync: false
+
+  # Rappels d'expiration d'abonnement AO (J-30, J-7, expiration + désactivation auto).
+  # Idempotent (renewal_*_sent_for). Même base et mêmes MAIL_* que le service web.
+  - type: cron
+    name: rappels-abonnements
+    env: python
+    schedule: "0 7 * * *"  # tous les jours à 07h00 UTC
+    buildCommand: "pip install -r requirements.txt"
+    startCommand: "python rappels_abonnements.py --apply"
+    envVars:
+      - key: DATABASE_URL
+        sync: false
+      - key: SECRET_KEY
+        sync: false
+      - key: MAIL_USERNAME
+        sync: false
+      - key: MAIL_PASSWORD
+        sync: false
+      - key: MAIL_SERVER
+        sync: false
+      - key: MAIL_PORT
+        sync: false
+      - key: MAIL_USE_TLS
+        sync: false
+      - key: MAIL_USE_SSL
+        sync: false
+      - key: MAIL_DEFAULT_SENDER
+        sync: false
+
+  # Alerte admin 30 jours avant la fin de l'accès gratuit d'un an (comptes d'avant le 12/09/2026).
+  - type: cron
+    name: alertes-fin-gratuite
+    env: python
+    schedule: "0 8 * * *"  # tous les jours à 08h00 UTC
+    buildCommand: "pip install -r requirements.txt"
+    startCommand: "python alertes_fin_gratuite.py --apply"
+    envVars:
+      - key: DATABASE_URL
+        sync: false
+      - key: SECRET_KEY
+        sync: false
+      - key: MAIL_USERNAME
+        sync: false
+      - key: MAIL_PASSWORD
+        sync: false
+      - key: MAIL_SERVER
+        sync: false
+      - key: MAIL_PORT
+        sync: false
+      - key: MAIL_USE_TLS
+        sync: false
+      - key: MAIL_USE_SSL
+        sync: false
+      - key: MAIL_DEFAULT_SENDER
+        sync: false
+
+  # Désactivation des annonces d'animation parues depuis plus de 7 jours (acte en base).
+  - type: cron
+    name: deactivate-old-demandes
+    env: python
+    schedule: "0 6 * * *"  # tous les jours à 06h00 UTC
+    buildCommand: "pip install -r requirements.txt"
+    startCommand: "python deactivate_old_demandes.py"
+    envVars:
+      - key: DATABASE_URL
+        sync: false
+      - key: SECRET_KEY
+        sync: false
+      - key: MAIL_USERNAME
+        sync: false
+      - key: MAIL_PASSWORD
+        sync: false
+      - key: MAIL_SERVER
+        sync: false
+      - key: MAIL_PORT
+        sync: false
+      - key: MAIL_USE_TLS
+        sync: false
+      - key: MAIL_USE_SSL
+        sync: false
+      - key: MAIL_DEFAULT_SENDER
+        sync: false
+
 databases:
   - name: flask-spectacles-db
     databaseName: flask_spectacles

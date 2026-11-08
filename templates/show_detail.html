@@ -280,6 +280,7 @@
             {% endif %}
             
             {% if show.contact_phone %}
+              {% if tel_visible %}
               <a href="tel:{{ show.contact_phone|replace(' ', '')|replace('.', '')|replace('-', '') }}" class="contact-item" style="display:flex; align-items:center; gap:12px; padding:12px 16px; background:rgba(255,255,255,0.03); border:1px solid var(--border); border-radius:8px; color:var(--text); text-decoration:none; transition:all 0.2s ease;">
                 <span style="font-size:1.3rem;">📞</span>
                 <div style="flex:1;">
@@ -288,6 +289,16 @@
                 </div>
                 <span style="font-size:0.85rem; color:var(--primary); opacity:0.7;">Appeler →</span>
               </a>
+              {% else %}
+              <a href="{{ url_for('adhesion') }}" class="contact-item" style="display:flex; align-items:center; gap:12px; padding:12px 16px; background:rgba(255,255,255,0.03); border:1px solid var(--border); border-radius:8px; color:var(--text); text-decoration:none; transition:all 0.2s ease;">
+                <span style="font-size:1.3rem;">📞</span>
+                <div style="flex:1;">
+                  <div style="font-size:0.8rem; color:var(--muted); margin-bottom:2px;">Téléphone</div>
+                  <div style="font-weight:600; color:var(--primary); font-size:1.05rem;"><span style="filter:blur(4px); user-select:none;">06 12 34 56 78</span></div>
+                </div>
+                <span style="font-size:0.85rem; color:var(--primary); opacity:0.7;">🔓 Débloquer les coordonnées téléphoniques →</span>
+              </a>
+              {% endif %}
             {% endif %}
             
             {% if show.site_internet %}
@@ -748,9 +759,15 @@ a.social-bandeau:hover {
     <i class="fa fa-magic"></i> Demander un devis
   </a>
   {% if show.contact_phone %}
+  {% if tel_visible %}
   <a href="tel:{{ show.contact_phone|replace(' ', '')|replace('.', '')|replace('-', '') }}" style="background:linear-gradient(135deg,#1976d2,#1565c0); color:#fff;">
     <i class="fa fa-phone"></i> Appeler
   </a>
+  {% else %}
+  <a href="{{ url_for('adhesion') }}" style="background:linear-gradient(135deg,#6a1b9a,#8e24aa); color:#fff;">
+    <i class="fa fa-phone"></i> Débloquer le téléphone
+  </a>
+  {% endif %}
   {% endif %}
 </div>
 

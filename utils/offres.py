@@ -7,7 +7,7 @@ from flask import session
 from sqlalchemy.exc import IntegrityError
 
 from models import db
-from models.models import AppelOffreConsultation, AppelOffreEnvoi, DemandeAnimation
+from models.models import AppelOffreConsultation, AppelOffreEnvoi, DemandeAnimation, FORMULE_ABO_AVEC_TELEPHONE
 
 
 def record_offer_consultation(demande, user):
@@ -42,6 +42,15 @@ def needs_offer_subscription(user):
         user and user.is_modele_payant and not user.is_subscribed
         and not user.is_admin
     )
+
+
+def telephone_visible(user):
+    """Téléphone du demandeur visible : admin, ou abonné à la formule avec téléphone (99 €)."""
+    if not user:
+        return False
+    if user.is_admin:
+        return True
+    return bool(user.is_subscribed and user.formule_abonnement == FORMULE_ABO_AVEC_TELEPHONE)
 
 
 def gift_selected(user, user_ids):
@@ -97,6 +106,7 @@ def offer_view(demande, user, gifts):
     inactive = demande.is_desactivee and not (user and user.is_admin)
     values = {col.name: getattr(demande, col.name) for col in demande.__table__.columns}
     values.pop("consultations_count", None)
+    values["telephone_renseigne"] = bool(demande.telephone)
     if restricted:
         for name in (
             "nom", "telephone", "contact_email", "code_postal", "intitule",
@@ -110,7 +120,10 @@ def offer_view(demande, user, gifts):
     elif inactive:
         for name in ("nom", "telephone", "contact_email"):
             values[name] = None
+    if not telephone_visible(user):
+        values["telephone"] = None
     values["is_desactivee"] = demande.is_desactivee
     values["offert"] = demande.id in gifts
     values["acces_complet"] = not restricted
+    values["acces_telephone"] = telephone_visible(user)
     return SimpleNamespace(**values)

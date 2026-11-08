@@ -79,6 +79,16 @@ class DemandeAnimation(db.Model):
 # Reculée au 12/09 pour englober les 2 inscriptions du 12/09 soir (Saltimbanques, Stephax) dans le nouveau modèle.
 MODELE_PAYANT_DEBUT = datetime(2026, 9, 12)
 
+# Formules d'abonnement AO, identifiées par leur prix de la 1re année.
+# « 49 » : téléphone flouté. « 99 » : téléphone visible.
+FORMULES_ABONNEMENT = {
+    "49": {"libelle": "49 € puis 99 €/an (téléphone flouté)", "premiere_annee": 49, "renouvellement": 99},
+    "99": {"libelle": "99 € puis 179 €/an (téléphone visible)", "premiere_annee": 99, "renouvellement": 179},
+}
+FORMULE_ABO_SANS_TELEPHONE = "49"
+FORMULE_ABO_AVEC_TELEPHONE = "99"
+FORMULE_ABO_DEFAUT = FORMULE_ABO_SANS_TELEPHONE
+
 
 class AppelOffreConsultation(db.Model):
     __tablename__ = "appel_offre_consultations"
@@ -137,6 +147,8 @@ class User(db.Model):
     # Date de fin d'abonnement AO (calculée à l'activation = today + 365j).
     # Null = jamais abonné, ou abonné historique sans date (rester considéré comme abonné tant que is_subscribed=True).
     subscribed_until = db.Column(db.DateTime, nullable=True, index=True)
+    # Formule choisie à l'activation (clé de FORMULES_ABONNEMENT). Null = abonné historique (accès téléphone conservé).
+    formule_abonnement = db.Column(db.String(4), nullable=True)
     # Tracking des rappels d'expiration : stocke la valeur de subscribed_until au moment de l'envoi.
     # Permet de distinguer les périodes d'abonnement successives (reset implicite à chaque renouvellement).
     renewal_j30_sent_for = db.Column(db.DateTime, nullable=True)
@@ -491,6 +503,7 @@ class Adhesion(db.Model):
     invoice_number = db.Column(db.String(50), nullable=True, index=True)
     invoice_sent_at = db.Column(db.DateTime, nullable=True)
     invoice_amount = db.Column(db.Integer, nullable=True)  # en euros (TTC, sans TVA)
+    formule_abonnement = db.Column(db.String(4), nullable=True)  # clé de FORMULES_ABONNEMENT
     # Relances de paiement : valeur = invoice_sent_at de la facture relancée (idempotence,
     # une nouvelle émission de facture remet automatiquement les relances à zéro).
     relance_j3_sent_for = db.Column(db.DateTime, nullable=True)

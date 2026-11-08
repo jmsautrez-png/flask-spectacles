@@ -34,8 +34,8 @@ IMPORTANT : pour cibler la base de PRODUCTION, positionner DATABASE_URL AVANT le
 import argparse
 from datetime import datetime, timedelta
 
-from app import app, db, ADHESION_TARIF_RENOUVELLEMENT, ADHESION_FRAIS_PAYPAL_RENOUVELLEMENT, STRIPE_LIENS_PAR_MONTANT
-from models.models import User
+from app import app, db, ADHESION_FRAIS_PAYPAL_RENOUVELLEMENT, STRIPE_LIENS_PAR_MONTANT, _libelle_carte
+from models.models import FORMULES_ABONNEMENT, FORMULE_ABO_DEFAUT, User
 
 try:
     from flask_mail import Message as MailMessage  # type: ignore
@@ -44,21 +44,27 @@ except Exception:
 
 
 PAYPAL_URL = "https://paypal.me/SpectaclementVotre"
-TARIF_RENOUVELLEMENT = ADHESION_TARIF_RENOUVELLEMENT
-TARIF_PAYPAL_RENOUVELLEMENT = TARIF_RENOUVELLEMENT + ADHESION_FRAIS_PAYPAL_RENOUVELLEMENT
 WEBSITE_URL = "https://www.spectacleanimation.fr"
 NOTE_VIREMENT_HTML = """<p style="font-size:0.88rem;color:#666;">Paiement par virement : comptez jusqu'à <strong>48 h</strong> avant qu'il apparaisse sur notre compte. Dès que vous l'avez effectué, merci de nous prévenir à <a href="mailto:laureline@spectacleanimation.fr">laureline@spectacleanimation.fr</a>.</p>"""
 
 
-def _bouton_carte_renouvellement():
+def _tarifs_renouvellement(user):
+    """Montants de renouvellement (virement, PayPal) selon la formule du compte."""
+    code = user.formule_abonnement if user.formule_abonnement in FORMULES_ABONNEMENT else FORMULE_ABO_DEFAUT
+    virement = FORMULES_ABONNEMENT[code]["renouvellement"]
+    return virement, virement + ADHESION_FRAIS_PAYPAL_RENOUVELLEMENT
+
+
+def _bouton_carte_renouvellement(user):
     """Bouton Stripe pour le renouvellement, vide tant qu'aucun lien n'est renseigné."""
-    lien = STRIPE_LIENS_PAR_MONTANT.get(TARIF_RENOUVELLEMENT, "")
+    montant, _ = _tarifs_renouvellement(user)
+    lien = STRIPE_LIENS_PAR_MONTANT.get(montant, "")
     if not lien:
         return ""
     return f"""<div style="text-align:center;margin:0 0 12px 0;">
         <a href="{lien}" target="_blank" rel="noopener"
            style="display:inline-block;background:#2e7d32;color:#fff;padding:14px 32px;border-radius:30px;text-decoration:none;font-weight:700;font-size:1.05rem;">
-          Payer {TARIF_RENOUVELLEMENT} € par carte
+          {_libelle_carte(montant)}
         </a>
       </div>"""
 
@@ -82,6 +88,7 @@ def _send_mail(recipient, subject, html):
 
 
 def _html_rappel_j30(user, date_fin):
+    TARIF_RENOUVELLEMENT, TARIF_PAYPAL_RENOUVELLEMENT = _tarifs_renouvellement(user)
     paypal_link = f"{PAYPAL_URL}/{TARIF_PAYPAL_RENOUVELLEMENT}EUR"
     return f"""<!DOCTYPE html>
 <html><head><meta charset="UTF-8"></head>
@@ -94,7 +101,7 @@ def _html_rappel_j30(user, date_fin):
       <p>Bonjour <strong>{user.raison_sociale or user.username}</strong>,</p>
       <p>Votre abonnement <strong>« Appels d'offres »</strong> sur Spectacle'ment Vôtre expire dans <strong>environ 30 jours</strong>, le <strong>{date_fin.strftime('%d/%m/%Y')}</strong>.</p>
       <p>Pour continuer à recevoir les appels d'offres de nos partenaires (mairies, écoles, CSE…) sans interruption, renouvelez dès maintenant votre abonnement pour une nouvelle année : <strong>{TARIF_RENOUVELLEMENT} €</strong> par virement, ou <strong>{TARIF_PAYPAL_RENOUVELLEMENT} €</strong> par PayPal (frais PayPal inclus).</p>
-            {_bouton_carte_renouvellement()}
+                  {_bouton_carte_renouvellement(user)}
             <div style="text-align:center;margin:28px 0;">
         <a href="{paypal_link}" target="_blank"
            style="display:inline-block;background:linear-gradient(135deg,#003087,#009cde);color:#fff;padding:14px 32px;border-radius:30px;text-decoration:none;font-weight:700;font-size:1.05rem;box-shadow:0 3px 10px rgba(0,48,135,0.3);">
@@ -111,6 +118,7 @@ def _html_rappel_j30(user, date_fin):
 
 
 def _html_rappel_j7(user, date_fin):
+    TARIF_RENOUVELLEMENT, TARIF_PAYPAL_RENOUVELLEMENT = _tarifs_renouvellement(user)
     paypal_link = f"{PAYPAL_URL}/{TARIF_PAYPAL_RENOUVELLEMENT}EUR"
     return f"""<!DOCTYPE html>
 <html><head><meta charset="UTF-8"></head>
@@ -126,7 +134,7 @@ def _html_rappel_j7(user, date_fin):
         <strong>Après cette date</strong>, l'accès aux appels d'offres sera désactivé automatiquement.
       </p>
       <p>Renouvelez dès maintenant pour <strong>{TARIF_RENOUVELLEMENT} €</strong> par virement, ou <strong>{TARIF_PAYPAL_RENOUVELLEMENT} €</strong> par PayPal, et conservez votre accès sans coupure :</p>
-            {_bouton_carte_renouvellement()}
+                  {_bouton_carte_renouvellement(user)}
             <div style="text-align:center;margin:28px 0;">
         <a href="{paypal_link}" target="_blank"
            style="display:inline-block;background:linear-gradient(135deg,#003087,#009cde);color:#fff;padding:14px 32px;border-radius:30px;text-decoration:none;font-weight:700;font-size:1.05rem;box-shadow:0 3px 10px rgba(0,48,135,0.3);">
@@ -142,6 +150,7 @@ def _html_rappel_j7(user, date_fin):
 
 
 def _html_rappel_expired(user, date_fin):
+    TARIF_RENOUVELLEMENT, TARIF_PAYPAL_RENOUVELLEMENT = _tarifs_renouvellement(user)
     paypal_link = f"{PAYPAL_URL}/{TARIF_PAYPAL_RENOUVELLEMENT}EUR"
     return f"""<!DOCTYPE html>
 <html><head><meta charset="UTF-8"></head>
@@ -154,7 +163,7 @@ def _html_rappel_expired(user, date_fin):
       <p>Bonjour <strong>{user.raison_sociale or user.username}</strong>,</p>
       <p>Votre abonnement « Appels d'offres » a expiré le <strong>{date_fin.strftime('%d/%m/%Y')}</strong>. L'accès aux appels d'offres est <strong>temporairement désactivé</strong>.</p>
       <p>Pour <strong>réactiver</strong> votre accès et retrouver tous les nouveaux appels d'offres de nos partenaires, renouvelez votre abonnement pour <strong>{TARIF_RENOUVELLEMENT} €</strong> par virement, ou <strong>{TARIF_PAYPAL_RENOUVELLEMENT} €</strong> par PayPal :</p>
-            {_bouton_carte_renouvellement()}
+                  {_bouton_carte_renouvellement(user)}
             <div style="text-align:center;margin:28px 0;">
         <a href="{paypal_link}" target="_blank"
            style="display:inline-block;background:linear-gradient(135deg,#003087,#009cde);color:#fff;padding:14px 32px;border-radius:30px;text-decoration:none;font-weight:700;font-size:1.05rem;box-shadow:0 3px 10px rgba(0,48,135,0.3);">

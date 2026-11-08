@@ -58,6 +58,17 @@ def test_invoice_stripe_block_only_when_link_set(monkeypatch):
     assert "Payer 49 € par carte" in html
 
 
+def test_invoice_stripe_179_is_presented_as_subscription(monkeypatch):
+    import app as app_module
+
+    monkeypatch.setitem(app_module.STRIPE_LIENS_PAR_MONTANT, 179, "https://buy.stripe.com/test_179")
+    html = _facture_html(179)
+    assert "Souscrire à l'abonnement (179 €/an) par carte" in html
+    assert "Payer 179 € par carte" not in html
+    assert "Souscrivez à l’abonnement annuel" in html
+    assert "sans frais supplémentaires" not in html
+
+
 @pytest.mark.parametrize(
     "fields, expected",
     [
@@ -92,7 +103,7 @@ def test_renouvellement_paypal_104_virement_99():
         _html_rappel_j30, _html_rappel_j7, _html_rappel_expired,
     )
 
-    user = SimpleNamespace(raison_sociale="Mairie Test", username="mairie")
+    user = SimpleNamespace(raison_sociale="Mairie Test", username="mairie", formule_abonnement="49")
     fin = NOW
 
     for rendu in (_html_rappel_j30, _html_rappel_j7, _html_rappel_expired):
@@ -110,7 +121,7 @@ def test_renouvellement_bouton_carte_seulement_si_lien(monkeypatch):
     import app as app_module
     from rappels_abonnements import _html_rappel_j7
 
-    user = SimpleNamespace(raison_sociale="Mairie Test", username="mairie")
+    user = SimpleNamespace(raison_sociale="Mairie Test", username="mairie", formule_abonnement="49")
 
     monkeypatch.setitem(app_module.STRIPE_LIENS_PAR_MONTANT, 99, "")
     assert "Payer 99 € par carte" not in _html_rappel_j7(user, NOW)
