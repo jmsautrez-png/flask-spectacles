@@ -192,7 +192,7 @@
             </div>
             {% else %}
             <p style="margin:0.2rem 0;"><strong>👤 Contact :</strong> {{ demande.nom }}</p>
-            {% if demande.telephone_renseigne %}<p style="margin:0.2rem 0;"><strong>📞 Téléphone :</strong> {% if demande.acces_telephone %}{{ demande.telephone }}{% else %}<a class="tel-verrou" href="{{ url_for('adhesion') }}" style="color:inherit; text-decoration:none;"><span style="filter:blur(4px); user-select:none;">06 12 34 56 78</span><span class="tel-btn">🔓 Débloquer les coordonnées téléphoniques</span></a>{% endif %}</p>{% endif %}
+            {% if demande.telephone_renseigne %}<p style="margin:0.2rem 0;"><strong>📞 Téléphone :</strong> {% if demande.acces_telephone %}{{ demande.telephone }}{% else %}<a class="tel-verrou" href="{{ url_for('adhesion') }}" style="color:inherit; text-decoration:none;"><span style="filter:blur(4px); user-select:none;">06 12 34 56 78</span> <span class="tel-btn">🔓 Débloquer les coordonnées téléphoniques</span></a>{% endif %}</p>{% endif %}
             <p style="margin:0.2rem 0;"><strong>✉️ Email :</strong> <span style="word-break:break-all;font-weight:600;color:#0d47a1;">{{ demande.contact_email }}</span></p>
             <div style="display:flex;gap:6px;flex-wrap:wrap;margin:0.2rem 0;">
               <a href="mailto:{{ demande.contact_email }}" style="background:#1976d2;color:#fff;padding:4px 12px;border-radius:6px;text-decoration:none;font-weight:600;font-size:0.85rem;">✉️ Répondre</a>
@@ -387,18 +387,15 @@
     transform: scale(1.05);
   }
   .tel-btn {
-    display: none;
+    display: inline-block;
     margin-left: 6px;
-    background: linear-gradient(135deg,#6a1b9a,#8e24aa);
+    background: linear-gradient(135deg,#e91e63,#ec407a);
     color: #fff;
     padding: 2px 10px;
     border-radius: 6px;
     font-size: 0.8rem;
     font-weight: 700;
     white-space: nowrap;
-  }
-  .tel-verrou:hover .tel-btn {
-    display: inline-block;
   }
 </style>
 {% endif %}

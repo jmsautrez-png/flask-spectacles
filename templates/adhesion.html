@@ -12,7 +12,7 @@
       <div style="background:rgba(255,255,255,0.15); padding:10px 14px; border-radius:10px; flex:1; min-width:220px;">
         <div style="font-size:0.85rem; opacity:0.9;">Formule 49 €</div>
         <div style="font-size:1.6rem; font-weight:800; line-height:1.1;">49 € TTC <span style="font-size:0.9rem; font-weight:600;">la 1ʳᵉ année</span></div>
-        <div style="font-size:0.9rem; margin-top:4px;">puis 99 € TTC/an · coordonnées sans numéro de téléphone</div>
+        <div style="font-size:0.9rem; margin-top:4px;">puis 99 € TTC/an · email seulement, sans numéro de téléphone</div>
       </div>
       <div style="background:rgba(255,255,255,0.15); padding:10px 14px; border-radius:10px; flex:1; min-width:220px;">
         <div style="font-size:0.85rem; opacity:0.9;">Formule avec téléphone</div>
@@ -82,7 +82,7 @@
         <legend style="font-weight:600; margin:0 0 6px 0; color:#333;">Formule choisie <span style="color:#d32f2f;">*</span></legend>
         <label style="display:flex; gap:8px; align-items:flex-start; margin:6px 0; cursor:pointer; color:#333;">
           <input type="radio" name="formule" value="49" required {% if formule == '49' %}checked{% endif %} style="margin-top:4px;">
-          <span><strong>49 € TTC la 1ʳᵉ année</strong>, puis 99 €/an · coordonnées sans numéro de téléphone</span>
+          <span><strong>49 € TTC la 1ʳᵉ année</strong>, puis 99 €/an · email seulement, sans numéro de téléphone</span>
         </label>
         <label style="display:flex; gap:8px; align-items:flex-start; margin:6px 0; cursor:pointer; color:#333;">
           <input type="radio" name="formule" value="99" required {% if formule == '99' %}checked{% endif %} style="margin-top:4px;">
