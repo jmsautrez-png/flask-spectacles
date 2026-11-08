@@ -3713,7 +3713,7 @@ def register_routes(app: Flask) -> None:
 
             if file and file.filename:
                 if not allowed_file(file.filename):
-                    flash("Type de fichier non autorisé (png/jpg/jpeg/gif/webp/pdf).", "danger")
+                    flash("Type de fichier non autorisé (png/jpg/jpeg/gif/webp). Les PDF ne sont pas acceptés : merci d'envoyer une image.", "danger")
                     return redirect(request.url)
 
                 # Vérifier la taille du fichier
@@ -3736,7 +3736,7 @@ def register_routes(app: Flask) -> None:
             file_name2 = None
             if file2 and file2.filename:
                 if not allowed_file(file2.filename):
-                    flash("Photo 2 : Type de fichier non autorisé.", "danger")
+                    flash("Photo 2 : Type de fichier non autorisé (png/jpg/jpeg/gif/webp). Les PDF ne sont pas acceptés : merci d'envoyer une image.", "danger")
                     return redirect(request.url)
                 is_valid2, error_msg2 = validate_file_size(file2)
                 if not is_valid2:
@@ -3754,7 +3754,7 @@ def register_routes(app: Flask) -> None:
             file_name3 = None
             if file3 and file3.filename:
                 if not allowed_file(file3.filename):
-                    flash("Photo 3 : Type de fichier non autorisé.", "danger")
+                    flash("Photo 3 : Type de fichier non autorisé (png/jpg/jpeg/gif/webp). Les PDF ne sont pas acceptés : merci d'envoyer une image.", "danger")
                     return redirect(request.url)
                 is_valid3, error_msg3 = validate_file_size(file3)
                 if not is_valid3:
@@ -4338,7 +4338,7 @@ def register_routes(app: Flask) -> None:
             file = request.files.get("file")
             if file and file.filename:
                 if not allowed_file(file.filename):
-                    flash("Type de fichier non autorisé (png/jpg/jpeg/gif/webp/pdf).", "danger")
+                    flash("Type de fichier non autorisé (png/jpg/jpeg/gif/webp). Les PDF ne sont pas acceptés : merci d'envoyer une image.", "danger")
                     return redirect(request.url)
                 
                 # Vérifier la taille du fichier
@@ -4371,7 +4371,7 @@ def register_routes(app: Flask) -> None:
             file2 = request.files.get("file2")
             if file2 and file2.filename:
                 if not allowed_file(file2.filename):
-                    flash("Photo 2 : Type de fichier non autorisé.", "danger")
+                    flash("Photo 2 : Type de fichier non autorisé (png/jpg/jpeg/gif/webp). Les PDF ne sont pas acceptés : merci d'envoyer une image.", "danger")
                     return redirect(request.url)
                 is_valid, error_msg = validate_file_size(file2)
                 if not is_valid:
@@ -4397,7 +4397,7 @@ def register_routes(app: Flask) -> None:
             file3 = request.files.get("file3")
             if file3 and file3.filename:
                 if not allowed_file(file3.filename):
-                    flash("Photo 3 : Type de fichier non autorisé.", "danger")
+                    flash("Photo 3 : Type de fichier non autorisé (png/jpg/jpeg/gif/webp). Les PDF ne sont pas acceptés : merci d'envoyer une image.", "danger")
                     return redirect(request.url)
                 is_valid, error_msg = validate_file_size(file3)
                 if not is_valid:
@@ -5419,7 +5419,7 @@ def register_routes(app: Flask) -> None:
             file = request.files.get("file")
             if file and file.filename:
                 if not allowed_file(file.filename):
-                    flash("Type de fichier non autorisé (pdf/jpg/jpeg/png/webp/gif).", "danger")
+                    flash("Type de fichier non autorisé (png/jpg/jpeg/gif/webp). Les PDF ne sont pas acceptés : merci d'envoyer une image.", "danger")
                     return redirect(request.url)
 
                 # Vérifier la taille du fichier
@@ -5452,7 +5452,7 @@ def register_routes(app: Flask) -> None:
             file2 = request.files.get("file2")
             if file2 and file2.filename:
                 if not allowed_file(file2.filename):
-                    flash("Photo 2 : Type de fichier non autorisé.", "danger")
+                    flash("Photo 2 : Type de fichier non autorisé (png/jpg/jpeg/gif/webp). Les PDF ne sont pas acceptés : merci d'envoyer une image.", "danger")
                     return redirect(request.url)
                 is_valid, error_msg = validate_file_size(file2)
                 if not is_valid:
@@ -5479,7 +5479,7 @@ def register_routes(app: Flask) -> None:
             file3 = request.files.get("file3")
             if file3 and file3.filename:
                 if not allowed_file(file3.filename):
-                    flash("Photo 3 : Type de fichier non autorisé.", "danger")
+                    flash("Photo 3 : Type de fichier non autorisé (png/jpg/jpeg/gif/webp). Les PDF ne sont pas acceptés : merci d'envoyer une image.", "danger")
                     return redirect(request.url)
                 is_valid, error_msg = validate_file_size(file3)
                 if not is_valid:

@@ -318,3 +318,27 @@ def test_fiche_reprise_keeps_company_information_but_not_the_showcase(normal_use
     assert (copie.raison_sociale, copie.location, copie.departement) == ("", "", "")
     assert copie.public_sous_options == [] and copie.public_categories == ["famille"]
     assert not hasattr(copie, "title") and not hasattr(copie, "prix_min")
+
+
+def test_publish_refuses_pdf_main_file(logged_in_client, monkeypatch):
+    import app as app_module
+
+    uploads = []
+    monkeypatch.setattr(app_module, "upload_file_local", lambda f: uploads.append(f) or "x.jpg")
+    response = publish(logged_in_client, [ANIMATION], file=(io.BytesIO(b"%PDF-1.4"), "dossier.pdf"))
+
+    assert "Les PDF ne sont pas acceptés" in page_text(response)
+    assert uploads == []
+
+
+def test_publish_refuses_pdf_second_photo(logged_in_client, monkeypatch):
+    import app as app_module
+
+    uploads = []
+    monkeypatch.setattr(app_module, "upload_file_local", lambda f: uploads.append(f) or "x.jpg")
+    response = publish(logged_in_client, [ANIMATION], file2=(io.BytesIO(b"%PDF-1.4"), "dossier.pdf"))
+
+    assert "Photo 2 : Type de fichier non autorisé" in page_text(response)
+    assert "Les PDF ne sont pas acceptés" in page_text(response)
+    assert [f.filename for f in uploads] == ["a.jpg"]
+

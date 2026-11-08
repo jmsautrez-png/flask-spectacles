@@ -1454,6 +1454,15 @@ document.addEventListener('DOMContentLoaded', function() {
                 return;
             }
             
+            // Refus immédiat des fichiers qui ne sont pas des images (ex. PDF)
+            const extension = (file.name.split('.').pop() || '').toLowerCase();
+            if (!['png', 'jpg', 'jpeg', 'gif', 'webp'].includes(extension)) {
+                alert(`❌ "${file.name}" n'est pas une image.\n\nLes PDF ne sont pas acceptés : merci d'envoyer une photo (PNG, JPG, GIF ou WEBP).`);
+                e.target.value = '';
+                if (progressContainer) progressContainer.style.display = 'none';
+                return;
+            }
+
             // Vérifier la taille du fichier
             if (file.size > MAX_FILE_SIZE) {
                 const fileSizeKB = (file.size / 1024).toFixed(2);

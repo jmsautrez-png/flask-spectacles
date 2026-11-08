@@ -41,8 +41,13 @@ class TestAllowedFile:
 
     def test_valid_extensions(self):
         from utils.files import allowed_file
-        for ext in ("png", "jpg", "jpeg", "gif", "webp", "pdf"):
+        for ext in ("png", "jpg", "jpeg", "gif", "webp"):
             assert allowed_file(f"image.{ext}") is True
+
+    def test_pdf_refused(self):
+        from utils.files import allowed_file
+        assert allowed_file("dossier.pdf") is False
+        assert allowed_file("dossier.PDF") is False
 
     def test_invalid_extension(self):
         from utils.files import allowed_file

@@ -10,8 +10,8 @@ try:
 except ImportError:
     boto3 = None
 
-ALLOWED_EXTENSIONS = {"png", "jpg", "jpeg", "gif", "webp", "pdf"}
-ALLOWED_MIMETYPES = {"image/jpeg", "image/png", "image/gif", "image/webp", "application/pdf"}
+ALLOWED_EXTENSIONS = {"png", "jpg", "jpeg", "gif", "webp"}
+ALLOWED_MIMETYPES = {"image/jpeg", "image/png", "image/gif", "image/webp"}
 
 
 def allowed_file(filename: str) -> bool:
@@ -52,8 +52,6 @@ def optimize_image_to_webp(file, quality=85, max_width=1920):
         from PIL import Image
         from io import BytesIO
         if not file.content_type or not file.content_type.startswith('image/'):
-            return None
-        if file.content_type == 'application/pdf':
             return None
         file.seek(0)
         Image.MAX_IMAGE_PIXELS = 50_000_000
