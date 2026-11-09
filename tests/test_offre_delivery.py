@@ -93,6 +93,31 @@ def assert_masked(html, structure_visible=False):
     assert ("SECRET_STRUCTURE" in html) == structure_visible
 
 
+@pytest.mark.parametrize(
+    "created_at, terms",
+    [
+        (datetime(2026, 9, 11), ("Occitanie", "Toulouse")),
+        (datetime(2026, 9, 12), ("Occitanie",)),
+    ],
+)
+def test_region_search_matches_region_or_city(client, offer_setup, created_at, terms):
+    from models import db
+
+    user, admin, show, demande, other = offer_setup
+    user.created_at = created_at
+    demande.region = "Occitanie"
+    demande.lieu_ville = "Toulouse"
+    other.region = "Bretagne"
+    other.lieu_ville = "Rennes"
+    db.session.commit()
+    login(client, user)
+    marker = f"/appels-offres/{demande.id}/consultation"
+    for term in terms:
+        html = client.get("/demandes-animation", query_string={"region": term}).get_data(as_text=True)
+        assert marker in html
+        assert f"/appels-offres/{other.id}/consultation" not in html
+
+
 @pytest.mark.parametrize("viewer", ["anonymous", "no-approved-show", "needs-subscription"])
 def test_public_offer_cta_price_preserves_destination(client, offer_setup, viewer):
     from html.parser import HTMLParser

@@ -67,6 +67,7 @@ SPECIALITES = {
         "Cirque nouveau",
         "Cracheur de feu",
         "Spectacle de feu",
+        "Spectacle avec échassiers",
         # Sport / Catch
         "Show de catch",
         "Spectacle sportif",

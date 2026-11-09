@@ -128,8 +128,8 @@ def test_home_show_names_replace_the_old_animation_show_names():
 def test_sector_sizes_and_folder_names():
     assert "Spectacle et Animation" not in SPECIALITES
     assert "Spectacles" not in SPECIALITES
-    assert len(SPECIALITES["Spectacles divers"]) == 44
-    assert len(flat(SPECIALITES)) == 129
+    assert len(SPECIALITES["Spectacles divers"]) == 45
+    assert len(flat(SPECIALITES)) == 130
     assert len(flat(ANIMATIONS)) == 27
     assert len(ANIMATIONS) == 7
 
@@ -230,7 +230,7 @@ def test_publish_form_offers_both_accordions_with_each_name_once(logged_in_clien
     page = Page(logged_in_client.get("/submit").get_data(as_text=True))
     values = page.values("specialites")
     assert page.sections.count("specialites") == 1 and page.sections.count("animations") == 1
-    assert len(values) == len(set(values)) == 156
+    assert len(values) == len(set(values)) == 157
     assert set(MOVED + NEW_SENIORS) <= set(values)
     assert PETIT_BUDGET in values
 

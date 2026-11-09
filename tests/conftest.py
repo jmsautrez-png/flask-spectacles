@@ -12,6 +12,9 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 os.environ["DATABASE_URL"] = "sqlite:///:memory:"
 # L'accordéon Animations est ouvert aux demandeurs par défaut : on neutralise un éventuel .env local qui l'aurait fermé.
 os.environ["ANIMATIONS_OUVERT_DEMANDEURS"] = "1"
+# Turnstile : les tests de /contact ne doivent pas exiger de jeton, même si le .env local contient les clés.
+os.environ["TURNSTILE_SITE_KEY"] = ""
+os.environ["TURNSTILE_SECRET_KEY"] = ""
 
 
 # Le .env local contient les identifiants SMTP réels : sans garde-fou, publier une fiche ou déposer un avis

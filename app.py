@@ -7200,8 +7200,14 @@ Accessibilité: {accessibilite}
         if categorie:
             demandes_query = demandes_query.filter(DemandeAnimation.genre_recherche.ilike(f"%{categorie}%"))
         if region:
-            region_field = DemandeAnimation.region if _user_recoit_cadeau(user) else DemandeAnimation.lieu_ville
-            demandes_query = demandes_query.filter(region_field.ilike(f"%{region}%"))
+            # Compagnie qui reçoit le cadeau : ville masquée, recherche sur la région seule
+            if _user_recoit_cadeau(user):
+                demandes_query = demandes_query.filter(DemandeAnimation.region.ilike(f"%{region}%"))
+            else:
+                demandes_query = demandes_query.filter(or_(
+                    DemandeAnimation.lieu_ville.ilike(f"%{region}%"),
+                    DemandeAnimation.region.ilike(f"%{region}%"),
+                ))
         
         total = demandes_query.count()
         demandes = demandes_query.offset((page-1)*per_page).limit(per_page).all()
@@ -7269,7 +7275,10 @@ Accessibilité: {accessibilite}
         if categorie:
             demandes_query = demandes_query.filter(DemandeAnimation.genre_recherche.ilike(f"%{categorie}%"))
         if region:
-            demandes_query = demandes_query.filter(DemandeAnimation.lieu_ville.ilike(f"%{region}%"))
+            demandes_query = demandes_query.filter(or_(
+                DemandeAnimation.lieu_ville.ilike(f"%{region}%"),
+                DemandeAnimation.region.ilike(f"%{region}%"),
+            ))
 
         demandes = demandes_query.all()
 
@@ -7374,8 +7383,14 @@ Accessibilité: {accessibilite}
         if categorie:
             demandes_query = demandes_query.filter(DemandeAnimation.genre_recherche.ilike(f"%{categorie}%"))
         if region:
-            region_field = DemandeAnimation.region if _user_recoit_cadeau(user) else DemandeAnimation.lieu_ville
-            demandes_query = demandes_query.filter(region_field.ilike(f"%{region}%"))
+            # Compagnie qui reçoit le cadeau : ville masquée, recherche sur la région seule
+            if _user_recoit_cadeau(user):
+                demandes_query = demandes_query.filter(DemandeAnimation.region.ilike(f"%{region}%"))
+            else:
+                demandes_query = demandes_query.filter(or_(
+                    DemandeAnimation.lieu_ville.ilike(f"%{region}%"),
+                    DemandeAnimation.region.ilike(f"%{region}%"),
+                ))
         
         total = demandes_query.count()
         demandes = demandes_query.offset((page-1)*per_page).limit(per_page).all()
