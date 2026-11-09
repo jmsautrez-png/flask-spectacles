@@ -204,6 +204,22 @@ def _validate_production_config(app: Flask) -> None:
         app.logger.error("[CONFIG] ❌ CRITICAL CONFIGURATION ERRORS DETECTED. App may not work correctly!")
 
 
+def _turnstile_verifie(secret: str, token: str, ip: str | None) -> bool:
+    """Valide un jeton Cloudflare Turnstile auprès de l'API siteverify (échec = refus)."""
+    if not token:
+        return False
+    try:
+        reponse = requests.post(
+            "https://challenges.cloudflare.com/turnstile/v0/siteverify",
+            data={"secret": secret, "response": token, "remoteip": ip or ""},
+            timeout=5,
+        )
+        return bool(reponse.json().get("success"))
+    except (requests.RequestException, ValueError) as e:
+        print("[TURNSTILE] Vérification impossible:", e)
+        return False
+
+
 def _user_is_edition_libre_only(user) -> bool:
     """Verrou « édition libre » désactivé : les compagnies en accès libre
     accèdent désormais aux appels d'offres comme les autres, et voient les
@@ -7008,7 +7024,16 @@ Accessibilité: {accessibilite}
                         if f["code"] == formule_code), None)
         if formule_code and formule is None:
             abort(400)
+        turnstile_site_key = current_app.config.get("TURNSTILE_SITE_KEY", "")
         if request.method == "POST":
+            # Honeypot anti-bot : le champ "website" est caché aux humains ; s'il est rempli, c'est un bot
+            if request.form.get("website", ""):
+                flash("Votre message a bien été envoyé ! Nous vous répondrons rapidement.", "success")
+                return render_template("contact.html", sujet=sujet, formule=formule, turnstile_site_key=turnstile_site_key)
+            secret = current_app.config.get("TURNSTILE_SECRET_KEY", "")
+            if secret and not _turnstile_verifie(secret, request.form.get("cf-turnstile-response", ""), request.remote_addr):
+                flash("La vérification anti-robot a échoué. Merci de réessayer.", "danger")
+                return render_template("contact.html", sujet=sujet, formule=formule, turnstile_site_key=turnstile_site_key)
             nom = request.form.get("nom", "").strip()
             email = request.form.get("email", "").strip()
             message = request.form.get("message", "").strip()
@@ -7030,8 +7055,8 @@ Accessibilité: {accessibilite}
             except Exception as e:
                 print("[MAIL] Erreur envoi contact:", e)
                 flash(f"Erreur lors de l'envoi du message: {e}", "danger")
-            return render_template("contact.html", sujet=sujet, formule=formule)
-        return render_template("contact.html", sujet=sujet, formule=formule)
+            return render_template("contact.html", sujet=sujet, formule=formule, turnstile_site_key=turnstile_site_key)
+        return render_template("contact.html", sujet=sujet, formule=formule, turnstile_site_key=turnstile_site_key)
 
     @app.route("/adhesion", methods=["GET", "POST"])
     @login_required

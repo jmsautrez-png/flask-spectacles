@@ -343,6 +343,77 @@ def test_contact_omits_reply_to_for_invalid_visitor_email(app, client, monkeypat
     assert mail.messages[0].recipients == [app.config["MAIL_DEFAULT_SENDER"]]
 
 
+def test_contact_honeypot_filled_sends_nothing(app, client, monkeypatch):
+    from tests.test_offre_delivery import FakeMail
+
+    mail = FakeMail()
+    monkeypatch.setattr(app, "mail", mail)
+    response = client.post("/contact", data={
+        "nom": "Bot", "email": "bot@example.test", "message": "Spam", "website": "http://spam.test",
+    })
+    assert response.status_code == 200
+    assert mail.messages == []
+    assert "Votre message a bien été envoyé" in response.get_data(as_text=True)
+
+
+def test_contact_turnstile_widget_shown_when_site_key_set(app, client, monkeypatch):
+    monkeypatch.setitem(app.config, "TURNSTILE_SITE_KEY", "site-key-test")
+    html = client.get("/contact").get_data(as_text=True)
+    assert 'data-sitekey="site-key-test"' in html
+    assert "challenges.cloudflare.com/turnstile/v0/api.js" in html
+
+
+def test_contact_turnstile_rejects_missing_or_failed_token(app, client, monkeypatch):
+    from tests.test_offre_delivery import FakeMail
+    import requests
+
+    mail = FakeMail()
+    monkeypatch.setattr(app, "mail", mail)
+    monkeypatch.setitem(app.config, "TURNSTILE_SECRET_KEY", "secret-test")
+    data = {"nom": "Visiteur", "email": "visiteur@example.test", "message": "Bonjour"}
+
+    response = client.post("/contact", data=data)
+    assert "La vérification anti-robot a échoué" in response.get_data(as_text=True)
+    assert mail.messages == []
+
+    class Reponse:
+        def json(self):
+            return {"success": False}
+
+    monkeypatch.setattr(requests, "post", lambda *a, **k: Reponse())
+    client.post("/contact", data={**data, "cf-turnstile-response": "jeton-invalide"})
+    assert mail.messages == []
+
+
+def test_contact_turnstile_accepts_valid_token(app, client, monkeypatch):
+    from tests.test_offre_delivery import FakeMail
+    import requests
+
+    mail = FakeMail()
+    monkeypatch.setattr(app, "mail", mail)
+    monkeypatch.setitem(app.config, "TURNSTILE_SECRET_KEY", "secret-test")
+
+    appels = []
+
+    class Reponse:
+        def json(self):
+            return {"success": True}
+
+    def faux_post(url, data=None, timeout=None):
+        appels.append((url, data))
+        return Reponse()
+
+    monkeypatch.setattr(requests, "post", faux_post)
+    response = client.post("/contact", data={
+        "nom": "Visiteur", "email": "visiteur@example.test", "message": "Bonjour",
+        "cf-turnstile-response": "jeton-valide",
+    })
+    assert response.status_code == 200
+    assert appels[0][1]["secret"] == "secret-test"
+    assert appels[0][1]["response"] == "jeton-valide"
+    assert len(mail.messages) == 1
+
+
 def test_contact_reports_missing_mail_configuration(app, client, monkeypatch):
     from tests.test_offre_delivery import FakeMail
 

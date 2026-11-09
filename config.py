@@ -48,6 +48,9 @@ class Config:
     MAIL_DEFAULT_SENDER = os.environ.get("MAIL_DEFAULT_SENDER", "laureline@spectacleanimation.fr")
     # Timeout SMTP en secondes : évite qu'une connexion bloquée fige le worker gunicorn
     MAIL_TIMEOUT = int(os.environ.get("MAIL_TIMEOUT", 15))
+    # Cloudflare Turnstile (anti-robots du formulaire de contact) : sans clés, seul le honeypot s'applique
+    TURNSTILE_SITE_KEY = os.environ.get("TURNSTILE_SITE_KEY", "")
+    TURNSTILE_SECRET_KEY = os.environ.get("TURNSTILE_SECRET_KEY", "")
     # Affichage de l'adresse email utilisée pour l'envoi des mails
     print(f"[CONFIG] MAIL_DEFAULT_SENDER utilisé : {MAIL_DEFAULT_SENDER}")
 
