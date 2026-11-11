@@ -1,12 +1,13 @@
 // Auto-remplissage ville + region + departement a partir du code postal
-// (API geo.api.gouv.fr). Si plusieurs communes pour le meme CP, propose
+// (route serveur /api/cp-communes, qui interroge geo.api.gouv.fr). Si plusieurs communes pour le meme CP, propose
 // une liste cliquable a cote du champ Ville.
 (function(){
   function fetchCommunes(cp, cb){
     if (!/^\d{5}$/.test(cp)) return;
-    fetch('https://geo.api.gouv.fr/communes?codePostal=' + cp + '&fields=nom,codeRegion,codeDepartement,departement&format=json')
-      .then(function(r){ return r.ok ? r.json() : []; })
-      .then(function(communes){
+    fetch('/api/cp-communes?cp=' + cp)
+      .then(function(r){ return r.ok ? r.json() : null; })
+      .then(function(data){
+        var communes = data && data.communes;
         if (!communes || !communes.length) {
           console.warn('[cp_autofill] aucune commune pour CP', cp);
           cb([]);
@@ -18,14 +19,6 @@
         console.warn('[cp_autofill] erreur fetch communes', err);
         cb([]);
       });
-  }
-
-  function fetchRegionName(codeRegion, cb){
-    if (!codeRegion) { cb(null); return; }
-    fetch('https://geo.api.gouv.fr/regions/' + codeRegion)
-      .then(function(r){ return r.ok ? r.json() : null; })
-      .then(function(reg){ cb(reg ? reg.nom : null); })
-      .catch(function(){ cb(null); });
   }
 
   function flash(el){
@@ -63,7 +56,6 @@
     if (c.departement && c.departement.nom && c.departement.code) {
       return c.departement.nom + ' (' + c.departement.code + ')';
     }
-    if (c.codeDepartement) return c.codeDepartement;
     return null;
   }
 
@@ -75,10 +67,8 @@
     setInput(inpDept, dept);
     var elReg = form.querySelector('select[name="region"], input[name="region"]');
     if (elReg){
-      fetchRegionName(c.codeRegion, function(regionName){
-        if (elReg.tagName === 'SELECT') setSelect(elReg, regionName);
-        else setInput(elReg, regionName);
-      });
+      if (elReg.tagName === 'SELECT') setSelect(elReg, c.region);
+      else setInput(elReg, c.region);
     }
   }
 

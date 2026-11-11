@@ -629,6 +629,47 @@ def dept_to_region(dept_code: Optional[str]) -> Optional[str]:
     return DEPT_TO_REGION.get(code)
 
 
+_CP_COMMUNES_CACHE: dict[str, list[dict]] = {}
+
+
+def communes_from_cp(cp: Optional[str]) -> Optional[list[dict]]:
+    """Communes d'un code postal : [{nom, departement: {nom, code}, region}].
+
+    Retourne [] si le CP est invalide ou inconnu, None si l'API est injoignable.
+    La region vient de DEPT_TO_REGION (sans appel reseau supplementaire).
+    """
+    cp = (cp or "").strip()
+    if len(cp) != 5 or not cp.isdigit():
+        return []
+    if cp in _CP_COMMUNES_CACHE:
+        return _CP_COMMUNES_CACHE[cp]
+    if requests is None or _geo_is_down():
+        return None
+    try:
+        r = requests.get(
+            "https://geo.api.gouv.fr/communes",
+            params={"codePostal": cp, "fields": "nom,codeDepartement,departement", "format": "json"},
+            timeout=5,
+        )
+    except Exception:
+        _mark_geo_down()
+        return None
+    if r.status_code != 200:
+        return None
+    communes = []
+    for c in r.json():
+        dept = c.get("departement") or {}
+        code = dept.get("code") or c.get("codeDepartement")
+        communes.append({
+            "nom": c.get("nom"),
+            "departement": {"nom": dept.get("nom"), "code": code},
+            "region": dept_to_region(code),
+        })
+    with _LOCK:
+        _CP_COMMUNES_CACHE[cp] = communes
+    return communes
+
+
 def depts_within_radius(code: Optional[str], radius_km: float) -> list[str]:
     """Retourne la liste des codes departements dont le centroide est dans le rayon.
 

@@ -462,6 +462,9 @@ def create_app() -> Flask:
     app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
     if os.environ.get("FLASK_ENV") == "production":
         app.config["SESSION_COOKIE_SECURE"] = True  # HTTPS uniquement
+
+    # Fichiers statiques revalidés à chaque chargement : un JS modifié n'est plus servi depuis le cache du navigateur
+    app.config["SEND_FILE_MAX_AGE_DEFAULT"] = 0
     
     # Fonction de détection des robots/crawlers
     def is_bot_visitor(user_agent: str, isp: str = None) -> bool:
@@ -2239,6 +2242,20 @@ def register_routes(app: Flask) -> None:
             app.logger.exception(f"Erreur API SEO: {e}")
             return jsonify({"error": "Erreur serveur"}), 500
     
+    # ---------------------------
+    # API - Communes d'un code postal (auto-remplissage ville/dept/region)
+    # ---------------------------
+    @app.route("/api/cp-communes", methods=["GET"])
+    def api_cp_communes():
+        from utils.geo import communes_from_cp
+        cp = (request.args.get("cp") or "").strip()
+        if len(cp) != 5 or not cp.isdigit():
+            return jsonify({"error": "Code postal invalide"}), 400
+        communes = communes_from_cp(cp)
+        if communes is None:
+            return jsonify({"error": "Service géographique indisponible"}), 503
+        return jsonify({"communes": communes}), 200
+
     # ---------------------------
     # Route de test d'envoi de mail (à la fin pour éviter les erreurs)
     # ---------------------------
