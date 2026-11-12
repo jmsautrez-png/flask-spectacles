@@ -13,6 +13,7 @@ import logging
 import os
 import threading
 import time
+import unicodedata
 from math import radians, sin, cos, asin, sqrt
 from pathlib import Path
 from typing import Optional, Tuple
@@ -574,7 +575,8 @@ DEPT_TO_REGION = {
     "62": "Hauts-de-France", "80": "Hauts-de-France",
     # Grand Est
     "08": "Grand Est", "10": "Grand Est", "51": "Grand Est", "52": "Grand Est",
-    "54": "Grand Est", "55": "Grand Est", "57": "Grand Est", "88": "Grand Est",
+    "54": "Grand Est", "55": "Grand Est", "57": "Grand Est", "67": "Grand Est",
+    "68": "Grand Est", "88": "Grand Est",
     # Normandie
     "14": "Normandie", "27": "Normandie", "50": "Normandie", "61": "Normandie", "76": "Normandie",
     # Bretagne
@@ -627,6 +629,41 @@ def dept_to_region(dept_code: Optional[str]) -> Optional[str]:
         return None
     code = dept_code.strip().upper()
     return DEPT_TO_REGION.get(code)
+
+
+def _sort_key_fr(text: str) -> str:
+    return unicodedata.normalize("NFKD", text).encode("ascii", "ignore").decode().lower()
+
+
+def region_choices() -> list[str]:
+    """Noms des régions, triés, pour les listes du moteur de recherche."""
+    return sorted(set(DEPT_TO_REGION.values()), key=_sort_key_fr)
+
+
+def departement_choices(region: Optional[str] = None) -> list[tuple[str, str]]:
+    """(code, "Nom (code)") des départements, triés par nom.
+
+    Si `region` est un nom de région connu, ne retourne que les départements de cette région.
+    """
+    filtre = region if region in set(DEPT_TO_REGION.values()) else None
+    return sorted(
+        (
+            (code, f"{nom} ({code})")
+            for code, nom in DEPT_LABELS.items()
+            if filtre is None or DEPT_TO_REGION.get(code) == filtre
+        ),
+        key=lambda choice: _sort_key_fr(choice[1]),
+    )
+
+
+def departements_par_region() -> dict[str, list[list[str]]]:
+    """Map région -> [[code, "Nom (code)"], ...] ; la clé "" contient tous les départements."""
+    par_region: dict[str, list[list[str]]] = {"": [list(c) for c in departement_choices()]}
+    for code, label in departement_choices():
+        region_nom = DEPT_TO_REGION.get(code)
+        if region_nom:
+            par_region.setdefault(region_nom, []).append([code, label])
+    return par_region
 
 
 _CP_COMMUNES_CACHE: dict[str, list[dict]] = {}

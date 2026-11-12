@@ -118,6 +118,72 @@ def test_region_search_matches_region_or_city(client, offer_setup, created_at, t
         assert f"/appels-offres/{other.id}/consultation" not in html
 
 
+@pytest.mark.parametrize(
+    "path,card_id",
+    [("/mes-appels-offres", "details-"), ("/demandes-animation", "deta-")],
+)
+def test_departement_filter_matches_label_or_postal_code(client, offer_setup, path, card_id):
+    from models import db
+    user, _, _, demande, other = offer_setup
+    user.created_at = datetime(2026, 9, 11)
+    demande.departement = "Lot (46)"
+    demande.code_postal = "46320"
+    other.departement = "Gironde (33)"
+    other.code_postal = "33000"
+    db.session.commit()
+    login(client, user)
+    html = client.get(path, query_string={"departement": "46"}).get_data(as_text=True)
+    assert f'id="{card_id}{demande.id}"' in html
+    assert f'id="{card_id}{other.id}"' not in html
+    assert '<option value="46" selected>Lot (46)</option>' in html
+    demande.departement = None
+    db.session.commit()
+    html = client.get(path, query_string={"departement": "46"}).get_data(as_text=True)
+    assert f'id="{card_id}{demande.id}"' in html
+
+
+@pytest.mark.parametrize(
+    "path,card_id",
+    [("/mes-appels-offres", "details-"), ("/demandes-animation", "deta-")],
+)
+def test_departement_filter_ignored_for_gift_recipients(client, offer_setup, path, card_id):
+    from models import db
+    user, _, _, demande, other = offer_setup
+    user.created_at = datetime(2026, 9, 12)
+    demande.departement = "Lot (46)"
+    demande.code_postal = "46320"
+    other.departement = "Gironde (33)"
+    other.code_postal = "33000"
+    db.session.commit()
+    login(client, user)
+    html = client.get(path, query_string={"departement": "46"}).get_data(as_text=True)
+    assert f'id="{card_id}{demande.id}"' in html
+    assert f'id="{card_id}{other.id}"' in html
+    assert 'name="departement"' not in html
+
+
+@pytest.mark.parametrize("path", ["/mes-appels-offres", "/demandes-animation"])
+def test_departement_list_limited_to_selected_region(client, offer_setup, path):
+    user, _, _, _, _ = offer_setup
+    user.created_at = datetime(2026, 9, 11)
+    from models import db
+    db.session.commit()
+    login(client, user)
+    html = client.get(path, query_string={"region": "Occitanie"}).get_data(as_text=True)
+    assert '<option value="46" ' in html
+    assert '<option value="33" ' not in html
+    assert "data-departements-par-region=" in html
+    assert 'value="67"' not in html
+
+
+def test_every_department_belongs_to_a_region_and_grand_est_lists_alsace():
+    from utils.geo import DEPT_LABELS, DEPT_TO_REGION, departement_choices
+    assert [c for c in DEPT_LABELS if c not in DEPT_TO_REGION] == []
+    grand_est = [code for code, _ in departement_choices("Grand Est")]
+    assert "67" in grand_est and "68" in grand_est
+    assert len(departement_choices("Aucune région")) == len(DEPT_LABELS)
+
+
 @pytest.mark.parametrize("viewer", ["anonymous", "no-approved-show", "needs-subscription"])
 def test_public_offer_cta_price_preserves_destination(client, offer_setup, viewer):
     from html.parser import HTMLParser

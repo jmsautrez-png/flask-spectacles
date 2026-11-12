@@ -1299,6 +1299,23 @@ def _user_recoit_cadeau(user) -> bool:
     return needs_offer_subscription(user)
 
 
+def _departement_actif(user, departement: str) -> str:
+    """Code département à filtrer ; vide si code inconnu ou compte cadeau (ville masquée)."""
+    from utils.geo import DEPT_LABELS
+    code = (departement or "").strip().upper()
+    if code not in DEPT_LABELS or _user_recoit_cadeau(user):
+        return ""
+    return code
+
+
+def _demandes_departement_clause(code: str):
+    from models.models import DemandeAnimation
+    return or_(
+        DemandeAnimation.departement.ilike(f"%({code})%"),
+        DemandeAnimation.code_postal.startswith(code),
+    )
+
+
 # Envoi des appels d'offres en arrière-plan (voir _lancer_envoi_arriere_plan)
 _SEND_BATCH_SIZE = 10
 # OVH limite une boîte MX Plan à ~200 mails/heure : 1 mail toutes les 20 s reste sous ce plafond
@@ -7191,6 +7208,7 @@ Accessibilité: {accessibilite}
         per_page = 9
         categorie = request.args.get('categorie', '').strip()
         region = request.args.get('region', '').strip()
+        departement = request.args.get('departement', '').strip()
         
         # Base de la requête - Filtrer les demandes privées ET non approuvées sur la page publique
         user = current_user()
@@ -7216,6 +7234,9 @@ Accessibilité: {accessibilite}
         
         if categorie:
             demandes_query = demandes_query.filter(DemandeAnimation.genre_recherche.ilike(f"%{categorie}%"))
+        departement = _departement_actif(user, departement)
+        if departement:
+            demandes_query = demandes_query.filter(_demandes_departement_clause(departement))
         if region:
             # Compagnie qui reçoit le cadeau : ville masquée, recherche sur la région seule
             if _user_recoit_cadeau(user):
@@ -7252,7 +7273,8 @@ Accessibilité: {accessibilite}
         demandes = [offer_view(d, user, gifts) for d in demandes]
         if _user_recoit_cadeau(user):
             regions = [r[0] for r in db.session.query(DemandeAnimation.region).distinct().all() if r[0]]
-        return render_template("demandes_animation.html", demandes=demandes, page=page, nb_pages=nb_pages, total=total, per_page=per_page, user=user, has_show=has_show, categories=categories, regions=regions, categorie=categorie, region=region, spectacles_une=spectacles_une, can_view_demandes_map=_user_can_view_demandes_map(user))
+        from utils.geo import region_choices, departement_choices, departements_par_region
+        return render_template("demandes_animation.html", demandes=demandes, page=page, nb_pages=nb_pages, total=total, per_page=per_page, user=user, has_show=has_show, categories=categories, regions=regions, categorie=categorie, region=region, departement=departement, can_filter_dept=not _user_recoit_cadeau(user), region_choices=region_choices(), departement_choices=departement_choices(region), departements_par_region=departements_par_region(), spectacles_une=spectacles_une, can_view_demandes_map=_user_can_view_demandes_map(user))
 
 
     @app.route("/demandes-animation/carte")
@@ -7390,6 +7412,7 @@ Accessibilité: {accessibilite}
         per_page = 12
         categorie = request.args.get('categorie', '').strip()
         region = request.args.get('region', '').strip()
+        departement = request.args.get('departement', '').strip()
         
         # Les utilisateurs connectés voient les demandes publiques approuvées
         demandes_query = DemandeAnimation.query.filter(
@@ -7399,6 +7422,9 @@ Accessibilité: {accessibilite}
         
         if categorie:
             demandes_query = demandes_query.filter(DemandeAnimation.genre_recherche.ilike(f"%{categorie}%"))
+        departement = _departement_actif(user, departement)
+        if departement:
+            demandes_query = demandes_query.filter(_demandes_departement_clause(departement))
         if region:
             # Compagnie qui reçoit le cadeau : ville masquée, recherche sur la région seule
             if _user_recoit_cadeau(user):
@@ -7422,7 +7448,8 @@ Accessibilité: {accessibilite}
         demandes = [offer_view(d, user, gifts) for d in demandes]
         if _user_recoit_cadeau(user):
             regions = [r[0] for r in db.session.query(DemandeAnimation.region).distinct().all() if r[0]]
-        return render_template("mes_appels_offres.html", demandes=demandes, page=page, nb_pages=nb_pages, total=total, per_page=per_page, user=user, categories=categories, regions=regions, categorie=categorie, region=region)
+        from utils.geo import region_choices, departement_choices, departements_par_region
+        return render_template("mes_appels_offres.html", demandes=demandes, page=page, nb_pages=nb_pages, total=total, per_page=per_page, user=user, categories=categories, regions=regions, categorie=categorie, region=region, departement=departement, can_filter_dept=not _user_recoit_cadeau(user), region_choices=region_choices(), departement_choices=departement_choices(region), departements_par_region=departements_par_region())
 
     @app.route("/appels-offres/<int:demande_id>")
     @login_required
