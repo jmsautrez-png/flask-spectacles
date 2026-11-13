@@ -81,6 +81,15 @@
                             <span class="badge bg-white text-success">{{ matched_shows|length }} résultat(s)</span>
                         </div>
                         <div class="card-body p-0">
+                            <div class="d-flex align-items-center gap-2 p-2 border-bottom bg-light">
+                                <label for="filtre-distance" class="mb-0 fw-semibold"><small>📏 Filtrer par distance :</small></label>
+                                <select id="filtre-distance" class="form-select form-select-sm" style="width:auto;">
+                                    <option value="">Toutes</option>
+                                    <option value="1-80">1 à 80 km</option>
+                                    <option value="80-140">80 à 140 km</option>
+                                    <option value="140-250">140 à 250 km</option>
+                                </select>
+                            </div>
                             <div class="table-responsive">
                                 <table class="table mb-0">
                                     <thead class="table-light">
@@ -100,7 +109,7 @@
                                     </thead>
                                     <tbody>
                                     {% for show, score in matched_shows %}
-                                        <tr class="matched-row">
+                                        <tr class="matched-row" data-km="{{ score.distance_km_display|round|int if score.distance_km_display is not none else '' }}">
                                             <td><input type="checkbox" class="matched-cb" name="matched_show_ids" value="{{ show.id }}" checked></td>
                                             <td>
                                                 <strong>{{ show.title }}</strong>
@@ -224,7 +233,7 @@
     if (selectAllMatched) {
         selectAllMatched.addEventListener('change', function() {
             const checked = this.checked;
-            document.querySelectorAll('.matched-cb').forEach(cb => {
+            document.querySelectorAll('.matched-cb:not(:disabled)').forEach(cb => {
                 cb.checked = checked;
                 // Synchronise l'état visuel de la ligne + le compteur.
                 cb.dispatchEvent(new Event('change'));
@@ -236,7 +245,7 @@
         cb.addEventListener('change', updateMatchedCount);
     });
     function updateMatchedCount() {
-        const count = document.querySelectorAll('.matched-cb:checked').length;
+        const count = document.querySelectorAll('.matched-cb:checked:not(:disabled)').length;
         const el = document.getElementById('matched-count');
         if (el) el.textContent = count;
     }
@@ -260,6 +269,29 @@
         });
     });
     
+    // Filtre par tranche de distance : les lignes hors tranche sont masquées et désactivées
+    // (donc non envoyées), leur coche est conservée. Les lignes sans distance restent visibles.
+    const selectDistance = document.getElementById('filtre-distance');
+    const tranchesDistance = {
+        '1-80': { min: 0, max: 80 },
+        '80-140': { min: 80, max: 140 },
+        '140-250': { min: 140, max: 250 }
+    };
+    function appliquerFiltreDistance() {
+        const t = tranchesDistance[selectDistance.value];
+        document.querySelectorAll('tr.matched-row').forEach(tr => {
+            const cb = tr.querySelector('.matched-cb');
+            const km = parseFloat(tr.dataset.km);
+            const visible = !t || isNaN(km) || ((km > t.min || t.min === 0) && km <= t.max);
+            tr.style.display = visible ? '' : 'none';
+            cb.disabled = !visible;
+        });
+        updateMatchedCount();
+    }
+    if (selectDistance) {
+        selectDistance.addEventListener('change', appliquerFiltreDistance);
+    }
+
     // Fonction pour sélectionner/désélectionner toutes les régions
     function selectAllRegions() {
         console.log('Toggle toutes les régions');
@@ -288,7 +320,7 @@
             const action = clickedBtn ? clickedBtn.value : '';
             
             if (action === 'send_matched_recap_only') {
-                const matchedChecked = document.querySelectorAll('.matched-cb:checked');
+                const matchedChecked = document.querySelectorAll('.matched-cb:checked:not(:disabled)');
                 if (matchedChecked.length === 0) {
                     e.preventDefault();
                     alert('⚠️ Cochez au moins une compagnie à inclure dans le récap');
@@ -298,7 +330,7 @@
             }
             
             if (action === 'send_matched') {
-                const matchedChecked = document.querySelectorAll('.matched-cb:checked');
+                const matchedChecked = document.querySelectorAll('.matched-cb:checked:not(:disabled)');
                 if (matchedChecked.length === 0) {
                     e.preventDefault();
                     alert('⚠️ Veuillez sélectionner au moins une compagnie');
