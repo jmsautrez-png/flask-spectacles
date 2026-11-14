@@ -66,4 +66,4 @@ def test_ordre_affichage_renders_company_search_data(admin_client, db):
 
     html = response.data.decode("utf-8")
     assert 'id="recherche-compagnie"' in html
-    assert 'data-compagnie="Compagnie"' in html
+    assert 'data-recherche="Spectacle 0 Compagnie"' in html

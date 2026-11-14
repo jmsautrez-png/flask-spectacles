@@ -30,7 +30,7 @@
 <!-- Liste des spectacles en drag & drop -->
 <div id="sortable-list" style="display:flex; flex-direction:column; gap:8px;">
   {% for show in shows %}
-  <div class="sortable-item" data-show-id="{{ show.id }}" data-original-index="{{ loop.index0 }}" data-compagnie="{{ show.raison_sociale or '' }}" style="display:flex; align-items:center; gap:12px; background:linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); border:2px solid #283e5e; border-radius:10px; padding:12px; cursor:grab; transition:all 0.2s;">
+  <div class="sortable-item" data-show-id="{{ show.id }}" data-original-index="{{ loop.index0 }}" data-recherche="{{ show.title or '' }} {{ show.raison_sociale or '' }}" style="display:flex; align-items:center; gap:12px; background:linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); border:2px solid #283e5e; border-radius:10px; padding:12px; cursor:grab; transition:all 0.2s;">
     
     <!-- Numéro de position -->
     <div class="position-number" style="min-width:40px; height:40px; background:var(--primary); color:white; border-radius:8px; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:1.1rem;">
@@ -209,9 +209,10 @@ function normaliser(texte) {
 }
 
 function filtrerCompagnies() {
-  const recherche = normaliser(document.getElementById('recherche-compagnie').value);
+  const mots = normaliser(document.getElementById('recherche-compagnie').value).split(/\s+/).filter(Boolean);
   list.querySelectorAll('.sortable-item').forEach(item => {
-    const correspond = normaliser(item.dataset.compagnie).includes(recherche);
+    const texte = normaliser(item.dataset.recherche);
+    const correspond = mots.every(mot => texte.includes(mot));
     item.style.display = correspond ? 'flex' : 'none';
   });
 }
