@@ -23,10 +23,14 @@
   </form>
 </div>
 
+<div style="margin-bottom:16px;">
+  <input type="search" id="recherche-compagnie" placeholder="🔍 Rechercher une compagnie..." oninput="filtrerCompagnies()" autocomplete="off" style="width:100%; max-width:360px; padding:10px 14px; border-radius:8px; border:2px solid #283e5e; background:#16213e; color:#fff; font-size:0.95rem;">
+</div>
+
 <!-- Liste des spectacles en drag & drop -->
 <div id="sortable-list" style="display:flex; flex-direction:column; gap:8px;">
   {% for show in shows %}
-  <div class="sortable-item" data-show-id="{{ show.id }}" data-original-index="{{ loop.index0 }}" style="display:flex; align-items:center; gap:12px; background:linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); border:2px solid #283e5e; border-radius:10px; padding:12px; cursor:grab; transition:all 0.2s;">
+  <div class="sortable-item" data-show-id="{{ show.id }}" data-original-index="{{ loop.index0 }}" data-compagnie="{{ show.raison_sociale or '' }}" style="display:flex; align-items:center; gap:12px; background:linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); border:2px solid #283e5e; border-radius:10px; padding:12px; cursor:grab; transition:all 0.2s;">
     
     <!-- Numéro de position -->
     <div class="position-number" style="min-width:40px; height:40px; background:var(--primary); color:white; border-radius:8px; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:1.1rem;">
@@ -172,9 +176,17 @@ list.querySelectorAll('.sortable-item').forEach(item => {
   });
 });
 
+function voisinVisible(item, sens) {
+  let voisin = sens < 0 ? item.previousElementSibling : item.nextElementSibling;
+  while (voisin && voisin.style.display === 'none') {
+    voisin = sens < 0 ? voisin.previousElementSibling : voisin.nextElementSibling;
+  }
+  return voisin;
+}
+
 function moveItemUp(btn) {
   const item = btn.closest('.sortable-item');
-  const prev = item.previousElementSibling;
+  const prev = voisinVisible(item, -1);
   if (prev) {
     list.insertBefore(item, prev);
     updatePositionNumbers();
@@ -184,12 +196,24 @@ function moveItemUp(btn) {
 
 function moveItemDown(btn) {
   const item = btn.closest('.sortable-item');
-  const next = item.nextElementSibling;
+  const next = voisinVisible(item, 1);
   if (next) {
     list.insertBefore(next, item);
     updatePositionNumbers();
     markChanges();
   }
+}
+
+function normaliser(texte) {
+  return texte.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim();
+}
+
+function filtrerCompagnies() {
+  const recherche = normaliser(document.getElementById('recherche-compagnie').value);
+  list.querySelectorAll('.sortable-item').forEach(item => {
+    const correspond = normaliser(item.dataset.compagnie).includes(recherche);
+    item.style.display = correspond ? 'flex' : 'none';
+  });
 }
 
 function moveToTop(btn) {

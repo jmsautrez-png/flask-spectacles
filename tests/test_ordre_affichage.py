@@ -57,3 +57,13 @@ def test_ordre_affichage_top_button_moves_show_to_global_first(admin_client, db)
     assert response.get_json()["success"] is True
     final = [s.title for s in Show.query.order_by(Show.display_order.asc(), Show.created_at.desc()).all()]
     assert final == [d.title, a.title, b.title, c.title]
+
+
+def test_ordre_affichage_renders_company_search_data(admin_client, db):
+    _make_shows(db, 2)
+
+    response = admin_client.get("/admin/ordre-affichage")
+
+    html = response.data.decode("utf-8")
+    assert 'id="recherche-compagnie"' in html
+    assert 'data-compagnie="Compagnie"' in html
