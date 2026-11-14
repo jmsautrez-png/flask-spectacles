@@ -68,3 +68,14 @@ def test_ordre_affichage_renders_whole_list_for_search(admin_client, db):
     assert html.count('class="sortable-item"') == 60  # toutes les cartes, pas seulement la page 1
     assert 'id="recherche-compagnie"' in html
     assert 'data-recherche="Spectacle 0 Compagnie"' in html
+
+
+def test_admin_edit_without_category_field_keeps_category(admin_client, db):
+    show = _make_shows(db, 1)[0]
+    show.category = "Théâtre"
+    db.session.commit()
+
+    admin_client.post(f"/admin/shows/{show.id}/edit", data={"title": "Spectacle 0"})
+
+    db.session.expire_all()
+    assert Show.query.get(show.id).category == "Théâtre"

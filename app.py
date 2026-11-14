@@ -5455,7 +5455,8 @@ def register_routes(app: Flask) -> None:
             show.description = _desc
             show.region = fix_mojibake(request.form.get("region", "").strip()) or None
             show.location = request.form.get("location", "").strip()
-            show.category = request.form.get("category", "").strip()  # admin peut forcer la catégorie
+            if "category" in request.form:
+                show.category = request.form.get("category", "").strip()  # admin peut forcer la catégorie
             show.age_range = request.form.get("age_range", "").strip() or None
             show.contact_email = request.form.get("contact_email", "").strip() or None
             show.contact_phone = request.form.get("contact_phone", "").strip() or None
