@@ -24,7 +24,7 @@
 </div>
 
 <div style="margin-bottom:16px;">
-  <input type="search" id="recherche-compagnie" placeholder="🔍 Rechercher une compagnie..." oninput="filtrerCompagnies()" autocomplete="off" style="width:100%; max-width:360px; padding:10px 14px; border-radius:8px; border:2px solid #283e5e; background:#16213e; color:#fff; font-size:0.95rem;">
+  <input type="search" id="recherche-compagnie" placeholder="🔍 Rechercher une compagnie ou un spectacle (toute la liste)..." oninput="actualiserAffichage()" autocomplete="off" style="width:100%; max-width:360px; padding:10px 14px; border-radius:8px; border:2px solid #283e5e; background:#16213e; color:#fff; font-size:0.95rem;">
 </div>
 
 <!-- Liste des spectacles en drag & drop -->
@@ -34,7 +34,7 @@
     
     <!-- Numéro de position -->
     <div class="position-number" style="min-width:40px; height:40px; background:var(--primary); color:white; border-radius:8px; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:1.1rem;">
-      {{ (pagination.page - 1) * pagination.per_page + loop.index }}
+      {{ loop.index }}
     </div>
     
     <!-- Icône de drag -->
@@ -71,46 +71,8 @@
   {% endfor %}
 </div>
 
-<!-- Pagination -->
-{% if pagination and pagination.pages > 1 %}
-<nav class="pagination" style="margin: 30px 0; text-align: center;">
-  <div style="display: inline-flex; gap: 8px; align-items: center; flex-wrap: wrap; justify-content: center;">
-    {% if pagination.has_prev %}
-      <a href="{{ url_for('admin_ordre_affichage', page=pagination.prev_num) }}"
-         style="padding: 8px 12px; background: var(--primary); color: white; text-decoration: none; border-radius: 4px; font-weight: 600;">
-        ← Précédent
-      </a>
-    {% endif %}
-
-    {% for p in pagination.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
-      {% if p %}
-        {% if p == pagination.page %}
-          <span style="padding: 8px 12px; background: var(--primary); color: white; border-radius: 4px; font-weight: 600;">
-            {{ p }}
-          </span>
-        {% else %}
-          <a href="{{ url_for('admin_ordre_affichage', page=p) }}"
-             style="padding: 8px 12px; background: #f2f3f7; color: var(--text); text-decoration: none; border-radius: 4px; font-weight: 600;">
-            {{ p }}
-          </a>
-        {% endif %}
-      {% else %}
-        <span style="padding: 8px 12px; color: #999;">...</span>
-      {% endif %}
-    {% endfor %}
-
-    {% if pagination.has_next %}
-      <a href="{{ url_for('admin_ordre_affichage', page=pagination.next_num) }}"
-         style="padding: 8px 12px; background: var(--primary); color: white; text-decoration: none; border-radius: 4px; font-weight: 600;">
-        Suivant →
-      </a>
-    {% endif %}
-  </div>
-  <p style="margin-top: 16px; color: var(--muted); font-size: 0.9rem;">
-    Page {{ pagination.page }} sur {{ pagination.pages }} ({{ pagination.total }} spectacle{{ 's' if pagination.total > 1 else '' }})
-  </p>
-</nav>
-{% endif %}
+<!-- Pagination : remplie par le script (la recherche ignore les pages) -->
+<nav id="pagination-liste" class="pagination" style="margin: 30px 0; text-align: center;"></nav>
 
 <style>
 .sortable-item:hover {
@@ -134,7 +96,8 @@
 
 <script>
 const list = document.getElementById('sortable-list');
-const offset = {{ (pagination.page - 1) * pagination.per_page }};
+const PAR_PAGE = 50;
+let pageCourante = 1;
 let hasChanges = false;
 
 // Drag & Drop natif
@@ -208,13 +171,56 @@ function normaliser(texte) {
   return texte.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim();
 }
 
-function filtrerCompagnies() {
+// Affiche la page courante, ou tous les spectacles correspondant à la recherche (toute la liste).
+function actualiserAffichage() {
   const mots = normaliser(document.getElementById('recherche-compagnie').value).split(/\s+/).filter(Boolean);
-  list.querySelectorAll('.sortable-item').forEach(item => {
-    const texte = normaliser(item.dataset.recherche);
-    const correspond = mots.every(mot => texte.includes(mot));
-    item.style.display = correspond ? 'flex' : 'none';
+  const items = Array.from(list.querySelectorAll('.sortable-item'));
+  const pages = Math.max(1, Math.ceil(items.length / PAR_PAGE));
+  pageCourante = Math.min(pageCourante, pages);
+  const debut = (pageCourante - 1) * PAR_PAGE;
+  let resultats = 0;
+
+  items.forEach((item, index) => {
+    let visible;
+    if (mots.length) {
+      const texte = normaliser(item.dataset.recherche);
+      visible = mots.every(mot => texte.includes(mot));
+      if (visible) resultats++;
+    } else {
+      visible = index >= debut && index < debut + PAR_PAGE;
+    }
+    item.style.display = visible ? 'flex' : 'none';
   });
+
+  afficherNavigation(items.length, pages, mots.length ? resultats : null);
+}
+
+function afficherNavigation(total, pages, resultats) {
+  const nav = document.getElementById('pagination-liste');
+  if (resultats !== null) {
+    nav.innerHTML = `<p style="color:var(--muted); font-size:0.9rem;">${resultats} résultat(s) sur ${total} spectacle(s)</p>`;
+    return;
+  }
+  if (pages <= 1) {
+    nav.innerHTML = '';
+    return;
+  }
+  const bouton = (libelle, page, actif) => `<button type="button" onclick="allerPage(${page})" style="padding:8px 12px; border:none; border-radius:4px; font-weight:600; cursor:pointer; ${actif ? 'background:var(--primary); color:white;' : 'background:#f2f3f7; color:var(--text);'}">${libelle}</button>`;
+  let html = '<div style="display:inline-flex; gap:8px; align-items:center; flex-wrap:wrap; justify-content:center;">';
+  if (pageCourante > 1) html += bouton('← Précédent', pageCourante - 1, true);
+  for (let p = 1; p <= pages; p++) {
+    html += bouton(p, p, p === pageCourante);
+  }
+  if (pageCourante < pages) html += bouton('Suivant →', pageCourante + 1, true);
+  html += '</div>';
+  html += `<p style="margin-top:16px; color:var(--muted); font-size:0.9rem;">Page ${pageCourante} sur ${pages} (${total} spectacle${total > 1 ? 's' : ''})</p>`;
+  nav.innerHTML = html;
+}
+
+function allerPage(page) {
+  pageCourante = page;
+  actualiserAffichage();
+  list.scrollIntoView({ block: 'start' });
 }
 
 function moveToTop(btn) {
@@ -230,7 +236,7 @@ function moveToTop(btn) {
       'Content-Type': 'application/json',
       'X-CSRFToken': '{{ csrf_token() }}'
     },
-    body: JSON.stringify({ ids: [id], offset: 0 })
+    body: JSON.stringify({ ids: [id] })
   })
   .then(response => response.json())
   .then(data => {
@@ -247,7 +253,7 @@ function moveToTop(btn) {
 
 function updatePositionNumbers() {
   list.querySelectorAll('.sortable-item').forEach((item, index) => {
-    item.querySelector('.position-number').textContent = offset + index + 1;
+    item.querySelector('.position-number').textContent = index + 1;
   });
 }
 
@@ -274,7 +280,7 @@ function saveAllOrders() {
       'Content-Type': 'application/json',
       'X-CSRFToken': '{{ csrf_token() }}'
     },
-    body: JSON.stringify({ ids: ids, offset: offset })
+    body: JSON.stringify({ ids: ids })
   })
   .then(response => response.json())
   .then(data => {
@@ -289,6 +295,8 @@ function saveAllOrders() {
     alert('❌ Erreur: ' + err);
   });
 }
+
+actualiserAffichage();
 </script>
 
 {% endblock %}
