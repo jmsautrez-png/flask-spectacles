@@ -26,11 +26,11 @@
 <!-- Liste des spectacles en drag & drop -->
 <div id="sortable-list" style="display:flex; flex-direction:column; gap:8px;">
   {% for show in shows %}
-  <div class="sortable-item" data-show-id="{{ show.id }}" data-original-order="{{ show.display_order or 0 }}" style="display:flex; align-items:center; gap:12px; background:linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); border:2px solid #283e5e; border-radius:10px; padding:12px; cursor:grab; transition:all 0.2s;">
+  <div class="sortable-item" data-show-id="{{ show.id }}" data-original-index="{{ loop.index0 }}" style="display:flex; align-items:center; gap:12px; background:linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); border:2px solid #283e5e; border-radius:10px; padding:12px; cursor:grab; transition:all 0.2s;">
     
     <!-- Numéro de position -->
     <div class="position-number" style="min-width:40px; height:40px; background:var(--primary); color:white; border-radius:8px; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:1.1rem;">
-      {{ loop.index }}
+      {{ (pagination.page - 1) * pagination.per_page + loop.index }}
     </div>
     
     <!-- Icône de drag -->
@@ -130,6 +130,7 @@
 
 <script>
 const list = document.getElementById('sortable-list');
+const offset = {{ (pagination.page - 1) * pagination.per_page }};
 let hasChanges = false;
 
 // Drag & Drop natif
@@ -203,7 +204,7 @@ function moveToTop(btn) {
 
 function updatePositionNumbers() {
   list.querySelectorAll('.sortable-item').forEach((item, index) => {
-    item.querySelector('.position-number').textContent = index + 1;
+    item.querySelector('.position-number').textContent = offset + index + 1;
   });
 }
 
@@ -213,9 +214,7 @@ function markChanges() {
   
   // Marquer les éléments qui ont changé de position
   list.querySelectorAll('.sortable-item').forEach((item, index) => {
-    const originalOrder = parseInt(item.dataset.originalOrder) || 0;
-    const newOrder = (index + 1) * 10;
-    if (newOrder !== originalOrder) {
+    if (index !== parseInt(item.dataset.originalIndex)) {
       item.classList.add('changed');
     } else {
       item.classList.remove('changed');
@@ -224,11 +223,7 @@ function markChanges() {
 }
 
 function saveAllOrders() {
-  const orders = {};
-  list.querySelectorAll('.sortable-item').forEach((item, index) => {
-    const showId = item.dataset.showId;
-    orders[showId] = (index + 1) * 10;  // Multiples de 10
-  });
+  const ids = Array.from(list.querySelectorAll('.sortable-item'), item => parseInt(item.dataset.showId));
   
   fetch('{{ url_for("update_shows_orders") }}', {
     method: 'POST',
@@ -236,7 +231,7 @@ function saveAllOrders() {
       'Content-Type': 'application/json',
       'X-CSRFToken': '{{ csrf_token() }}'
     },
-    body: JSON.stringify(orders)
+    body: JSON.stringify({ ids: ids, offset: offset })
   })
   .then(response => response.json())
   .then(data => {

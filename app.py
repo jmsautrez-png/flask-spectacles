@@ -6264,18 +6264,28 @@ def register_routes(app: Flask) -> None:
     @login_required
     @admin_required
     def update_shows_orders():
-        """Met à jour l'ordre de plusieurs spectacles en une fois (via AJAX ou formulaire)."""
+        """Enregistre l'ordre d'une page de la liste admin et renumérote tous les spectacles approuvés.
+
+        Corps attendu : {"ids": [ids de la page, dans le nouvel ordre], "offset": nombre de cartes avant la page}.
+        """
         try:
-            # Format attendu : orders = {"show_id": new_order, ...}
-            orders = request.get_json()
-            if orders:
-                for show_id, new_order in orders.items():
-                    show = Show.query.get(int(show_id))
-                    if show:
-                        show.display_order = int(new_order)
-                db.session.commit()
-                return {"success": True, "message": "Ordres mis à jour"}
-            return {"success": False, "message": "Aucune donnée reçue"}, 400
+            payload = request.get_json(silent=True) or {}
+            page_ids = [int(i) for i in payload.get("ids", [])]
+            offset = max(0, int(payload.get("offset", 0)))
+            if not page_ids:
+                return {"success": False, "message": "Aucune donnée reçue"}, 400
+            ordered = Show.query.filter_by(approved=True).order_by(
+                Show.display_order.asc(), Show.created_at.desc()
+            ).all()
+            page_set = set(page_ids)
+            by_id = {s.id: s for s in ordered if s.id in page_set}
+            before = [s for s in ordered[:offset] if s.id not in page_set]
+            after = [s for s in ordered[offset:] if s.id not in page_set]
+            new_order = before + [by_id[i] for i in page_ids if i in by_id] + after
+            for position, show in enumerate(new_order, start=1):
+                show.display_order = position * 10
+            db.session.commit()
+            return {"success": True, "message": "Ordres mis à jour"}
         except Exception as e:
             db.session.rollback()
             return {"success": False, "message": str(e)}, 500
