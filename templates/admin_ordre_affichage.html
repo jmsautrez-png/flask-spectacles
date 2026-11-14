@@ -61,7 +61,7 @@
     <div style="display:flex; gap:4px;">
       <button onclick="moveItemUp(this)" title="Monter" style="padding:8px 12px; border-radius:6px; border:none; background:#17a2b8; color:#fff; cursor:pointer; font-size:1rem;">⬆️</button>
       <button onclick="moveItemDown(this)" title="Descendre" style="padding:8px 12px; border-radius:6px; border:none; background:#6c757d; color:#fff; cursor:pointer; font-size:1rem;">⬇️</button>
-      <button onclick="moveToTop(this)" title="Mettre en 1er" style="padding:8px 12px; border-radius:6px; border:none; background:#ffc107; color:#000; cursor:pointer; font-size:0.85rem; font-weight:600;">🔝</button>
+      <button onclick="moveToTop(this)" title="Mettre en 1er de toute la liste" style="padding:8px 12px; border-radius:6px; border:none; background:#ffc107; color:#000; cursor:pointer; font-size:0.85rem; font-weight:600;">🔝</button>
     </div>
   </div>
   {% endfor %}
@@ -193,13 +193,31 @@ function moveItemDown(btn) {
 }
 
 function moveToTop(btn) {
-  const item = btn.closest('.sortable-item');
-  const first = list.firstElementChild;
-  if (first && first !== item) {
-    list.insertBefore(item, first);
-    updatePositionNumbers();
-    markChanges();
+  if (hasChanges) {
+    alert('Enregistrez d\'abord vos modifications, puis remettez la carte en 1er.');
+    return;
   }
+  const id = parseInt(btn.closest('.sortable-item').dataset.showId);
+
+  fetch('{{ url_for("update_shows_orders") }}', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-CSRFToken': '{{ csrf_token() }}'
+    },
+    body: JSON.stringify({ ids: [id], offset: 0 })
+  })
+  .then(response => response.json())
+  .then(data => {
+    if (data.success) {
+      location.reload();
+    } else {
+      alert('❌ Erreur: ' + data.message);
+    }
+  })
+  .catch(err => {
+    alert('❌ Erreur: ' + err);
+  });
 }
 
 function updatePositionNumbers() {
