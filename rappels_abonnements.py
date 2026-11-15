@@ -87,6 +87,17 @@ def _send_mail(recipient, subject, html):
         return False
 
 
+def _copie_admin(sujet, user, date_fin):
+    """Envoie à l'admin une copie de la relance envoyée à l'utilisateur."""
+    admin_addr = app.config.get("MAIL_DEFAULT_SENDER") or app.config.get("MAIL_USERNAME")
+    if not admin_addr:
+        return
+    _send_mail(admin_addr,
+               f"[Copie relance] {sujet}",
+               f"<p>Relance envoyée à <strong>{user.raison_sociale or user.username}</strong> ({user.email}).</p>"
+               f"<p>Fin d'abonnement : {date_fin.strftime('%d/%m/%Y')}</p>")
+
+
 def _html_rappel_j30(user, date_fin):
     TARIF_RENOUVELLEMENT, TARIF_PAYPAL_RENOUVELLEMENT = _tarifs_renouvellement(user)
     paypal_link = f"{PAYPAL_URL}/{TARIF_PAYPAL_RENOUVELLEMENT}EUR"
@@ -274,6 +285,7 @@ def main():
                                           "🔒 Votre abonnement Appels d'offres a expiré",
                                           _html_rappel_expired(u, sub_until)):
                                 print(f"        [OK] Email expiration envoye a {u.email}")
+                                _copie_admin("Abonnement AO expiré", u, sub_until)
                         u.renewal_expired_sent_for = sub_until
                         # Désactivation auto (Niveau 3)
                         if u.is_subscribed:
@@ -301,6 +313,7 @@ def main():
                                           f"⚠️ Dernière semaine : abonnement AO expire le {sub_until.strftime('%d/%m/%Y')}",
                                           _html_rappel_j7(u, sub_until)):
                                 print(f"        [OK] Email J-7 envoye a {u.email}")
+                                _copie_admin("Relance J-7 abonnement AO", u, sub_until)
                         u.renewal_j7_sent_for = sub_until
                 continue
 
@@ -316,6 +329,7 @@ def main():
                                           f"📅 Votre abonnement AO expire le {sub_until.strftime('%d/%m/%Y')}",
                                           _html_rappel_j30(u, sub_until)):
                                 print(f"        [OK] Email J-30 envoye a {u.email}")
+                                _copie_admin("Relance J-30 abonnement AO", u, sub_until)
                         u.renewal_j30_sent_for = sub_until
                 continue
 

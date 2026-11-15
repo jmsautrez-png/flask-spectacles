@@ -71,6 +71,24 @@ def test_renewal_emails_virement_99_paypal_104(app, normal_user, kind):
     assert "/149EUR" not in html
 
 
+def test_copie_relance_envoyee_a_l_admin(app, normal_user, monkeypatch):
+    import rappels_abonnements as reminders
+
+    envois = []
+    monkeypatch.setattr(reminders, "_send_mail",
+                        lambda dest, sujet, html: envois.append((dest, sujet, html)) or True)
+    monkeypatch.setitem(app.config, "MAIL_DEFAULT_SENDER", "admin@test.com")
+
+    reminders._copie_admin("Relance J-7 abonnement AO", normal_user, datetime(2026, 12, 1))
+
+    assert len(envois) == 1
+    dest, sujet, html = envois[0]
+    assert dest == "admin@test.com"
+    assert sujet == "[Copie relance] Relance J-7 abonnement AO"
+    assert normal_user.email in html
+    assert "01/12/2026" in html
+
+
 @pytest.mark.parametrize("path", ["/adhesion", "/cgu", "/abonnement-compagnie/appels-offres"])
 def test_public_subscription_prices(client, admin_user, path):
     if path == "/adhesion":
