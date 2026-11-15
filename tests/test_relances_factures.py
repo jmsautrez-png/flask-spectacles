@@ -149,7 +149,10 @@ def test_traiter_sends_then_is_idempotent(db, normal_user):
 
     stats = traiter(NOW, apply=True, envoyer=fake_envoi, admin_addr="admin@test.com")
     assert stats == {"j3": 0, "j7": 1, "alerte": 0}
-    assert envois == [(normal_user.email, "Dernier rappel : facture 2026-10-2027-001 en attente de règlement")]
+    assert envois == [
+        (normal_user.email, "Dernier rappel : facture 2026-10-2027-001 en attente de règlement"),
+        ("admin@test.com", "[Copie relance] Dernier rappel : facture 2026-10-2027-001 en attente de règlement"),
+    ]
 
     adh = db.session.get(Adhesion, adh_id)
     assert adh.relance_j7_sent_for == adh.invoice_sent_at

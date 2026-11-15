@@ -118,6 +118,22 @@ def _html_alerte_admin(adh, amount, invoice_number, date_envoi, jours):
 </body></html>"""
 
 
+def _html_copie_relance_admin(adh, amount, invoice_number, date_envoi, label):
+    return f"""<!DOCTYPE html>
+<html><head><meta charset="UTF-8"></head>
+<body style="font-family:Arial,sans-serif;background:#f4f6fa;margin:0;padding:20px;color:#333;">
+  <div style="max-width:600px;margin:0 auto;background:#fff;border-radius:10px;overflow:hidden;box-shadow:0 2px 12px rgba(0,0,0,0.08);">
+    <div style="padding:20px;line-height:1.55;">
+      <p>Relance <strong>{label}</strong> envoyée à <strong>{adh.nom}</strong> ({adh.email}).</p>
+      <p>Facture n° <strong>{invoice_number}</strong> de {amount} € envoyée le {date_envoi.strftime('%d/%m/%Y')}, toujours sans règlement.</p>
+      <p style="text-align:center;margin-top:24px;">
+        <a href="{WEBSITE_URL}/admin/adhesions" style="color:#1976d2;">Voir les demandes d'adhésion</a>
+      </p>
+    </div>
+  </div>
+</body></html>"""
+
+
 def traiter(now, apply, envoyer=_send_mail, admin_addr=None):
     """Applique les relances dues. Retourne les compteurs {'j3', 'j7', 'alerte'}.
 
@@ -157,6 +173,9 @@ def traiter(now, apply, envoyer=_send_mail, admin_addr=None):
                     else:
                         adh.relance_j3_sent_for = envoi
                     print("        [OK] relance envoyée")
+                    if admin_addr:
+                        envoyer(admin_addr, f"[Copie relance] {sujet}",
+                                _html_copie_relance_admin(adh, amount, numero, envoi, label))
                 else:
                     print("        [ECHEC] relance non envoyée, nouvelle tentative au prochain passage")
 
