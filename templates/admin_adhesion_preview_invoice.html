@@ -26,6 +26,7 @@
   {% if is_midterm_upgrade %}
   <div style="background:#f3e5f5; color:#4a148c; border-left:4px solid #6a1b9a; padding:12px 16px; border-radius:8px; margin-bottom:16px; font-size:0.9rem;">
     Passage en cours d'abonnement : le montant est à fixer au prorata, l'accès téléphone sera activé après encaissement et la date d'échéance actuelle restera inchangée.
+    {% if not adh.stripe_payment_url %}Le lien de paiement par carte sera créé à l'envoi définitif et ne figure pas encore dans cet aperçu.{% endif %}
   </div>
   {% endif %}
 
@@ -62,10 +63,12 @@
           📨 Envoyer définitivement
         </button>
       </form>
-      <a href="{{ url_for('admin_adhesion_download_invoice_pdf', adhesion_id=adh.id, amount=amount) }}" target="_blank"
+      {% if not is_midterm_upgrade or adh.stripe_payment_url %}
+      <a href="{{ url_for('admin_adhesion_download_invoice_pdf', adhesion_id=adh.id, amount=amount, formule=formule) }}" target="_blank"
          style="background:#546e7a; color:#fff; padding:11px 20px; border-radius:8px; text-decoration:none; font-weight:600; font-size:0.95rem;">
         📄 Télécharger PDF
       </a>
+      {% endif %}
       <a href="{{ url_for('admin_adhesions') }}" style="background:#f5f5f5; color:#555; padding:11px 24px; border-radius:8px; text-decoration:none; font-weight:600; border:1px solid #ddd;">
         ← Annuler
       </a>

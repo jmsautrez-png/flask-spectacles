@@ -43,6 +43,19 @@ python app.py
 # Ouvrir http://127.0.0.1:5000
 ```
 
+### Paiement par carte pour un changement de formule
+
+Configurer `STRIPE_SECRET_KEY` dans les variables d'environnement du service Web Render
+(ou dans `.env` en local), avec une clé Stripe secrète autorisée à créer des prix et
+des liens de paiement. Ne jamais enregistrer cette clé dans le dépôt. Utiliser une clé
+de test pour les essais, puis une clé de production pour les factures réelles.
+
+Pour une facture de passage à la formule avec téléphone en cours d'abonnement, le site
+crée à l'envoi un lien Stripe ponctuel, limité à un paiement, au montant saisi par
+l'administrateur. Si Stripe ou la configuration est indisponible, l'envoi est bloqué
+et l'administrateur peut réessayer. Vérifier l'encaissement dans Stripe avant d'activer
+manuellement la formule ; le paiement ne modifie pas automatiquement l'abonnement.
+
 ## 🌐 Déploiement Production (Render)
 
 Voir le guide complet : **[GUIDE_DEPLOIEMENT_RENDER.md](GUIDE_DEPLOIEMENT_RENDER.md)**

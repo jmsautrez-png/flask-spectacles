@@ -1135,6 +1135,8 @@ def _run_critical_migrations(app: Flask) -> None:
         ("adhesion", "formule_abonnement", "VARCHAR(4)", "VARCHAR(4)", None),
         ("adhesion", "is_midterm_upgrade", "BOOLEAN DEFAULT FALSE", "BOOLEAN DEFAULT 0", "FALSE"),
         ("adhesion", "upgrade_until", "TIMESTAMP", "DATETIME", None),
+        ("adhesion", "stripe_payment_url", "TEXT", "TEXT", None),
+        ("adhesion", "stripe_idempotency_token", "VARCHAR(64)", "VARCHAR(64)", None),
         ("adhesion", "relance_j3_sent_for", "TIMESTAMP", "DATETIME", None),
         ("adhesion", "relance_j7_sent_for", "TIMESTAMP", "DATETIME", None),
         ("adhesion", "alerte_admin_j10_sent_for", "TIMESTAMP", "DATETIME", None),
@@ -10494,6 +10496,47 @@ def _libelle_carte(montant):
     return f"Payer {montant} € par carte"
 
 
+def _create_upgrade_stripe_link(adh, amount):
+    """Crée un lien Stripe ponctuel, limité à un paiement, pour une facture donnée."""
+    from urllib.parse import urlparse
+
+    secret = current_app.config.get("STRIPE_SECRET_KEY", "").strip()
+    if not secret:
+        raise ValueError("La clé STRIPE_SECRET_KEY n'est pas configurée.")
+
+    def create(path, data, suffix):
+        response = requests.post(
+            f"https://api.stripe.com/v1/{path}",
+            auth=(secret, ""),
+            headers={"Idempotency-Key": f"upgrade-{adh.stripe_idempotency_token}-{suffix}"},
+            data=data,
+            timeout=15,
+        )
+        response.raise_for_status()
+        return response.json()
+
+    price = create("prices", {
+        "currency": "eur",
+        "unit_amount": amount * 100,
+        "product_data[name]": "Passage à la formule avec téléphone",
+        "metadata[adhesion_id]": str(adh.id),
+    }, "price")
+    if not isinstance(price, dict) or not isinstance(price.get("id"), str) or not price["id"].startswith("price_"):
+        raise ValueError("Stripe n'a pas retourné de prix valide.")
+    link = create("payment_links", {
+        "line_items[0][price]": price["id"],
+        "line_items[0][quantity]": 1,
+        "payment_method_types[0]": "card",
+        "restrictions[completed_sessions][limit]": 1,
+        "metadata[adhesion_id]": str(adh.id),
+    }, "link")
+    url = link.get("url") if isinstance(link, dict) else None
+    parsed = urlparse(url) if isinstance(url, str) else None
+    if not parsed or parsed.scheme != "https" or parsed.netloc != "buy.stripe.com":
+        raise ValueError("Stripe n'a pas retourné de lien de paiement valide.")
+    return url
+
+
 def _is_adhesion_renewal(adh):
     """Détermine si la demande d'adhésion correspond à un renouvellement.
 
@@ -10575,12 +10618,13 @@ def _adhesion_frais_paypal(adh):
 
 def _build_adhesion_invoice_html(
     adh, amount, invoice_number, now_dt, date_debut, date_fin, paypal_email, cgu_url,
-    is_midterm_upgrade=False,
+    is_midterm_upgrade=False, stripe_payment_url=None,
 ):
     """Construit le HTML de la facture d'adhésion (réutilisé par preview et envoi)."""
     frais_paypal = _adhesion_frais_paypal(adh)
     paypal_amount = amount + frais_paypal
-    lien_stripe = STRIPE_LIENS_PAR_MONTANT.get(amount, "")
+    lien_stripe = stripe_payment_url if is_midterm_upgrade else STRIPE_LIENS_PAR_MONTANT.get(amount, "")
+    stripe_is_subscription = not is_midterm_upgrade and amount in STRIPE_MONTANTS_ABONNEMENT
     designation = (
         "Passage à la formule avec téléphone"
         if is_midterm_upgrade else "Abonnement annuel « Appels d'offres »"
@@ -10600,11 +10644,11 @@ def _build_adhesion_invoice_html(
         bloc_stripe = f"""
       <div style="background:#e8f5e9;border-left:4px solid #2e7d32;padding:16px 18px;border-radius:6px;margin:18px 0;">
         <strong style="color:#1b5e20;display:block;margin-bottom:8px;">💳 Règlement par carte bancaire (sécurisé)</strong>
-        <p style="margin:0 0 12px 0;font-size:0.92rem;color:#333;">{'Souscrivez à l’abonnement annuel' if amount in STRIPE_MONTANTS_ABONNEMENT else 'Réglez'} <strong>{amount} €</strong> par carte{'' if amount in STRIPE_MONTANTS_ABONNEMENT else ', sans frais supplémentaires'} :</p>
+        <p style="margin:0 0 12px 0;font-size:0.92rem;color:#333;">{'Souscrivez à l’abonnement annuel' if stripe_is_subscription else 'Réglez'} <strong>{amount} €</strong> par carte{'' if stripe_is_subscription else ', sans frais supplémentaires'} :</p>
         <div style="text-align:center;margin:14px 0;">
-          <a href="{lien_stripe}" target="_blank" rel="noopener"
+          <a href="{html.escape(lien_stripe, quote=True)}" target="_blank" rel="noopener"
              style="display:inline-block;background:#2e7d32;color:#fff;padding:14px 32px;border-radius:30px;text-decoration:none;font-weight:700;font-size:1.05rem;">
-            {_libelle_carte(amount)}
+            {_libelle_carte(amount) if stripe_is_subscription else f'Payer {amount} € par carte'}
           </a>
         </div>
         <p style="margin:12px 0 0 0;font-size:0.82rem;color:#555;text-align:center;">
@@ -10782,6 +10826,7 @@ def admin_adhesion_preview_invoice(adhesion_id):
     invoice_html = _build_adhesion_invoice_html(
         adh, amount, invoice_number, now, date_debut, date_fin, paypal_email, cgu_url,
         is_midterm_upgrade=is_midterm_upgrade,
+        stripe_payment_url=adh.stripe_payment_url if amount == adh.invoice_amount else None,
     )
 
     return render_template(
@@ -10809,8 +10854,12 @@ def admin_adhesion_download_invoice_pdf(adhesion_id):
     Sinon, génère un PDF d'aperçu avec un numéro provisoire.
     """
     adh = Adhesion.query.get_or_404(adhesion_id)
-    is_midterm_upgrade = _is_midterm_upgrade(adh)
-    default_amount = _default_adhesion_amount(adh)
+    formule = _formule_choisie(adh, (request.args.get("formule") or "").strip())
+    is_midterm_upgrade = _is_midterm_upgrade(adh, formule)
+    if is_midterm_upgrade and not adh.stripe_payment_url:
+        flash("Le PDF sera disponible après la création du lien carte lors de l'envoi.", "warning")
+        return redirect(url_for("admin_adhesions"))
+    default_amount = _default_adhesion_amount(adh, formule)
     try:
         amount_raw = (request.args.get("amount") or "").strip()
         amount = int(amount_raw) if amount_raw else (adh.invoice_amount or default_amount)
@@ -10837,6 +10886,7 @@ def admin_adhesion_download_invoice_pdf(adhesion_id):
     html = _build_adhesion_invoice_html(
         adh, amount, invoice_number, now, date_debut, date_fin, paypal_email, cgu_url,
         is_midterm_upgrade=is_midterm_upgrade,
+        stripe_payment_url=adh.stripe_payment_url if amount == adh.invoice_amount else None,
     )
 
     try:
@@ -10946,7 +10996,7 @@ def admin_adhesion_send_invoice(adhesion_id):
     - Passe automatiquement le statut à « contacted ».
     - BCC vers l'admin pour archivage.
     """
-    adh = Adhesion.query.get_or_404(adhesion_id)
+    adh = Adhesion.query.filter_by(id=adhesion_id).with_for_update().first_or_404()
     formule = _formule_choisie(adh, (request.form.get("formule") or "").strip())
     is_midterm_upgrade = _is_midterm_upgrade(adh, formule)
     default_amount = _default_adhesion_amount(adh, formule)
@@ -10963,10 +11013,25 @@ def admin_adhesion_send_invoice(adhesion_id):
         return redirect(url_for("admin_adhesions"))
 
     now = datetime.utcnow()
+    if adh.is_midterm_upgrade and formule != FORMULE_ABO_AVEC_TELEPHONE:
+        flash("Cette facture concerne le passage à la formule avec téléphone et ne peut pas changer de formule.", "warning")
+        return redirect(url_for("admin_adhesions"))
     if is_midterm_upgrade:
         date_fin = adh.upgrade_until or (adh.user.subscribed_until if adh.user else None)
         if not date_fin or date_fin <= now:
             flash("L'abonnement actuel est arrivé à échéance : préparez une facture de renouvellement.", "warning")
+            return redirect(url_for("admin_adhesions"))
+        if adh.invoice_number and not adh.is_midterm_upgrade:
+            flash("Cette demande possède déjà une facture. Créez une nouvelle demande pour le changement de formule.", "warning")
+            return redirect(url_for("admin_adhesions"))
+        if adh.stripe_idempotency_token and amount != adh.invoice_amount:
+            flash("Le montant de cette facture de changement est figé. Créez une nouvelle demande si nécessaire.", "warning")
+            return redirect(url_for("admin_adhesions"))
+        if not current_app.config.get("STRIPE_SECRET_KEY", "").strip():
+            flash("Impossible d'envoyer la facture : la clé Stripe n'est pas configurée.", "danger")
+            return redirect(url_for("admin_adhesions"))
+        if not getattr(current_app, "mail", None):
+            flash("Impossible d'envoyer la facture : le service mail n'est pas configuré.", "danger")
             return redirect(url_for("admin_adhesions"))
         adh.is_midterm_upgrade = True
         adh.upgrade_until = date_fin
@@ -10981,6 +11046,20 @@ def admin_adhesion_send_invoice(adhesion_id):
 
     adh.invoice_amount = amount
     adh.formule_abonnement = formule
+    if is_midterm_upgrade and not adh.stripe_payment_url:
+        if not adh.stripe_idempotency_token:
+            adh.stripe_idempotency_token = secrets.token_hex(16)
+        db.session.commit()
+        try:
+            adh.stripe_payment_url = _create_upgrade_stripe_link(adh, amount)
+        except (requests.RequestException, ValueError) as error:
+            current_app.logger.warning(
+                "[ADHESION STRIPE] Création du lien impossible pour la demande %s (%s)",
+                adh.id, type(error).__name__,
+            )
+            flash("Impossible de créer le lien de paiement par carte Stripe. Vérifiez la configuration et réessayez.", "danger")
+            return redirect(url_for("admin_adhesions"))
+        db.session.commit()
     adh.invoice_sent_at = now
 
     date_debut = now
@@ -10996,6 +11075,7 @@ def admin_adhesion_send_invoice(adhesion_id):
     html = _build_adhesion_invoice_html(
         adh, amount, adh.invoice_number, now, date_debut, date_fin, paypal_email, cgu_url,
         is_midterm_upgrade=is_midterm_upgrade,
+        stripe_payment_url=adh.stripe_payment_url,
     )
 
     # Génération PDF (en pièce jointe) — fallback silencieux si WeasyPrint non dispo
