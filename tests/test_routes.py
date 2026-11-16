@@ -30,6 +30,34 @@ class TestCatalogueRoute:
         assert resp.status_code == 200
 
 
+class TestShowDetailPhone:
+    @pytest.mark.parametrize("connected", [False, True])
+    def test_company_phone_is_public(self, client, normal_user, connected):
+        from app import show_slug
+        from models import db
+        from models.models import Show
+
+        normal_user.is_subscribed = True
+        normal_user.formule_abonnement = "49"
+        show = Show(
+            title="Spectacle téléphone", user=normal_user, approved=True,
+            contact_phone="06 23 45 67 89",
+        )
+        db.session.add(show)
+        db.session.commit()
+        if connected:
+            with client.session_transaction() as session:
+                session["username"] = normal_user.username
+
+        response = client.get(f"/spectacle/{show_slug(show)}")
+        html = response.get_data(as_text=True)
+        assert response.status_code == 200
+        assert "06 23 45 67 89" in html
+        assert html.count('href="tel:0623456789"') == 2
+        assert "Débloquer les coordonnées téléphoniques" not in html
+        assert "Débloquer le téléphone" not in html
+
+
 class TestSeoPages:
     """Tests for thematic SEO pages."""
 

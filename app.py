@@ -4086,11 +4086,9 @@ def register_routes(app: Flask) -> None:
         if reviews:
             avg_rating = round(sum(r.rating for r in reviews) / len(reviews), 1)
         
-        from utils.offres import telephone_visible
         return render_template("show_detail.html", show=show, user=u, admin_email=admin_email,
                                spectacles_une=spectacles_une, view_count=view_count,
-                               reviews=reviews, avg_rating=avg_rating, review_count=len(reviews),
-                               tel_visible=telephone_visible(u))
+                               reviews=reviews, avg_rating=avg_rating, review_count=len(reviews))
 
     # ---------------------------
     # Profil public d'une compagnie (SEO local business)
