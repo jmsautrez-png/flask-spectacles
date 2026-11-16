@@ -82,7 +82,11 @@ print("✓ Flask importé")
 
 from config import Config
 from models import db
-from models.models import User, Show, PageVisit, VisitorLog, Review, Conversation, Message, ShowView, Notification, PresignedUrlCache, Adhesion, FORMULES_ABONNEMENT, FORMULE_ABO_DEFAUT
+from models.models import (
+    User, Show, PageVisit, VisitorLog, Review, Conversation, Message, ShowView,
+    Notification, PresignedUrlCache, Adhesion, FORMULES_ABONNEMENT,
+    FORMULE_ABO_DEFAUT, FORMULE_ABO_AVEC_TELEPHONE, FORMULE_ABO_SANS_TELEPHONE,
+)
 from seo_cities import FRENCH_CITIES, get_city_by_slug, get_all_city_slugs, get_neighbor_cities, get_city_seo_data, get_category_seo_data
 from seo_departments import FRENCH_DEPARTMENTS, get_department_by_slug, get_all_department_slugs
 
@@ -1129,6 +1133,8 @@ def _run_critical_migrations(app: Flask) -> None:
         ("adhesion", "invoice_sent_at", "TIMESTAMP", "DATETIME", None),
         ("adhesion", "invoice_amount", "INTEGER", "INTEGER", None),
         ("adhesion", "formule_abonnement", "VARCHAR(4)", "VARCHAR(4)", None),
+        ("adhesion", "is_midterm_upgrade", "BOOLEAN DEFAULT FALSE", "BOOLEAN DEFAULT 0", "FALSE"),
+        ("adhesion", "upgrade_until", "TIMESTAMP", "DATETIME", None),
         ("adhesion", "relance_j3_sent_for", "TIMESTAMP", "DATETIME", None),
         ("adhesion", "relance_j7_sent_for", "TIMESTAMP", "DATETIME", None),
         ("adhesion", "alerte_admin_j10_sent_for", "TIMESTAMP", "DATETIME", None),
@@ -10315,6 +10321,7 @@ def admin_adhesions():
         statut_filter=statut_filter,
         suggested_amount=_default_adhesion_amount,
         formule_adhesion=_formule_adhesion,
+        is_midterm_upgrade=_is_midterm_upgrade,
         formules=FORMULES_ABONNEMENT,
     )
 
@@ -10345,9 +10352,25 @@ def admin_adhesion_statut(adhesion_id):
     formule_activation = None
     if nouveau == "activated":
         formule_activation = _formule_choisie(adh, (request.form.get("formule") or "").strip())
+    is_midterm_upgrade = (
+        nouveau == "activated" and _is_midterm_upgrade(adh, formule_activation)
+    )
+    now = datetime.utcnow()
+    if is_midterm_upgrade:
+        user = User.query.get(adh.user_id) if adh.user_id else None
+        if not user or not user.subscribed_until or user.subscribed_until <= now:
+            flash(
+                "Activation impossible : l'abonnement initial est arrivé à échéance. "
+                "Émettez une facture de renouvellement avant l'activation.",
+                "warning",
+            )
+            return redirect(request.referrer or url_for("admin_adhesions"))
+        adh.is_midterm_upgrade = True
+        adh.upgrade_until = adh.upgrade_until or user.subscribed_until
+
+    if nouveau == "activated":
         adh.formule_abonnement = formule_activation
     adh.statut = nouveau
-    now = datetime.utcnow()
     if nouveau == "contacted" and not adh.contacted_at:
         adh.contacted_at = now
     elif nouveau == "activated":
@@ -10356,15 +10379,23 @@ def admin_adhesion_statut(adhesion_id):
             u = User.query.get(adh.user_id)
             if u and not u.is_admin:
                 u.is_subscribed = True
-                u.subscribed_until = now + timedelta(days=365)
+                if not is_midterm_upgrade:
+                    u.subscribed_until = now + timedelta(days=365)
                 u.formule_abonnement = formule_activation
-                u.renewal_j30_sent_for = None
-                u.renewal_j7_sent_for = None
-                u.renewal_expired_sent_for = None
+                if not is_midterm_upgrade:
+                    u.renewal_j30_sent_for = None
+                    u.renewal_j7_sent_for = None
+                    u.renewal_expired_sent_for = None
                 mail_client = getattr(current_app, "mail", None)
                 if premiere_activation and mail_client and MailMessage and u.email:
                     date_activation = now.strftime("%d/%m/%Y")
                     date_fin = u.subscribed_until.strftime("%d/%m/%Y")
+                    confirmation = (
+                        f"Votre formule avec téléphone est activée jusqu'au <strong>{date_fin}</strong>. "
+                        "L'échéance initiale de votre abonnement est conservée."
+                        if is_midterm_upgrade else
+                        f"Votre abonnement est valable jusqu'au <strong>{date_fin}</strong>."
+                    )
                     admin_user = current_user()
                     admin_email = (
                         getattr(admin_user, "email", None)
@@ -10381,9 +10412,9 @@ def admin_adhesion_statut(adhesion_id):
 <html lang="fr"><head><meta charset="UTF-8"></head>
 <body style="font-family:Arial,sans-serif;color:#333;line-height:1.6;">
   <p>Bonjour {html.escape(u.raison_sociale or u.username or adh.nom)},</p>
-  <p>Nous vous confirmons l'activation de votre abonnement <strong>Appels d'offres</strong>.</p>
+  <p>Nous vous confirmons l'activation de votre formule <strong>Appels d'offres</strong>.</p>
   <p>Date d'activation : <strong>{date_activation}</strong><br>
-     Votre abonnement est valable jusqu'au <strong>{date_fin}</strong>.</p>
+     {confirmation}</p>
   <p>Vous pouvez dès maintenant accéder aux appels d'offres depuis votre compte.</p>
   <p>Cordialement,<br>L'équipe Spectacle'ment Vôtre</p>
 </body></html>"""
@@ -10505,11 +10536,32 @@ def _formule_choisie(adh, code):
     return code if code in FORMULES_ABONNEMENT else _formule_adhesion(adh)
 
 
+def _is_midterm_upgrade(adh, formule=None):
+    """Un passage actif de la formule 49 vers celle avec téléphone, sans renouveler l'année."""
+    formule = formule if formule in FORMULES_ABONNEMENT else _formule_adhesion(adh)
+    if formule != FORMULE_ABO_AVEC_TELEPHONE:
+        return False
+    if adh.is_midterm_upgrade:
+        return True
+
+    user = adh.user
+    return bool(
+        adh.statut != "activated"
+        and user
+        and user.is_subscribed
+        and user.formule_abonnement == FORMULE_ABO_SANS_TELEPHONE
+        and user.subscribed_until
+        and user.subscribed_until > datetime.utcnow()
+    )
+
+
 def _default_adhesion_amount(adh, formule=None):
     """Montant suggéré pour la facture d'adhésion (automatique mais éditable).
 
     1re année = tarif de la formule ; renouvellement = tarif de renouvellement de la formule.
     """
+    if _is_midterm_upgrade(adh, formule):
+        return None
     tarifs = FORMULES_ABONNEMENT[formule if formule in FORMULES_ABONNEMENT else _formule_adhesion(adh)]
     if _is_adhesion_renewal(adh):
         return tarifs["renouvellement"]
@@ -10521,11 +10573,27 @@ def _adhesion_frais_paypal(adh):
     return ADHESION_FRAIS_PAYPAL_RENOUVELLEMENT if _is_adhesion_renewal(adh) else ADHESION_FRAIS_PAYPAL
 
 
-def _build_adhesion_invoice_html(adh, amount, invoice_number, now_dt, date_debut, date_fin, paypal_email, cgu_url):
+def _build_adhesion_invoice_html(
+    adh, amount, invoice_number, now_dt, date_debut, date_fin, paypal_email, cgu_url,
+    is_midterm_upgrade=False,
+):
     """Construit le HTML de la facture d'adhésion (réutilisé par preview et envoi)."""
     frais_paypal = _adhesion_frais_paypal(adh)
     paypal_amount = amount + frais_paypal
     lien_stripe = STRIPE_LIENS_PAR_MONTANT.get(amount, "")
+    designation = (
+        "Passage à la formule avec téléphone"
+        if is_midterm_upgrade else "Abonnement annuel « Appels d'offres »"
+    )
+    conditions_abonnement = (
+        f"<li>Option téléphone activée après encaissement, jusqu'au "
+        f"<strong>{date_fin.strftime('%d/%m/%Y')}</strong> ; cette facture ne prolonge pas l'échéance actuelle.</li>"
+        f"<li>Au prochain renouvellement, le tarif de la formule avec téléphone sera de "
+        f"<strong>{FORMULES_ABONNEMENT[FORMULE_ABO_AVEC_TELEPHONE]['renouvellement']} € TTC/an</strong>.</li>"
+        if is_midterm_upgrade else
+        "<li>Abonnement de <strong>12 mois</strong> à compter de la réception du paiement.</li>"
+        "<li>Service activé <strong>sous 24 h</strong> après encaissement (comptez jusqu'à <strong>48 h</strong> pour un virement).</li>"
+    )
 
     bloc_stripe = ""
     if lien_stripe:
@@ -10586,7 +10654,7 @@ def _build_adhesion_invoice_html(adh, amount, invoice_number, now_dt, date_debut
         <tbody>
           <tr>
             <td style="padding:12px;border-bottom:1px solid #e0e0e0;">
-              <strong>Abonnement annuel « Appels d'offres »</strong><br>
+              <strong>{designation}</strong><br>
               <span style="color:#666;font-size:0.85rem;">Plateforme Spectacle'ment VØtre<br>Période : du {date_debut.strftime('%d/%m/%Y')} au {date_fin.strftime('%d/%m/%Y')}</span>
             </td>
             <td style="padding:12px;border-bottom:1px solid #e0e0e0;text-align:right;font-weight:700;">{amount} €</td>
@@ -10646,8 +10714,7 @@ def _build_adhesion_invoice_html(adh, amount, invoice_number, now_dt, date_debut
       <div style="background:#fff3e0;border-left:4px solid #ff9800;padding:14px 18px;border-radius:6px;margin:18px 0;font-size:0.88rem;color:#555;line-height:1.6;">
         <strong style="color:#e65100;display:block;margin-bottom:6px;">📜 Conditions essentielles</strong>
         <ul style="margin:0;padding-left:18px;">
-          <li>Abonnement de <strong>12 mois</strong> à compter de la réception du paiement.</li>
-          <li>Service activé <strong>sous 24 h</strong> après encaissement (comptez jusqu'à <strong>48 h</strong> pour un virement).</li>
+          {conditions_abonnement}
           <li>Accès complet aux appels d'offres déposés par les organisateurs (mairies, écoles, CSE…).</li>
           <li>Résiliation libre à tout moment (pas de reconduction tacite automatique).</li>
           <li>Conditions complètes : <a href="{cgu_url}" style="color:#1976d2;">{cgu_url}</a></li>
@@ -10681,32 +10748,48 @@ def admin_adhesion_preview_invoice(adhesion_id):
     """Affiche l'aperçu de la facture avant envoi (prévisualisation)."""
     adh = Adhesion.query.get_or_404(adhesion_id)
     formule = _formule_choisie(adh, (request.args.get("formule") or "").strip())
+    is_midterm_upgrade = _is_midterm_upgrade(adh, formule)
     default_amount = _default_adhesion_amount(adh, formule)
     try:
         amount_raw = (request.args.get("amount") or "").strip()
         amount = int(amount_raw) if amount_raw else (adh.invoice_amount or default_amount)
     except (ValueError, TypeError):
         amount = default_amount
-    if amount <= 0 or amount > 10000:
+    if amount is not None and (amount <= 0 or amount > 10000):
         amount = default_amount
+    if amount is None:
+        flash("Pour un passage en cours d'abonnement, saisissez le montant au prorata avant l'aperçu.", "warning")
+        return redirect(url_for("admin_adhesions"))
 
     now = datetime.utcnow()
+    if is_midterm_upgrade:
+        date_fin = adh.upgrade_until or (adh.user.subscribed_until if adh.user else None)
+        if not date_fin or date_fin <= now:
+            flash("L'abonnement actuel est arrivé à échéance : préparez une facture de renouvellement.", "warning")
+            return redirect(url_for("admin_adhesions"))
+    else:
+        date_fin = None
     invoice_number = adh.invoice_number or _next_invoice_number(now)
     date_debut = now
-    try:
-        date_fin = now.replace(year=now.year + 1)
-    except ValueError:
-        date_fin = now + timedelta(days=365)
+    if date_fin is None:
+        try:
+            date_fin = now.replace(year=now.year + 1)
+        except ValueError:
+            date_fin = now + timedelta(days=365)
     paypal_email = "jsautrez@yahoo.fr"
     cgu_url = url_for("cgu", _external=True) if "cgu" in current_app.view_functions else "https://spectacleanimation.fr/cgu"
 
-    invoice_html = _build_adhesion_invoice_html(adh, amount, invoice_number, now, date_debut, date_fin, paypal_email, cgu_url)
+    invoice_html = _build_adhesion_invoice_html(
+        adh, amount, invoice_number, now, date_debut, date_fin, paypal_email, cgu_url,
+        is_midterm_upgrade=is_midterm_upgrade,
+    )
 
     return render_template(
         "admin_adhesion_preview_invoice.html",
         adh=adh,
         amount=amount,
         formule=formule,
+        is_midterm_upgrade=is_midterm_upgrade,
         formules=FORMULES_ABONNEMENT,
         montants_formules={code: _default_adhesion_amount(adh, code) for code in FORMULES_ABONNEMENT},
         invoice_number=invoice_number,
@@ -10726,26 +10809,35 @@ def admin_adhesion_download_invoice_pdf(adhesion_id):
     Sinon, génère un PDF d'aperçu avec un numéro provisoire.
     """
     adh = Adhesion.query.get_or_404(adhesion_id)
+    is_midterm_upgrade = _is_midterm_upgrade(adh)
     default_amount = _default_adhesion_amount(adh)
     try:
         amount_raw = (request.args.get("amount") or "").strip()
         amount = int(amount_raw) if amount_raw else (adh.invoice_amount or default_amount)
     except (ValueError, TypeError):
         amount = adh.invoice_amount or default_amount
-    if amount <= 0 or amount > 10000:
+    if amount is not None and (amount <= 0 or amount > 10000):
         amount = default_amount
+    if amount is None:
+        flash("Le montant au prorata doit être défini avant le téléchargement de la facture.", "warning")
+        return redirect(url_for("admin_adhesions"))
 
     now = adh.invoice_sent_at or datetime.utcnow()
     invoice_number = adh.invoice_number or _next_invoice_number(now)
     date_debut = now
-    try:
-        date_fin = now.replace(year=now.year + 1)
-    except ValueError:
-        date_fin = now + timedelta(days=365)
+    date_fin = adh.upgrade_until if is_midterm_upgrade else None
+    if date_fin is None:
+        try:
+            date_fin = now.replace(year=now.year + 1)
+        except ValueError:
+            date_fin = now + timedelta(days=365)
     paypal_email = "jsautrez@yahoo.fr"
     cgu_url = url_for("cgu", _external=True) if "cgu" in current_app.view_functions else "https://spectacleanimation.fr/cgu"
 
-    html = _build_adhesion_invoice_html(adh, amount, invoice_number, now, date_debut, date_fin, paypal_email, cgu_url)
+    html = _build_adhesion_invoice_html(
+        adh, amount, invoice_number, now, date_debut, date_fin, paypal_email, cgu_url,
+        is_midterm_upgrade=is_midterm_upgrade,
+    )
 
     try:
         from weasyprint import HTML  # type: ignore
@@ -10856,6 +10948,7 @@ def admin_adhesion_send_invoice(adhesion_id):
     """
     adh = Adhesion.query.get_or_404(adhesion_id)
     formule = _formule_choisie(adh, (request.form.get("formule") or "").strip())
+    is_midterm_upgrade = _is_midterm_upgrade(adh, formule)
     default_amount = _default_adhesion_amount(adh, formule)
 
     try:
@@ -10863,10 +10956,24 @@ def admin_adhesion_send_invoice(adhesion_id):
         amount = int(amount_raw) if amount_raw else (adh.invoice_amount or default_amount)
     except (ValueError, TypeError):
         amount = adh.invoice_amount or default_amount
-    if amount <= 0 or amount > 10000:
+    if amount is not None and (amount <= 0 or amount > 10000):
         amount = default_amount
+    if amount is None:
+        flash("Saisissez le montant décidé pour le passage au prorata avant l'envoi.", "warning")
+        return redirect(url_for("admin_adhesions"))
 
     now = datetime.utcnow()
+    if is_midterm_upgrade:
+        date_fin = adh.upgrade_until or (adh.user.subscribed_until if adh.user else None)
+        if not date_fin or date_fin <= now:
+            flash("L'abonnement actuel est arrivé à échéance : préparez une facture de renouvellement.", "warning")
+            return redirect(url_for("admin_adhesions"))
+        adh.is_midterm_upgrade = True
+        adh.upgrade_until = date_fin
+    else:
+        date_fin = None
+        adh.is_midterm_upgrade = False
+        adh.upgrade_until = None
 
     # Génération du numéro si pas déjà présent
     if not adh.invoice_number:
@@ -10877,15 +10984,19 @@ def admin_adhesion_send_invoice(adhesion_id):
     adh.invoice_sent_at = now
 
     date_debut = now
-    try:
-        date_fin = now.replace(year=now.year + 1)
-    except ValueError:
-        date_fin = now + timedelta(days=365)
+    if date_fin is None:
+        try:
+            date_fin = now.replace(year=now.year + 1)
+        except ValueError:
+            date_fin = now + timedelta(days=365)
 
     paypal_email = "jsautrez@yahoo.fr"
     cgu_url = url_for("cgu", _external=True) if "cgu" in current_app.view_functions else "https://spectacleanimation.fr/cgu"
 
-    html = _build_adhesion_invoice_html(adh, amount, adh.invoice_number, now, date_debut, date_fin, paypal_email, cgu_url)
+    html = _build_adhesion_invoice_html(
+        adh, amount, adh.invoice_number, now, date_debut, date_fin, paypal_email, cgu_url,
+        is_midterm_upgrade=is_midterm_upgrade,
+    )
 
     # Génération PDF (en pièce jointe) — fallback silencieux si WeasyPrint non dispo
     pdf_bytes = None

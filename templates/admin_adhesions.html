@@ -6,7 +6,7 @@
   <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; flex-wrap:wrap; gap:12px;">
     <div>
       <h1 style="margin:0; color:#fff;">📩 Demandes d'adhésion — Abonnement AO</h1>
-      <p style="margin:6px 0 0 0; color:#aaa; font-size:0.95rem;">Activation manuelle : rappeler → encaisser (PayPal) → envoyer facture PDF → cocher « Activer ».</p>
+      <p style="margin:6px 0 0 0; color:#aaa; font-size:0.95rem;">Activation manuelle : rappeler → encaisser → envoyer la facture → cocher « Activer ». Pour un passage 49 € → 99 € en cours d'abonnement, saisissez le montant au prorata.</p>
     </div>
     <a href="{{ url_for('admin_dashboard') }}" style="background:#455a64; color:#fff; padding:9px 16px; border-radius:8px; text-decoration:none; font-weight:600;">← Retour admin</a>
   </div>
@@ -104,6 +104,7 @@
           </td>
           <td style="padding:10px; text-align:center; white-space:nowrap;">
             <strong style="font-size:0.88rem;">{{ adh.statut_label }}</strong>
+            {% if is_midterm_upgrade(adh) %}<br><span style="font-size:0.75rem; color:#6a1b9a; font-weight:700;">Passage à la formule avec téléphone</span>{% endif %}
             {% if adh.statut == 'contacted' and adh.contacted_at %}<br><span style="font-size:0.75rem; color:#999;">{{ adh.contacted_at.strftime('%d/%m %H:%M') }}</span>{% endif %}
             {% if adh.statut == 'activated' and adh.activated_at %}<br><span style="font-size:0.75rem; color:#999;">{{ adh.activated_at.strftime('%d/%m %H:%M') }}</span>{% endif %}
             {% if adh.statut == 'activated' and adh.user and adh.user.subscribed_until %}<br><span style="font-size:0.75rem; color:#2e7d32; font-weight:700;">🗓️ jusqu'au {{ adh.user.subscribed_until.strftime('%d/%m/%Y') }}</span>{% endif %}
@@ -115,11 +116,12 @@
                 <select name="formule" onchange="this.form.amount.value=this.options[this.selectedIndex].dataset.montant"
                         style="padding:4px; border:1px solid #ccc; border-radius:4px; font-size:0.8rem;">
                   {% for code, f in formules.items() %}
-                  <option value="{{ code }}" data-montant="{{ suggested_amount(adh, code) }}" {% if code == formule_adhesion(adh) %}selected{% endif %}>{{ f.libelle }}</option>
+                  <option value="{{ code }}" data-montant="{{ suggested_amount(adh, code) or '' }}" {% if code == formule_adhesion(adh) %}selected{% endif %}>{{ f.libelle }}</option>
                   {% endfor %}
                 </select>
                 <div style="display:flex; gap:4px;">
-                <input type="number" name="amount" value="{{ adh.invoice_amount or suggested_amount(adh) }}" min="1" max="10000" step="1"
+                <input type="number" name="amount" value="{{ adh.invoice_amount or suggested_amount(adh) or '' }}" min="1" max="10000" step="1" required
+                       placeholder="{% if is_midterm_upgrade(adh) %}Prorata{% endif %}"
                        title="Montant en € (TVA non applicable)"
                        style="width:55px; padding:4px; border:1px solid #ccc; border-radius:4px; font-size:0.8rem; text-align:center;">
                 <button type="submit" style="flex:1; background:#6a1b9a; color:#fff; padding:5px 8px; border:none; border-radius:5px; font-weight:600; cursor:pointer; font-size:0.8rem;" title="{% if adh.invoice_number %}Réémettre : {{ adh.invoice_number }}{% else %}Prévisualiser et envoyer la facture + lien PayPal{% endif %}">
@@ -147,7 +149,7 @@
               </form>
               {% endif %}
               {% if adh.statut != 'activated' %}
-              <form method="post" action="{{ url_for('admin_adhesion_statut', adhesion_id=adh.id) }}" style="margin:0;" onsubmit="return confirm('Activer l\'abonnement AO pour {{ adh.nom|e }} ? Le compte lié passera automatiquement en is_subscribed=True.');">
+              <form method="post" action="{{ url_for('admin_adhesion_statut', adhesion_id=adh.id) }}" style="margin:0;" onsubmit="return confirm('Activer l\'abonnement AO pour {{ adh.nom|e }} ? {% if is_midterm_upgrade(adh) %}La formule téléphone sera activée sans modifier la date d\'échéance actuelle.{% else %}Le compte lié passera automatiquement en is_subscribed=True.{% endif %}');">
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                 <input type="hidden" name="statut" value="activated"/>
                 <select name="formule" style="width:100%; margin-bottom:4px; padding:3px; border:1px solid #ccc; border-radius:4px; font-size:0.78rem;">

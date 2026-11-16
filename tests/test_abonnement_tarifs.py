@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 
 import pytest
 
@@ -38,6 +38,73 @@ def test_previous_invoice_sets_renewal_price_without_changing_history(db, normal
     assert _default_adhesion_amount(current) == 99
     db.session.refresh(previous)
     assert previous.invoice_amount == 49
+
+
+def test_upgrade_preview_requires_admin_amount_and_preserves_current_expiry(
+    client, admin_user, normal_user, monkeypatch,
+):
+    from models import db
+    from models.models import Adhesion, Show
+
+    expiry = datetime.utcnow() + timedelta(days=120)
+    normal_user.is_subscribed = True
+    normal_user.formule_abonnement = "49"
+    normal_user.subscribed_until = expiry
+    normal_user.renewal_j30_sent_for = expiry
+    previous = _adhesion(normal_user)
+    previous.statut = "activated"
+    previous.formule_abonnement = "49"
+    previous.activated_at = datetime.utcnow()
+    request = _adhesion(normal_user)
+    request.formule_abonnement = "99"
+    db.session.add_all([
+        previous, request, Show(title="Spectacle validé", user=normal_user, approved=True),
+    ])
+    db.session.commit()
+    with client.session_transaction() as session:
+        session["username"] = admin_user.username
+
+    response = client.get(
+        f"/admin/adhesions/{request.id}/preview-invoice?formule=99",
+        follow_redirects=True,
+    )
+    assert "saisissez le montant au prorata" in response.get_data(as_text=True)
+
+    response = client.get(
+        f"/admin/adhesions/{request.id}/preview-invoice?formule=99&amount=35",
+    )
+    html = response.get_data(as_text=True)
+    assert response.status_code == 200
+    assert "Passage à la formule avec téléphone" in html
+    assert expiry.strftime("%d/%m/%Y") in html
+    assert "35 €" in html
+    assert "ne prolonge pas" in html
+
+    monkeypatch.setattr(client.application, "mail", None, raising=False)
+    client.post(
+        f"/admin/adhesions/{request.id}/send-invoice",
+        data={"formule": "99", "amount": "35"},
+    )
+    db.session.refresh(request)
+    assert request.invoice_amount == 35
+    assert request.is_midterm_upgrade
+    assert request.upgrade_until == expiry
+    assert normal_user.formule_abonnement == "49"
+
+    from utils.offres import telephone_visible
+
+    assert not telephone_visible(normal_user)
+
+    client.post(
+        f"/admin/adhesions/{request.id}/statut",
+        data={"statut": "activated", "formule": "99"},
+    )
+    db.session.refresh(normal_user)
+    assert normal_user.formule_abonnement == "99"
+    assert normal_user.subscribed_until == expiry
+    assert normal_user.renewal_j30_sent_for == expiry
+
+    assert telephone_visible(normal_user)
 
 
 def test_invoice_preview_keeps_issued_amount(client, admin_user, normal_user):

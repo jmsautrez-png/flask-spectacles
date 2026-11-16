@@ -504,6 +504,8 @@ class Adhesion(db.Model):
     invoice_sent_at = db.Column(db.DateTime, nullable=True)
     invoice_amount = db.Column(db.Integer, nullable=True)  # en euros (TTC, sans TVA)
     formule_abonnement = db.Column(db.String(4), nullable=True)  # clé de FORMULES_ABONNEMENT
+    is_midterm_upgrade = db.Column(db.Boolean, nullable=False, default=False, server_default="false")
+    upgrade_until = db.Column(db.DateTime, nullable=True)
     # Relances de paiement : valeur = invoice_sent_at de la facture relancée (idempotence,
     # une nouvelle émission de facture remet automatiquement les relances à zéro).
     relance_j3_sent_for = db.Column(db.DateTime, nullable=True)
