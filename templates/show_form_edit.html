@@ -598,7 +598,7 @@
          data-text-spectacle="⚠️ Veuillez cocher au moins une spécialité de spectacle."
          data-text-animation="⚠️ Veuillez cocher au moins une animation.">⚠️ Veuillez cocher au moins une spécialité artistique.</div>
     <div{% if mode_secteur %} data-secteur-bloc="spectacle"{% if secteur_init != 'spectacle' %} hidden{% endif %}{% endif %}>
-    {{ accordion_checkboxes("specialites", specialites_data, current_specialites, "", "Vos spécialités artistiques", "#6a1b9a", "", "#fff", 5) }}
+    {{ accordion_checkboxes("specialites", specialites_data, current_specialites, "", "Vos spécialités artistiques", "#6a1b9a", "", "#fff", 5, item_notes={"Sosie": "Sosie", "Tribute": "Tribute"}) }}
     </div>
     <div{% if mode_secteur %} data-secteur-bloc="animation"{% if secteur_init != 'animation' %} hidden{% endif %}{% endif %}>
     {{ accordion_checkboxes("specialites", animations_data, current_specialites, "", "Vos animations (petit budget)", "#00897b", "Cochez vos animations (5 maximum) : ateliers, Père Noël, personnages, seniors et EHPAD… Animation musicale, DJ, mariage : choisissez plutôt « Un spectacle » (dossier « Musique — Formats de prestation »).", "#fff", 5, section_key="animations") }}

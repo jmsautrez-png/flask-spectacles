@@ -128,9 +128,9 @@ def test_home_show_names_replace_the_old_animation_show_names():
 def test_sector_sizes_and_folder_names():
     assert "Spectacle et Animation" not in SPECIALITES
     assert "Spectacles" not in SPECIALITES
-    assert len(SPECIALITES["Spectacles divers"]) == 45
-    assert len(flat(SPECIALITES)) == 130
-    assert len(flat(ANIMATIONS)) == 27
+    assert len(SPECIALITES["Spectacles divers"]) == 46
+    assert len(flat(SPECIALITES)) == 131
+    assert len(flat(ANIMATIONS)) == 26
     assert len(ANIMATIONS) == 7
 
 

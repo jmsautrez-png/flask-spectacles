@@ -25,6 +25,7 @@ SPECIALITES = {
         # Humour / Personnages
         "Humoriste et Imitateur",
         "Transformiste / Drag queen",
+        "Sosie",
         # Jeunesse / Famille
         "Conteuse Conteur",
         "Conte théâtralisé",
@@ -234,7 +235,6 @@ ANIMATIONS = {
         "Prestidigitateur",
         "Mentaliste",
         "Close-up",
-        "Sosie",
         "Ventriloque",
         "Spectacle ou animation petit budget",
     ],

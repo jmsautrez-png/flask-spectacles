@@ -111,6 +111,14 @@ from constants import SPECIALITES, ANIMATIONS, ANIMATIONS_DOSSIERS_PETIT_BUDGET,
 
 print("✓ Config, models et utils importés")
 
+LIMITE_CARTES_ABONNE = 10
+LIMITE_CARTES_NON_ABONNE = 6
+
+def _limite_cartes_compagnie(user) -> int:
+    """Nombre maximal de cartes pour un compte compagnie, selon son abonnement."""
+    abonne = bool(user.is_subscribed) and (user.subscribed_until is None or user.subscribed_until > datetime.utcnow())
+    return LIMITE_CARTES_ABONNE if abonne else LIMITE_CARTES_NON_ABONNE
+
 # -----------------------------------------------------
 # Logging
 # -----------------------------------------------------
@@ -3703,6 +3711,13 @@ def register_routes(app: Flask) -> None:
         if request.method == "POST":
             # Récupérer la raison sociale du formulaire (un utilisateur peut gérer plusieurs compagnies)
             u = current_user()
+            if u and not u.is_admin and not u.is_organisateur:
+                limite = _limite_cartes_compagnie(u)
+                nb_cartes = Show.query.filter_by(user_id=u.id).count()
+                if nb_cartes >= limite:
+                    flash(f"Limite atteinte : {limite} cartes maximum pour votre compte. "
+                          f"Abonnez-vous pour en publier jusqu'à {LIMITE_CARTES_ABONNE}.", "danger")
+                    return redirect(request.url)
             raison_sociale = request.form.get("raison_sociale", "").strip()
             # Si vide, utiliser la raison sociale de l'utilisateur ou son username par défaut
             if not raison_sociale and u:
@@ -3925,6 +3940,16 @@ def register_routes(app: Flask) -> None:
             flash("Annonce envoyée ! Elle sera visible après validation.", "success")
             # Afficher uniquement le message flash après création (+ raccourci « créer aussi l'autre fiche »)
             return render_template("flash_only_child.html", user=u, show=show)
+
+        cur = current_user()
+        if cur and not cur.is_admin and not cur.is_organisateur:
+            limite = _limite_cartes_compagnie(cur)
+            nb_cartes = Show.query.filter_by(user_id=cur.id).count()
+            if nb_cartes >= limite:
+                flash(f"Vous avez atteint la limite de {limite} cartes pour votre compte. "
+                      f"Abonnez-vous pour en publier jusqu'à {LIMITE_CARTES_ABONNE}.", "warning")
+            else:
+                flash(f"Vous avez {nb_cartes} carte(s) sur {limite} autorisées.", "info")
 
         # « Créer aussi l'autre fiche » : reprend les informations d'une fiche de la même compagnie
         # (réservé à son propriétaire ou à l'admin ; sinon ignoré).
