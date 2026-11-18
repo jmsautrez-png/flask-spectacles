@@ -139,6 +139,7 @@ SPECIALITES = {
         "R&B",
         "Rap",
         "Reggae",
+        "Afro",
         "Musique actuelle",
         "Musique Classique",
         "Opéra",
