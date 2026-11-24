@@ -17,7 +17,7 @@ print("=" * 70)
 print("PYTHON EXE:", sys.executable)
 print("PYTHON VERSION:", sys.version)
 
-from sqlalchemy import or_
+from sqlalchemy import and_, or_
 from sqlalchemy.orm import joinedload, load_only, Session as SASession
 from datetime import datetime, timedelta
 from pathlib import Path
@@ -4588,17 +4588,32 @@ def register_routes(app: Flask) -> None:
         page = request.args.get("page", 1, type=int)
         q = (request.args.get("q") or "").strip()
         cie = (request.args.get("cie") or "").strip()
+        abo = request.args.get("abo", "all")
+        if abo not in ("1", "0"):
+            abo = "all"
 
         per_page = 30
 
         base_q = Show.query.options(joinedload(Show.user))
+        if cie or abo != "all":
+            base_q = base_q.outerjoin(User, Show.user_id == User.id)
         if cie:
             like_cie = f"%{cie}%"
-            base_q = base_q.outerjoin(User, Show.user_id == User.id).filter(or_(
+            base_q = base_q.filter(or_(
                 Show.raison_sociale.ilike(like_cie),
                 User.raison_sociale.ilike(like_cie),
                 User.username.ilike(like_cie),
             ))
+        if abo != "all":
+            # Même règle que User.has_active_subscription : coché et non expiré.
+            actif = and_(
+                User.is_subscribed.is_(True),
+                or_(User.subscribed_until.is_(None), User.subscribed_until > datetime.utcnow()),
+            )
+            if abo == "1":
+                base_q = base_q.filter(actif)
+            else:
+                base_q = base_q.filter(User.id.isnot(None), ~actif)
 
         if q:
             # Pré-filtre SQL rapide (indexable) : toutes les descriptions contenant
@@ -4638,6 +4653,7 @@ def register_routes(app: Flask) -> None:
             pagination=pagination,
             q=q,
             cie=cie,
+            abo=abo,
         )
     
     @app.route("/admin/statistiques", endpoint="admin_statistics")
@@ -9249,7 +9265,7 @@ def admin_delete_bots():
     return redirect(url_for("admin_users"))
 
 def _infos_abonnement(users) -> dict:
-    """Formule, date d'activation et montant (1re année) par utilisateur non admin.
+    """Formule, date d'activation, montant (1re année) et renouvellement par utilisateur non admin.
 
     Date et montant viennent de la 1re adhésion activée. Sans elle, la date reste inconnue :
     on ne la déduit pas de subscribed_until, qui change à chaque renouvellement.
@@ -9276,6 +9292,7 @@ def _infos_abonnement(users) -> dict:
             "formule": tarifs["libelle"] if tarifs else None,
             "date": adh.activated_at.strftime("%d/%m/%Y") if adh else None,
             "montant": montant,
+            "renouvellement": tarifs["renouvellement"] if tarifs else None,
         }
     return infos
 

@@ -83,7 +83,7 @@
           <th style="padding: 16px; text-align: left; color: #fff; font-weight: 600; border-bottom: 2px solid rgba(255,255,255,0.1);">Admin</th>
           <th style="padding: 16px; text-align: left; color: #fff; font-weight: 600; border-bottom: 2px solid rgba(255,255,255,0.1);">Formule</th>
           <th style="padding: 16px; text-align: left; color: #fff; font-weight: 600; border-bottom: 2px solid rgba(255,255,255,0.1);">Activé le</th>
-          <th style="padding: 16px; text-align: left; color: #fff; font-weight: 600; border-bottom: 2px solid rgba(255,255,255,0.1);">Montant (1re année)</th>
+          <th style="padding: 16px; text-align: left; color: #fff; font-weight: 600; border-bottom: 2px solid rgba(255,255,255,0.1);">Montant (1re année, puis renouvellement)</th>
           <th style="padding: 16px; text-align: center; color: #fff; font-weight: 600; border-bottom: 2px solid rgba(255,255,255,0.1);">Actions</th>
         </tr>
       </thead>
@@ -135,7 +135,7 @@
           {% set info = abo_infos.get(user.id) or {} %}
           <td style="padding: 12px; color:#ddd; font-size:0.9em;">{{ info.formule or '—' }}</td>
           <td style="padding: 12px; color:#ddd; font-size:0.9em;">{% if info %}{{ info.date or ('inconnue' if user.is_subscribed else '—') }}{% else %}—{% endif %}</td>
-          <td style="padding: 12px; color:#ddd; font-size:0.9em;">{% if info.montant %}{{ info.montant }} €{% else %}—{% endif %}</td>
+          <td style="padding: 12px; color:#ddd; font-size:0.9em;">{% if info.montant %}{{ info.montant }} €{% if info.renouvellement %}<br><span style="color:#aaa;">puis {{ info.renouvellement }} €/an</span>{% endif %}{% else %}—{% endif %}</td>
           <td style="padding: 12px; text-align: center;">
             {% if not user.is_admin %}
             {% set pending = user.pending_deletion_at if user.pending_deletion_at is defined else None %}

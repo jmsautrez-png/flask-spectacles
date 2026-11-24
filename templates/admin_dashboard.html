@@ -110,11 +110,18 @@
   <input type="text" id="admin-search-cie" name="cie" value="{{ cie or '' }}"
          placeholder="raison sociale ou compte…"
          style="flex:1; min-width:220px; padding:8px 12px; border-radius:6px; border:1px solid rgba(255,255,255,0.25); background:#1a1a1e; color:#fff; font-size:0.95rem;">
+  <label for="admin-search-abo" style="color:#fff; font-weight:600;">✅ Abonnement :</label>
+  <select id="admin-search-abo" name="abo"
+          style="padding:8px 12px; border-radius:6px; border:1px solid rgba(255,255,255,0.25); background:#1a1a1e; color:#fff; font-size:0.95rem;">
+    <option value="all" {{ 'selected' if abo == 'all' }}>Toutes</option>
+    <option value="1" {{ 'selected' if abo == '1' }}>✅ Abonnées AO</option>
+    <option value="0" {{ 'selected' if abo == '0' }}>⏸️ Non abonnées</option>
+  </select>
   <button type="submit" class="btn" style="padding:8px 16px; border-radius:6px; font-weight:600; background:var(--primary); color:#fff; border:none; cursor:pointer;">Rechercher</button>
-  {% if q or cie %}
+  {% if q or cie or abo != 'all' %}
     <a href="{{ url_for('admin_dashboard') }}" class="btn" style="padding:8px 16px; border-radius:6px; font-weight:600; background:#6c757d; color:#fff; text-decoration:none;">✗ Réinitialiser</a>
     <span style="color:#ffc107; font-weight:600; margin-left:6px;">
-      {{ pagination.total }} résultat{{ 's' if pagination.total > 1 else '' }}{% if q %} pour « {{ q }} »{% endif %}{% if cie %} · compagnie « {{ cie }} »{% endif %}
+      {{ pagination.total }} résultat{{ 's' if pagination.total > 1 else '' }}{% if q %} pour « {{ q }} »{% endif %}{% if cie %} · compagnie « {{ cie }} »{% endif %}{% if abo == '1' %} · abonnées AO{% elif abo == '0' %} · non abonnées{% endif %}
     </span>
   {% endif %}
 </form>
@@ -200,7 +207,7 @@
     
     <!-- Page précédente -->
     {% if pagination.has_prev %}
-      <a href="{{ url_for('admin_dashboard', page=pagination.prev_num, q=q or None, cie=cie or None) }}"
+      <a href="{{ url_for('admin_dashboard', page=pagination.prev_num, q=q or None, cie=cie or None, abo=abo if abo != 'all' else None) }}"
          style="padding: 8px 12px; background: var(--primary); color: white; text-decoration: none; border-radius: 4px; font-weight: 600;">
         ← Précédent
       </a>
@@ -218,7 +225,7 @@
             {{ p }}
           </span>
         {% else %}
-          <a href="{{ url_for('admin_dashboard', page=p, q=q or None, cie=cie or None) }}"
+          <a href="{{ url_for('admin_dashboard', page=p, q=q or None, cie=cie or None, abo=abo if abo != 'all' else None) }}"
              style="padding: 8px 12px; background: #f2f3f7; color: var(--text); text-decoration: none; border-radius: 4px; font-weight: 600;">
             {{ p }}
           </a>
@@ -230,7 +237,7 @@
 
     <!-- Page suivante -->
     {% if pagination.has_next %}
-      <a href="{{ url_for('admin_dashboard', page=pagination.next_num, q=q or None, cie=cie or None) }}"
+      <a href="{{ url_for('admin_dashboard', page=pagination.next_num, q=q or None, cie=cie or None, abo=abo if abo != 'all' else None) }}"
          style="padding: 8px 12px; background: var(--primary); color: white; text-decoration: none; border-radius: 4px; font-weight: 600;">
         Suivant →
       </a>
