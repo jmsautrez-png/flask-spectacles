@@ -182,6 +182,11 @@ class User(db.Model):
             return None
         return (self.subscribed_until - datetime.utcnow()).days
 
+    @property
+    def has_active_subscription(self) -> bool:
+        """Abonné AO à ce jour : coché et date de fin non dépassée (ou absente)."""
+        return bool(self.is_subscribed) and (self.subscribed_until is None or self.subscribed_until > datetime.utcnow())
+
 
 class Show(db.Model):
     __tablename__ = "shows"

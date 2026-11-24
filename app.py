@@ -4587,15 +4587,25 @@ def register_routes(app: Flask) -> None:
     def admin_dashboard():
         page = request.args.get("page", 1, type=int)
         q = (request.args.get("q") or "").strip()
+        cie = (request.args.get("cie") or "").strip()
 
         per_page = 30
+
+        base_q = Show.query.options(joinedload(Show.user))
+        if cie:
+            like_cie = f"%{cie}%"
+            base_q = base_q.outerjoin(User, Show.user_id == User.id).filter(or_(
+                Show.raison_sociale.ilike(like_cie),
+                User.raison_sociale.ilike(like_cie),
+                User.username.ilike(like_cie),
+            ))
 
         if q:
             # Pré-filtre SQL rapide (indexable) : toutes les descriptions contenant
             # la sous-chaîne (peut inclure des faux positifs, ex. "pirate" dans "aspirateur").
             like_pattern = f"%{q}%"
             candidates = (
-                Show.query
+                base_q
                 .filter(Show.description.ilike(like_pattern))
                 .order_by(Show.created_at.desc())
                 .all()
@@ -4612,7 +4622,7 @@ def register_routes(app: Flask) -> None:
             shows = filtered[start:start + per_page]
             pagination = _AdminSearchPagination(page=page, pages=pages, total=total, per_page=per_page)
         else:
-            pagination = Show.query.order_by(Show.created_at.desc()).paginate(
+            pagination = base_q.order_by(Show.created_at.desc()).paginate(
                 page=page, per_page=per_page, error_out=False
             )
             shows = pagination.items
@@ -4627,6 +4637,7 @@ def register_routes(app: Flask) -> None:
             pending=pending,
             pagination=pagination,
             q=q,
+            cie=cie,
         )
     
     @app.route("/admin/statistiques", endpoint="admin_statistics")

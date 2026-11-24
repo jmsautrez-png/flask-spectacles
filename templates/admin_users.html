@@ -35,7 +35,7 @@
 
   <div style="background: rgba(255,255,255,0.05); border-radius: 12px; padding: 24px; margin-bottom: 24px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px;">
     <p style="color: #fff; margin: 0;">
-      <strong>{{ users|length }}</strong> utilisateur{{ 's' if users|length > 1 else '' }} affiché{{ 's' if users|length > 1 else '' }}
+      <strong id="admin-users-count">{{ users|length }}</strong> utilisateur{{ 's' if users|length > 1 else '' }} affiché{{ 's' if users|length > 1 else '' }}
       {% if current_tab != 'all' %}<span style="color:#aaa;"> (sur {{ count_all }} au total)</span>{% endif %}
     </p>
     <div style="display:flex; gap:10px; flex-wrap:wrap;">
@@ -58,6 +58,15 @@
   </div>
 
   {% if users %}
+  <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin-bottom:16px;">
+    <input type="text" id="admin-users-search" placeholder="🔍 Nom, raison sociale, e-mail, ville, département, CP…"
+           style="flex:1 1 320px; padding:10px 14px; border-radius:8px; border:1px solid rgba(255,255,255,0.25); background:#1a1a1e; color:#fff; font-size:0.95rem;">
+    <select id="admin-users-abo" style="padding:10px 14px; border-radius:8px; border:1px solid rgba(255,255,255,0.25); background:#1a1a1e; color:#fff; font-size:0.95rem;">
+      <option value="all">Tous les abonnements</option>
+      <option value="1">✅ Abonnés</option>
+      <option value="0">⏸️ Non abonnés</option>
+    </select>
+  </div>
   <div style="overflow-x: auto;">
     <table style="width: 100%; border-collapse: collapse; background: rgba(255,255,255,0.03); border-radius: 12px; overflow: hidden;">
       <thead>
@@ -77,7 +86,9 @@
       </thead>
       <tbody>
         {% for user in users %}
-        <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);" {% if user.is_admin %}class="admin-row"{% endif %}>
+        <tr data-id="{{ user.id }}" data-abo="{{ 1 if user.has_active_subscription else 0 }}"
+            data-search="{{ ((user.username or '') ~ ' ' ~ (user.raison_sociale or '') ~ ' ' ~ (user.email or '') ~ ' ' ~ (user.ville or '') ~ ' ' ~ (user.departement or '') ~ ' ' ~ (user.code_postal or ''))|lower }}"
+            style="border-bottom: 1px solid rgba(255,255,255,0.05);" {% if user.is_admin %}class="admin-row"{% endif %}>
           <td style="padding: 12px; text-align:center;">
             <button type="button" class="btn-toggle-details" data-target="details-{{ user.id }}"
                     style="background:rgba(255,255,255,0.1); color:#fff; border:1px solid rgba(255,255,255,0.2); width:28px; height:28px; border-radius:50%; cursor:pointer; font-weight:700; padding:0;"
@@ -86,7 +97,7 @@
           <td style="padding: 12px; color: #aaa;">{{ user.id }}</td>
           <td style="padding: 12px; color: #fff; font-weight: 500;">{{ user.username }}</td>
           <td style="padding: 12px; color: #fff;">{{ user.email or '-' }}</td>
-          <td style="padding: 12px; color: #fff;">{{ user.raison_sociale or '-' }}</td>
+          <td style="padding: 12px; color: #fff;">{{ user.raison_sociale or '-' }}{% if not user.is_admin %}<br>{% if user.has_active_subscription %}<span style="background:rgba(46,125,50,0.3); color:#a5d6a7; border:1px solid #2e7d32; padding:2px 8px; border-radius:8px; font-size:0.78em; font-weight:700;">✅ Abonné AO</span>{% else %}<span style="background:rgba(255,255,255,0.06); color:#b0b0b0; border:1px solid rgba(255,255,255,0.18); padding:2px 8px; border-radius:8px; font-size:0.78em; font-weight:600;">⏸️ Non abonné</span>{% endif %}{% endif %}</td>
           <td style="padding: 12px; color: #fff;">{{ user.telephone or '-' }}</td>
           <td style="padding: 12px; color: #fff;">
             {% if user.region %}
@@ -334,6 +345,29 @@
       btn.textContent = open ? '+' : '−';
     });
   });
+
+  // Recherche et filtre abonnement : côté navigateur (la liste n'est pas paginée).
+  var searchInput = document.getElementById('admin-users-search');
+  var aboSelect = document.getElementById('admin-users-abo');
+  var countEl = document.getElementById('admin-users-count');
+  function appliquerFiltres() {
+    var q = (searchInput.value || '').trim().toLowerCase();
+    var abo = aboSelect.value;
+    var visibles = 0;
+    document.querySelectorAll('tr[data-search]').forEach(function(row){
+      var ok = (!q || row.getAttribute('data-search').indexOf(q) !== -1)
+            && (abo === 'all' || row.getAttribute('data-abo') === abo);
+      row.style.display = ok ? '' : 'none';
+      var details = document.getElementById('details-' + row.getAttribute('data-id'));
+      if (details && !ok) details.style.display = 'none';
+      if (ok) visibles++;
+    });
+    if (countEl) countEl.textContent = visibles;
+  }
+  if (searchInput && aboSelect) {
+    searchInput.addEventListener('input', appliquerFiltres);
+    aboSelect.addEventListener('change', appliquerFiltres);
+  }
 
   // Lien « CP manquant » depuis l'auto-matching : ouvre directement la ligne du compte.
   var m = /^#details-(\d+)$/.exec(window.location.hash);
