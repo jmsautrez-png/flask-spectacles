@@ -81,6 +81,9 @@
           <th style="padding: 16px; text-align: left; color: #fff; font-weight: 600; border-bottom: 2px solid rgba(255,255,255,0.1);">Date inscription</th>
           <th style="padding: 16px; text-align: left; color: #fff; font-weight: 600; border-bottom: 2px solid rgba(255,255,255,0.1);">Spectacles</th>
           <th style="padding: 16px; text-align: left; color: #fff; font-weight: 600; border-bottom: 2px solid rgba(255,255,255,0.1);">Admin</th>
+          <th style="padding: 16px; text-align: left; color: #fff; font-weight: 600; border-bottom: 2px solid rgba(255,255,255,0.1);">Formule</th>
+          <th style="padding: 16px; text-align: left; color: #fff; font-weight: 600; border-bottom: 2px solid rgba(255,255,255,0.1);">Activé le</th>
+          <th style="padding: 16px; text-align: left; color: #fff; font-weight: 600; border-bottom: 2px solid rgba(255,255,255,0.1);">Montant (1re année)</th>
           <th style="padding: 16px; text-align: center; color: #fff; font-weight: 600; border-bottom: 2px solid rgba(255,255,255,0.1);">Actions</th>
         </tr>
       </thead>
@@ -129,6 +132,10 @@
               <span style="color: #6c757d;">-</span>
             {% endif %}
           </td>
+          {% set info = abo_infos.get(user.id) or {} %}
+          <td style="padding: 12px; color:#ddd; font-size:0.9em;">{{ info.formule or '—' }}</td>
+          <td style="padding: 12px; color:#ddd; font-size:0.9em;">{% if info %}{{ info.date or ('inconnue' if user.is_subscribed else '—') }}{% else %}—{% endif %}</td>
+          <td style="padding: 12px; color:#ddd; font-size:0.9em;">{% if info.montant %}{{ info.montant }} €{% else %}—{% endif %}</td>
           <td style="padding: 12px; text-align: center;">
             {% if not user.is_admin %}
             {% set pending = user.pending_deletion_at if user.pending_deletion_at is defined else None %}
@@ -173,7 +180,7 @@
           </td>
         </tr>
         <tr id="details-{{ user.id }}" class="details-row" style="display:none; background:rgba(255,255,255,0.02);">
-          <td colspan="11" style="padding: 14px 24px; color:#ddd; font-size:0.9em;">
+          <td colspan="14" style="padding: 14px 24px; color:#ddd; font-size:0.9em;">
             {% if not user.is_admin %}
             <form method="post" action="{{ url_for('admin_update_user_localisation', user_id=user.id) }}"
                   style="background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); border-radius:10px; padding:14px 16px; margin-bottom:14px;">

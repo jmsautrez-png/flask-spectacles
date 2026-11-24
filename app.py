@@ -9248,6 +9248,38 @@ def admin_delete_bots():
     flash(f"✅ {count} faux compte(s) supprimé(s).", "success")
     return redirect(url_for("admin_users"))
 
+def _infos_abonnement(users) -> dict:
+    """Formule, date d'activation et montant (1re année) par utilisateur non admin.
+
+    Date et montant viennent de la 1re adhésion activée. Sans elle, la date reste inconnue :
+    on ne la déduit pas de subscribed_until, qui change à chaque renouvellement.
+    """
+    ids = [u.id for u in users if not u.is_admin]
+    premieres = {}
+    if ids:
+        activees = (
+            Adhesion.query.filter(Adhesion.user_id.in_(ids), Adhesion.activated_at.isnot(None))
+            .order_by(Adhesion.activated_at.asc())
+            .all()
+        )
+        for adh in activees:
+            premieres.setdefault(adh.user_id, adh)
+    infos = {}
+    for u in users:
+        if u.is_admin:
+            continue
+        adh = premieres.get(u.id)
+        code = u.formule_abonnement or (adh.formule_abonnement if adh else None)
+        tarifs = FORMULES_ABONNEMENT.get(code)
+        montant = (adh.invoice_amount if adh else None) or (tarifs["premiere_annee"] if tarifs else None)
+        infos[u.id] = {
+            "formule": tarifs["libelle"] if tarifs else None,
+            "date": adh.activated_at.strftime("%d/%m/%Y") if adh else None,
+            "montant": montant,
+        }
+    return infos
+
+
 @app.route("/admin/users")
 @login_required
 @admin_required
@@ -9278,6 +9310,7 @@ def admin_users():
     return render_template(
         "admin_users.html",
         users=users,
+        abo_infos=_infos_abonnement(users),
         current_tab=tab,
         count_all=count_all,
         count_compagnies=count_compagnies,
