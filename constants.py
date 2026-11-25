@@ -48,6 +48,7 @@ SPECIALITES = {
         "Spectacle enfant avec des instruments de musique",
         "Spectacle enfant avec des marionnettes",
         "Spectacle enfant avec des bulles",
+        "Spectacle enfant linguistique",
         "Spectacle pour enfant avec des ombres",
         "Spectacle à thème pour enfant",
         "Spectacle pour enfant d'auteur",

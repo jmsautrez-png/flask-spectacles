@@ -259,6 +259,7 @@ _SPEC_PARENTS = {
     "spectacle enfant clownesque":           "spectacle pour enfant",
     "spectacle enfant avec de l'épée":       "spectacle pour enfant",
     "spectacle enfant avec interactivité":   "spectacle pour enfant",
+    "spectacle enfant linguistique":         "spectacle pour enfant",
     "spectacle pour enfant avec des ombres": "spectacle pour enfant",
     "spectacle de rue pour enfant":          "spectacle pour enfant",
 }
