@@ -2,14 +2,21 @@
 Script de nettoyage des données de tracking (Conformité RGPD)
 
 1. Résume dans visitor_daily_stat chaque journée complète (UTC) pas encore résumée.
-2. Supprime les logs bruts et les résumés de plus de 90 jours.
+2. Supprime les logs bruts et les lignes « user » (par compte) de plus de 90 jours.
+3. Supprime les totaux anonymes antérieurs au 1er janvier de l'année précédente
+   (l'année en cours et l'année précédente restent consultables).
 
 À exécuter régulièrement (quotidien recommandé) via cron ou planificateur de tâches.
 """
 from app import app, db
 from models.models import VisitorLog, VisitorDailyStat
-from datetime import datetime, time as dt_time, timedelta
+from datetime import date, datetime, time as dt_time, timedelta
 from sqlalchemy import func
+
+
+def date_debut_resumes(maintenant):
+    """Premier jour conservé dans visitor_daily_stat : 1er janvier de l'année précédente."""
+    return date(maintenant.year - 1, 1, 1)
 
 
 def resumer_jours_manquants(maintenant):
@@ -92,7 +99,9 @@ def supprimer_logs_bruts(date_limit):
 
 
 def clean_old_visitor_logs(days=90):
-    """Résume les jours manquants, puis supprime les logs et résumés de plus de X jours"""
+    """Résume les jours manquants, puis supprime les logs bruts de plus de X jours
+    et les lignes par compte (kind 'user') de plus de X jours.
+    Les totaux anonymes sont gardés depuis le 1er janvier de l'année précédente."""
     with app.app_context():
         maintenant = datetime.utcnow()
         nb_resumes = resumer_jours_manquants(maintenant)
@@ -101,7 +110,12 @@ def clean_old_visitor_logs(days=90):
         date_limit = maintenant - timedelta(days=days)
 
         count = supprimer_logs_bruts(date_limit)
-        VisitorDailyStat.query.filter(VisitorDailyStat.day < date_limit.date()).delete(synchronize_session=False)
+        VisitorDailyStat.query.filter(
+            VisitorDailyStat.kind == "user", VisitorDailyStat.day < date_limit.date()
+        ).delete(synchronize_session=False)
+        VisitorDailyStat.query.filter(
+            VisitorDailyStat.day < date_debut_resumes(maintenant)
+        ).delete(synchronize_session=False)
         db.session.commit()
 
         if count == 0:

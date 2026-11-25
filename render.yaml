@@ -36,7 +36,8 @@ services:
       - key: S3_REGION
         value: eu-west-1
 
-  # === Cron : purger les logs visiteurs > 90 jours (RGPD + éviter OOM sur /admin/statistiques) ===
+  # === Cron : purger les logs visiteurs > 90 jours et résumer les jours (RGPD + éviter OOM sur /admin/statistiques) ===
+  # Les totaux anonymes sont gardés jusqu'au 1er janvier de l'année précédente (vue par année).
   # NOTE: doit être créé aussi manuellement dans le dashboard Render — la déclaration YAML
   # seule ne suffit pas toujours à provisionner le cron.
   - type: cron

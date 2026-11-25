@@ -20,6 +20,9 @@
                 <a href="{{ url_for('admin_statistics', period='7') }}" class="btn btn-sm {% if period == '7' %}btn-primary{% else %}btn-outline-primary{% endif %}">7 jours</a>
                 <a href="{{ url_for('admin_statistics', period='30') }}" class="btn btn-sm {% if period == '30' %}btn-primary{% else %}btn-outline-primary{% endif %}">30 jours</a>
                 <a href="{{ url_for('admin_statistics', period='90') }}" class="btn btn-sm {% if period == '90' %}btn-primary{% else %}btn-outline-primary{% endif %}">90 jours</a>
+                {% for a in annees %}
+                <a href="{{ url_for('admin_statistics', period='year', year=a) }}" class="btn btn-sm {% if annee == a %}btn-primary{% else %}btn-outline-primary{% endif %}">Année {{ a }}</a>
+                {% endfor %}
             </div>
         </div>
     </div>
@@ -267,6 +270,7 @@
     </div>
     {% endif %}
 
+    {% if annee is none %}
     <!-- Dernières visites -->
     <div class="row mb-4">
         <div class="col-md-12">
@@ -364,13 +368,17 @@
         </div>
     </div>
 
+    {% endif %}
+
     <!-- Note RGPD -->
     <div class="row mb-4">
         <div class="col-md-12">
             <div class="alert alert-info">
                 <i class="fas fa-shield-alt"></i> <strong>Conformité RGPD :</strong>
                 Les adresses IP sont anonymisées (seuls les 2 premiers octets sont conservés).
-                Les données sont automatiquement supprimées après 90 jours.
+                Les visites détaillées et les statistiques par compte utilisateur sont supprimées après 90 jours.
+                Seuls des totaux anonymes (visites par jour, pages, provenances) sont conservés jusqu'au 1er janvier de l'année précédente,
+                ce qui permet d'afficher les statistiques par année.
                 Aucune donnée personnelle n'est collectée pour les visiteurs non connectés.
             </div>
         </div>

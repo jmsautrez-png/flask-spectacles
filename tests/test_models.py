@@ -203,7 +203,6 @@ class TestVisitorStatsSummary:
     def test_purge_garde_90_jours(self, app, db, monkeypatch):
         import clean_visitor_logs
         from models.models import VisitorLog, VisitorDailyStat
-        from datetime import datetime, timedelta
         monkeypatch.setattr(clean_visitor_logs, "app", app)
         with app.app_context():
             self._log(db, 100, page="/tres-ancien", session="s1")
@@ -214,6 +213,50 @@ class TestVisitorStatsSummary:
 
             pages = {row.page_url for row in VisitorLog.query.all()}
             assert pages == {"/recent"}
-            limite = (datetime.utcnow() - timedelta(days=90)).date()
-            assert VisitorDailyStat.query.filter(VisitorDailyStat.day < limite).count() == 0
             assert VisitorDailyStat.query.filter(VisitorDailyStat.key == "/recent").count() == 1
+
+    def test_purge_totaux_annee_precedente_et_comptes_90_jours(self, app, db, monkeypatch):
+        import clean_visitor_logs
+        from models.models import VisitorDailyStat
+        from datetime import date, datetime, timedelta
+        monkeypatch.setattr(clean_visitor_logs, "app", app)
+        maintenant = datetime.utcnow()
+        debut = date(maintenant.year - 1, 1, 1)
+        with app.app_context():
+            db.session.add_all([
+                VisitorDailyStat(day=debut - timedelta(days=1), kind="total_human", hits=5, sessions=2),
+                VisitorDailyStat(day=debut, kind="total_human", hits=5, sessions=2),
+                VisitorDailyStat(day=(maintenant - timedelta(days=100)).date(), kind="user", key="7", hits=3),
+                VisitorDailyStat(day=(maintenant - timedelta(days=10)).date(), kind="user", key="7", hits=3),
+            ])
+            db.session.commit()
+
+            clean_visitor_logs.clean_old_visitor_logs(90)
+
+            assert VisitorDailyStat.query.filter(VisitorDailyStat.day < debut).count() == 0
+            assert VisitorDailyStat.query.filter(VisitorDailyStat.day == debut, VisitorDailyStat.kind == "total_human").count() == 1
+            assert VisitorDailyStat.query.filter(VisitorDailyStat.kind == "user", VisitorDailyStat.day == (maintenant - timedelta(days=100)).date()).count() == 0
+            assert VisitorDailyStat.query.filter(VisitorDailyStat.kind == "user", VisitorDailyStat.day == (maintenant - timedelta(days=10)).date()).count() == 1
+
+    def test_vue_annee_separe_les_annees(self, admin_client, app, db):
+        from models.models import VisitorDailyStat
+        from datetime import date, datetime
+        annee = datetime.utcnow().year
+        with app.app_context():
+            db.session.add_all([
+                VisitorDailyStat(day=date(annee - 1, 1, 1), kind="total_human", hits=1, sessions=1),
+                VisitorDailyStat(day=date(annee - 1, 6, 1), kind="page", key="/page-annee-precedente", hits=1),
+                VisitorDailyStat(day=date(annee, 1, 1), kind="total_human", hits=1, sessions=1),
+                VisitorDailyStat(day=date(annee, 1, 1), kind="page", key="/page-annee-courante", hits=1),
+            ])
+            db.session.commit()
+
+        resp = admin_client.get(f"/admin/statistiques?period=year&year={annee}")
+        assert resp.status_code == 200
+        assert b"/page-annee-courante" in resp.data
+        assert b"/page-annee-precedente" not in resp.data
+
+        resp = admin_client.get(f"/admin/statistiques?period=year&year={annee - 1}")
+        assert resp.status_code == 200
+        assert b"/page-annee-precedente" in resp.data
+        assert b"/page-annee-courante" not in resp.data

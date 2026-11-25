@@ -4669,7 +4669,7 @@ def register_routes(app: Flask) -> None:
             db.session.rollback()
             current_app.logger.error(f"[admin_statistics] requête en échec ou trop lente : {e}")
             period = request.args.get("period", "7", type=str)
-            if period not in ("today", "1", "7", "30", "90"):
+            if period not in ("today", "1", "7", "30", "90", "year"):
                 period = "7"
             return render_template(
                 "admin_statistics.html",
@@ -4689,6 +4689,8 @@ def register_routes(app: Flask) -> None:
                 days=7,
                 period=period,
                 period_label="Indisponible",
+                annee=None,
+                annees=(datetime.utcnow().year - 1, datetime.utcnow().year),
                 stats_error=(
                     "Les statistiques n'ont pas pu être calculées : la requête a dépassé "
                     "le délai de 20 secondes. Essayez une période plus courte."
@@ -4711,20 +4713,33 @@ def register_routes(app: Flask) -> None:
         from datetime import timedelta
 
         # Whitelist des périodes autorisées (protection contre period=99999 → OOM)
-        allowed_periods = ("today", "1", "7", "30", "90")
+        allowed_periods = ("today", "1", "7", "30", "90", "year")
         period = request.args.get("period", "7", type=str)
         if period not in allowed_periods:
             period = "7"
 
-        # Calculer la date limite selon la période
-        if period == "today":
+        maintenant = datetime.utcnow()
+        # Borne haute exclue de la période (None = maintenant). Utilisée pour une année passée.
+        hi = None
+        annee = None
+        if period == "year":
+            # Années disponibles : l'année précédente et l'année en cours (cf. clean_visitor_logs.py)
+            annee = request.args.get("year", maintenant.year, type=int)
+            if annee not in (maintenant.year - 1, maintenant.year):
+                annee = maintenant.year
+            date_limit = datetime(annee, 1, 1)
+            if annee < maintenant.year:
+                hi = datetime(annee + 1, 1, 1)
+            days = max(((hi or maintenant) - date_limit).days, 1)
+            period_label = f"Année {annee}"
+        elif period == "today":
             # Depuis minuit aujourd'hui (00:00:00)
-            date_limit = datetime.utcnow().replace(hour=0, minute=0, second=0, microsecond=0)
+            date_limit = maintenant.replace(hour=0, minute=0, second=0, microsecond=0)
             days = 1
             period_label = "Aujourd'hui"
         else:
             days = int(period)
-            date_limit = datetime.utcnow() - timedelta(days=days)
+            date_limit = maintenant - timedelta(days=days)
             period_label = f"{days} dernier{'s' if days > 1 else ''} jour{'s' if days > 1 else ''}"
         
         # Sur PostgreSQL, une requête trop longue échoue après 20 s au lieu de bloquer le worker
@@ -4740,19 +4755,24 @@ def register_routes(app: Flask) -> None:
         dernier_resume = db.session.query(func.max(VisitorDailyStat.day)).filter(
             VisitorDailyStat.kind == "total_human").scalar()
         jour_debut = date_limit.date() if date_limit.time() == dt_time() else date_limit.date() + timedelta(days=1)
-        if dernier_resume is not None and dernier_resume + timedelta(days=1) > jour_debut:
+        jour_fin = None
+        if dernier_resume is not None:
             jour_fin = dernier_resume + timedelta(days=1)
-            plages_brutes = [(datetime.combine(jour_fin, dt_time()), None)]
+            if hi is not None:
+                jour_fin = min(jour_fin, hi.date())
+        if jour_fin is not None and jour_fin > jour_debut:
+            plages_brutes = []
             if date_limit < datetime.combine(jour_debut, dt_time()):
-                plages_brutes.insert(0, (date_limit, datetime.combine(jour_debut, dt_time())))
+                plages_brutes.append((date_limit, datetime.combine(jour_debut, dt_time())))
+            plages_brutes.append((datetime.combine(jour_fin, dt_time()), hi))
         else:
             jour_debut = jour_fin = None
-            plages_brutes = [(date_limit, None)]
+            plages_brutes = [(date_limit, hi)]
 
         def _filtre_brut():
             return or_(*[
-                and_(VisitorLog.visited_at >= lo, VisitorLog.visited_at < hi) if hi else VisitorLog.visited_at >= lo
-                for lo, hi in plages_brutes
+                and_(VisitorLog.visited_at >= debut, VisitorLog.visited_at < fin) if fin else VisitorLog.visited_at >= debut
+                for debut, fin in plages_brutes
             ])
 
         def _resume(kind):
@@ -4839,6 +4859,12 @@ def register_routes(app: Flask) -> None:
             func.count(func.distinct(VisitorLog.session_id)),
         ).filter(_filtre_brut(), VisitorLog.is_bot == False).group_by(func.date(VisitorLog.visited_at)).all():
             jours[str(jour)] = jours.get(str(jour), 0) + sessions
+        if annee is not None:
+            # Vue annuelle : un point par mois (le total journalier serait illisible)
+            mois = {}
+            for jour_iso, visiteurs in jours.items():
+                mois[jour_iso[:7]] = mois.get(jour_iso[:7], 0) + visiteurs
+            jours = mois
         visits_by_day = [SimpleNamespace(date=k, visits=v) for k, v in sorted(jours.items())]
         
         # Derniers visiteurs uniques (groupés par session) - HUMAINS UNIQUEMENT
@@ -4896,12 +4922,13 @@ def register_routes(app: Flask) -> None:
         max_visitors_per_day = max([day.visits for day in visits_by_day]) if visits_by_day else 1
         
         # Utilisateurs connectés actifs - HUMAINS UNIQUEMENT
+        # Les comptes par utilisateur ne sont gardés que 90 jours : pas de classement annuel
         users_hits = _fusionner(
             _resume("user"),
             db.session.query(VisitorLog.user_id, func.count(VisitorLog.id)).filter(
                 _filtre_brut(), VisitorLog.is_bot == False, VisitorLog.user_id.isnot(None)
             ).group_by(VisitorLog.user_id).all(),
-        )
+        ) if annee is None else {}
         top_users = sorted(users_hits.items(), key=lambda kv: kv[1], reverse=True)[:10]
         noms = dict(db.session.query(User.id, User.username).filter(
             User.id.in_([int(uid) for uid, _ in top_users])
@@ -4928,7 +4955,9 @@ def register_routes(app: Flask) -> None:
             active_users=active_users,
             days=days,
             period=period,
-            period_label=period_label
+            period_label=period_label,
+            annee=annee,
+            annees=(maintenant.year - 1, maintenant.year),
         )
     
     # Route temporaire pour migration is_bot (À SUPPRIMER après exécution)
