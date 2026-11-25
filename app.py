@@ -4669,7 +4669,7 @@ def register_routes(app: Flask) -> None:
             db.session.rollback()
             current_app.logger.error(f"[admin_statistics] requête en échec ou trop lente : {e}")
             period = request.args.get("period", "7", type=str)
-            if period not in ("today", "1", "7", "30"):
+            if period not in ("today", "1", "7", "30", "90"):
                 period = "7"
             return render_template(
                 "admin_statistics.html",
@@ -4711,7 +4711,7 @@ def register_routes(app: Flask) -> None:
         from datetime import timedelta
 
         # Whitelist des périodes autorisées (protection contre period=99999 → OOM)
-        allowed_periods = ("today", "1", "7", "30")
+        allowed_periods = ("today", "1", "7", "30", "90")
         period = request.args.get("period", "7", type=str)
         if period not in allowed_periods:
             period = "7"

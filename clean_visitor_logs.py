@@ -1,6 +1,6 @@
 """
 Script de nettoyage des données de tracking (Conformité RGPD)
-Supprime automatiquement les données de visite de plus de 30 jours.
+Supprime automatiquement les données de visite de plus de 90 jours.
 
 À exécuter régulièrement (quotidien recommandé) via cron ou planificateur de tâches.
 """
@@ -8,7 +8,7 @@ from app import app, db
 from models.models import VisitorLog
 from datetime import datetime, timedelta
 
-def clean_old_visitor_logs(days=30):
+def clean_old_visitor_logs(days=90):
     """Supprime les logs de visiteurs de plus de X jours"""
     with app.app_context():
         # Calculer la date limite
@@ -30,4 +30,4 @@ def clean_old_visitor_logs(days=30):
 
 if __name__ == "__main__":
     print("🗑️  Nettoyage des données de tracking...")
-    clean_old_visitor_logs(30)  # Supprimer les données de plus de 30 jours
+    clean_old_visitor_logs(90)  # Supprimer les données de plus de 90 jours
