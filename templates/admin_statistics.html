@@ -19,10 +19,17 @@
                 <a href="{{ url_for('admin_statistics', period='1') }}" class="btn btn-sm {% if period == '1' %}btn-primary{% else %}btn-outline-primary{% endif %}">24h</a>
                 <a href="{{ url_for('admin_statistics', period='7') }}" class="btn btn-sm {% if period == '7' %}btn-primary{% else %}btn-outline-primary{% endif %}">7 jours</a>
                 <a href="{{ url_for('admin_statistics', period='30') }}" class="btn btn-sm {% if period == '30' %}btn-primary{% else %}btn-outline-primary{% endif %}">30 jours</a>
-                <a href="{{ url_for('admin_statistics', period='90') }}" class="btn btn-sm {% if period == '90' %}btn-primary{% else %}btn-outline-primary{% endif %}">90 jours</a>
             </div>
         </div>
     </div>
+
+    {% if stats_error %}
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <div class="alert alert-warning mb-0"><i class="fas fa-exclamation-triangle"></i> {{ stats_error }}</div>
+        </div>
+    </div>
+    {% endif %}
 
     <!-- Statistiques récapitulatives -->
     <div class="row mb-4">

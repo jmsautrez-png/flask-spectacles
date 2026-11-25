@@ -4660,6 +4660,42 @@ def register_routes(app: Flask) -> None:
     @login_required
     @admin_required
     def admin_statistics():
+        """Route des statistiques : affiche un message si une requête dépasse le délai."""
+        from sqlalchemy.exc import SQLAlchemyError
+
+        try:
+            return _rendre_statistiques_visiteurs()
+        except SQLAlchemyError as e:
+            db.session.rollback()
+            current_app.logger.error(f"[admin_statistics] requête en échec ou trop lente : {e}")
+            period = request.args.get("period", "7", type=str)
+            if period not in ("today", "1", "7", "30"):
+                period = "7"
+            return render_template(
+                "admin_statistics.html",
+                user=current_user(),
+                total_visits=0,
+                total_bots=0,
+                total_humans=0,
+                unique_visitors=0,
+                unique_humans=0,
+                unique_bots=0,
+                top_pages=[],
+                top_referrers=[],
+                visits_by_day=[],
+                max_visitors_per_day=1,
+                recent_visitors=[],
+                active_users=[],
+                days=7,
+                period=period,
+                period_label="Indisponible",
+                stats_error=(
+                    "Les statistiques n'ont pas pu être calculées : la requête a dépassé "
+                    "le délai de 20 secondes. Essayez une période plus courte."
+                ),
+            )
+
+    def _rendre_statistiques_visiteurs():
         """
         Page de statistiques des visiteurs (conforme RGPD - données anonymisées)
         
@@ -4675,7 +4711,7 @@ def register_routes(app: Flask) -> None:
         from datetime import timedelta
 
         # Whitelist des périodes autorisées (protection contre period=99999 → OOM)
-        allowed_periods = ("today", "1", "7", "30", "90")
+        allowed_periods = ("today", "1", "7", "30")
         period = request.args.get("period", "7", type=str)
         if period not in allowed_periods:
             period = "7"
@@ -4691,6 +4727,10 @@ def register_routes(app: Flask) -> None:
             date_limit = datetime.utcnow() - timedelta(days=days)
             period_label = f"{days} dernier{'s' if days > 1 else ''} jour{'s' if days > 1 else ''}"
         
+        # Sur PostgreSQL, une requête trop longue échoue après 20 s au lieu de bloquer le worker
+        if db.engine.dialect.name == "postgresql":
+            db.session.execute(text("SET LOCAL statement_timeout = '20s'"))
+
         # Comptages optimisés (1 requête au lieu de 3)
         visit_stats = db.session.query(
             VisitorLog.is_bot,
@@ -4800,6 +4840,8 @@ def register_routes(app: Flask) -> None:
                 f"[admin_statistics] recent_visitors query failed (period={period}): {e}"
             )
             recent_visitors = []
+            if db.engine.dialect.name == "postgresql":
+                db.session.execute(text("SET LOCAL statement_timeout = '20s'"))
         
         # Maximum de visiteurs uniques sur un jour (pour la barre de progression)
         max_visitors_per_day = max([day.visits for day in visits_by_day]) if visits_by_day else 1

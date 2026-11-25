@@ -14,16 +14,15 @@ def clean_old_visitor_logs(days=30):
         # Calculer la date limite
         date_limit = datetime.utcnow() - timedelta(days=days)
         
-        # Compter les enregistrements à supprimer
-        old_logs = VisitorLog.query.filter(VisitorLog.visited_at < date_limit).all()
-        count = len(old_logs)
+        # Compter sans charger les lignes en mémoire (sinon OOM sur une grosse table)
+        count = VisitorLog.query.filter(VisitorLog.visited_at < date_limit).count()
         
         if count == 0:
             print(f"✅ Aucune donnée de plus de {days} jours à supprimer.")
             return
         
         # Supprimer les anciens logs
-        VisitorLog.query.filter(VisitorLog.visited_at < date_limit).delete()
+        VisitorLog.query.filter(VisitorLog.visited_at < date_limit).delete(synchronize_session=False)
         db.session.commit()
         
         print(f"✅ {count} enregistrements de plus de {days} jours supprimés.")
