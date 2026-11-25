@@ -83,7 +83,7 @@ print("✓ Flask importé")
 from config import Config
 from models import db
 from models.models import (
-    User, Show, PageVisit, VisitorLog, Review, Conversation, Message, ShowView,
+    User, Show, PageVisit, VisitorLog, VisitorDailyStat, Review, Conversation, Message, ShowView,
     Notification, PresignedUrlCache, Adhesion, FORMULES_ABONNEMENT,
     FORMULE_ABO_DEFAUT, FORMULE_ABO_AVEC_TELEPHONE, FORMULE_ABO_SANS_TELEPHONE,
 )
@@ -4731,66 +4731,115 @@ def register_routes(app: Flask) -> None:
         if db.engine.dialect.name == "postgresql":
             db.session.execute(text("SET LOCAL statement_timeout = '20s'"))
 
-        # Comptages optimisés (1 requête au lieu de 3)
-        visit_stats = db.session.query(
+        # Jours déjà résumés (visitor_daily_stat) + logs bruts restants (jour courant et
+        # jours pas encore résumés). Les totaux « uniques » sont la somme des visiteurs
+        # uniques par jour : un visiteur présent sur deux jours est compté deux fois.
+        from datetime import time as dt_time
+        from types import SimpleNamespace
+
+        dernier_resume = db.session.query(func.max(VisitorDailyStat.day)).filter(
+            VisitorDailyStat.kind == "total_human").scalar()
+        jour_debut = date_limit.date() if date_limit.time() == dt_time() else date_limit.date() + timedelta(days=1)
+        if dernier_resume is not None and dernier_resume + timedelta(days=1) > jour_debut:
+            jour_fin = dernier_resume + timedelta(days=1)
+            plages_brutes = [(datetime.combine(jour_fin, dt_time()), None)]
+            if date_limit < datetime.combine(jour_debut, dt_time()):
+                plages_brutes.insert(0, (date_limit, datetime.combine(jour_debut, dt_time())))
+        else:
+            jour_debut = jour_fin = None
+            plages_brutes = [(date_limit, None)]
+
+        def _filtre_brut():
+            return or_(*[
+                and_(VisitorLog.visited_at >= lo, VisitorLog.visited_at < hi) if hi else VisitorLog.visited_at >= lo
+                for lo, hi in plages_brutes
+            ])
+
+        def _resume(kind):
+            if jour_debut is None:
+                return []
+            return db.session.query(VisitorDailyStat.key, func.sum(VisitorDailyStat.hits)).filter(
+                VisitorDailyStat.kind == kind,
+                VisitorDailyStat.day >= jour_debut,
+                VisitorDailyStat.day < jour_fin,
+            ).group_by(VisitorDailyStat.key).all()
+
+        def _fusionner(*sources):
+            cumul = {}
+            for source in sources:
+                for key, hits in source:
+                    cle = str(key)
+                    cumul[cle] = cumul.get(cle, 0) + int(hits or 0)
+            return cumul
+
+        # Totaux : [visites, visiteurs uniques] par catégorie (humain / robot)
+        totaux = {"total_bot": [0, 0], "total_human": [0, 0]}
+        if jour_debut is not None:
+            for kind, hits, sessions in db.session.query(
+                VisitorDailyStat.kind,
+                func.sum(VisitorDailyStat.hits),
+                func.sum(VisitorDailyStat.sessions),
+            ).filter(
+                VisitorDailyStat.kind.in_(("total_bot", "total_human")),
+                VisitorDailyStat.day >= jour_debut,
+                VisitorDailyStat.day < jour_fin,
+            ).group_by(VisitorDailyStat.kind).all():
+                totaux[kind] = [int(hits or 0), int(sessions or 0)]
+        for est_bot, hits, sessions in db.session.query(
             VisitorLog.is_bot,
-            func.count(VisitorLog.id).label('visit_count'),
-            func.count(func.distinct(VisitorLog.session_id)).label('unique_count')
-        ).filter(VisitorLog.visited_at >= date_limit).\
-            group_by(VisitorLog.is_bot).all()
-        
-        # Initialisation des compteurs
-        total_visits = 0
-        total_bots = 0
-        total_humans = 0
-        unique_bots = 0
-        unique_humans = 0
-        
-        # Extraction des résultats
-        for stat in visit_stats:
-            total_visits += stat.visit_count
-            if stat.is_bot:
-                total_bots = stat.visit_count
-                unique_bots = stat.unique_count
-            else:
-                total_humans = stat.visit_count
-                unique_humans = stat.unique_count
-        
+            func.count(VisitorLog.id),
+            func.count(func.distinct(VisitorLog.session_id)),
+        ).filter(_filtre_brut()).group_by(VisitorLog.is_bot).all():
+            cle = "total_bot" if est_bot else "total_human"
+            totaux[cle][0] += hits
+            totaux[cle][1] += sessions
+
+        total_bots, unique_bots = totaux["total_bot"]
+        total_humans, unique_humans = totaux["total_human"]
+        total_visits = total_bots + total_humans
+
         # Total visiteurs uniques
         unique_visitors = unique_humans + unique_bots
         
         # Pages les plus visitées - HUMAINS UNIQUEMENT
-        top_pages = db.session.query(
-            VisitorLog.page_url,
-            func.count(VisitorLog.id).label('visits')
-        ).filter(
-            VisitorLog.visited_at >= date_limit,
-            VisitorLog.is_bot == False
-        ).group_by(VisitorLog.page_url).\
-            order_by(desc('visits')).\
-            limit(10).all()
+        pages = _fusionner(
+            _resume("page"),
+            db.session.query(VisitorLog.page_url, func.count(VisitorLog.id)).filter(
+                _filtre_brut(), VisitorLog.is_bot == False
+            ).group_by(VisitorLog.page_url).all(),
+        )
+        top_pages = [
+            SimpleNamespace(page_url=k, visits=v)
+            for k, v in sorted(pages.items(), key=lambda kv: kv[1], reverse=True)[:10]
+        ]
         
         # Référents (d'où viennent les visiteurs) - HUMAINS UNIQUEMENT
-        top_referrers = db.session.query(
-            VisitorLog.referrer,
-            func.count(VisitorLog.id).label('visits')
-        ).filter(
-            VisitorLog.visited_at >= date_limit,
-            VisitorLog.referrer.isnot(None),
-            VisitorLog.is_bot == False
-        ).group_by(VisitorLog.referrer).\
-            order_by(desc('visits')).\
-            limit(10).all()
-        
+        referrers = _fusionner(
+            _resume("referrer"),
+            db.session.query(VisitorLog.referrer, func.count(VisitorLog.id)).filter(
+                _filtre_brut(), VisitorLog.referrer.isnot(None), VisitorLog.is_bot == False
+            ).group_by(VisitorLog.referrer).all(),
+        )
+        top_referrers = [
+            SimpleNamespace(referrer=k, visits=v)
+            for k, v in sorted(referrers.items(), key=lambda kv: kv[1], reverse=True)[:10]
+        ]
+
         # Visiteurs uniques par jour - HUMAINS UNIQUEMENT pour le graphique
-        visits_by_day = db.session.query(
-            func.date(VisitorLog.visited_at).label('date'),
-            func.count(func.distinct(VisitorLog.session_id)).label('visits')
-        ).filter(
-            VisitorLog.visited_at >= date_limit,
-            VisitorLog.is_bot == False
-        ).group_by(func.date(VisitorLog.visited_at)).\
-            order_by('date').all()
+        jours = {}
+        if jour_debut is not None:
+            for jour, sessions in db.session.query(VisitorDailyStat.day, VisitorDailyStat.sessions).filter(
+                VisitorDailyStat.kind == "total_human",
+                VisitorDailyStat.day >= jour_debut,
+                VisitorDailyStat.day < jour_fin,
+            ).all():
+                jours[jour.isoformat()] = int(sessions or 0)
+        for jour, sessions in db.session.query(
+            func.date(VisitorLog.visited_at),
+            func.count(func.distinct(VisitorLog.session_id)),
+        ).filter(_filtre_brut(), VisitorLog.is_bot == False).group_by(func.date(VisitorLog.visited_at)).all():
+            jours[str(jour)] = jours.get(str(jour), 0) + sessions
+        visits_by_day = [SimpleNamespace(date=k, visits=v) for k, v in sorted(jours.items())]
         
         # Derniers visiteurs uniques (groupés par session) - HUMAINS UNIQUEMENT
         # IMPORTANT: on plafonne la fenêtre à 7 jours même si period=30/90.
@@ -4847,17 +4896,20 @@ def register_routes(app: Flask) -> None:
         max_visitors_per_day = max([day.visits for day in visits_by_day]) if visits_by_day else 1
         
         # Utilisateurs connectés actifs - HUMAINS UNIQUEMENT
-        active_users = db.session.query(
-            User.username,
-            func.count(VisitorLog.id).label('visits')
-        ).join(VisitorLog, VisitorLog.user_id == User.id).\
-            filter(
-                VisitorLog.visited_at >= date_limit,
-                VisitorLog.is_bot == False
-            ).\
-            group_by(User.username).\
-            order_by(desc('visits')).\
-            limit(10).all()
+        users_hits = _fusionner(
+            _resume("user"),
+            db.session.query(VisitorLog.user_id, func.count(VisitorLog.id)).filter(
+                _filtre_brut(), VisitorLog.is_bot == False, VisitorLog.user_id.isnot(None)
+            ).group_by(VisitorLog.user_id).all(),
+        )
+        top_users = sorted(users_hits.items(), key=lambda kv: kv[1], reverse=True)[:10]
+        noms = dict(db.session.query(User.id, User.username).filter(
+            User.id.in_([int(uid) for uid, _ in top_users])
+        ).all()) if top_users else {}
+        active_users = [
+            SimpleNamespace(username=noms.get(int(uid), "?"), visits=v)
+            for uid, v in top_users
+        ]
         
         return render_template(
             "admin_statistics.html",

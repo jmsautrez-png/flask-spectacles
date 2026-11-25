@@ -464,6 +464,20 @@ class VisitorLog(db.Model):
     )
 
 
+# Résumé quotidien anonymisé des visites, produit par clean_visitor_logs.py avant
+# suppression des logs bruts. Évite de scanner des millions de lignes sur la page stats.
+# kind : total_bot / total_human (hits + sessions), page, referrer, user (key = user_id).
+class VisitorDailyStat(db.Model):
+    __tablename__ = "visitor_daily_stat"
+
+    id = db.Column(db.Integer, primary_key=True)
+    day = db.Column(db.Date, nullable=False, index=True)
+    kind = db.Column(db.String(20), nullable=False)
+    key = db.Column(db.String(300), nullable=False, default="")
+    hits = db.Column(db.Integer, nullable=False, default=0)
+    sessions = db.Column(db.Integer, nullable=False, default=0)
+
+
 class PresignedUrlCache(db.Model):
     """Cache PERSISTANT des URLs S3 presigned.
 

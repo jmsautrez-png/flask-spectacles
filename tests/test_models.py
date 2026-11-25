@@ -144,3 +144,76 @@ class TestDemandeAnimation:
             db.session.commit()
             assert d.id is not None
             assert d.structure == "Mairie de Test"
+
+
+class TestVisitorStatsSummary:
+    """Résumé quotidien des visites (visitor_daily_stat) et page /admin/statistiques."""
+
+    @staticmethod
+    def _log(db, jours_avant, page="/accueil", bot=False, session="s1"):
+        from models.models import VisitorLog
+        from datetime import datetime, timedelta
+        db.session.add(VisitorLog(
+            visited_at=datetime.utcnow() - timedelta(days=jours_avant),
+            page_url=page, session_id=session, is_bot=bot, user_agent="Mozilla/5.0 Chrome",
+        ))
+
+    def test_resumer_jours_manquants_idempotent(self, app, db):
+        from clean_visitor_logs import resumer_jours_manquants
+        from models.models import VisitorDailyStat
+        from datetime import datetime
+        from sqlalchemy import func
+        with app.app_context():
+            self._log(db, 2, page="/a", session="s1")
+            self._log(db, 2, page="/a", session="s2")
+            self._log(db, 1, page="/b", bot=True, session="bot")
+            db.session.commit()
+
+            assert resumer_jours_manquants(datetime.utcnow()) == 2
+            hits = db.session.query(func.sum(VisitorDailyStat.hits)).filter(
+                VisitorDailyStat.kind == "page", VisitorDailyStat.key == "/a"
+            ).scalar()
+            assert hits == 2
+            assert db.session.query(VisitorDailyStat).filter(
+                VisitorDailyStat.kind == "page", VisitorDailyStat.key == "/b"
+            ).count() == 0
+            assert resumer_jours_manquants(datetime.utcnow()) == 0
+
+    def test_statistiques_90_jours_avec_logs_bruts_supprimes(self, admin_client, app, db):
+        from clean_visitor_logs import resumer_jours_manquants
+        from models.models import VisitorLog
+        from datetime import datetime
+        with app.app_context():
+            self._log(db, 40, page="/ancien", session="s1")
+            self._log(db, 3, page="/recent", session="s2")
+            self._log(db, 0, page="/aujourdhui", session="s3")
+            db.session.commit()
+            resumer_jours_manquants(datetime.utcnow())
+            # Les jours résumés ne doivent plus dépendre des logs bruts
+            midi_aujourdhui = datetime.utcnow().replace(hour=0, minute=0, second=0, microsecond=0)
+            VisitorLog.query.filter(VisitorLog.visited_at < midi_aujourdhui).delete(synchronize_session=False)
+            db.session.commit()
+
+        resp = admin_client.get("/admin/statistiques?period=90")
+        assert resp.status_code == 200
+        assert "pas pu être calculées".encode() not in resp.data
+        for page in (b"/ancien", b"/recent", b"/aujourdhui"):
+            assert page in resp.data
+
+    def test_purge_garde_90_jours(self, app, db, monkeypatch):
+        import clean_visitor_logs
+        from models.models import VisitorLog, VisitorDailyStat
+        from datetime import datetime, timedelta
+        monkeypatch.setattr(clean_visitor_logs, "app", app)
+        with app.app_context():
+            self._log(db, 100, page="/tres-ancien", session="s1")
+            self._log(db, 10, page="/recent", session="s2")
+            db.session.commit()
+
+            clean_visitor_logs.clean_old_visitor_logs(90)
+
+            pages = {row.page_url for row in VisitorLog.query.all()}
+            assert pages == {"/recent"}
+            limite = (datetime.utcnow() - timedelta(days=90)).date()
+            assert VisitorDailyStat.query.filter(VisitorDailyStat.day < limite).count() == 0
+            assert VisitorDailyStat.query.filter(VisitorDailyStat.key == "/recent").count() == 1
